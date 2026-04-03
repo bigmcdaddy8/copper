@@ -1,0 +1,28 @@
+[project]
+name = "copper"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=6",
+  "ruff>=0.8",
+]
+
+[tool.uv.workspace]
+members = ["apps/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["apps"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Prevent import collisions between apps with same test file names
+addopts = "--import-mode=importlib"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
