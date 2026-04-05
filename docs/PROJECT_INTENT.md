@@ -1,64 +1,140 @@
+# Project Intent for Copper v2
 
-# Project Intent for Copper
+This document grounds the AI Developer on the business intent, operating assumptions, and initial design direction for Copper. It is intended to support project planning and technical design, not to lock implementation details permanently. Where specific defaults are defined below, they should be treated as the current working rules for initial implementation.
 
-The project will eventually be the home of a wide variety of programs / utilities that are used to support the trading activity and decision making of the human trader (a.k.a., 'Mr. Dick Weasel').
+Copper will eventually host multiple programs and utilities that support the trading activity and decision-making of the human trader, Mr. Dick Weasel.
 
-## Data Directory Location
+## Goal #1: `trade_hunter`
 
-External to this project there is an external directory that contains various directory structures that hold the input and output data files that will serve as input to this project. 
-**Ubuntu Directory Path**: ```/home/temckee8/OneDriveMount/DropboxClone/ToddStuff/trading```
+`trade_hunter` produces potential trade signals from manually downloaded input files plus market data retrieved from the Tradier API. The first implementation focuses on generating ranked BULL-ish and BEAR-ish option-selling candidates.
 
-## Input Data:
+The output is a workbook containing candidate trades sorted by descending Trade Score.
 
-Input to the processing will come in 2 forms: input data files and an API to the 'Tradier' brokerage.
+## Data Root
 
-#### SeekingAlpha Screen Data:
+The business data for this project lives outside the repository.
 
-Dick Weasel will manually run screens that are set up in his SeekingAlpha.com account and download .xlsx files and place them in the 'Directory Path'/'downloads' directory. There will be one file for the potential 'BULL-ish' trade candidates and another for the potential 'BEAR-ish' trade candidates.
+- Ubuntu data root: `/home/temckee8/OneDriveMount/DropboxClone/ToddStuff/trading`
+- Expected subdirectories under the data root:
+  - `downloads/`
+  - `worksheets/`
+  - `uploads/`
 
-**File Format**:
-| Column Name | Notes |
+Initial implementation should support explicit input paths via CLI options. If file discovery is added, it should use configurable glob patterns rather than hard-coded filenames.
+
+## Run Behavior Defaults
+
+Unless later changed, `trade_hunter` should follow these operational defaults:
+
+- Required input files missing: fail the run with a clear error.
+- Per-ticker data issues: log a warning and continue processing other tickers.
+- Output workbook: overwrite the prior `trade_signals.xlsx` on each successful run.
+- Run logging: create a per-run log that captures warnings, skips, and API issues.
+
+## Data Sources
+
+Input data comes from two file-based sources and one API-based source.
+
+### 1. SeekingAlpha Screen Data
+
+The trader manually runs screens in SeekingAlpha and downloads Excel files into `downloads/`.
+
+- One file contains BULL-ish candidates.
+- One file contains BEAR-ish candidates.
+
+These files are expected to contain at least the following columns:
+
+| Column Name | Use |
 | -------- | -------- |
-| Rank | Not Used |
-| Symbol | Ticker Symbol |
-| Company Name| Name of Company |
-| Price | Not Used |
-| Change % | Not Used |
-| Quant Rating | Range: 1.0 (Strong Sell) to 5.0 (Strong Buy) |
-| Exchange | 'NYSE' or 'NASDAQ' |
-| Growth | Range: 'A+' to 'F' |
-| Momentum | Range: 'A+' to 'F' |
-| Prev Close | Not Used |
-| Upcoming Announce Date | M/D/YYYY |
-| SA Analyst Ratings | Range: 1.0 (Strong Sell) to 5.0 (Strong Buy) |
-| Wall Street Ratings | Range: 1.0 (Strong Sell) to 5.0 (Strong Buy) |
-| Sector & Industry | Industry |
+| Rank | Ignore |
+| Symbol | Required |
+| Company Name | Optional informational field |
+| Price | Ignore |
+| Change % | Ignore |
+| Quant Rating | Required |
+| Exchange | Optional |
+| Growth | Required for scoring when applicable |
+| Momentum | Required for scoring |
+| Prev Close | Ignore |
+| Upcoming Announce Date | Fallback earnings date |
+| SA Analyst Ratings | Ignore for v1 |
+| Wall Street Ratings | Ignore for v1 |
+| Sector & Industry | Optional for future use |
 
+Notes:
 
-#### TastyTrade Data:
+- `Quant Rating` source scale is `1.0` to `5.0`.
+- `Growth` and `Momentum` source scale is `A+` to `F`.
+- The file names are not yet fixed by business rule, so the program should accept them explicitly or discover them via configurable patterns.
 
-Dick Weasel will manually download a .csv file from his TastyTrade account that contains data like volatility, option liquidity and upcoming earnings date for tickers in the 'Russell 1000' that have tradable options.
+### 2. TastyTrade Data
 
-**File Format**:
-| Column Name | Notes |
+The trader manually downloads a CSV file from TastyTrade into `downloads/`. This file is the source of the universal tradable ticker universe and several scoring inputs.
+
+This data is assumed to represent Russell 1000 tickers with tradable options. If that assumption later proves incomplete, the TastyTrade file remains the source of truth for the tradable universe used by `trade_hunter`.
+
+Expected columns:
+
+| Column Name | Use |
 | -------- | -------- |
-| Symbol | Ticker Symbol |
-| Last | Not Used |
-| Volume | Stock Volume |
-| Beta | Volatility compared to S&P 500, ranges from 0 to over 1.0 (though it can be negative). A Beta > 1 is more volatile than the market, while < 1 is less volatile |
-| Corr SPY | Measures directional tendency compared to S&P 500, Range: -1.0 to 1.0 +1.0 (Perfect Positive Correlation): The stock moves in exact lockstep with the S&P 500. If SPY goes up 1%, the stock goes up 1%. Positive (0.1 to 0.9): The stock generally moves in the same direction as the market. Large-cap stocks often have high positive correlations. 0.0 (No Correlation): The stock's price movement is independent of the S&P 500. Negative (-0.1 to -1.0): The stock tends to move in the opposite direction of the market (e.g., inverse ETFs or certain defensive sectors during panic) |
-| Liquidity | A binary value that represents a number of stars 1-4, where 1 is illiquid and 4 is very liquid |
-| IV Idx | 30 day IVx |
-| IV Rank | IV Rank, range 0 to 100 |
-| IV %tile | IVP, range 0.0 to 100.0 |
-| Name | Company Name |
-| Earnings At | M/D/YYYY |
-| Sector | Sector |
+| Symbol | Required |
+| Last | Present but not used for scoring |
+| Volume | Optional for future use |
+| Beta | Optional for future use |
+| Corr SPY | Optional for future use |
+| Liquidity | Output only in v1 |
+| IV Idx | Required |
+| IV Rank | Required |
+| IV %tile | Required |
+| Name | Optional informational field |
+| Earnings At | Primary earnings date |
+| Sector | Required |
 
-##### Sector Standardization
-Some of the sector names will need to be translated to a standard name, the names that need to be translated are:
+### 3. Dick Weasel Trade Data
 
-| TastyTrade Sector Name | Standard Name |
+Active trades are stored in `worksheets/journal.xlsx`, worksheet `daJournal`.
+
+For `trade_hunter`, only the `Symbol` column is required. The worksheet is assumed to already represent active trades, so rows in `daJournal` should be treated as active without additional filtering unless business rules change later.
+
+If multiple rows exist for the same ticker, that ticker is still treated as one active underlying when building open-trade exclusion sets and diversity calculations.
+
+Expected columns:
+
+| Column Name | Use |
+| -------- | -------- |
+| Symbol | Required |
+| M8 Trade # | Ignore |
+| Entry Capital Required | Ignore |
+| Budget Allocation | Ignore |
+| Date Entered | Ignore |
+| Date Closed | Ignore |
+| Days In Trade | Ignore |
+| Calculated Final PnL | Ignore |
+| Trade Category | Ignore |
+
+### 4. Tradier API Data
+
+Tradier provides market and options-chain data needed for filtering and scoring.
+
+Reference: `https://docs.tradier.com/docs/getting-started`
+
+The implementation must respect Tradier rate limits and throttle or queue requests as needed. Rate-limit headers returned by Tradier should be used when practical.
+
+## Data Normalization Rules
+
+### Universal Data Set
+
+The Universal Data Set is the TastyTrade file after sector normalization and basic validation.
+
+Any SeekingAlpha candidate not present in the Universal Data Set is out of scope for this run, should be logged as a warning, and should be skipped.
+
+Any open-trade ticker not present in the Universal Data Set should also be logged as a warning but should not stop processing.
+
+### Sector Standardization
+
+TastyTrade sector values must be normalized before any downstream processing.
+
+| TastyTrade Sector Name | Standard Sector Name |
 | -------- | -------- |
 | Basic Materials | Materials |
 | Capital Goods | Industrials |
@@ -74,136 +150,137 @@ Some of the sector names will need to be translated to a standard name, the name
 | Real Estate | Real Estate |
 | REIT | Real Estate |
 
-#### Dick Weasel Trade Data:
+If a sector value is unrecognized, log a warning and skip the ticker unless a future mapping rule is added.
 
-Dick Weasel keeps his trade data in spreadsheets located in the 'Directory Path'/'worksheets' directory. In workbook 'journal.xlsx' the worksheet 'daJournal' will have the list of active trades. Since multiple trades can be active on the same ticker symbol expect there to be multiple entries for some tickers. Only the first column 'Symbol' is of interest for this program.
+### Sector Bucket Mapping
 
-**File Format**:
-| Column Name | Notes |
+After standardization, each sector must also be assigned to a cyclical bucket.
+
+| Standard Sector Name | Sector Bucket |
 | -------- | -------- |
-| Symbol | Ticker Symbol |
-| M8 Trade # | Not Used |
-|	Entry Capital Required | Not Used |
-| Budget Allocation | Not Used |	
-| Date Entered | Not Used |
-| Date Closed	| Not Used |
-| Days In Trade | Not Used |
-| Calculated Final PnL | Not Used |
-| Trade Category | Not Used |
+| Materials | Economic |
+| Industrials | Economic |
+| Consumer Discretionary | Growth |
+| Consumer Staples | Defensive |
+| Energy | Economic |
+| Financials | Economic |
+| Health Care | Defensive |
+| Communication Services | Growth |
+| Information Technology | Growth |
+| Utilities | Defensive |
+| Real Estate | Economic |
 
-### Trader API
+## Processing Pipeline
 
-The programs will also get current market data via the API made available through the 'Tradier' brokerage. '''https://docs.tradier.com/docs/getting-started'''. Note that there are rate limits of the 'Tradier' APIs
+`trade_hunter` should process data in this order:
 
-#### Tradier Rate Limits
+1. Load and validate required input files.
+2. Load TastyTrade data and build the Universal Data Set.
+3. Normalize sectors and assign sector buckets.
+4. Load active trade symbols from `journal.xlsx` worksheet `daJournal`.
+5. Deduplicate active trade symbols for exclusion and diversity calculations.
+6. Load SeekingAlpha BULL-ish candidates.
+7. Load SeekingAlpha BEAR-ish candidates.
+8. Remove any candidate already present in the open-trade symbol set.
+9. Remove any candidate not present in the Universal Data Set.
+10. Join remaining candidates to the Universal Data Set.
+11. Retrieve required Tradier data for remaining joined candidates.
+12. Apply hard filters.
+13. Compute scoring inputs.
+14. Calculate Trade Score.
+15. Sort descending by Trade Score.
+16. Write output workbook and per-run log.
 
-The code that calls the 'Tradier' API will need to be aware of the rate limits and be able to throttle / queue requests as needed.
+## Tradier Data Requirements
 
-##### Tradier Rate Limit Documentation
-
-###### How Rate Limits Work
-Two pieces of information to understand as it pertains to our limits:
-
-- Interval: we aggregate limits over 1-minute intervals starting with the first request and reset 1 minute late
-- Limit: this can vary as outlined below, but we keep ours to 60 - 120 requests
-
-For example: With a rate limit of 120 requests per minute, if you make a /quotes request every second for a minute, you would still have 60 requests left in that minute before hitting the limit.
-
-**###### **Should you be concerned about rate-limits?**
-
-Probably not. Polling for data, while not the best solution, is reasonably supported by our APIs. The limits exist with enough headroom to get up-to-date data and still have room to make other requests. The best way to know if your application will hit the limits is to build it and scale back.
-
-
-###### Limits
-Each limit is enforced by the minute and on a per-access-token basis. As such, the limits are enforced on per app and per user basis.
-
-- Standard
-  - This includes resources in /accounts, /watchlists, /users and /orders.
-  - This does NOT include placing orders.
-  - Production: 120 requests per minute.
-  - Sandbox: 60 request per minute.
-- Market Data
-  - This includes resources in /markets.
-  - Production: 120 requests per minute.
-  - Sandbox: 60 request per minute.
-- Trading
-  - This includes all resources in the “trade” scope.
-  - Production: 60 request per minute.
-  - Sandbox: 60 request per minute.
-
-###### Headers
-With each request that has a rate limit applied a series of headers will be sent in the response. These headers should help you to gauge your usage and when to throttle your application. For example:
-```
-X-Ratelimit-Allowed: 120
-X-Ratelimit-Used: 1
-X-Ratelimit-Available: 119
-X-Ratelimit-Expiry: 1369168800001
-```
-
-## Goal #1: trade_hunter
-
-This program is used to produce potential trade signals. It will apply a set of rules and a weighting system to the input data and output trade signals. These trade signals will be for tickers that are in the Russell 1000, data that cause join issues because they are not a Russell 1000 ticker can be either ignored or logged as a warning. 
-
-### The Algorithm
-
-Universal Data Set = TastyTrade dataset which is filtered to Russell 1000 tickers.
-
-It is anticipated that not all ticker symbols in the BULL-ish / BEAR-ish data sets will have an entry in the Universal Data Set. These types of issues should be collected in a per run error log but not stop processing because are to be expected. Not all of the tickers in the Open Trades data set will be in the Universal Data set either, because there are open trades in ETFs and non-Russell 1000 stocks. 
-
-#### Filter the BULL-ish and BEAR-ish Data
-
-Filter out any BULL-ish or BEAR-ish tickers that are not in the Universal Dataset. 
-Get a data set of all of the possible tradable tickers and associated static data. This comes from the joining of the 'TastyTrade Data'. Any BULL-ish / BEAR-ish ticker not in this Universal data set will be logged as a 'Warning' and then will be skipped over.
-
-### Prepare Open Trades Data Set
-
-Get a list of tickers that are currently involved in an active trade. This comes from the 'Dick Weasel Trade Data'.
-
-### Prepare BULL-ish Data Set
-
-Join the 'SeekingAlpha Screen BULL-ish Data' candidates that are not in the 'Open Trades Data Set' with the 'Universal Data Set`. Be sure to log any errors in the run log.
-
-### Prepare BEAR-ish Data Set
-
-Join the 'SeekingAlpha Screen BEAR-ish Data' candidates that are not in the 'Open Trades Data Set' with the 'Universal Data Set`. Be sure to log any errors in the run log.
-
-### Prepare 'Tradier' Data
-
-For both the BULL-ish and BEAR-ish data additional data needs to be gathered that is needed by the weighting algorithm. This data is acquired from the 'Tradier' brokerage using its' API. 
-
-The additional data that needs to be gathered and correlated with the BULL-ish and BEAR-ish data is defined in the following table:
+For each remaining ticker, gather the following fields from Tradier:
 
 | Column Name | Notes |
 | -------- | -------- |
-| ticker | Ticker Symbol |
-| Expiration Date | M/D/YYYY of the next monthly cycle has a DTE >= 30d and <= 60d in the option chain |
-| Last Price | Last trade price of the underlying stock |
-| Put Strike | The strike of the first Put option with the 'Expiration Date' that is <= -.21 delta |
-| Call Strike | The strike of the first Call option with the 'Expiration Date' that is >= .21 delta |
-| Put Open Interest | The open interest in the first Put option with the 'Expiration Date' that is <= -.21 delta |
-| Call Open Interest | The open interest in the first Call option with the 'Expiration Date' that is >= .21 delta |
-| Put Bid | The bid for the Put option with the 'Expiration Date' that is <= -.21 delta  |
-| Call Bid | The bid for the Call option with the 'Expiration Date' that is >= .21 delta  |
-| Put Ask | The ask for the Put option with the 'Expiration Date' that is <= -.21 delta  |
-| Call Ask | The ask for the Call option with the 'Expiration Date' that is >= .21 delta  |
+| Ticker | Underlying ticker |
+| Expiration Date | Selected monthly expiration with DTE between 30 and 60 calendar days inclusive |
+| Last Price | Current underlying last trade price |
+| Put Strike | Selected put strike |
+| Call Strike | Selected call strike |
+| Put Delta | Delta of selected put |
+| Call Delta | Delta of selected call |
+| Put Open Interest | Open interest of selected put |
+| Call Open Interest | Open interest of selected call |
+| Put Bid | Bid of selected put |
+| Call Bid | Bid of selected call |
+| Put Ask | Ask of selected put |
+| Call Ask | Ask of selected call |
 
-### Apply Filters
-Apply the following filters to both the BULL-ish and BEAR-ish data sets to remove tickers that do not meet the required criteria. Note where applicable the 'Put' data is used for the 'BULL-ish' data set, and the 'Call' data is used for the 'BEAR-ish' data set. For example if we are inspecting 'AAPL' from the 'BULL-ish' data set then we would use 'Put Open Interest' for the 'Open Interest' check.
+### Expiration Selection Rule
 
-For each ticker apply the following checks:
-- **Monthly Cycle**: A monthly cycle option was found for the ticker in the 'Tradier' data.
-- **Open Interest**: The open interest is >= 8.
-- **Bid**: The bid is >= 0.55
-- **Spread**: The spread (ask - bid) of the option is <= 8% of the last price of the underlying stock.
+When multiple monthly expirations qualify, select the nearest monthly expiration whose DTE is between 30 and 60 calendar days inclusive.
 
-Note: This criteria should be easily configurable through either command line parameters, config file or some other convenient method.
+### Option Selection Rule
 
-### Prepare Additional Weighting Data
-For each remaining BULL-ish or BEAR-ish entry calculate a 'trade score' for each entry. The range of this score will be from 0.00 to 5.00 where 0.00 represents a poor quality trade and 5.00 represents the highest quality trade possible.
+For the selected expiration:
 
-A weighting algorithm will be created that uses the following weighting table and handles the data normalization that is needed to create a 'trade score'. The 'Weight' value is used to indicate the importance of that particular metric to the weighting algorithm.
+- BULL-ish candidate: use the put whose delta is less than or equal to `-0.21` and is closest to `-0.21`.
+- BEAR-ish candidate: use the call whose delta is greater than or equal to `0.21` and is closest to `0.21`.
 
-Note the 'Growth' metric is only used in the Weighting calculation if the potential trade candidate is in the Growth sector bucket.
+If no qualifying option exists for the required side, log a warning and skip the ticker.
+
+### Monthly Cycle Rule
+
+The program should use the standard monthly expiration cycle. If Tradier exposes sufficient metadata to identify monthly contracts directly, use that metadata. Otherwise, infer the monthly cycle using the standard monthly expiration convention.
+
+## Hard Filters
+
+Apply these filters to both BULL-ish and BEAR-ish candidates after Tradier enrichment.
+
+For BULL-ish candidates, use the selected put fields.
+
+For BEAR-ish candidates, use the selected call fields.
+
+### Spread% Formula
+'Spread%' is calculated as the option price spread as % of Option Mid Price.
+- Measures spread relative to what you actually trade
+- Scale-invariant across strikes and expirations
+- Direct proxy for execution friction
+
+**Formula**:
+`Spread% = (option ask - option bid) / ((option ask + option bid)/2)`
+
+Default thresholds for initial implementation:
+
+| Filter | Rule |
+| -------- | -------- |
+| Monthly Cycle | A valid monthly cycle expiration was found |
+| Open Interest | `>= 8` |
+| Bid | `>= 0.55` |
+| Spread% | `(option ask - option bid) / ((option ask + option bid)/2) <= 13%` |
+
+These thresholds must be configurable through CLI options, config file support, or another convenient configuration mechanism.
+
+Be sure to log the criteria failure as they occur.
+
+## Scoring Methodology
+
+Each surviving candidate receives a Trade Score in the range `0.00` to `5.00`.
+
+### Final Score Formula
+
+Use a weighted average:
+
+`Trade Score = sum(weight * quality) / sum(active weights)`
+
+This keeps the final score normalized to the `0.00` to `5.00` range.
+
+### Active Weight Rule
+
+All listed weights participate unless a metric is explicitly not applicable.
+
+The only planned not-applicable rule in the initial version is:
+
+- `Growth` is only included when the candidate belongs to the `Growth` sector bucket.
+
+If `Growth` is not applicable, remove both its weight and its metric contribution from the weighted average denominator and numerator.
+
+### Metric Weights
 
 | Metric | Weight |
 | -------- | -------- |
@@ -220,239 +297,281 @@ Note the 'Growth' metric is only used in the Weighting calculation if the potent
 | Momentum | 1.0 |
 | Bid | 1.0 |
 
-#### IVR Sourcing Notes
-IVR comes from the TastyTrade data and uses the following quality table:
+## Quality Tables and Metric Rules
+
+### IVR Quality
+Source: TastyTrade `IV Rank`
+
 | IVR | Quality |
 | -------- | -------- |
-| IVR <= 10.0 | 0.0 |
-| 10.0 < IVR <= 20.0 | 1.0 |
-| 20.0 < IVR <= 30.0 | 2.5 |
-| 30.0 < IVR <= 50.0 | 4.0 |
-| IVR > 50.0 | 5.0 |
+| `<= 10.0` | `0.0` |
+| `> 10.0` and `<= 20.0` | `1.0` |
+| `> 20.0` and `<= 30.0` | `2.0` |
+| `> 30.0` and `<= 50.0` | `4.0` |
+| `> 50.0` | `5.0` |
 
-#### IVP Sourcing Notes
-IVP comes from the TastyTrade data and uses the following quality table:
+### IVP Quality
+Source: TastyTrade `IV %tile`
+
 | IVP | Quality |
 | -------- | -------- |
-| IVP <= 10.0 | 0.0 |
-| 10.0 < IVP <= 20.0 | 1.0 |
-| 20.0 < IVP <= 30.0 | 2.5 |
-| 30.0 < IVP <= 50.0 | 4.0 |
-| IVP > 50.0 | 5.0 |
+| `<= 10.0` | `0.0` |
+| `> 10.0` and `<= 20.0` | `1.0` |
+| `> 20.0` and `<= 30.0` | `2.0` |
+| `> 30.0` and `<= 50.0` | `4.0` |
+| `> 50.0` | `5.0` |
 
-#### Open Interest Sourcing Notes
-Open Interest comes from the 'Tradier' data and uses the following quality table:
+### Open Interest Quality
+Source: selected Tradier option
+
 | Open Interest | Quality |
 | -------- | -------- |
-| Open Interest <= 10 | 0.0 |
-| 10 < Open Interest <= 100 | 2.0 |
-| 100 < Open Interest <= 1000 | 4.5 |
-| Open Interest > 1000 | 5.0 |
+| `<= 10` | `0.0` |
+| `> 10` and `<= 100` | `2.0` |
+| `> 100` and `<= 1000` | `4.5` |
+| `> 1000` | `5.0` |
 
-#### Spread% Sourcing Notes
-Spread% is calculated from the 'Tradier' data using this formula: (ask - bid) / last price of the underlying stock. 
+### Spread% Quality
+'Spread%' is calculated as the option price spread as % of Option Mid Price.
+- Measures spread relative to what you actually trade
+- Scale-invariant across strikes and expirations
+- Direct proxy for execution friction
 
-**Spread% Quality**
-| Spread% | Quality |
-| -------- | -------- |
-| Spread% <= 3% | 5.0 |
-| 3% < Spread% <= 5% | 3.0 |
-| 5% < Spread% <= 8% | 1.0 |
-| Spread% > 8% | 0.0 |
+**Formula**:
+`Spread% = (option ask - option bid) / ((option ask + option bid)/2)`
 
-#### BPR Sourcing Notes
-**BPR Quality**
+| Spread% | Quality   |
+| ---------- | ------- |
+| ≤ 2%       | **5.0** |
+| 2–4%       | **4.5** |
+| 4–6%       | **4.0** |
+| 6–8%       | **3.0** |
+| 8–12%      | **2.0** |
+| 12–20%     | **1.0** |
+| > 20%      | **0.0** |
+
+
+### BPR Quality
+For initial implementation, `premium` should use the same side-specific option bid that would be used for trade entry, which keeps the estimate conservative and internally consistent.
+
+For naked puts:
+
+`BPR = max(0.20 * underlying_price - OTM_amount + premium, 0.10 * underlying_price + premium, 2.50 + premium) * 100`
+
+Where:
+
+- `OTM_amount = underlying_price - put_strike`
+
+For naked calls:
+
+`BPR = max(0.20 * underlying_price - OTM_amount + premium, 0.10 * underlying_price + premium, 2.50 + premium) * 100`
+
+Where:
+
+- `OTM_amount = call_strike - underlying_price`
+
 | BPR | Quality |
 | -------- | -------- |
-| BPR <= 500 | 3.0 |
-| 500 < BPR <= 1500 | 5.0 |
-| 1500 < BPR <= 3000 | 3.5 |
-| 3000 < BPR <= 4500 | 2.0 |
-| BPR > 4500 | 0.0 |
+| `<= 500` | `3.0` |
+| `> 500` and `<= 1500` | `5.0` |
+| `> 1500` and `<= 3000` | `3.5` |
+| `> 3000` and `<= 4500` | `1.5` |
+| `> 4500` | `0.0` |
 
+### Cyclical Diversity Quality
+This metric evaluates how concentrated the current active trades are within the candidate's sector bucket.
 
-BPR is calculated using the following formula for a Naked Put:
-```
-MAX(
-  20% of underlying price – OTM amount + premium,
-  10% of underlying price + premium,
-  $2.50 per share + premium
-) × 100
-```
+Rules:
 
-**Example**: Short Naked Put
-Stock = $100
-Sell 95 put for $2
-```
-OTM = 5
+- Count each active ticker once.
+- Determine each active ticker's standardized sector and sector bucket.
+- Compute bucket allocation percentage using the deduplicated active ticker set.
 
-Case 1:
-20% * 100 = 20
-20 - 5 + 2 = 17
+| Sector Bucket Allocation % | Quality |
+| -------- | -------- |
+| `<= 21%` | `5.0` |
+| `> 21%` and `<= 55%` | `2.0` |
+| `> 55%` | `0.0` |
 
-Case 2:
-10% * 100 = 10
-10 + 2 = 12
+### Quant Rating Quality
+Source: SeekingAlpha `Quant Rating`
 
-Case 3:
-2.5 + 2 = 4.5
+- BULL-ish quality: use the value directly.
+- BEAR-ish quality: use `6.0 - quant_rating`.
 
-→ BPR = 17 × 100 = $1,700
-```
+This preserves a `1.0` to `5.0` scale while flipping directionality.
 
-**Example**: Short Naked Call
-Similar, but:
-```
-OTM = strike – stock price
-```
+### Sector Diversity Quality
+This metric evaluates how concentrated the current active trades are within the candidate's exact standardized sector.
+
+Rules:
+
+- Count each active ticker once.
+- Compute sector allocation percentage using the deduplicated active ticker set.
+
+| Sector Allocation % | Quality |
+| -------- | -------- |
+| `<= 3%` | `5.0` |
+| `> 3%` and `<= 13%` | `2.0` |
+| `> 13%` | `0.0` |
+
+### Earnings Date Quality
+
+Earnings date source precedence:
+
+1. TastyTrade `Earnings At`
+2. SeekingAlpha `Upcoming Announce Date`
+3. If both are blank, assume the earnings date is 70 calendar days after the run date
 
 Formula:
-```
-MAX(
-  20% of underlying – OTM + premium,
-  10% of underlying + premium,
-  $2.50 + premium
-) × 100
-```
 
-#### Cyclical Diversity Sourcing Notes
-The Dick Weasel trade data is used to determine how many trades are currently in each of the sectors. Sectors are grouped into 3 distinct buckets. It is advantageous to open a trade in a lightly populated sector bucket. The current sector bucket allocation of the active trades will have to be calculated. When doing this calculation a ticker is only counted once in a sector bucket even if there is more than 1 trade in the ticker active. The 'Cyclical Diversity Quality' depends upon the current allocation percentage of the sector bucket that the potential trade belongs to.
+`EaE = earnings_date - expiration_date`
 
-**Sector Bucket Mapping**:
-| TastyTrade Sector Name | Standard Name |
-| -------- | -------- |
-| Economic | Materials |
-| Economic | Industrials |
-| Growth | Consumer Discretionary |
-| Defensive | Consumer Staples |
-| Economic | Energy |
-| Economic | Financials |
-| Defensive | Health Care |
-| Growth | Communication Services |
-| Growth | Information Technology |
-| Transportation | Consumer Discretionary |
-| Defensive | Utilities |
-| Economic | Real Estate |
+Where `EaE` is measured in calendar days.
 
-**Cyclical Diversity Quality**
-| Sector Bucket Allocation% | Quality |
-| -------- | -------- |
-| Sector Bucket Allocation% <= 21% | 5.0 |
-| 21% < Sector Bucket Allocation% <= 55% | 2.0 |
-| Sector Bucket Allocation% > 55% | 0.0 |
-
-#### Quant Rating Sourcing Notes
-Quant Rating comes directly from the SeekingAlpha data. Note that for BEAR-ish data the smaller the number the better, so we have to flip it (i.e., in order to normalize it) by subtracting it's value from 5.0. 
-
-#### Sector Diversity Sourcing Notes
-The Dick Weasel trade data is used to determine how many trades are currently in each of the sectors. It is advantageous to open a trade in a lightly populated sector. The current sector allocation of the active trades will have to be calculated. When doing this calculation a ticker is only counted once in a sector even if there is more than 1 trade in the ticker active. The 'Sector Diversity Quality' depends upon the current allocation percentage of the sector that the potential trade belongs to.
-
-**Sector Diversity Quality**
-| Sector Allocation% | Quality |
-| -------- | -------- |
-| Sector Allocation% <= 3% | 5.0 |
-| 3% < Sector Bucket Allocation% <= 13% | 2.0 |
-| Sector Bucket Allocation% > 13% | 0.0 |
-
-#### Earnings Date Sourcing Notes
-The next earnings date can be found in 2 data sets: the TastyTrade data and the SeekingAlpha data. We will use the earnings date from the TastyTrade data unless that date is blank, then the SeekingAlpha date will be used. If both dates are blank then it will be assumed that the earnings date is 70 days away from the current date. The 'Earnings After Expiration Days (EaE)' is calculated by doing the data math of 'Earnings Date' - 'Expiration Date'.
-
-**EaE Quality**
 | EaE | Quality |
 | -------- | -------- |
-| EaE <= -14 | 3.0 |
-| -14 < EaE <= 1 | 0.0 |
-| EaE > 1 | 5.0 |
+| `<= -14` | `3.0` |
+| `> -14` and `<= 1` | `0.0` |
+| `> 1` | `5.0` |
 
-#### Growth Sourcing Notes
-The Growth metric is in the SeekingAlpha data and it only matters if the potential trade candidate is in the Growth sector bucket. If the potential trade candidate is not in the Growth sector bucket then we don't use this metric in the weighting calculation. The range of values in the Growth data is 'A+' to 'F'. The table below shows the 'Quality' number to use for BULL-ish trade candidates, for BEAR-ish trade candidates the number is transformed by subtracting the Quality number from 5.
+### Growth Quality
 
-**Growth Quality**
+Source: SeekingAlpha `Growth`
+
+This metric is only active when the candidate belongs to the `Growth` sector bucket.
+
+Bullish mapping:
+
 | Growth | Quality |
 | -------- | -------- |
-| A+ | 5.0 |
-| A | 4.5 |
-| A- | 4.0 |
-| B+ | 3.0 |
-| B | 2.5 |
-| B- | 2.0 |
-| C+ | 1.25 |
-| C | 1.0 |
-| C- | 0.75 |
-| D+ | 0.5 |
-| D | 0.25 |
-| D- | 0.1 |
-| F | 0.0 |
+| `A+` | `5.0` |
+| `A` | `4.5` |
+| `A-` | `4.0` |
+| `B+` | `3.0` |
+| `B` | `2.5` |
+| `B-` | `2.0` |
+| `C+` | `1.25` |
+| `C` | `1.0` |
+| `C-` | `0.75` |
+| `D+` | `0.5` |
+| `D` | `0.25` |
+| `D-` | `0.1` |
+| `F` | `0.0` |
 
-#### Momentum Sourcing Notes
-The Momentum metric is in the SeekingAlpha data. The range of values in the Momentum data is 'A+' to 'F'. The table below shows the 'Quality' number to use for BULL-ish trade candidates, for BEAR-ish trade candidates the number is transformed by subtracting the Quality number from 5.
+For BEAR-ish candidates, transform quality as `5.0 - bullish_quality`.
 
-**Momentum Quality**
+### Momentum Quality
+
+Source: SeekingAlpha `Momentum`
+
+Bullish mapping:
+
 | Momentum | Quality |
 | -------- | -------- |
-| A+ | 5.0 |
-| A | 4.5 |
-| A- | 4.0 |
-| B+ | 3.0 |
-| B | 2.5 |
-| B- | 2.0 |
-| C+ | 1.25 |
-| C | 1.0 |
-| C- | 0.75 |
-| D+ | 0.5 |
-| D | 0.25 |
-| D- | 0.1 |
-| F | 0.0 |
+| `A+` | `5.0` |
+| `A` | `4.5` |
+| `A-` | `4.0` |
+| `B+` | `3.0` |
+| `B` | `2.5` |
+| `B-` | `2.0` |
+| `C+` | `1.25` |
+| `C` | `1.0` |
+| `C-` | `0.75` |
+| `D+` | `0.5` |
+| `D` | `0.25` |
+| `D-` | `0.1` |
+| `F` | `0.0` |
 
-#### Bid Sourcing Notes
-The Bid data is in the 'Tradier' data. For BULL-ish potential trades the 'Put Bid' is used and for BEAR-ish potential trades the 'Call Bid' is used..
+For BEAR-ish candidates, transform quality as `5.0 - bullish_quality`.
 
-**Bid Quality**
+### Bid Quality
+
+Source:
+
+- BULL-ish: selected put bid
+- BEAR-ish: selected call bid
+
 | Bid | Quality |
 | -------- | -------- |
-| Bid <= 0.55 | 0.0 |
-| 0.55 < Bid <= 0.89 | 1.0 |
-| 0.89 < Bid <= 1.44 | 2.5 |
-| 1.44 < Bid <= 2.33 | 3.5 |
-| 2.33 < Bid <= 3.77 | 4.5 |
-| 3.77 < Bid <= 6.10 | 2.5 |
-| Bid > 6.10 | 0.0 |
+| `<= 0.55` | `0.0` |
+| `> 0.55` and `<= 0.89` | `1.0` |
+| `> 0.89` and `<= 1.44` | `2.5` |
+| `> 1.44` and `<= 2.33` | `3.5` |
+| `> 2.33` and `<= 3.77` | `4.5` |
+| `> 3.77` and `<= 6.10` | `2.5` |
+| `> 6.10` | `0.0` |
 
+## Output Workbook
 
+Write the output workbook to `uploads/trade_signals.xlsx`.
 
-## Output Data:
+Create two worksheets:
 
-The data will be output to the 'Directory Path'/'uploads' directory into a workbook named 'trade_signals.xlsx' into worksheets named either 'BULL-ish' or 'BEAR-ish'. The sort order will be descending on the 'Trade Score' column.
+- `BULL-ish`
+- `BEAR-ish`
 
-**WorkSheet Format**:
+Each worksheet should be sorted in descending order by `Trade Score`.
+
+### Output Columns
+
 | Column Name | Format |
 | -------- | -------- |
 | Ticker | Text |
 | Sector Bucket | Text |
 | Sector | Text |
-| Option Type | Text 'Put' or 'Call' |
-| Expiration Date | Date 'MM/DD/YYYY' |
-| Earnings Date | Date 'MM/DD/YYYY' |
-| DTE | Number '#' |
-| Price | Number #.## |
-| Strike | Number # |
-| Bid | Number # |
-| Ask | Number # |
-| Spread% | Number '#.#%' |
-| Delta | Number '[-]0.##' |
-| Open Interest | Number # |
-| Trade Score | Number #.## |
-| Quant Rating | Number #.## |
-| Liquidity | Text '# Stars' |
+| Option Type | Text: `Put` or `Call` |
+| Expiration Date | Date `MM/DD/YYYY` |
+| Earnings Date | Date `MM/DD/YYYY` |
+| DTE | Integer |
+| Price | Number `#.##` |
+| Strike | Number `#` |
+| Bid | Number `#` |
+| Ask | Number `#` |
+| Spread% | Percent `#.#%` |
+| Delta | Number `[-]0.##` |
+| Open Interest | Number `#` |
+| Trade Score | Number `#.##` |
+| Quant Rating | Number `#.##` |
+| Liquidity | Text `# Stars` |
 | Growth | Text |
 | Momentum | Text |
-| IVx | Number '#.##%' |
-| IVR | Number '#.##' |
-| IVP | Number '#.##%' |
-| BPR | Number '$#' |
+| IVx | Percent `#.##%` |
+| IVR | Number `#.##` |
+| IVP | Percent `#.##%` |
+| BPR | Currency `$#` |
 
+## Logging Expectations
 
+The run log should include at minimum:
 
+- Missing required files
+- Input schema problems
+- Unknown sector values
+- Candidate tickers missing from the Universal Data Set
+- Open-trade tickers missing from the Universal Data Set
+- Tradier API failures or throttling events
+- Tickers skipped because no valid monthly cycle or no qualifying option was found
+- Summary counts for loaded, filtered, skipped, scored, and written records
 
+## Concerns Addressed in v2
 
+This revision resolves several issues from the original draft:
 
+- Defines the Trade Score formula explicitly.
+- Corrects BEAR-ish Quant Rating inversion to `6.0 - rating`.
+- Fixes the sector bucket mapping orientation and content.
+- Defines deterministic expiration and strike-selection rules.
+- Clarifies failure-vs-warning behavior.
+- Clarifies active trade deduplication for exclusion and diversity metrics.
+- Clarifies that Growth is excluded from scoring when not applicable.
+
+## Items Intentionally Left for Future Design
+
+These are not blockers for initial planning, but may warrant future refinement:
+
+- Exact CLI parameter names and config-file format
+- Exact run-log file location and naming convention
+- Caching strategy for Tradier responses
+- Whether additional SeekingAlpha ratings should later contribute to scoring
+- Whether DTE and earnings calculations should ever use trading days instead of calendar days

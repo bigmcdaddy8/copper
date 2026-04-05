@@ -30,5 +30,10 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Credentials — never commit real secrets
+.env
+.env.*
+!.env.example
+
 # Logs
 *.log

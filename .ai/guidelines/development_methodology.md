@@ -3,7 +3,7 @@
 ## Development Roles
 
 - **Vibe Engineer**: The human product owner of the project who directs the "AI Developer" on what work to do. The "Vibe Engineer" is responsible for making the final decision on project direction and options.
-- **AI Developer**: An AI Engine (i.e., Claude Sonnet 4.5 is the current choice) (via GitHub Copilot in VS Code) is the AI engine doing the actual work per the guidance of the "Vibe Engineer". The AI engine also offers suggestions and asks questions to help understand, clarify and optimize the project development direction.
+- **AI Developer**: An AI Engine (i.e., Claude Sonnet 4.6 is the current choice) (via GitHub Copilot in VS Code) is the AI engine doing the actual work per the guidance of the "Vibe Engineer". The AI engine also offers suggestions and asks questions to help understand, clarify and optimize the project development direction.
 
 ## Development Environment
 
@@ -42,6 +42,8 @@ This template provides a foundation with standard Python development tools. Addi
 3. **Validation**: Vibe Engineer reviews and approves
 4. **Commit**: Small, atomic commits with clear messages
 5. **Iterate**: Continuous feedback loop
+
+A story board is kept and maintained by the AI Developer in 'docs/STORY_BOARD.md' and the individual stories written and maintained by the AI Developer are in the 'docs/stories' directory.
 
 ## Testing Philosophy
 
