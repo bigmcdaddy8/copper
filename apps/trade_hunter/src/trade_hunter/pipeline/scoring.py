@@ -69,13 +69,13 @@ def spread_pct_quality(bid: float, ask: float) -> float:
     return 0.0
 
 
-def bpr_quality(
+def _bpr_value(
     underlying_price: float,
     strike: float,
     bid: float,
     option_type: str,
 ) -> float:
-    """Compute Buying Power Reduction and map to a quality score.
+    """Compute the raw BPR dollar value (before quality mapping).
 
     premium = bid (conservative, consistent with trade entry)
 
@@ -89,12 +89,8 @@ def bpr_quality(
     ) * 100
     """
     premium = bid
-    if option_type == "put":
-        otm_amount = underlying_price - strike
-    else:
-        otm_amount = strike - underlying_price
-
-    bpr = (
+    otm_amount = underlying_price - strike if option_type == "put" else strike - underlying_price
+    return (
         max(
             0.20 * underlying_price - otm_amount + premium,
             0.10 * underlying_price + premium,
@@ -102,6 +98,16 @@ def bpr_quality(
         )
         * 100
     )
+
+
+def bpr_quality(
+    underlying_price: float,
+    strike: float,
+    bid: float,
+    option_type: str,
+) -> float:
+    """Compute Buying Power Reduction and map to a quality score."""
+    bpr = _bpr_value(underlying_price, strike, bid, option_type)
 
     if bpr <= 500:
         return 3.0
@@ -260,6 +266,31 @@ def bid_quality(bid: float) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Liquidity metric
+# ---------------------------------------------------------------------------
+
+_FILLED_STAR = "\u2605"  # ★
+
+_LIQUIDITY_QUALITY_MAP: dict[int, float] = {
+    0: 0.0,
+    1: 0.5,
+    2: 2.0,
+    3: 4.5,
+    4: 5.0,
+}
+
+
+def liquidity_quality(liquidity_str: str) -> float:
+    """Map TastyTrade Liquidity star string to a quality score.
+
+    Counts filled stars (★, U+2605) in the raw string.
+    Returns 0.0 for any unrecognized value.
+    """
+    stars = liquidity_str.count(_FILLED_STAR)
+    return _LIQUIDITY_QUALITY_MAP.get(stars, 0.0)
+
+
+# ---------------------------------------------------------------------------
 # Diversity list builder
 # ---------------------------------------------------------------------------
 
@@ -298,6 +329,7 @@ _WEIGHTS: dict[str, float] = {
     "Growth": 1.0,
     "Momentum": 1.0,
     "Bid": 1.0,
+    "Liquidity": 1.0,
 }
 
 
@@ -361,15 +393,24 @@ def calculate_scores(
 
     result = enriched.copy()
     scores: list[float] = []
+    earnings_date_strs: list[str] = []
+    bpr_values: list[float] = []
 
     for _, row in result.iterrows():
         exp_date = date.fromisoformat(str(row["Expiration Date"])[:10])
         resolved_earnings = _resolve_earnings_date(row, run_date)
         sector_bucket = row["Sector Bucket"]
 
+        bpr_val = _bpr_value(
+            float(row["Last Price"]),
+            float(row["Strike"]),
+            float(row["Bid"]),
+            str(row["Option Type"]),
+        )
+
         qualities: dict[str, float] = {
-            "IVR": ivr_quality(float(row["IV Rank"])),
-            "IVP": ivp_quality(float(row["IV %tile"])),
+            "IVR": ivr_quality(float(row["IV Rank"]) if pd.notna(row["IV Rank"]) else 0.0),
+            "IVP": ivp_quality(float(row["IV %tile"]) if pd.notna(row["IV %tile"]) else 0.0),
             "Open Interest": open_interest_quality(float(row["Open Interest"])),
             "Spread%": spread_pct_quality(float(row["Bid"]), float(row["Ask"])),
             "BPR": bpr_quality(
@@ -384,6 +425,7 @@ def calculate_scores(
             "Earnings Date": earnings_date_quality(resolved_earnings, exp_date),
             "Momentum": momentum_quality(str(row["Momentum"]), side),
             "Bid": bid_quality(float(row["Bid"])),
+            "Liquidity": liquidity_quality(str(row["Liquidity"])),
         }
 
         # Active weight rule: include Growth only for Growth sector bucket
@@ -395,6 +437,10 @@ def calculate_scores(
         raw_score = numerator / denominator
         final_score = round(max(0.0, min(5.0, raw_score)), 2)
         scores.append(final_score)
+        earnings_date_strs.append(resolved_earnings.isoformat())
+        bpr_values.append(bpr_val)
 
     result["Trade Score"] = scores
+    result["Earnings Date"] = earnings_date_strs
+    result["BPR"] = bpr_values
     return result

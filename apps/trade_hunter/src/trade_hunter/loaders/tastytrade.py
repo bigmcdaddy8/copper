@@ -89,5 +89,29 @@ def load_tastytrade(
     df = df.drop(columns=["_std_sector"])
     df["Sector Bucket"] = df["Sector"].map(assign_bucket)
 
+    # Normalize numeric IV columns:
+    #   IV Idx  — strip "%" suffix and commas, convert to float (NaN for "--" / missing)
+    #   IV Rank — convert to float (NaN for "--" / missing)
+    #   IV %tile — convert to float (NaN for "--" / missing)
+    for col in ("IV Idx",):
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(",", "", regex=False)
+                .str.rstrip("%")
+                .replace({"--": None, "nan": None, "": None})
+                .astype(float)
+            )
+    for col in ("IV Rank", "IV %tile"):
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.strip()
+                .replace({"--": None, "nan": None, "": None})
+                .astype(float)
+            )
+
     available = [c for c in _OUTPUT_COLUMNS if c in df.columns]
     return df[available].reset_index(drop=True), warnings

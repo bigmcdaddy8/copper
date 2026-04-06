@@ -26,3 +26,4 @@ class RunConfig:
     min_dte: int = 30
     max_dte: int = 60
     sandbox: bool = False
+    verbose: bool = False

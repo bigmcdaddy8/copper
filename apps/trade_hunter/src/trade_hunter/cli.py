@@ -1,4 +1,5 @@
 import os
+from datetime import date
 from pathlib import Path
 
 import typer
@@ -6,9 +7,12 @@ from dotenv import load_dotenv
 from rich.console import Console
 
 from trade_hunter.config import RunConfig, _DEFAULT_DOWNLOADS_DIR, _DEFAULT_WORKSHEETS_DIR
+from trade_hunter.pipeline.runner import run_pipeline
+from trade_hunter.tradier.client import TradierClient
 
 app = typer.Typer()
 console = Console()
+err_console = Console(stderr=True)
 
 
 @app.callback()
@@ -51,6 +55,9 @@ def run(
     min_dte: int = typer.Option(30, help="Minimum days-to-expiration for expiration selection"),
     max_dte: int = typer.Option(60, help="Maximum days-to-expiration for expiration selection"),
     sandbox: bool = typer.Option(False, "--sandbox", help="Use Tradier sandbox environment"),
+    verbose: bool = typer.Option(
+        False, "--verbose", help="Print per-ticker enrichment progress and rate-limit state"
+    ),
 ) -> None:
     """Generate ranked BULL-ish and BEAR-ish option-selling candidates."""
     load_dotenv()
@@ -63,15 +70,14 @@ def run(
     if sandbox:
         api_key = os.environ.get("TRADIER_SANDBOX_API_KEY", "")
         if not api_key:
-            console.print(
-                "[red]Error:[/red] TRADIER_SANDBOX_API_KEY is not set (required for sandbox mode).",
-                err=True,
+            err_console.print(
+                "[red]Error:[/red] TRADIER_SANDBOX_API_KEY is not set (required for sandbox mode)."
             )
             raise typer.Exit(code=1)
     else:
         api_key = os.environ.get("TRADIER_API_KEY", "")
         if not api_key:
-            console.print("[red]Error:[/red] TRADIER_API_KEY is not set.", err=True)
+            err_console.print("[red]Error:[/red] TRADIER_API_KEY is not set.")
             raise typer.Exit(code=1)
 
     config = RunConfig(
@@ -89,10 +95,19 @@ def run(
         min_dte=min_dte,
         max_dte=max_dte,
         sandbox=sandbox,
+        verbose=verbose,
     )
 
     _print_summary(config)
-    console.print("[yellow]Configuration loaded. Pipeline not yet implemented.[/yellow]")
+
+    try:
+        tradier_client = TradierClient(api_key=config.tradier_api_key, sandbox=config.sandbox)
+        workbook_path, log_path = run_pipeline(config, tradier_client, run_date=date.today())
+        console.print(f"[green]Workbook written:[/green] {workbook_path}")
+        console.print(f"[green]Run log written:[/green]  {log_path}")
+    except Exception as exc:
+        err_console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1)
 
 
 def _auto_or_explicit(path: Path | None, downloads_dir: Path) -> str:
@@ -118,6 +133,7 @@ def _print_summary(config: RunConfig) -> None:
     env_label = "sandbox" if config.sandbox else "production"
     console.print(f"  Tradier API key   : ****  (set, {env_label})")
     console.rule()
+    console.print(f"  Verbose           : {'on' if config.verbose else 'off'}")
     console.print(f"  Min open interest : {config.min_open_interest}")
     console.print(f"  Min bid           : {config.min_bid}")
     console.print(f"  Max spread %      : {config.max_spread_pct * 100:.1f}%")

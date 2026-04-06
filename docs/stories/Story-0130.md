@@ -1,6 +1,6 @@
 # Story-0130 — Excel Workbook Output
 
-**Status**: Pre-Approved  
+**Status**: Completed  
 **Phase**: 5 — Output
 
 ---
@@ -32,6 +32,9 @@ is written to `output_dir / "trade_signals.xlsx"`.
 does not store them in the returned DataFrame. Both are required output columns. This story
 adds them as a minor amendment to `pipeline/scoring.py` before the workbook writer is built.
 
+`Liquidity` quality was added in Story-0125 and the raw `Liquidity` column is already present
+in the scored DataFrame — no additional scoring.py work is needed for it.
+
 ---
 
 ## New Files
@@ -46,61 +49,61 @@ adds them as a minor amendment to `pipeline/scoring.py` before the workbook writ
 
 | File | Change |
 |---|---|
-| `apps/trade_hunter/src/trade_hunter/pipeline/scoring.py` | Store `Earnings Date` (str) and `BPR` (float) columns in `calculate_scores` output |
+| `apps/trade_hunter/src/trade_hunter/pipeline/scoring.py` | Extract `_bpr_value()` helper; store `Earnings Date` (str) and `BPR` (float) columns in `calculate_scores` output |
 | `apps/trade_hunter/tests/test_trade_score.py` | Assert `Earnings Date` and `BPR` columns present in scored output |
 
 ---
 
 ## `calculate_scores` amendment
 
-Inside the per-row loop, after resolving `resolved_earnings` and computing the BPR value,
-store them into parallel lists and append as columns at the end of the function — alongside
-`Trade Score`. Specifically:
+Extract the BPR dollar-value computation into a private `_bpr_value()` helper (reused by
+`bpr_quality()`). Inside the per-row loop, capture:
 
-- `Earnings Date` — stored as an ISO date string `"YYYY-MM-DD"` (consistent with
-  `Expiration Date`).
-- `BPR` — stored as a `float` (the raw dollar value, not the quality score).
+- `resolved_earnings.isoformat()` → appended to `earnings_date_strs` list
+- `_bpr_value(...)` → appended to `bpr_values` list
+
+After the loop, append both as columns alongside `Trade Score`:
+
+- `Earnings Date` — ISO date string `"YYYY-MM-DD"`
+- `BPR` — raw dollar float (not the quality score)
 
 ---
 
 ## Column mapping
 
 The scored DataFrame uses internal column names that differ from the workbook output headers.
-The writer applies this mapping before writing:
+The writer renames only the columns that change:
 
 | DataFrame column | Workbook header |
 |---|---|
 | `Symbol` | `Ticker` |
-| `Sector Bucket` | `Sector Bucket` |
-| `Sector` | `Sector` |
-| `Option Type` | `Option Type` |
-| `Expiration Date` | `Expiration Date` |
-| `Earnings Date` | `Earnings Date` |
-| `DTE` | `DTE` |
 | `Last Price` | `Price` |
-| `Strike` | `Strike` |
-| `Bid` | `Bid` |
-| `Ask` | `Ask` |
-| *(computed)* | `Spread%` |
-| `Delta` | `Delta` |
-| `Open Interest` | `Open Interest` |
-| `Trade Score` | `Trade Score` |
-| `Quant Rating` | `Quant Rating` |
-| `Liquidity` | `Liquidity` |
-| `Growth` | `Growth` |
-| `Momentum` | `Momentum` |
 | `IV Idx` | `IVx` |
 | `IV Rank` | `IVR` |
 | `IV %tile` | `IVP` |
-| `BPR` | `BPR` |
 
-`Spread%` is computed in the writer as `(ask - bid) / ((ask + bid) / 2)` from the `Bid` and
-`Ask` columns before column mapping.
+All other column names pass through unchanged.
+
+`Spread%` is computed in the writer as `(Ask - Bid) / ((Ask + Bid) / 2)` from the `Bid` and
+`Ask` columns before column renaming.
 
 `Option Type` values are title-cased (`"put"` → `"Put"`, `"call"` → `"Call"`) before writing.
 
 `Earnings Date` and `Expiration Date` string values (`"YYYY-MM-DD"`) are parsed to
 `datetime.date` objects before writing so openpyxl can apply the `MM/DD/YYYY` date format.
+
+`Liquidity` raw star strings (e.g. `"★★★☆"`) are converted to `"X stars"` text by counting
+filled star characters (★, U+2605): `f"{value.count('\u2605')} stars"`.
+
+---
+
+## Output column order (23 columns)
+
+```
+Ticker, Sector Bucket, Sector, Option Type, Expiration Date, Earnings Date,
+DTE, Price, Strike, Bid, Ask, Spread%, Delta, Open Interest, Trade Score,
+Quant Rating, Liquidity, Growth, Momentum, IVx, IVR, IVP, BPR
+```
 
 ---
 
@@ -163,9 +166,10 @@ def write_workbook(
 7. `Option Type` values are title-cased (`Put` / `Call`).
 8. Date columns contain `datetime.date` values (not strings) so openpyxl formats them correctly.
 9. `Spread%`, `IVx`, and `IVP` are stored as fractions.
-10. `calculate_scores` output now includes `Earnings Date` and `BPR` columns.
-11. `uv run pytest` passes (all existing + new tests).
-12. `uv run ruff check .` and `uv run ruff format --check .` report no issues.
+10. `Liquidity` is written as `"X stars"` text.
+11. `calculate_scores` output now includes `Earnings Date` and `BPR` columns.
+12. `uv run pytest` passes (all existing + new tests).
+13. `uv run ruff check .` and `uv run ruff format --check .` report no issues.
 
 ---
 
@@ -186,6 +190,8 @@ All tests write to a `tmp_path` directory (pytest fixture) — no permanent file
   `"Put"`.
 - `test_workbook_empty_bear_sheet`: BEAR DataFrame is empty; assert sheet exists with headers
   but zero data rows.
+- `test_workbook_liquidity_stars_text`: row with `Liquidity="★★★☆"`; assert cell value is
+  `"3 stars"`.
 
 `tests/test_trade_score.py` additions:
 - `test_scored_has_earnings_date_column`: assert `Earnings Date` column present in result.

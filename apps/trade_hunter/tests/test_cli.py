@@ -5,6 +5,10 @@ import sys
 DUMMY_ARGS = [
     "--output-dir",
     "/tmp",
+    # Pass explicit non-existent paths so loaders fail immediately (FileNotFoundError)
+    # rather than scanning the default OneDrive mount directory.
+    "--tastytrade-file",
+    "/tmp/nonexistent_tastytrade.csv",
 ]
 
 
@@ -25,7 +29,12 @@ def test_run_missing_api_key():
     assert "TRADIER_API_KEY" in r.stderr
 
 
-def test_run_dry_run_summary():
+def test_run_prints_summary_before_pipeline():
+    """Config summary is always printed before pipeline execution.
+
+    With a valid API key but no input files at the default paths, the run
+    exits with code 1 after printing the summary (FileNotFoundError from loader).
+    """
     strip = {"TRADIER_API_KEY", "TRADIER_SANDBOX_API_KEY", "TRADIER_ENV"}
     env = {k: v for k, v in os.environ.items() if k not in strip}
     env["TRADIER_API_KEY"] = "test-key-123"
@@ -37,6 +46,9 @@ def test_run_dry_run_summary():
         text=True,
         env=env,
     )
-    assert r.returncode == 0
+    # Pipeline exits non-zero because no input files exist at the default paths
+    assert r.returncode == 1
+    # Config summary is still printed to stdout before the pipeline attempts to load files
     assert "TastyTrade" in r.stdout
-    assert "Pipeline not yet implemented" in r.stdout
+    # Error message is printed to stderr
+    assert "Error" in r.stderr

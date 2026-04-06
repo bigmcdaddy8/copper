@@ -259,11 +259,9 @@ These thresholds must be configurable through CLI options, config file support, 
 Be sure to log the criteria failure as they occur.
 
 ## Scoring Methodology
-
 Each surviving candidate receives a Trade Score in the range `0.00` to `5.00`.
 
 ### Final Score Formula
-
 Use a weighted average:
 
 `Trade Score = sum(weight * quality) / sum(active weights)`
@@ -296,9 +294,9 @@ If `Growth` is not applicable, remove both its weight and its metric contributio
 | Growth | 1.0 |
 | Momentum | 1.0 |
 | Bid | 1.0 |
+| Liquidity | 1.0 |
 
 ## Quality Tables and Metric Rules
-
 ### IVR Quality
 Source: TastyTrade `IV Rank`
 
@@ -486,7 +484,6 @@ Bullish mapping:
 For BEAR-ish candidates, transform quality as `5.0 - bullish_quality`.
 
 ### Bid Quality
-
 Source:
 
 - BULL-ish: selected put bid
@@ -501,6 +498,28 @@ Source:
 | `> 2.33` and `<= 3.77` | `4.5` |
 | `> 3.77` and `<= 6.10` | `2.5` |
 | `> 6.10` | `0.0` |
+
+### Liquidity Quality
+The liquidity column in the tastytrade data contains binary that represent encoded start symbols that are used to indicate the level of liquidity - from 0 stars (very illiquid) to 4 stars (very liquid).
+
+| Stars | Binary Value |
+| ☆☆☆☆ | 0xe29886e29886e29886e29886 |
+| ★☆☆☆ | 0xe29885e29886e29886e29886 |
+| ★★☆☆ | 0xe29885e29885e29886e29886 |
+| ★★★☆ | 0xe29885e29885e29885e29886 |
+| ★★★★ | 0xe29885e29885e29885e29885 |
+
+**Liquidity Quality***:
+| Binary Value | Quality |
+| -------- | -------- |
+| 0xe29886e29886e29886e29886 | 0.0 |
+| 0xe29885e29886e29886e29886 | 0.5 |
+| 0xe29885e29885e29886e29886 | 2.0 | 
+| 0xe29885e29885e29885e29886 | 4.5 |
+| 0xe29885e29885e29885e29885 | 5.0 |
+
+
+
 
 ## Output Workbook
 

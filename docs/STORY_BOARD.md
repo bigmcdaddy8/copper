@@ -52,16 +52,23 @@ Stories are stored as individual files in `docs/stories/`.
 | Story-0110 | Diversity & SeekingAlpha Metrics | Completed | [Story-0110](./stories/Story-0110.md) |
 | Story-0120 | Trade Score Calculator | Completed | [Story-0120](./stories/Story-0120.md) |
 
+### Phase 4 — Hard Filters & Scoring Engine (continued)
+
+| Story | Title | Status | Link |
+|---|---|---|---|
+| Story-0125 | Liquidity Quality Metric | Completed | [Story-0125](./stories/Story-0125.md) |
+
 ### Phase 5 — Output
 
 | Story | Title | Status | Link |
 |---|---|---|---|
-| Story-0130 | Excel Workbook Output | Pre-Approved | [Story-0130](./stories/Story-0130.md) |
-| Story-0140 | Per-Run Log File | Pre-Approved | [Story-0140](./stories/Story-0140.md) |
+| Story-0130 | Excel Workbook Output | Completed | [Story-0130](./stories/Story-0130.md) |
+| Story-0140 | Per-Run Log File | Completed | [Story-0140](./stories/Story-0140.md) |
 
 ### Phase 6 — Integration & Polish
 
 | Story | Title | Status | Link |
 |---|---|---|---|
-| Story-0150 | End-to-End Integration Test | Pre-Approved | [Story-0150](./stories/Story-0150.md) |
-| Story-0160 | README & Config Docs | Pre-Approved | [Story-0160](./stories/Story-0160.md) |
+| Story-0150 | End-to-End Integration | Completed | [Story-0150](./stories/Story-0150.md) |
+| Story-0160 | README & Config Docs | Completed | [Story-0160](./stories/Story-0160.md) |
+| Story-0170 | Verbose Progress & Adaptive Throttling | Completed | [Story-0170](./stories/Story-0170.md) |

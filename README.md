@@ -54,6 +54,15 @@ copper/
   - **Workspace** (`./pyproject.toml`): Shared dev tools (pytest, ruff, pytest-cov)
   - **Apps** (`apps/*/pyproject.toml`): App-specific dependencies (typer, rich, etc.)
 
+## trade_hunter
+
+`trade_hunter` generates ranked BULL-ish and BEAR-ish option-selling candidates from
+TastyTrade and SeekingAlpha input files combined with live Tradier options data.
+Output is a scored and sorted Excel workbook (`trade_signals.xlsx`).
+
+See **[apps/trade_hunter/README.md](apps/trade_hunter/README.md)** for setup,
+configuration, input file formats, and all CLI options.
+
 ## Quick Start
 
 ### Installation

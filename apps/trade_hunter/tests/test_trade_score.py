@@ -38,6 +38,7 @@ def _base_row(**overrides) -> dict:
         "Growth": "B",  # grade_quality -> 2.5
         "Momentum": "A-",  # grade_quality -> 4.0; bid_quality -> 2.5
         "Earnings At": str(RUN_DATE + timedelta(days=80)),  # EaE=35 -> 5.0
+        "Liquidity": "\u2605\u2605\u2605\u2606",  # ★★★☆ → quality 4.5
     }
     row.update(overrides)
     return row
@@ -81,20 +82,21 @@ _ACTIVE_SECTORS = [
 
 
 def test_score_known_value():
-    """Hand-computed expected score = 3.84 for the base row with Growth included.
+    """Hand-computed expected score = 3.87 for the base row with Growth included.
 
     Metric qualities and weights:
       IVR=4.0 (w=3), IVP=5.0 (w=3), OI=4.5 (w=3), Spread=2.0 (w=3),
       BPR=3.5 (w=3), CycDiv=5.0 (w=3), Quant=4.0 (w=2), SecDiv=2.0 (w=1),
-      Earn=5.0 (w=1), Growth=2.5 (w=1), Mom=4.0 (w=1), Bid=2.5 (w=1)
-      numerator=96.0, denominator=25.0, score=3.84
+      Earn=5.0 (w=1), Growth=2.5 (w=1), Mom=4.0 (w=1), Bid=2.5 (w=1),
+      Liquidity=4.5 (w=1) [★★★☆]
+      numerator=100.5, denominator=26.0, score=3.8654→3.87
 
     Note: bid=1.10/ask=1.20 → spread≈8.7% → falls in 8–12% band → quality=2.0
     """
     df = _df(_base_row())
     result = calculate_scores(df, "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
     assert "Trade Score" in result.columns
-    assert result.iloc[0]["Trade Score"] == pytest.approx(3.84, abs=1e-4)
+    assert result.iloc[0]["Trade Score"] == pytest.approx(3.87, abs=1e-4)
 
 
 # ---------------------------------------------------------------------------
@@ -248,6 +250,26 @@ def test_build_active_diversity_lists_symbol_not_in_universe():
     buckets, sectors = build_active_diversity_lists(active, universal)
     assert buckets == ["Growth"]
     assert sectors == ["Information Technology"]
+
+
+def test_scored_has_earnings_date_column():
+    """calculate_scores output includes an Earnings Date column."""
+    df = _df(_base_row())
+    result = calculate_scores(df, "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
+    assert "Earnings Date" in result.columns
+
+
+def test_scored_has_bpr_column():
+    """calculate_scores output includes a BPR column with a positive dollar value."""
+    df = _df(_base_row())
+    result = calculate_scores(df, "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
+    assert "BPR" in result.columns
+    assert result.iloc[0]["BPR"] > 0
+
+
+# ---------------------------------------------------------------------------
+# build_active_diversity_lists
+# ---------------------------------------------------------------------------
 
 
 def test_build_active_diversity_lists_empty_active():

@@ -1,3 +1,6 @@
+import io
+import re
+import zipfile
 from pathlib import Path
 
 import pandas as pd
@@ -15,6 +18,24 @@ _OUTPUT_COLUMNS = [
     "Momentum",
     "Upcoming Announce Date",
 ]
+
+
+_CF_PATTERN = re.compile(rb"<conditionalFormatting\b[^>]*>.*?</conditionalFormatting>", re.DOTALL)
+
+
+def _read_xlsx_tolerant(path: Path) -> pd.DataFrame:
+    """Read a SeekingAlpha xlsx, stripping conditional-formatting rules that
+    openpyxl cannot parse (e.g. the 'notContainsBlanks' operator)."""
+    with zipfile.ZipFile(path, "r") as zin:
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zout:
+            for item in zin.infolist():
+                content = zin.read(item.filename)
+                if item.filename.startswith("xl/worksheets/") and item.filename.endswith(".xml"):
+                    content = _CF_PATTERN.sub(b"", content)
+                zout.writestr(item, content)
+        buf.seek(0)
+        return pd.read_excel(buf, engine="openpyxl")
 
 
 def discover_seekingalpha_file(downloads_dir: Path, glob: str) -> Path:
@@ -64,7 +85,7 @@ def load_seekingalpha(
         glob = BULL_GLOB if side == "BULL" else BEAR_GLOB
         path = discover_seekingalpha_file(downloads_dir, glob)
 
-    df = pd.read_excel(path, engine="openpyxl")
+    df = _read_xlsx_tolerant(path)
 
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:

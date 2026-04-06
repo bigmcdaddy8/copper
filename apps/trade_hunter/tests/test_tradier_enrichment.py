@@ -59,6 +59,8 @@ def _mock_client(
     chain_error=None,
 ) -> MagicMock:
     client = MagicMock()
+    client.rate_limit_state = (None, None)
+    client.last_computed_delay = 0.20
 
     if expiration_error:
         client.get_option_expirations.side_effect = expiration_error
@@ -215,6 +217,8 @@ def test_enrich_multiple_one_fails():
         return ["2025-04-04"]  # weekly only — won't qualify
 
     client = MagicMock()
+    client.rate_limit_state = (None, None)
+    client.last_computed_delay = 0.20
     client.get_option_expirations.side_effect = expiration_side_effect
     client.get_last_price.return_value = _LAST_PRICE
     client.get_option_chain.return_value = [_PUT_CONTRACT, _CALL_CONTRACT]
@@ -243,3 +247,151 @@ def test_enrich_empty_candidates():
     client.get_option_expirations.assert_not_called()
     client.get_last_price.assert_not_called()
     client.get_option_chain.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Verbose output
+# ---------------------------------------------------------------------------
+
+
+def test_enrich_verbose_false_produces_no_output(capsys):
+    """Default (verbose=False) produces no stdout output."""
+    candidates = _make_candidates("SPY")
+    client = _mock_client()
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=False)
+
+    assert capsys.readouterr().out == ""
+
+
+def test_enrich_verbose_prints_per_ticker_progress(capsys):
+    """verbose=True prints one line per ticker plus a summary line."""
+    candidates = _make_candidates("SPY", "AAPL")
+    client = _mock_client()
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "[BULL]" in out
+    assert "SPY" in out
+    assert "AAPL" in out
+    assert "1/2" in out
+    assert "2/2" in out
+    assert "complete" in out
+    assert "enriched 2/2" in out
+
+
+def test_enrich_verbose_summary_counts_skipped(capsys):
+    """Summary line reflects correct enriched/skipped counts."""
+    # SPY succeeds, NOPE has no qualifying expiration
+    candidates = _make_candidates("SPY", "NOPE")
+
+    call_count = 0
+
+    def expiration_side_effect(symbol):
+        nonlocal call_count
+        call_count += 1
+        return [_EXPIRATION] if symbol == "SPY" else ["2025-04-04"]
+
+    client = MagicMock()
+    client.rate_limit_state = (None, None)
+    client.last_computed_delay = 0.20
+    client.get_option_expirations.side_effect = expiration_side_effect
+    client.get_last_price.return_value = _LAST_PRICE
+    client.get_option_chain.return_value = [_PUT_CONTRACT, _CALL_CONTRACT]
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "enriched 1/2" in out
+    assert "skipped 1" in out
+
+
+def test_enrich_verbose_rate_info_shown_when_available(capsys):
+    """When rate_limit_state returns data, rate info appears in the progress line."""
+    import time as _time
+
+    candidates = _make_candidates("SPY")
+    client = _mock_client()
+    # Simulate state after first response: 350 available, window resets in 45s
+    client.rate_limit_state = (350, int((_time.time() + 45) * 1000))
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "rate:" in out
+    assert "350 avail" in out
+
+
+def test_enrich_verbose_summary_includes_throughput(capsys):
+    """Summary line includes API call count and calls/min."""
+    candidates = _make_candidates("SPY")
+    client = _mock_client()
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "API calls" in out
+    assert "calls/min" in out
+
+
+def test_enrich_verbose_pace_shown_in_progress(capsys):
+    """Per-ticker line includes pace annotation."""
+    candidates = _make_candidates("SPY")
+    client = _mock_client()
+    client.last_computed_delay = 0.16
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "pace:" in out
+    assert "0.16s/call" in out
+
+
+def test_enrich_verbose_throttle_change_notice(capsys):
+    """A throttle-change notice is printed when pace shifts by more than 50%."""
+    candidates = _make_candidates("SPY", "AAPL", "MSFT")
+    client = _mock_client()
+
+    # Simulate: delay = 0.20 for first ticker, then jumps to 0.80 (300% of 0.20)
+    delay_sequence = [0.20, 0.80, 0.80]
+    call_index = 0
+
+    def pace_side_effect():
+        nonlocal call_index
+        val = delay_sequence[min(call_index, len(delay_sequence) - 1)]
+        call_index += 1
+        return val
+
+    # last_computed_delay is read once per ticker via property
+    type(client).last_computed_delay = property(lambda self: pace_side_effect())
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "[throttle]" in out
+    assert "pacing adjusted" in out
+
+
+def test_enrich_verbose_api_call_count_correct(capsys):
+    """Summary reports 3 API calls for one fully enriched ticker."""
+    candidates = _make_candidates("SPY")
+    client = _mock_client()
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    # 3 calls for one successful ticker: expirations + last_price + chain
+    assert "3 API calls" in out
+
+
+def test_enrich_verbose_api_call_count_partial_skip(capsys):
+    """Summary counts only the calls that were actually made before a skip."""
+    # NOPE skips after the first call (expirations returns no qualifying date)
+    candidates = _make_candidates("NOPE")
+    client = _mock_client(expirations=["2025-04-04"])  # weekly — won't qualify
+
+    enrich_candidates(candidates, "BULL", client, _RUN_DATE, verbose=True)
+
+    out = capsys.readouterr().out
+    assert "1 API calls" in out
