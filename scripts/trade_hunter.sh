@@ -51,6 +51,14 @@ uv run python -m trade_hunter run \
   ${VERBOSE} 2>&1 | tee /tmp/trade_hunter_verbose.log
 EXIT_CODE=${PIPESTATUS[0]}
 
+# Let the write flush back to the backend
+sleep 8
+
+rclone rc vfs/refresh dir="${DROPBOX_UPLOADS_DIR}"
+
+# Wait a few seconds to ensure rclone has completed the refresh
+sleep 8
+
 # Rename the workbook with today's date on success
 if [[ $EXIT_CODE -eq 0 ]]; then
   DATE_SUFFIX=$(date +%Y-%m-%d)
