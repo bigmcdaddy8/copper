@@ -4,7 +4,7 @@ Quality functions map a numeric input to a quality float in the range 0.0–5.0.
 All quality functions are pure — no I/O or side effects.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 
@@ -379,6 +379,18 @@ def _resolve_earnings_date(row: pd.Series, run_date: date) -> date:
             return date.fromisoformat(str(val)[:10])
         except (ValueError, TypeError):
             pass
+        # TastyTrade "Earnings At" format: "May 27", "Apr 16 >", "Apr 29 <"
+        # Strip trailing annotation characters and infer the year from run_date.
+        if col == "Earnings At":
+            try:
+                cleaned = str(val).strip().rstrip("><").strip()
+                parsed = datetime.strptime(f"2000 {cleaned}", "%Y %b %d").date()
+                candidate = parsed.replace(year=run_date.year)
+                if candidate < run_date:
+                    candidate = candidate.replace(year=run_date.year + 1)
+                return candidate
+            except (ValueError, TypeError):
+                pass
     return run_date + timedelta(days=70)
 
 

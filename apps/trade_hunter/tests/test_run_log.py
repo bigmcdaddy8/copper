@@ -129,11 +129,11 @@ def test_warn_still_written_to_file_when_verbose(tmp_path, capsys):
 
 def test_add_warnings_prints_to_stdout_when_verbose(tmp_path, capsys):
     log = RunLog(run_start=_RUN_START, verbose=True)
-    log.add_warnings(["[BULL] 'AAPL' excluded — active open trade", "[BEAR] 'MSFT' not in Universal Data Set — skipped"])
+    log.add_warnings(["[BULL] 'AAPL' excluded — active open trade", "[BEAR] 'MSFT' not in TastyTrade Russell 1000 universe — skipped"])
     log.write(tmp_path)
     captured = capsys.readouterr()
     assert "[BULL] 'AAPL' excluded — active open trade" in captured.out
-    assert "[BEAR] 'MSFT' not in Universal Data Set — skipped" in captured.out
+    assert "[BEAR] 'MSFT' not in TastyTrade Russell 1000 universe — skipped" in captured.out
 
 
 def test_add_warnings_silent_when_not_verbose(tmp_path, capsys):

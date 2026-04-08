@@ -1,8 +1,11 @@
 """Unit tests for pipeline/scoring.py — core quality metric functions."""
 
+import pandas as pd
 import pytest
+from datetime import date
 
 from trade_hunter.pipeline.scoring import (
+    _resolve_earnings_date,
     bpr_quality,
     ivp_quality,
     ivr_quality,
@@ -233,3 +236,53 @@ def test_bpr_call_otm_direction():
     # underlying=30, call_strike=31, bid=0.40
     # OTM=1, same as put test → BPR=540 → 5.0
     assert bpr_quality(30.0, 31.0, 0.40, "call") == pytest.approx(5.0)
+
+
+# ---------------------------------------------------------------------------
+# _resolve_earnings_date — TastyTrade "Earnings At" format
+# ---------------------------------------------------------------------------
+
+def _row(earnings_at=None, upcoming=None):
+    data = {}
+    if earnings_at is not None:
+        data["Earnings At"] = earnings_at
+    if upcoming is not None:
+        data["Upcoming Announce Date"] = upcoming
+    return pd.Series(data)
+
+
+def test_resolve_earnings_plain_month_day():
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(_row("May 27"), run)
+    assert result == date(2026, 5, 27)
+
+
+def test_resolve_earnings_with_gt_suffix():
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(_row("Apr 16 >"), run)
+    assert result == date(2026, 4, 16)
+
+
+def test_resolve_earnings_with_lt_suffix():
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(_row("Apr 29 <"), run)
+    assert result == date(2026, 4, 29)
+
+
+def test_resolve_earnings_past_month_wraps_to_next_year():
+    # "Jan 15" when run_date is April — should resolve to next January
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(_row("Jan 15"), run)
+    assert result == date(2027, 1, 15)
+
+
+def test_resolve_earnings_empty_falls_back():
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(_row(""), run)
+    assert result == run + __import__("datetime").timedelta(days=70)
+
+
+def test_resolve_earnings_missing_col_falls_back():
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(pd.Series({}), run)
+    assert result == run + __import__("datetime").timedelta(days=70)

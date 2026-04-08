@@ -65,7 +65,10 @@ I believe the code "calculates" the upcoming possible monthly cycle dates by usi
 ### More logging around rejected tickers
 When the user has specified the '--verbose' option some additional logging needs to be added. There should be a log entry every time a a ticker that is in either the BULL or BEAR input file gets rejected and is not part of the output file. Some of the rejection reasons I can think of are 1) no match found in the TastyTrade data 2) the ticker did not pass the hard requirements and there are probably be more reasons as well. Every time that a ticker gets disqualified from the final results there should be a verbose log entry that describes at what stage the ticker got removed and the reason.
 
+# Backlog-0080: Earnings Date Incorrect
+**Status**: Closed — fixed in `pipeline/scoring.py` `_resolve_earnings_date`
 
+Noticed in today's run of @scripts/trade_hunter.sh that in the output file '/home/temckee8/Documents/data/copper/trade_hunter/uploads/scripts/trade_hunter.sh' the 'Earnings Date' column had '06/17/2026' for every ticker which is incorrect. And I noticed the 'Earnings Date' metric was always scored as a '5.0' due to this.
 
 
 

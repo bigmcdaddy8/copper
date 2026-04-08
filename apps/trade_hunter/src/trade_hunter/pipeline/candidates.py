@@ -68,7 +68,7 @@ def filter_and_join(
     # Step 4: exclude candidates not in the Universal Data Set
     not_in_universe_mask = ~remaining["Symbol"].isin(universe_symbols)
     for sym in remaining.loc[not_in_universe_mask, "Symbol"]:
-        warnings.append(f"[{side}] '{sym}' not in Universal Data Set — skipped")
+        warnings.append(f"[{side}] '{sym}' not in TastyTrade Russell 1000 universe — skipped")
     remaining = remaining[~not_in_universe_mask].copy()
 
     if remaining.empty:
