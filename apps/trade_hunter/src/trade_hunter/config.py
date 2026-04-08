@@ -9,6 +9,8 @@ _DEFAULT_WORKSHEETS_DIR = Path(
     "/home/temckee8/OneDriveMount/DropboxClone/ToddStuff/trading/worksheets"
 )
 
+_DEFAULT_CACHE_DIR = Path("/home/temckee8/Documents/data/copper/trade_hunter/data")
+
 
 @dataclass
 class RunConfig:
@@ -27,3 +29,4 @@ class RunConfig:
     max_dte: int = 60
     sandbox: bool = False
     verbose: bool = False
+    cache_dir: Path | None = field(default_factory=lambda: _DEFAULT_CACHE_DIR)

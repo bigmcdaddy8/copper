@@ -26,9 +26,10 @@ def filter_and_join(
     """Apply open-trade exclusion and universe membership filter, then join to Universal Data Set.
 
     Steps:
-      1. Remove rows whose Symbol is in active_symbols (open-trade exclusion).
-      2. Remove rows whose Symbol is not in universal_dataset (log warning per ticker).
-      3. Merge remaining rows with universal_dataset on Symbol (inner join).
+      1. Drop GOOG (use GOOGL instead).
+      2. Remove rows whose Symbol is in active_symbols (open-trade exclusion).
+      3. Remove rows whose Symbol is not in universal_dataset (log warning per ticker).
+      4. Merge remaining rows with universal_dataset on Symbol (inner join).
 
     Args:
         candidates:        SeekingAlpha DataFrame (Symbol, Quant Rating, Growth, Momentum, …).
@@ -46,7 +47,16 @@ def filter_and_join(
 
     universe_symbols = set(universal_dataset["Symbol"])
 
-    # Step 1: exclude open trades (checked before universe membership)
+    # Step 1: drop GOOG — GOOGL is the canonical ticker for this symbol
+    goog_mask = candidates["Symbol"] == "GOOG"
+    if goog_mask.any():
+        warnings.append(f"[{side}] 'GOOG' dropped — use GOOGL")
+        candidates = candidates[~goog_mask].copy()
+
+    if candidates.empty:
+        return pd.DataFrame(), warnings
+
+    # Step 3: exclude open trades (checked before universe membership)
     open_trade_mask = candidates["Symbol"].isin(active_symbols)
     for sym in candidates.loc[open_trade_mask, "Symbol"]:
         warnings.append(f"[{side}] '{sym}' excluded — active open trade")
@@ -55,7 +65,7 @@ def filter_and_join(
     if remaining.empty:
         return pd.DataFrame(), warnings
 
-    # Step 2: exclude candidates not in the Universal Data Set
+    # Step 4: exclude candidates not in the Universal Data Set
     not_in_universe_mask = ~remaining["Symbol"].isin(universe_symbols)
     for sym in remaining.loc[not_in_universe_mask, "Symbol"]:
         warnings.append(f"[{side}] '{sym}' not in Universal Data Set — skipped")
@@ -64,6 +74,6 @@ def filter_and_join(
     if remaining.empty:
         return pd.DataFrame(), warnings
 
-    # Step 3: join to Universal Data Set
+    # Step 5: join to Universal Data Set
     joined = pd.merge(remaining, universal_dataset, on="Symbol", how="inner")
     return joined.reset_index(drop=True), warnings

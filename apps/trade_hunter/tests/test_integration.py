@@ -6,7 +6,7 @@ no real files or API calls are made.
 
 from datetime import date
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import openpyxl
 import pandas as pd
@@ -120,9 +120,15 @@ def pipeline_result(tmp_path):
         bull_file=bull_path,
         bear_file=bear_path,
         journal_file=journal_path,
+        cache_dir=None,  # memory-only; avoid real yfinance calls
     )
 
-    workbook_path, log_path = run_pipeline(config, mock_client, run_date=_RUN_DATE)
+    # Patch yfinance so sector lookups return a known value without network calls
+    mock_yf_ticker = MagicMock()
+    mock_yf_ticker.info = {"sector": "Technology"}
+    with patch("trade_hunter.loaders.sector_cache.yfinance") as mock_yf:
+        mock_yf.Ticker.return_value = mock_yf_ticker
+        workbook_path, log_path = run_pipeline(config, mock_client, run_date=_RUN_DATE)
     return workbook_path, log_path, output
 
 
@@ -177,4 +183,4 @@ def test_integration_column_count(pipeline_result):
     workbook_path, _, _ = pipeline_result
     for sheet_name in ("BULL-ish", "BEAR-ish"):
         headers, _ = _read_sheet(workbook_path, sheet_name)
-        assert len(headers) == 23, f"{sheet_name} has {len(headers)} columns, expected 23"
+        assert len(headers) == 36, f"{sheet_name} has {len(headers)} columns, expected 36"

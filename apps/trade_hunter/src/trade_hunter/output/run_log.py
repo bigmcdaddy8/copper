@@ -20,22 +20,29 @@ class RunLog:
         log.write(output_dir, summary={"Loaded (BULL)": 45, "Scored (BULL)": 28})
     """
 
-    def __init__(self, run_start: datetime) -> None:
+    def __init__(self, run_start: datetime, verbose: bool = False) -> None:
         self._run_start = run_start
+        self._verbose = verbose
         self._entries: list[str] = []
 
     def warn(self, message: str) -> None:
-        """Append a [WARN] entry."""
-        self._entries.append(f"[WARN] {message}")
+        """Append a [WARN] entry, and print to stdout when verbose."""
+        entry = f"[WARN] {message}"
+        self._entries.append(entry)
+        if self._verbose:
+            print(entry)
 
     def add_warnings(self, warnings: list[str]) -> None:
-        """Append all items from an existing warnings list as [WARN] entries.
+        """Append all items from an existing warnings list verbatim, and print when verbose.
 
-        Items are expected to already carry their own prefix (e.g. "[WARN] …")
+        Items are expected to already carry their own prefix (e.g. "[BULL] …")
         and are appended verbatim. This matches the format returned by
-        enrich_candidates() and apply_hard_filters().
+        filter_and_join(), enrich_candidates(), and apply_hard_filters().
         """
         self._entries.extend(warnings)
+        if self._verbose:
+            for w in warnings:
+                print(w)
 
     def info(self, message: str) -> None:
         """Append an [INFO] entry."""

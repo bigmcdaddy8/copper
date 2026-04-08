@@ -6,7 +6,7 @@ import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
-from trade_hunter.config import RunConfig, _DEFAULT_DOWNLOADS_DIR, _DEFAULT_WORKSHEETS_DIR
+from trade_hunter.config import RunConfig, _DEFAULT_CACHE_DIR, _DEFAULT_DOWNLOADS_DIR, _DEFAULT_WORKSHEETS_DIR
 from trade_hunter.pipeline.runner import run_pipeline
 from trade_hunter.tradier.client import TradierClient
 
@@ -58,6 +58,10 @@ def run(
     verbose: bool = typer.Option(
         False, "--verbose", help="Print per-ticker enrichment progress and rate-limit state"
     ),
+    cache_dir: Path | None = typer.Option(
+        _DEFAULT_CACHE_DIR,
+        help="Directory for persistent cache files (e.g. sector data). Pass an empty string to disable caching.",
+    ),
 ) -> None:
     """Generate ranked BULL-ish and BEAR-ish option-selling candidates."""
     load_dotenv()
@@ -96,6 +100,7 @@ def run(
         max_dte=max_dte,
         sandbox=sandbox,
         verbose=verbose,
+        cache_dir=cache_dir,
     )
 
     _print_summary(config)
@@ -134,6 +139,8 @@ def _print_summary(config: RunConfig) -> None:
     console.print(f"  Tradier API key   : ****  (set, {env_label})")
     console.rule()
     console.print(f"  Verbose           : {'on' if config.verbose else 'off'}")
+    cache_display = str(config.cache_dir) if config.cache_dir else "disabled"
+    console.print(f"  Cache directory   : {cache_display}")
     console.print(f"  Min open interest : {config.min_open_interest}")
     console.print(f"  Min bid           : {config.min_bid}")
     console.print(f"  Max spread %      : {config.max_spread_pct * 100:.1f}%")

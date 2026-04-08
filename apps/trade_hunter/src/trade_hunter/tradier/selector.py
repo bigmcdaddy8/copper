@@ -1,12 +1,19 @@
-from datetime import date
+from datetime import date, timedelta
 
 
 def _is_monthly_expiration(exp_date: date) -> bool:
-    """Return True if exp_date is the third Friday of its month (standard monthly cycle)."""
+    """Return True if exp_date is the 3rd Friday or 3rd Thursday (holiday fallback) of its month.
+
+    The 3rd Thursday is accepted because market holidays (e.g. Good Friday, Juneteenth) that
+    fall on the 3rd Friday cause exchanges to move the monthly expiration to the prior Thursday.
+    Tradier's returned expiration list is the source of truth — if Thursday is listed and Friday
+    is not, Thursday will be accepted here.
+    """
     first_of_month = date(exp_date.year, exp_date.month, 1)
     days_to_first_friday = (4 - first_of_month.weekday()) % 7  # weekday 4 = Friday
     third_friday = date(exp_date.year, exp_date.month, 1 + days_to_first_friday + 14)
-    return exp_date == third_friday
+    third_thursday = third_friday - timedelta(days=1)
+    return exp_date == third_friday or exp_date == third_thursday
 
 
 def select_expiration(
@@ -18,7 +25,7 @@ def select_expiration(
     """Return the nearest qualifying monthly expiration string, or None.
 
     A qualifying expiration:
-      - Falls on the third Friday of its month (standard monthly cycle).
+      - Falls on the 3rd Friday of its month, or the 3rd Thursday (holiday fallback).
       - Has DTE in [min_dte, max_dte] inclusive (calendar days from run_date).
 
     When multiple dates qualify, the one with the lowest DTE is returned.

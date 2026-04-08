@@ -72,3 +72,12 @@ Stories are stored as individual files in `docs/stories/`.
 | Story-0150 | End-to-End Integration | Completed | [Story-0150](./stories/Story-0150.md) |
 | Story-0160 | README & Config Docs | Completed | [Story-0160](./stories/Story-0160.md) |
 | Story-0170 | Verbose Progress & Adaptive Throttling | Completed | [Story-0170](./stories/Story-0170.md) |
+
+### Phase 7 — Maintenance & Enhancements
+
+| Story | Title | Status | Link |
+|---|---|---|---|
+| Story-0180 | Ticker Fixes & Monthly Cycle Holiday Fallback | Completed | [Story-0180](./stories/Story-0180.md) |
+| Story-0190 | Verbose Rejection Logging | Completed | [Story-0190](./stories/Story-0190.md) |
+| Story-0200 | Individual Score Columns in Output Spreadsheet | Completed | [Story-0200](./stories/Story-0200.md) |
+| Story-0210 | Yahoo Finance Sector Cache | Completed | [Story-0210](./stories/Story-0210.md) |

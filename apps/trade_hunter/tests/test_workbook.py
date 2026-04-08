@@ -4,8 +4,10 @@ from pathlib import Path
 
 import openpyxl
 import pandas as pd
+import pytest
 
 from trade_hunter.output.workbook import _OUTPUT_COLUMNS, write_workbook
+from trade_hunter.pipeline.scoring import SCORE_COLUMNS
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -32,6 +34,7 @@ def _minimal_row(**overrides) -> dict:
         "Delta": -0.21,
         "Open Interest": 500,
         "Trade Score": 3.87,
+        **{col: 3.0 for col in SCORE_COLUMNS},
         "Quant Rating": 4.0,
         "Liquidity": _FILLED_STAR * 3 + _EMPTY_STAR,  # ★★★☆
         "Growth": "B",
@@ -148,3 +151,28 @@ def test_workbook_liquidity_stars_text(tmp_path):
     headers, data = _read_sheet(path, "BULL-ish")
     col = headers.index("Liquidity")
     assert data[0][col] == "3 stars"
+
+
+def test_workbook_has_36_columns(tmp_path):
+    """Output spreadsheet has 36 columns (23 original + 13 individual score columns)."""
+    path = write_workbook(_df(_minimal_row()), _df(_minimal_row()), tmp_path)
+    headers, _ = _read_sheet(path, "BULL-ish")
+    assert len(headers) == 36
+
+
+def test_workbook_score_columns_present_and_after_trade_score(tmp_path):
+    """All 13 individual score columns appear immediately after Trade Score."""
+    path = write_workbook(_df(_minimal_row()), _df(_minimal_row()), tmp_path)
+    headers, _ = _read_sheet(path, "BULL-ish")
+    trade_score_idx = headers.index("Trade Score")
+    score_headers = headers[trade_score_idx + 1: trade_score_idx + 1 + len(SCORE_COLUMNS)]
+    assert score_headers == SCORE_COLUMNS
+
+
+def test_workbook_score_column_values(tmp_path):
+    """Individual score column values are written correctly from the DataFrame."""
+    row = _minimal_row(**{"IVR Score": 4.0, "Momentum Score": 2.5})
+    path = write_workbook(_df(row), _df(_minimal_row()), tmp_path)
+    headers, data = _read_sheet(path, "BULL-ish")
+    assert data[0][headers.index("IVR Score")] == pytest.approx(4.0)
+    assert data[0][headers.index("Momentum Score")] == pytest.approx(2.5)

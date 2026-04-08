@@ -3,6 +3,8 @@
 import re
 from datetime import datetime
 
+import pytest
+
 from trade_hunter.output.run_log import RunLog
 
 _RUN_START = datetime(2025, 3, 19, 14, 30, 22)
@@ -14,9 +16,9 @@ _EXPECTED_FILENAME = "run_log_20250319_143022.txt"
 # ---------------------------------------------------------------------------
 
 
-def _write(tmp_path, **kwargs) -> tuple[object, str]:
+def _write(tmp_path, verbose: bool = False, **kwargs) -> tuple[object, str]:
     """Create a RunLog, apply kwargs (warn/info/add_warnings), write, return (path, content)."""
-    log = RunLog(run_start=_RUN_START)
+    log = RunLog(run_start=_RUN_START, verbose=verbose)
     for method, args in kwargs.items():
         if method == "warn":
             for msg in args:
@@ -97,3 +99,54 @@ def test_runlog_creates_output_dir(tmp_path):
     path = log.write(subdir)
     assert subdir.exists()
     assert path.exists()
+
+
+# ---------------------------------------------------------------------------
+# Verbose mode — warn() and add_warnings() print to stdout when verbose=True
+# ---------------------------------------------------------------------------
+
+
+def test_warn_prints_to_stdout_when_verbose(tmp_path, capsys):
+    log = RunLog(run_start=_RUN_START, verbose=True)
+    log.warn("ticker XYZ filtered — bid too low")
+    log.write(tmp_path)
+    captured = capsys.readouterr()
+    assert "[WARN] ticker XYZ filtered — bid too low" in captured.out
+
+
+def test_warn_silent_when_not_verbose(tmp_path, capsys):
+    log = RunLog(run_start=_RUN_START, verbose=False)
+    log.warn("ticker XYZ filtered — bid too low")
+    log.write(tmp_path)
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+def test_warn_still_written_to_file_when_verbose(tmp_path, capsys):
+    _, content = _write(tmp_path, verbose=True, warn=["something bad happened"])
+    assert "[WARN] something bad happened" in content
+
+
+def test_add_warnings_prints_to_stdout_when_verbose(tmp_path, capsys):
+    log = RunLog(run_start=_RUN_START, verbose=True)
+    log.add_warnings(["[BULL] 'AAPL' excluded — active open trade", "[BEAR] 'MSFT' not in Universal Data Set — skipped"])
+    log.write(tmp_path)
+    captured = capsys.readouterr()
+    assert "[BULL] 'AAPL' excluded — active open trade" in captured.out
+    assert "[BEAR] 'MSFT' not in Universal Data Set — skipped" in captured.out
+
+
+def test_add_warnings_silent_when_not_verbose(tmp_path, capsys):
+    log = RunLog(run_start=_RUN_START, verbose=False)
+    log.add_warnings(["[BULL] 'AAPL' excluded — active open trade"])
+    log.write(tmp_path)
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+def test_add_warnings_still_written_to_file_when_verbose(tmp_path):
+    log = RunLog(run_start=_RUN_START, verbose=True)
+    log.add_warnings(["[BULL] 'XYZ' filtered — open interest 5 < 10"])
+    path = log.write(tmp_path)
+    content = path.read_text(encoding="utf-8")
+    assert "[BULL] 'XYZ' filtered — open interest 5 < 10" in content

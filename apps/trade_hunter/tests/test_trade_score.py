@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from trade_hunter.pipeline.scoring import (
+    SCORE_COLUMNS,
     build_active_diversity_lists,
     calculate_scores,
 )
@@ -265,6 +266,37 @@ def test_scored_has_bpr_column():
     result = calculate_scores(df, "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
     assert "BPR" in result.columns
     assert result.iloc[0]["BPR"] > 0
+
+
+def test_scored_has_all_individual_score_columns():
+    """calculate_scores output includes all 13 individual score columns."""
+    df = _df(_base_row())
+    result = calculate_scores(df, "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
+    for col in SCORE_COLUMNS:
+        assert col in result.columns, f"Missing column: {col}"
+
+
+def test_individual_scores_in_valid_range():
+    """All individual score values are in [0.0, 5.0]."""
+    df = _df(_base_row())
+    result = calculate_scores(df, "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
+    for col in SCORE_COLUMNS:
+        val = result.iloc[0][col]
+        assert 0.0 <= val <= 5.0, f"{col} = {val} out of range"
+
+
+def test_growth_score_zero_for_non_growth_bucket():
+    """Growth Score is 0.0 when Sector Bucket is not Growth."""
+    row = _base_row(**{"Sector Bucket": "Economic"})
+    result = calculate_scores(_df(row), "BULL", RUN_DATE, ["Economic"] * 5, _ACTIVE_SECTORS)
+    assert result.iloc[0]["Growth Score"] == 0.0
+
+
+def test_growth_score_nonzero_for_growth_bucket():
+    """Growth Score is non-zero when Sector Bucket is Growth and grade is above F."""
+    row = _base_row(**{"Sector Bucket": "Growth", "Growth": "A"})
+    result = calculate_scores(_df(row), "BULL", RUN_DATE, _ACTIVE_BUCKETS, _ACTIVE_SECTORS)
+    assert result.iloc[0]["Growth Score"] > 0.0
 
 
 # ---------------------------------------------------------------------------

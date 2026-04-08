@@ -1,3 +1,17 @@
+YFINANCE_SECTOR_MAP: dict[str, str] = {
+    "Technology": "Information Technology",
+    "Healthcare": "Health Care",
+    "Financial Services": "Financials",
+    "Consumer Cyclical": "Consumer Discretionary",
+    "Consumer Defensive": "Consumer Staples",
+    "Basic Materials": "Materials",
+    "Communication Services": "Communication Services",
+    "Utilities": "Utilities",
+    "Real Estate": "Real Estate",
+    "Industrials": "Industrials",
+    "Energy": "Energy",
+}
+
 SECTOR_MAP: dict[str, str] = {
     "Basic Materials": "Materials",
     "Capital Goods": "Industrials",

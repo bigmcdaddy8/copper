@@ -6,6 +6,8 @@ from pathlib import Path
 import openpyxl
 import pandas as pd
 
+from trade_hunter.pipeline.scoring import SCORE_COLUMNS
+
 _FILLED_STAR = "\u2605"  # ★
 
 # Only columns whose names differ between the DataFrame and the workbook header.
@@ -33,6 +35,7 @@ _OUTPUT_COLUMNS = [
     "Delta",
     "Open Interest",
     "Trade Score",
+    *SCORE_COLUMNS,
     "Quant Rating",
     "Liquidity",
     "Growth",
@@ -51,6 +54,7 @@ _NUMBER_FORMATS: dict[str, str] = {
     "Open Interest": "0",
     "Price": "0.00",
     "Trade Score": "0.00",
+    **{col: "0.00" for col in SCORE_COLUMNS},
     "Quant Rating": "0.00",
     "Bid": "0.00",
     "Ask": "0.00",
@@ -66,7 +70,7 @@ _NUMBER_FORMATS: dict[str, str] = {
 def _prepare_sheet(df: pd.DataFrame) -> pd.DataFrame:
     """Transform, rename, and reorder columns for workbook output.
 
-    Returns a new DataFrame with exactly the 23 output columns in order.
+    Returns a new DataFrame with exactly the 36 output columns in order.
     """
     out = df.copy()
 

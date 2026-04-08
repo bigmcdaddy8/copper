@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from trade_hunter.tradier.selector import select_call, select_expiration, select_put
+from trade_hunter.tradier.selector import _is_monthly_expiration, select_call, select_expiration, select_put
 
 # ---------------------------------------------------------------------------
 # Fixtures / constants
@@ -27,6 +27,37 @@ MONTHLY_JUN = "2025-06-20"  # DTE=93 — beyond max_dte
 WEEKLY_APR_04 = "2025-04-04"
 WEEKLY_APR_11 = "2025-04-11"
 WEEKLY_APR_25 = "2025-04-25"
+
+
+# ---------------------------------------------------------------------------
+# _is_monthly_expiration — 3rd Thursday holiday fallback
+# ---------------------------------------------------------------------------
+#
+# April 2025: 3rd Friday = Apr 18 (Good Friday), 3rd Thursday = Apr 17
+
+
+def test_third_friday_is_monthly():
+    assert _is_monthly_expiration(date(2025, 4, 18))  # normal 3rd Friday
+
+
+def test_third_thursday_is_monthly_fallback():
+    """3rd Thursday accepted as holiday fallback for Good Friday 2025-04-18."""
+    assert _is_monthly_expiration(date(2025, 4, 17))
+
+
+def test_wednesday_before_third_friday_is_not_monthly():
+    assert not _is_monthly_expiration(date(2025, 4, 16))  # 3rd Wednesday
+
+
+def test_weekly_friday_is_not_monthly():
+    assert not _is_monthly_expiration(date(2025, 4, 11))  # 2nd Friday
+    assert not _is_monthly_expiration(date(2025, 4, 25))  # 4th Friday
+
+
+def test_third_thursday_another_month():
+    # May 2025: 3rd Friday = May 16, 3rd Thursday = May 15
+    assert _is_monthly_expiration(date(2025, 5, 16))  # 3rd Friday
+    assert _is_monthly_expiration(date(2025, 5, 15))  # 3rd Thursday fallback
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +111,15 @@ def test_select_expiration_dte_just_outside():
     run = date(2025, 3, 20)
     result = select_expiration([MONTHLY_APR], run, min_dte=30, max_dte=60)
     assert result is None
+
+
+def test_select_expiration_third_thursday_holiday_fallback():
+    """When only 3rd Thursday is listed (3rd Friday is a holiday), Thursday is selected."""
+    # April 17, 2025 is the 3rd Thursday (day before Good Friday Apr 18)
+    third_thursday_apr = "2025-04-17"  # DTE=29 from RUN_DATE (2025-03-19)
+    run = date(2025, 3, 18)  # push run back one day so DTE=30
+    result = select_expiration([third_thursday_apr], run, min_dte=30, max_dte=60)
+    assert result == third_thursday_apr
 
 
 # ---------------------------------------------------------------------------

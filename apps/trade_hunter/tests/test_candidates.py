@@ -129,6 +129,26 @@ def test_join_row_count(universe, candidates):
     assert df.iloc[0]["Symbol"] == "MSFT"
 
 
+def test_goog_dropped_with_warning(universe):
+    """GOOG is silently dropped before any other processing; a warning is emitted."""
+    cands = pd.DataFrame(
+        [
+            {"Symbol": "GOOG", "Quant Rating": 4.0, "Growth": "A", "Momentum": "B"},
+            {"Symbol": "AAPL", "Quant Rating": 4.5, "Growth": "A+", "Momentum": "A"},
+        ]
+    )
+    df, warnings = filter_and_join(cands, universe, frozenset(), side="BULL")
+    assert "GOOG" not in df["Symbol"].values
+    assert any("GOOG" in w and "GOOGL" in w for w in warnings)
+
+
+def test_goog_dropped_bear_side(universe):
+    cands = pd.DataFrame([{"Symbol": "GOOG", "Quant Rating": 2.0, "Growth": "D", "Momentum": "D"}])
+    df, warnings = filter_and_join(cands, universe, frozenset(), side="BEAR")
+    assert df.empty
+    assert any("[BEAR]" in w and "GOOG" in w for w in warnings)
+
+
 def test_empty_candidates(universe):
     empty = pd.DataFrame(columns=["Symbol", "Quant Rating", "Growth", "Momentum"])
     df, warnings = filter_and_join(empty, universe, frozenset(), side="BULL")

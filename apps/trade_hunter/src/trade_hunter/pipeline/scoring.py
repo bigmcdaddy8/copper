@@ -332,6 +332,24 @@ _WEIGHTS: dict[str, float] = {
     "Liquidity": 1.0,
 }
 
+# Output column names for individual metric scores (same order as _WEIGHTS keys).
+# Growth Score is always emitted; it is 0.0 when Sector Bucket != "Growth".
+SCORE_COLUMNS: list[str] = [
+    "IVR Score",
+    "IVP Score",
+    "Open Interest Score",
+    "Spread% Score",
+    "BPR Score",
+    "Cyclical Diversity Score",
+    "Quant Rating Score",
+    "Sector Diversity Score",
+    "Earnings Date Score",
+    "Growth Score",
+    "Momentum Score",
+    "Bid Score",
+    "Liquidity Score",
+]
+
 
 def _resolve_earnings_date(row: pd.Series, run_date: date) -> date:
     """Resolve earnings date using three-source precedence.
@@ -395,6 +413,7 @@ def calculate_scores(
     scores: list[float] = []
     earnings_date_strs: list[str] = []
     bpr_values: list[float] = []
+    individual_score_rows: list[dict[str, float]] = []
 
     for _, row in result.iterrows():
         exp_date = date.fromisoformat(str(row["Expiration Date"])[:10])
@@ -429,8 +448,10 @@ def calculate_scores(
         }
 
         # Active weight rule: include Growth only for Growth sector bucket
+        growth_score = 0.0
         if sector_bucket == "Growth":
-            qualities["Growth"] = growth_quality(str(row["Growth"]), side)
+            growth_score = growth_quality(str(row["Growth"]), side)
+            qualities["Growth"] = growth_score
 
         numerator = sum(_WEIGHTS[k] * v for k, v in qualities.items())
         denominator = sum(_WEIGHTS[k] for k in qualities)
@@ -440,7 +461,27 @@ def calculate_scores(
         earnings_date_strs.append(resolved_earnings.isoformat())
         bpr_values.append(bpr_val)
 
+        individual_score_rows.append({
+            "IVR Score": qualities["IVR"],
+            "IVP Score": qualities["IVP"],
+            "Open Interest Score": qualities["Open Interest"],
+            "Spread% Score": qualities["Spread%"],
+            "BPR Score": qualities["BPR"],
+            "Cyclical Diversity Score": qualities["Cyclical Diversity"],
+            "Quant Rating Score": qualities["Quant Rating"],
+            "Sector Diversity Score": qualities["Sector Diversity"],
+            "Earnings Date Score": qualities["Earnings Date"],
+            "Growth Score": growth_score,
+            "Momentum Score": qualities["Momentum"],
+            "Bid Score": qualities["Bid"],
+            "Liquidity Score": qualities["Liquidity"],
+        })
+
     result["Trade Score"] = scores
     result["Earnings Date"] = earnings_date_strs
     result["BPR"] = bpr_values
+
+    individual_df = pd.DataFrame(individual_score_rows, index=result.index)
+    result = pd.concat([result, individual_df], axis=1)
+
     return result
