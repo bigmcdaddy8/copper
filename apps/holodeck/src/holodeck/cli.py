@@ -384,3 +384,281 @@ def chart_bars(
         f"[dim]{len(bars)} bars  ·  resolution {resolution}  ·  "
         f"{start} → {end}[/dim]"
     )
+
+
+@app.command(name="live-bars")
+def live_bars(
+    symbol: str = typer.Option("SPX", help="Underlying symbol (only SPX supported)."),
+    start: str = typer.Option(
+        ..., "--start", help="Start date, inclusive (YYYY-MM-DD).  Must be a Jan 2026 trading day."
+    ),
+    end: str = typer.Option(
+        ..., "--end", help="End date, inclusive (YYYY-MM-DD).  Must be a Jan 2026 trading day."
+    ),
+    resolution: str = typer.Option(
+        "1d", help="Bar resolution: 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M."
+    ),
+    speed: str = typer.Option(
+        "5m", "--speed",
+        help="Virtual time per real second: 1m, 5m, 15m, 30m, 1h, 1d.",
+    ),
+    dark: bool = typer.Option(False, "--dark", help="Use dark theme."),
+    data: str = typer.Option(
+        "data/holodeck/spx_2026_01_minutes.csv",
+        help="Path to synthetic SPX CSV.",
+    ),
+) -> None:
+    """Stream a live-updating candlestick chart driven by virtual time."""
+    import plotext as plt
+    from zoneinfo import ZoneInfo
+    from rich.live import Live
+    from rich.text import Text
+    from holodeck.broker import HolodeckBroker
+    from holodeck.config import HolodeckConfig
+    from holodeck.live_loop import LiveLoop, SPEED_MINUTES
+
+    TZ = "America/Chicago"
+    tz = ZoneInfo(TZ)
+
+    try:
+        start_date = _date_type.fromisoformat(start)
+        end_date   = _date_type.fromisoformat(end)
+    except ValueError as exc:
+        console.print(f"[bold red]Invalid date: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    if end_date < start_date:
+        console.print("[bold red]--end must be >= --start[/bold red]")
+        raise typer.Exit(1)
+
+    valid_resolutions = {"1m", "5m", "15m", "30m", "1h", "1d", "1w", "1M"}
+    if resolution not in valid_resolutions:
+        console.print(f"[bold red]Invalid resolution {resolution!r}.[/bold red]")
+        raise typer.Exit(1)
+
+    if speed not in SPEED_MINUTES:
+        console.print(
+            f"[bold red]Invalid speed {speed!r}.  Valid: {sorted(SPEED_MINUTES)}[/bold red]"
+        )
+        raise typer.Exit(1)
+
+    start_dt = datetime(start_date.year, start_date.month, start_date.day, 9, 30, tzinfo=tz)
+    end_dt   = datetime(end_date.year,   end_date.month,   end_date.day,  15,  0, tzinfo=tz)
+
+    config = HolodeckConfig(
+        starting_datetime=start_dt,
+        ending_datetime=end_dt,
+        data_path=data,
+    )
+
+    try:
+        broker = HolodeckBroker(config)
+    except FileNotFoundError as exc:
+        console.print(f"[bold red]{exc}[/bold red]")
+        raise typer.Exit(1)
+
+    def _render(vtime: datetime) -> Text:
+        try:
+            bars = broker.get_ohlcv_bars(symbol, start_dt, vtime, resolution)
+        except (KeyError, ValueError):
+            return Text("(no data)")
+
+        bars = _insert_gap_bars(bars, resolution)
+        if not bars:
+            return Text("(no bars yet)")
+
+        # Rolling window: always show the last N bars so newest is pinned to right
+        term_w = shutil.get_terminal_size(fallback=(80, 24)).columns
+        n_visible = max(4, int(term_w / 2))
+        bars = bars[-n_visible:]
+
+        epoch = _date_type(2000, 1, 1)
+        fake_dates = [
+            (epoch + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(len(bars))
+        ]
+        if resolution in ("1m", "5m", "15m", "30m", "1h"):
+            real_labels = [b.timestamp.strftime("%Y-%m-%d %H:%M") for b in bars]
+        else:
+            real_labels = [b.timestamp.strftime("%Y-%m-%d") for b in bars]
+
+        tick_count = min(8, len(bars))
+        step = max(1, len(bars) // tick_count)
+        tick_positions = [fake_dates[i] for i in range(0, len(bars), step)]
+        tick_labels    = [real_labels[i] for i in range(0, len(bars), step)]
+
+        ohlc = {
+            "Open":  [b.open  for b in bars],
+            "High":  [b.high  for b in bars],
+            "Low":   [b.low   for b in bars],
+            "Close": [b.close for b in bars],
+        }
+
+        plt.clf()
+        if dark:
+            plt.theme("dark")
+        plt.plotsize(term_w, None)
+        plt.date_form("Y-m-d")
+        plt.candlestick(fake_dates, ohlc, colors=["red", "green"])
+        plt.xticks(tick_positions, tick_labels)
+        plt.title(
+            f"{symbol}  {start} → {vtime.strftime('%Y-%m-%d %H:%M')} CT  ({resolution})"
+        )
+        plt.ylabel("Price")
+        return Text.from_ansi(plt.build())
+
+    loop = LiveLoop(broker._clock, speed=speed, data_end=end_dt)
+
+    console.print(
+        f"[dim]live-bars  {symbol}  {start} → {end}  "
+        f"resolution={resolution}  speed={speed}  (Ctrl+C to quit)[/dim]"
+    )
+
+    try:
+        with Live(Text(""), refresh_per_second=2, transient=False) as live:
+            for vtime in loop:
+                live.update(_render(vtime))
+    except KeyboardInterrupt:
+        pass
+
+    console.print("[dim]live-bars stopped.[/dim]")
+
+
+@app.command(name="live-chain")
+def live_chain(
+    symbol: str = typer.Option("SPX", help="Underlying symbol (only SPX supported)."),
+    date_str: str = typer.Option(
+        ..., "--date", help="Trading date (YYYY-MM-DD).  Must be a Jan 2026 trading day."
+    ),
+    expiration_str: str = typer.Option(
+        ..., "--expiration", help="Option expiration date (YYYY-MM-DD)."
+    ),
+    speed: str = typer.Option(
+        "5m", "--speed",
+        help="Virtual time per real second: 1m, 5m, 15m, 30m, 1h, 1d.",
+    ),
+    data: str = typer.Option(
+        "data/holodeck/spx_2026_01_minutes.csv",
+        help="Path to synthetic SPX CSV.",
+    ),
+    window: int = typer.Option(100, help="Show strikes within ±N points of ATM (default 100)."),
+) -> None:
+    """Stream a live-updating option chain table driven by virtual time."""
+    from zoneinfo import ZoneInfo
+    from rich.live import Live
+    from holodeck.broker import HolodeckBroker
+    from holodeck.config import HolodeckConfig
+    from holodeck.live_loop import LiveLoop, SPEED_MINUTES
+
+    TZ = "America/Chicago"
+    tz = ZoneInfo(TZ)
+
+    try:
+        trade_date = _date_type.fromisoformat(date_str)
+        expiration = _date_type.fromisoformat(expiration_str)
+    except ValueError as exc:
+        console.print(f"[bold red]Invalid date: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    if speed not in SPEED_MINUTES:
+        console.print(
+            f"[bold red]Invalid speed {speed!r}.  Valid: {sorted(SPEED_MINUTES)}[/bold red]"
+        )
+        raise typer.Exit(1)
+
+    start_dt = datetime(trade_date.year, trade_date.month, trade_date.day, 9, 30, tzinfo=tz)
+    end_dt   = datetime(trade_date.year, trade_date.month, trade_date.day, 15,  0, tzinfo=tz)
+
+    config = HolodeckConfig(
+        starting_datetime=start_dt,
+        ending_datetime=end_dt,
+        data_path=data,
+    )
+
+    try:
+        broker = HolodeckBroker(config)
+    except FileNotFoundError as exc:
+        console.print(f"[bold red]{exc}[/bold red]")
+        raise typer.Exit(1)
+
+    def _render(vtime: datetime) -> Table:
+        try:
+            quote = broker.get_underlying_quote(symbol)
+            chain = broker.get_option_chain(symbol, expiration)
+        except (KeyError, ValueError):
+            t = Table(title=f"{symbol}  {expiration}  │  {vtime.strftime('%H:%M')} CT")
+            t.add_column("Status")
+            t.add_row("[yellow]no data[/yellow]")
+            return t
+
+        underlying = quote.last
+        atm_strike = round(underlying / 5) * 5
+
+        calls: dict[float, object] = {}
+        puts:  dict[float, object] = {}
+        for opt in chain.options:
+            if opt.option_type == "CALL":
+                calls[opt.strike] = opt
+            else:
+                puts[opt.strike]  = opt
+
+        strikes = sorted(
+            s for s in set(calls) | set(puts)
+            if abs(s - underlying) <= window
+        )
+
+        table = Table(
+            title=(
+                f"{symbol}  {expiration}  │  "
+                f"{vtime.strftime('%Y-%m-%d %H:%M')} CT  │  "
+                f"underlying {underlying:.2f}"
+            ),
+            show_header=True,
+            header_style="bold",
+        )
+        table.add_column("Strike",   justify="right", style="white")
+        table.add_column("Call Bid", justify="right")
+        table.add_column("Call Ask", justify="right")
+        table.add_column("Call Δ",   justify="right")
+        table.add_column("",         justify="center")
+        table.add_column("Put Bid",  justify="right")
+        table.add_column("Put Ask",  justify="right")
+        table.add_column("Put Δ",    justify="right")
+
+        for strike in strikes:
+            is_atm = abs(strike - atm_strike) < 3
+            marker = "◄ ATM" if is_atm else ""
+            row_style = "bold yellow" if is_atm else ""
+
+            call = calls.get(strike)
+            put  = puts.get(strike)
+
+            c_bid   = f"{call.bid:.2f}"    if call else "—"
+            c_ask   = f"{call.ask:.2f}"    if call else "—"
+            c_delta = f"{call.delta:+.2f}" if call else "—"
+            p_bid   = f"{put.bid:.2f}"     if put  else "—"
+            p_ask   = f"{put.ask:.2f}"     if put  else "—"
+            p_delta = f"{put.delta:+.2f}"  if put  else "—"
+
+            table.add_row(
+                f"{strike:.0f}", c_bid, c_ask, c_delta, marker, p_bid, p_ask, p_delta,
+                style=row_style,
+            )
+
+        return table
+
+    loop = LiveLoop(broker._clock, speed=speed, data_end=end_dt)
+
+    console.print(
+        f"[dim]live-chain  {symbol}  {date_str}  expiry={expiration_str}  "
+        f"speed={speed}  (Ctrl+C to quit)[/dim]"
+    )
+
+    try:
+        with Live(refresh_per_second=2, transient=False) as live:
+            for vtime in loop:
+                live.update(_render(vtime))
+    except KeyboardInterrupt:
+        pass
+
+    console.print("[dim]live-chain stopped.[/dim]")
+

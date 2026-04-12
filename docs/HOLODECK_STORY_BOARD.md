@@ -17,3 +17,5 @@ The Holodeck stories are located in the @docs/stories/holodeck directory.
 | HD-0100 | 6 — Visualization | BIC OHLCV Model & Broker Extension | Complete |
 | HD-0110 | 6 — Visualization | Candlestick Chart Viewer | Complete |
 | HD-0120 | 6 — Visualization | Option Chain Viewer | Complete |
+| HD-0130 | 7 — Live Visualization | Live Bar Chart (`live-bars`) | Done |
+| HD-0140 | 7 — Live Visualization | Live Option Chain (`live-chain`) | Done |
