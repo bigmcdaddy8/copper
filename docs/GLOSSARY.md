@@ -52,5 +52,9 @@ A 'Trade #' is a logical grouping concept that is used for the purposes referrin
 
 **TP**: 'Take Profit' - is a GTC LIMIT BTC order to close the trade which is used to close the trade once a certain profit level has been reached (e.g., 50% of premium received).
 
+**PoP** or **PoP**: 'Percent of Profit' in option trading the likelihood an options trade will make a profit (i.e., generate at least $0.01) at expiration. Also sometimes used in slang to mean the 'edge' a better has on a good bet. 
+
+**'Mr. Dick Weasel'**: The avatar used in the my universe for the 'human trader'. He looks just like the traditional villain out of old black and white movies. Tall, thin, handle bar moustache, top hat and tail coats. Although he looks like an evil villain, once you get to know him he is actually a personable fellow who is honest and kind. However when it comes to card playing and trading he is the ultimate 'professional gambler', never takes bet or trade without at least a 70% 'PoP'. That why you never see him at a slot machine, only at the card table or a trading desk collecting premium by selling options.
+
 ****:
 

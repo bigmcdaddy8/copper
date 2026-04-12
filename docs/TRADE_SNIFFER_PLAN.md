@@ -20,12 +20,14 @@
 | Story | Title |
 |---|---|
 | TS-0010 | Tradier Sandbox Client |
+| TS-0015 | API Discovery & Account Data |
 
 - New `tradier_client.py` module — Bearer auth from `TRADIER_SANDBOX_API_KEY` env var (`.env` file, same pattern as trade_hunter)
 - Endpoints: `GET /user/profile`, `GET /accounts/{id}/orders`, `GET /accounts/{id}/positions`
 - Respects `X-Ratelimit-Available` headers (60 req/min sandbox limit)
 - `config.py` — `SnifferConfig` dataclass (`api_key`, `account_id`, `poll_interval`)
 - Tests: mock `httpx` responses
+- **TS-0015** — Read Tradier API docs and exercise account endpoints to answer FAQ questions: security/auth options, exchange routing, account-level restrictions, available account data fields (net liq, cash, PDT count, option BP), PDT flag on closed trades, BPR fields; `tradier_sniffer discover` CLI sub-command prints structured summary; document answers as **Answer:** lines in `TRADIER_FAQ.md`
 
 ---
 
@@ -50,7 +52,7 @@
 | TS-0050 | Trade # Assignment & Order Mapping |
 
 - **TS-0040** — `engine.py`: `poll()` fetches broker data, diffs against last known state, detects events (new order, filled, canceled, position closed), persists to `EventLog`; `tradier_sniffer poll` command with `--interval` flag
-- **TS-0050** — `assign_trade()` logic: group multi-leg orders by Tradier grouping/tag field (falling back to symbol + timestamp proximity); infer TTT from leg count/type (SIC=4 legs, PCS=2-leg put spread, NPUT=1-leg put, etc.); sequential Trade # counter from DB
+- **TS-0050** — `assign_trade()` logic: group multi-leg orders by Tradier grouping/tag field (falling back to symbol + timestamp proximity); create a 'Trade Type' enumeration that will be passed in to indicate the type of trade being place; sequential Trade # counter from DB; 
 
 ---
 
@@ -70,12 +72,14 @@
 | TS-0070 | Demo CLI & Scenario 1 — Entry Fill |
 | TS-0080 | Scenario 1.5 (Repricing) & Scenario 2 (Multi-leg) |
 | TS-0090 | Scenario 3 (TP offline) & Scenario 4 (Adjustment) |
+| TS-0095 | Edge Case Sandbox Tests |
 
 - `tradier_sniffer demo scenario1` — place a Day STO Limit order in sandbox, poll until filled, print assigned Trade #
 - `tradier_sniffer demo scenario1_5` — place order, client-timeout, cancel, reprice, re-enter
 - `tradier_sniffer demo scenario2` — place a 2-leg PCS, verify grouped into one Trade #
 - `tradier_sniffer demo scenario3` — place trade + GTC TP, stop polling (simulate offline), restart, verify reconciliation detects the TP closure
 - `tradier_sniffer demo scenario4` — place trade, execute BTC+STO adjustment, verify associated to existing Trade #
+- **TS-0095** — `tradier_sniffer demo edge_cases` — sandbox tests for FAQ edge cases: nickel pricing (penny limit on nickel option), option expiration timing, after-hours GTC placement, after-hours quotes; document findings in `TRADIER_FAQ.md`
 - Each scenario lives under `src/tradier_sniffer/demo/scenarioX.py`
 
 ---
@@ -101,6 +105,8 @@
 | `apps/tradier_sniffer/tests/test_{smoke,client,models,db,engine,reconciliation}.py` | Tests |
 | `docs/TRADE_SNIFFER_STORY_BOARD.md` | Trade sniffer story board |
 | `docs/stories/trade_sniffer/TS-0000.md` through `TS-0100.md` | Individual stories |
+| `docs/stories/trade_sniffer/TS-0015.md` | API Discovery & Account Data story |
+| `docs/stories/trade_sniffer/TS-0095.md` | Edge Case Sandbox Tests story |
 
 ## Reference Patterns to Reuse
 - `apps/trade_hunter/src/trade_hunter/tradier/client.py` — `httpx` + rate limit header pattern
