@@ -23,8 +23,7 @@ err_console = Console(stderr=True)
 _NEEDED_BALANCE_FIELDS = [
     "total_equity",
     "total_cash",
-    "option_buying_power",
-    "day_trade_buying_power",
+    "margin.option_buying_power",
     "pending_orders_count",
 ]
 
@@ -70,10 +69,13 @@ def discover(ctx: typer.Context) -> None:
         # account may be a list (multiple accounts) or a single dict
         if isinstance(account, list):
             account = account[0]
+        pdt_raw = account.get("day_trader", None)
+        pdt_str = "Yes" if pdt_raw else ("No" if pdt_raw is not None else "N/A")
         console.print(f"  Name:    {profile.get('name', 'N/A')}")
         console.print(f"  Account: {account.get('number', cfg.account_id)}")
         console.print(f"  Type:    {account.get('type', 'N/A')}")
         console.print(f"  Status:  {account.get('status', 'N/A')}")
+        console.print(f"  PDT:     {pdt_str}")
     except TradierAPIError as e:
         err_console.print(f"[red]Error fetching profile: {e}[/red]")
 

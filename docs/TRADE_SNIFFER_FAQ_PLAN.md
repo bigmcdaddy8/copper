@@ -24,11 +24,11 @@
 
 | FAQ Question | Proposed Coverage | Story |
 |---|---|---|
-| Account information fields: net liq, cash, PDT count, option BP, beta-delta, theta, transactions | TS-0015 ✓ | `total_equity`, `total_cash`, `margin.option_buying_power` confirmed; PDT count, beta-delta, theta are gaps (local calc needed) |
+| Account information fields: net liq, cash, PDT count, option BP, beta-delta, theta, transactions | TS-0015 ✓ | `total_equity`, `total_cash`, `margin.option_buying_power` confirmed; `day_trader` boolean in `/v1/user/profile` confirmed; rolling PDT count, beta-delta, theta are gaps (local calc needed) |
 | What security is available (OAuth, 2FA, IP whitelisting)? | TS-0015 ✓ | Long-lived API token recommended for automation; OAuth requires interactive login; no IP whitelisting |
 | Exchange routing options — is BEST available? | TS-0015 ✓ | No exchange routing param — Tradier auto-routes via NBBO smart routing |
 | Account-level restrictions (max trade size, max BPR, max trades)? | TS-0015 ✓ | Gap — no API controls; must be enforced in application logic |
-| Is there a PDT flag on closed trade data? | TS-0015 ✓ | Gap — no PDT flag in API; PDT tracking must be done locally |
+| Is there a PDT flag on closed trade data? | TS-0015 ✓ | `day_trader` boolean confirmed in `/v1/user/profile` (account-level designation flag); no per-trade/per-close PDT flag in orders/positions |
 | Maintenance BPR for multi-leg trade? | TS-0015 ✓ | `margin.maintenance_call` available at account level; per-leg BPR not surfaced — must be calculated locally |
 | Error codes for cancellation/rejection? | TS-0010 ✓ | `ORDER_STATUSES` + `REJECTION_REASONS` dicts in `tradier_client.py`; `**Answer:**` added to `TRADIER_FAQ.md` |
 | Nickel pricing: what happens when penny limit placed on nickel option? | New story TS-0095 | Sandbox test: place bad-priced order, observe rejection/behavior |

@@ -99,7 +99,7 @@ The answers to the following questions will be obtained during the development a
   - **Cash Balance**: `total_cash` = 100000.00 ✓
   - **Option Buying Power**: `margin.option_buying_power` = 100000.00 ✓ (nested under `margin` sub-object, not at top level)
   - **Pending Orders Count**: `pending_orders_count` = 0 ✓
-  - **PDT Count**: **Gap** — no `day_trade_count`, `pdt_count`, or similar field found in balances response. Tradier does not expose PDT trade count via the balances endpoint; this is a known limitation.
+  - **PDT Count**: **Gap** — no `day_trade_count` or similar rolling-count field found in the API. However, Tradier does expose a `day_trader` boolean flag in the `GET /v1/user/profile` account object (visible via `tradier_sniffer discover`). This flag indicates whether the account has been designated as a Pattern Day Trader, but does not provide a running count of day trades remaining.
   - **Beta-weighted delta**: **Gap** — not available via API; this is a portfolio-level calculated metric that must be computed locally from individual position deltas weighted by beta.
   - **Total Theta**: **Gap** — not available via API; must be computed locally by summing per-position theta values from the options chain.
   - **Account transactions** (withdrawals/deposits): `GET /accounts/{id}/history` returns transaction history; sandbox account returned empty but endpoint is confirmed available.
@@ -110,7 +110,7 @@ The answers to the following questions will be obtained during the development a
 
 **Question**: Is there a flag available when a trade is closed that indicates that the broker is going to count that trade as a 'PDT' ?
 
-**Answer:** **Gap** — No PDT flag was found in the balances, orders, or positions response payloads. Tradier does not surface a `is_pdt`, `day_trade`, or similar per-trade flag in the API. The sandbox account balance has no `day_trade_count` field. PDT tracking will need to be handled locally by the automated trader (e.g., counting same-day open+close pairs on the same symbol). Confirmed by inspection of `GET /accounts/{id}/balances` and Tradier API documentation.
+**Answer:** Tradier exposes a `day_trader` boolean on the account object returned by `GET /v1/user/profile`. This flag is `true` when the account has been designated as a Pattern Day Trader by the broker. It is displayed by `tradier_sniffer discover` in the User Profile section. **Gap:** there is no per-trade PDT flag on orders or positions, and no rolling day-trade count field (e.g., "3 of 4 day trades used this week") is surfaced. Day trade counting must be handled locally by the automated trader (e.g., counting same-day open+close pairs on the same symbol).
 
 **Story:** TS-0015 (API discovery — inspect closed order/trade response for PDT-related fields)
 
