@@ -4,7 +4,7 @@ The 1st major program in the 'Copper' project is the 'trade_hunter' (i.e., @apps
 
 ## Overview
 
-K9  is an automated options trade entry system designed to execute predefined, rules-based 0DTE strategies using the Tradier API. The system is intentionally constrained for MVP to ensure simplicity, safety, and clean experimentation.
+K9 is an automated options trade entry system designed to execute predefined, rules-based 0DTE strategies. It communicates exclusively through the **Broker Interface Contract (BIC)** — an abstract `Broker` ABC defined in `apps/bic/` — so the same engine code runs identically against the **Holodeck** simulation broker during development and against a live **TradierBroker** implementation in sandbox or production. The system is intentionally constrained for MVP to ensure simplicity, safety, and clean experimentation.
 
 This document defines the **Minimum Viable Product (MVP)** design, focusing on:
 
@@ -58,7 +58,39 @@ No strategy logic exists in cron.
 
 ---
 
-### 2. K9 Orchestrator
+### 2. Broker Interface Contract (BIC)
+
+The `Broker` ABC in `apps/bic/` defines the contract between K9 and any broker
+implementation.  K9 **never calls a broker API directly**; it only calls BIC methods.
+
+BIC methods used by K9 MVP:
+
+| Method | Purpose |
+|---|---|
+| `get_current_time()` | Authoritative time (real or virtual) |
+| `get_account()` | Account balances and buying power |
+| `get_positions()` | Open positions (duplicate-trade guard) |
+| `get_underlying_quote(symbol)` | Current underlying price |
+| `get_option_chain(symbol, expiration)` | Full option chain with bid/ask/delta |
+| `place_order(order)` | Submit multi-leg limit order |
+| `get_order(order_id)` | Poll fill status |
+| `cancel_order(order_id)` | Cancel unfilled order |
+
+**Implementations:**
+
+| Environment | Class | Location |
+|---|---|---|
+| `"holodeck"` | `HolodeckBroker` | `apps/holodeck/` |
+| `"sandbox"` | `TradierBroker` | `apps/K9/src/K9/tradier/broker.py` |
+| `"production"` | `TradierBroker` | `apps/K9/src/K9/tradier/broker.py` |
+
+The `environment` field in the trade spec determines which broker is instantiated at
+startup.  Once instantiated, the engine has no further knowledge of which implementation
+is in use.
+
+---
+
+### 3. K9 Orchestrator
 
 Primary execution engine.
 
@@ -67,16 +99,16 @@ Responsibilities:
 * Load trade spec
 * Validate configuration
 * Verify trading conditions
-* Retrieve market data
+* Retrieve market data **via BIC**
 * Construct trade
 * Apply filters
-* Submit order
+* Submit order **via BIC**
 * Manage entry fill
 * Log all activity
 
 ---
 
-### 3. Trade Specification Files
+### 4. Trade Specification Files
 
 Each trade spec exists as an individual JSON file.
 
@@ -97,7 +129,7 @@ Example:
 ```json
 {
   "enabled": true,
-  "environment": "sandbox",
+  "environment": "holodeck",
 
   "underlying": "SPX",
   "trade_type": "IRON_CONDOR",
@@ -139,6 +171,11 @@ Example:
 }
 ```
 
+Valid `environment` values:
+- `"holodeck"` — uses `HolodeckBroker` (local simulation, no network, deterministic)
+- `"sandbox"` — uses `TradierBroker` pointed at Tradier's paper-trading API
+- `"production"` — uses `TradierBroker` pointed at Tradier's live API
+
 ---
 
 ## Key Definitions
@@ -155,31 +192,35 @@ Used to ensure acceptable execution quality.
 
 ## Execution Flow (MVP)
 
-1. Load trade spec
+All market data and order operations go through the `Broker` interface (BIC).
+
+1. Load trade spec → determine `environment` → instantiate `Broker`
+   (`HolodeckBroker` / `TradierBroker`)
 2. Validate schema
 3. Verify spec is enabled
-4. Check current time vs allowed execution window
-5. Verify account minimum
-6. Check existing positions
+4. Check current time vs allowed execution window — `broker.get_current_time()`
+5. Verify account minimum — `broker.get_account()`
+6. Check existing positions — `broker.get_positions()`
 
    * Only 1 position per underlying allowed
-7. Pull option chain data
-8. Select strikes (DELTA-based only for MVP)
-9. Construct trade
-10. Validate trade:
+7. Pull underlying price — `broker.get_underlying_quote(symbol)`
+8. Pull option chain — `broker.get_option_chain(symbol, expiration)`
+9. Select strikes (DELTA-based only for MVP)
+10. Construct trade
+11. Validate trade:
 
     * Minimum net credit
     * Combo bid/ask width
     * Max risk
-11. Submit limit order at mid price
-12. Wait up to max fill time
-13. If filled:
+12. Submit limit order at mid price — `broker.place_order(order)`
+13. Wait up to max fill time — `broker.get_order(order_id)` polling loop
+14. If filled:
 
-    * Place take profit order
-14. If not filled:
+    * Place take profit order — `broker.place_order(tp_order)`
+15. If not filled:
 
-    * Cancel order
-15. Log all results
+    * Cancel order — `broker.cancel_order(order_id)`
+16. Log all results
 
 ---
 
@@ -250,6 +291,7 @@ spx_ic_20d_w5_tp34_0900
 * Dynamic sizing
 * Event filters
 * Multi-strategy portfolio management
+* Additional `Broker` implementations (e.g., IBKR, Schwab) — K9 engine requires no changes
 
 ---
 
@@ -261,5 +303,7 @@ The MVP version of K9 is designed to:
 * Use configuration-driven trade definitions
 * Enforce strict safety and simplicity
 * Provide a reliable platform for experimentation
+* Communicate exclusively through the Broker Interface Contract — enabling identical engine
+  behavior whether running against Holodeck simulation or a live Tradier account
 
 This design prioritizes correctness and control over performance or optimization.

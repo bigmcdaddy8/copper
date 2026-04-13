@@ -4,9 +4,10 @@
 
 K9 is the second major application in the Copper project. Where `trade_hunter` generates
 *ranked candidate lists* for a human to review, K9 is an *automated executor* — it reads
-a JSON trade spec, validates market conditions, and places a live (or sandbox) multi-leg
-options order via the Tradier API. It is designed for 0DTE, defined-risk strategies on
-cash-settled indices (SPX, XSP, NDX, RUT).
+a JSON trade spec, validates market conditions, and places a multi-leg options order through
+the **Broker Interface Contract (BIC)**. Development and testing use `HolodeckBroker`;
+sandbox and live trading use `TradierBroker`. It is designed for 0DTE, defined-risk
+strategies on cash-settled indices (SPX, XSP, NDX, RUT).
 
 The MVP is intentionally constrained: single contract, no adjustments, no stop-loss, hold to
 expiration or TP, one position per underlying at a time.
@@ -17,7 +18,10 @@ expiration or TP, one position per underlying at a time.
 
 | Decision | Choice |
 |---|---|
-| Tradier client | Duplicated in K9 (`apps/K9/src/K9/tradier/client.py`) — same pattern as trade_hunter, adds order/account methods |
+| Broker abstraction | K9 engine uses `Broker` ABC from `apps/bic/` — never calls any broker API directly |
+| Tradier implementation | `TradierBroker` in `apps/K9/src/K9/tradier/broker.py` implements BIC `Broker` ABC |
+| Development/test broker | `HolodeckBroker` from `apps/holodeck/` — local, deterministic, no network required |
+| Broker selection | `environment` field in trade spec (`"holodeck"` / `"sandbox"` / `"production"`) |
 | CLI commands | `enter` only for MVP |
 | Trade spec location | `apps/K9/trade_specs/` (version-controlled) |
 | Story tracking | Separate `docs/K9_STORY_BOARD.md`, stories in `docs/stories/K9/` |
@@ -33,25 +37,26 @@ apps/K9/
 │   ├── __main__.py           # Delegates to cli:app
 │   ├── cli.py                # Typer: K9 enter --trade-spec <name>
 │   ├── config.py             # TradeSpec dataclass (loaded from JSON)
+│   ├── broker_factory.py     # Instantiate HolodeckBroker or TradierBroker from trade spec
 │   │
 │   ├── tradier/
 │   │   ├── __init__.py
-│   │   ├── client.py         # TradierClient — read + account + order methods
+│   │   ├── broker.py         # TradierBroker — implements BIC Broker ABC (sandbox + production)
 │   │   └── selector.py       # Delta-based strike selection (IC / PCS / CCS)
 │   │
 │   ├── engine/
 │   │   ├── __init__.py
-│   │   ├── runner.py         # 15-step execution orchestration
+│   │   ├── runner.py         # 16-step execution orchestration (uses Broker interface)
 │   │   ├── constructor.py    # Build multi-leg trade from selected strikes
 │   │   ├── validator.py      # Pre-trade checks (credit, combo spread, risk)
-│   │   └── order.py          # Place order, poll fill, cancel, place TP
+│   │   └── order.py          # Place order, poll fill, cancel, place TP (via Broker ABC)
 │   │
 │   └── output/
 │       ├── __init__.py
 │       └── run_log.py        # Per-execution structured log file
 │
 ├── trade_specs/
-│   └── spx_ic_20d_w5_tp34_0900.json   # Example/starter spec
+│   └── spx_ic_20d_w5_tp34_0900.json   # Example/starter spec (environment: "holodeck")
 │
 ├── tests/
 │   └── test_smoke.py         # (grows per story)
@@ -63,14 +68,17 @@ apps/K9/
 
 ## Environment Variables
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `TRADIER_API_KEY` | Yes (production) | Live brokerage API token |
-| `TRADIER_SANDBOX_API_KEY` | Yes (sandbox) | Paper-trading API token |
-| `TRADIER_ACCOUNT_ID` | Yes | Brokerage account ID (required for orders/positions) |
+These are only required when `TradierBroker` is in use (`environment: "sandbox"` or
+`"production"`).  Running against Holodeck requires no API keys.
 
-The `environment` field in the trade spec (`"sandbox"` / `"production"`) controls which key and
-base URL is used at runtime.
+| Variable | Required for | Purpose |
+|---|---|---|
+| `TRADIER_API_KEY` | production | Live brokerage API token |
+| `TRADIER_SANDBOX_API_KEY` | sandbox | Paper-trading API token |
+| `TRADIER_ACCOUNT_ID` | sandbox + production | Brokerage account ID |
+
+The `environment` field in the trade spec (`"holodeck"` / `"sandbox"` / `"production"`)
+controls which `Broker` implementation is instantiated by `broker_factory.py`.
 
 ---
 
@@ -86,11 +94,11 @@ base URL is used at runtime.
 |---|---|
 | K9-0010 | `enter` Command Scaffold + TradeSpec JSON Loading |
 
-### Phase 2 — Tradier API Client
+### Phase 2 — TradierBroker (BIC Implementation)
 | Story | Title |
 |---|---|
-| K9-0020 | Tradier Read Client (chain, expirations, last price) |
-| K9-0030 | Account & Order Methods (balances, positions, place, status, cancel) |
+| K9-0020 | TradierBroker — Market Data Methods (quote, chain, expirations) |
+| K9-0030 | TradierBroker — Account & Order Methods (balances, positions, place, status, cancel) |
 
 ### Phase 3 — Trade Construction
 | Story | Title |
@@ -125,51 +133,68 @@ Total: **11 stories** across 7 phases.
 Loaded from a JSON file at `apps/K9/trade_specs/<name>.json`. Represented as a dataclass
 (not Pydantic — consistent with trade_hunter). Validated manually on load.
 
-Fields mirror the spec schema in `K9_PROGRAM_INTENT.md`.
+Fields mirror the spec schema in `K9_PROGRAM_INTENT.md`.  The `environment` field
+(`"holodeck"` / `"sandbox"` / `"production"`) is read by `broker_factory.py`.
 
-### `tradier/client.py` — TradierClient
-Follows trade_hunter's adaptive rate-limit pattern.
+### `broker_factory.py` — Broker Factory
+Single function `create_broker(spec: TradeSpec) -> Broker` that returns the appropriate
+`Broker` implementation based on `spec.environment`:
 
-**Read methods (same as trade_hunter):**
-- `get_option_expirations(symbol)` → `list[str]`
-- `get_last_price(symbol)` → `float`
-- `get_option_chain(symbol, expiration)` → `list[dict]`
+- `"holodeck"` → `HolodeckBroker(config)` from `apps/holodeck/`
+- `"sandbox"` → `TradierBroker(api_key=TRADIER_SANDBOX_API_KEY, sandbox=True)`
+- `"production"` → `TradierBroker(api_key=TRADIER_API_KEY, sandbox=False)`
 
-**New methods for K9:**
-- `get_account_balances()` → `dict`
-- `get_positions()` → `list[dict]`
-- `place_combo_order(account_id, legs, price, duration)` → `str` (order ID)
-- `get_order_status(account_id, order_id)` → `dict`
-- `cancel_order(account_id, order_id)` → `bool`
+The runner receives a `Broker` instance and has no further knowledge of which
+implementation is in use.
+
+### `tradier/broker.py` — TradierBroker
+Implements the BIC `Broker` ABC. Wraps the Tradier REST API for both sandbox and
+production environments. Follows trade_hunter's adaptive rate-limit pattern.
+
+**BIC methods implemented:**
+- `get_current_time()` → real wall-clock time (CT)
+- `get_account()` → `AccountSnapshot` (from Tradier balances endpoint)
+- `get_positions()` → `list[Position]`
+- `get_open_orders()` → `list[Order]`
+- `get_underlying_quote(symbol)` → `Quote`
+- `get_option_chain(symbol, expiration)` → `OptionChain`
+- `place_order(order)` → `OrderResponse`
+- `get_order(order_id)` → `Order`
+- `cancel_order(order_id)` → `None`
 
 ### `tradier/selector.py` — Strike Selection
-Delta-based, no IV-based selection in MVP.
+Delta-based, no IV-based selection in MVP.  Operates on BIC `OptionChain` /
+`OptionContract` objects (not raw Tradier dicts).
 
-- `select_0dte_expiration(expirations)` → `str` (today's expiration)
-- `select_short_put(chain, target_delta)` → `dict`
-- `select_short_call(chain, target_delta)` → `dict`
-- `select_long_put(chain, short_strike, wing_size)` → `dict`
-- `select_long_call(chain, short_strike, wing_size)` → `dict`
+- `select_0dte_expiration(expirations)` → `date` (today's expiration)
+- `select_short_put(chain, target_delta)` → `OptionContract`
+- `select_short_call(chain, target_delta)` → `OptionContract`
+- `select_long_put(chain, short_strike, wing_size)` → `OptionContract`
+- `select_long_call(chain, short_strike, wing_size)` → `OptionContract`
 
 ### `engine/runner.py` — Execution Flow
-15-step linear sequence (not a data pipeline like trade_hunter):
+16-step linear sequence (not a data pipeline like trade_hunter).  All broker calls
+go through the `Broker` ABC — the runner never imports `TradierBroker` or
+`HolodeckBroker` directly.
 
 ```
 1.  Load trade spec from JSON
 2.  Validate spec schema
 3.  Verify spec is enabled
-4.  Verify account minimum (get_account_balances)
-5.  Check existing positions (one per underlying)
-6.  Pull option expirations — select 0DTE expiration
-7.  Pull option chain
-8.  Select strikes (delta-based)
-9.  Construct multi-leg trade
-10. Validate trade (min credit, combo bid/ask width, max risk)
-11. Submit limit order at mid price
-12. Poll order status up to max_fill_time_seconds
-13. On fill → place GTC take-profit order
-14. On timeout → cancel order
-15. Write run log
+4.  Instantiate Broker via broker_factory.create_broker(spec)
+5.  Verify current time vs allowed window — broker.get_current_time()
+6.  Verify account minimum — broker.get_account()
+7.  Check existing positions — broker.get_positions()
+8.  Pull underlying quote — broker.get_underlying_quote(symbol)
+9.  Pull option chain — broker.get_option_chain(symbol, expiration)
+10. Select strikes (delta-based, using selector.py)
+11. Construct multi-leg OrderRequest
+12. Validate trade (min credit, combo bid/ask width, max risk)
+13. Submit limit order — broker.place_order(order)
+14. Poll order status — broker.get_order(order_id) loop ≤ max_fill_time_seconds
+15. On fill → place GTC take-profit order — broker.place_order(tp_order)
+16. On timeout → cancel — broker.cancel_order(order_id)
+17. Write run log
 ```
 
 ### `engine/validator.py` — Pre-Trade Checks
@@ -194,10 +219,14 @@ Mirrors trade_hunter's `run_log.py` pattern. Logs:
 |---|---|
 | Typer + Rich CLI structure | `apps/trade_hunter/src/trade_hunter/cli.py` |
 | `@dataclass` config | `apps/trade_hunter/src/trade_hunter/config.py` |
-| Adaptive rate-limit throttling | `apps/trade_hunter/src/trade_hunter/tradier/client.py` |
+| Adaptive rate-limit throttling | `apps/trade_hunter/src/trade_hunter/tradier/client.py` (internal to `TradierBroker`) |
 | Run log accumulator | `apps/trade_hunter/src/trade_hunter/output/run_log.py` |
 | `subprocess.run` smoke tests | `apps/trade_hunter/tests/test_smoke.py` |
 | `python-dotenv` env loading | `apps/trade_hunter/src/trade_hunter/cli.py` |
+
+**Key difference from trade_hunter:** trade_hunter calls Tradier endpoints directly.
+K9's engine calls `Broker` ABC methods only — Tradier-specific code is isolated inside
+`TradierBroker`, and Holodeck is the default development target.
 
 ---
 
@@ -209,8 +238,15 @@ dependencies = [
   "rich>=13",
   "python-dotenv>=1.0",
   "httpx>=0.27",
+  "bic",
 ]
 ```
+
+`bic` is the shared Broker Interface Contract package (`apps/bic/`), referenced via
+`[tool.uv.sources] bic = { workspace = true }`.
+
+`holodeck` is a dev/test dependency (used only when `environment = "holodeck"`);
+it can be added under `[dependency-groups] dev` or pulled in through the workspace.
 
 No pandas or openpyxl — K9 processes single trades, not tabular datasets.
 
@@ -223,7 +259,13 @@ uv run pytest apps/K9              # all tests pass
 uv run ruff check apps/K9
 uv run ruff format --check apps/K9
 uv run K9 enter --help             # exits 0, shows all options
-uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900  # sandbox run
+
+# Development run — no API keys required (uses HolodeckBroker)
+uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900  # environment: "holodeck"
+
+# Sandbox run — requires TRADIER_SANDBOX_API_KEY + TRADIER_ACCOUNT_ID in .env
+# (trade spec must have environment: "sandbox")
+uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900_sandbox
 ```
 
 ---
@@ -234,3 +276,10 @@ uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900  # sandbox run
 2. **Cron integration**: Scripts (`scripts/K9_enter.sh`) are out of scope for stories but can be
    added as a backlog item after integration story
 3. **TRADIER_ACCOUNT_ID**: needs to be added to `.env.example` and documented
+4. **Holodeck HolodeckConfig for K9**: When `environment = "holodeck"`, `broker_factory.py`
+   needs to decide `starting_datetime` / `ending_datetime` / `data_path`.  For integration
+   tests, reasonable defaults are today's date at market open/close with the standard
+   `data/holodeck/spx_2026_01_minutes.csv` path.
+5. **Patterns from trade_hunter vs BIC**: `TradierBroker` replaces `TradierClient` for all
+   market data and order operations.  `selector.py` takes BIC `OptionChain` objects rather
+   than raw Tradier dicts — this is the key interface change from trade_hunter's pattern.

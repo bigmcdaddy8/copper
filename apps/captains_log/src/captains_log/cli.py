@@ -1,0 +1,135 @@
+"""captains_log CLI — query the trade journal."""
+from __future__ import annotations
+
+import typer
+from rich.console import Console
+from rich.table import Table
+
+app = typer.Typer(
+    name="captains_log",
+    help="Trade journal — query and inspect recorded trades.",
+    no_args_is_help=True,
+)
+console = Console()
+
+
+@app.callback()
+def callback() -> None:
+    """captains_log — Trade journal for the automated trading system."""
+
+
+@app.command(name="list")
+def list_trades(
+    date: str = typer.Option(
+        None, "--date", help="Filter by date (YYYY-MM-DD)."
+    ),
+    outcome: str = typer.Option(
+        None, "--outcome", help="Filter by outcome (FILLED, SKIPPED, etc.)."
+    ),
+    spec: str = typer.Option(
+        None, "--spec", help="Filter by spec name."
+    ),
+) -> None:
+    """List recorded trades, most recent first."""
+    from captains_log.journal import Journal
+
+    trades = Journal().list_trades(date=date, outcome=outcome, spec_name=spec)
+
+    if not trades:
+        console.print("[dim]No trades found.[/dim]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold")
+    tbl.add_column("ID", style="dim", width=9)
+    tbl.add_column("Spec")
+    tbl.add_column("Outcome")
+    tbl.add_column("Underlying")
+    tbl.add_column("Expiration")
+    tbl.add_column("Credit", justify="right")
+    tbl.add_column("TP Status")
+    tbl.add_column("Entered At")
+
+    _OUTCOME_STYLE = {
+        "FILLED":   "bold green",
+        "SKIPPED":  "yellow",
+        "CANCELED": "yellow",
+        "REJECTED": "bold red",
+        "ERROR":    "bold red",
+    }
+
+    for t in trades:
+        style = _OUTCOME_STYLE.get(t.outcome, "white")
+        credit = f"{t.net_credit:.2f}" if t.net_credit is not None else "—"
+        tbl.add_row(
+            t.trade_id[:8],
+            t.spec_name,
+            f"[{style}]{t.outcome}[/{style}]",
+            t.underlying,
+            t.expiration or "—",
+            credit,
+            t.tp_status,
+            t.entered_at[:19].replace("T", " "),
+        )
+
+    console.print(tbl)
+    console.print(f"[dim]{len(trades)} record(s)[/dim]")
+
+
+@app.command(name="show")
+def show_trade(
+    trade_id: str = typer.Argument(..., help="Trade ID (or prefix) to display."),
+) -> None:
+    """Show all fields for a single trade record."""
+    from captains_log.journal import Journal
+
+    journal = Journal()
+
+    # Try exact match first, then prefix search
+    trade = journal.get_trade(trade_id)
+    if trade is None:
+        all_trades = journal.list_trades()
+        matches = [t for t in all_trades if t.trade_id.startswith(trade_id)]
+        if len(matches) == 1:
+            trade = matches[0]
+        elif len(matches) > 1:
+            console.print(
+                f"[yellow]Ambiguous prefix '{trade_id}' matches {len(matches)} records.[/yellow]"
+            )
+            raise typer.Exit(1)
+
+    if trade is None:
+        console.print(f"[bold red]Trade not found: {trade_id}[/bold red]")
+        raise typer.Exit(1)
+
+    tbl = Table(show_header=False, box=None, padding=(0, 2))
+    tbl.add_column("Field", style="bold dim", min_width=22)
+    tbl.add_column("Value")
+
+    rows = [
+        ("trade_id",            trade.trade_id),
+        ("spec_name",           trade.spec_name),
+        ("environment",         trade.environment),
+        ("underlying",          trade.underlying),
+        ("trade_type",          trade.trade_type),
+        ("expiration",          trade.expiration or "—"),
+        ("outcome",             trade.outcome),
+        ("reason",              trade.reason or "—"),
+        ("errors",              ", ".join(trade.errors) if trade.errors else "—"),
+        ("short_put_strike",    str(trade.short_put_strike) if trade.short_put_strike else "—"),
+        ("long_put_strike",     str(trade.long_put_strike) if trade.long_put_strike else "—"),
+        ("short_call_strike",   str(trade.short_call_strike) if trade.short_call_strike else "—"),
+        ("long_call_strike",    str(trade.long_call_strike) if trade.long_call_strike else "—"),
+        ("entry_order_id",      trade.entry_order_id or "—"),
+        ("entry_filled_price",  f"{trade.entry_filled_price:.2f}" if trade.entry_filled_price else "—"),
+        ("net_credit",          f"{trade.net_credit:.2f}" if trade.net_credit else "—"),
+        ("tp_order_id",         trade.tp_order_id or "—"),
+        ("tp_limit_price",      f"{trade.tp_limit_price:.2f}" if trade.tp_limit_price else "—"),
+        ("tp_status",           trade.tp_status),
+        ("tp_fill_price",       f"{trade.tp_fill_price:.2f}" if trade.tp_fill_price else "—"),
+        ("realized_pnl",        f"{trade.realized_pnl:.2f}" if trade.realized_pnl is not None else "—"),
+        ("entered_at",          trade.entered_at),
+    ]
+    for label, value in rows:
+        tbl.add_row(label, value)
+
+    console.print(tbl)

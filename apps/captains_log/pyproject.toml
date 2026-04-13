@@ -1,0 +1,21 @@
+[project]
+name = "captains_log"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",
+]
+
+[project.scripts]
+captains_log = "captains_log.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/captains_log"]
+
+[dependency-groups]
+dev = ["pytest>=8"]

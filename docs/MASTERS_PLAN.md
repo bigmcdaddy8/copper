@@ -140,8 +140,8 @@ Responsibilities:
 - Record fills and cancellations
 - Track TP placement
 - Record expiration outcomes
-- Maintain full lifecycle history
-  
+- Maintain full trade lifecycle history
+
 - will want a log entry for each trade entry, adjustment, exit grouped by 'Trade #'
 - have a "log" text / blob so that trading system can include a description for the trade examples:
   - "Trade Entry #1: SOLD 1x SIC(6740/6750 6850/6860) Q:STRONG BUY BPR:$2500 PoP:75% PRICE:$6800 .20d WINGS:$10 TP:50% @1.50 - $2.64"
