@@ -141,6 +141,12 @@ Responsibilities:
 - Track TP placement
 - Record expiration outcomes
 - Maintain full lifecycle history
+  
+- will want a log entry for each trade entry, adjustment, exit grouped by 'Trade #'
+- have a "log" text / blob so that trading system can include a description for the trade examples:
+  - "Trade Entry #1: SOLD 1x SIC(6740/6750 6850/6860) Q:STRONG BUY BPR:$2500 PoP:75% PRICE:$6800 .20d WINGS:$10 TP:50% @1.50 - $2.64"
+  - "TRADE ADJ #1: ROLLED 1x CCS down to 6805/6815 @0.15 - $1.32"
+  - "TRADE EXIT #1: Hit GTC TP @-0.75 - $2.64"
 
 Integration:
 - K9 writes directly via a journal library (MVP)
@@ -158,9 +164,27 @@ Responsibilities:
 - Realized P/L summaries
 - Basic accounting outputs
 
+
 Rule:
 - Reads from journal, not directly from broker
 
+Reports:
+- report data needs a storage backing in order to retain report history and to be able add to cumulative reports
+
+#### Scheduled Reports
+- Monthly Account Report
+	- a cumulative report that keeps track of the net. liquidity % and $ gain / loss for each month on a per account basis, including the current month
+	- summary: show average, median, best, worst monthly % gain/loss and monthly $ gain/loss
+- yearly account report
+	- yearly version of the monthly data
+- total account report
+	- total summation of the yearly data
+- report data for 'Holodeck' environment is not that important and is complicated because of virtual time
+	- either don't support for 'Holodeck' or support data 'reset'
+
+#### Ad Hoc Reports
+   - be able to show a trade's change history, CREDITs / DEBITs per change, log journal descriptions, totals
+  
 ---
 
 ## Data Flow
