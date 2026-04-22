@@ -20,6 +20,12 @@ def callback() -> None:
 
 _TRADE_SPECS_DIR = Path("apps/K9/trade_specs")
 
+_ENV_ACCOUNT = {
+    "holodeck":   "HD",
+    "sandbox":    "TRDS",
+    "production": "TRD",
+}
+
 
 @app.command(name="enter")
 def enter(
@@ -78,9 +84,11 @@ def enter(
 
     # Write to trade journal
     from captains_log import Journal, TradeRecord
+    account = _ENV_ACCOUNT.get(spec.environment, "TRD")
     trade = TradeRecord(
         spec_name=trade_spec,
         environment=spec.environment,
+        account=account,
         underlying=spec.underlying,
         trade_type=spec.trade_type,
         expiration=result.expiration,
@@ -100,7 +108,7 @@ def enter(
         tp_limit_price=result.tp_price,
         tp_status="PLACED" if result.tp_order_id else "UNKNOWN",
     )
-    Journal().record(trade)
+    Journal(account=account).record(trade)
 
     # Print outcome
     _OUTCOME_COLOR = {

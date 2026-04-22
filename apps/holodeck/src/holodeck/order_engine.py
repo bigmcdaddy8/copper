@@ -97,16 +97,25 @@ class OrderEngine:
             chain = build_option_chain(underlying, now.date(), now, iv_base=0.20)
 
             if self._is_closing_order(sim_order.request):
-                # TP / debit order: fill if combo_ask_to_close <= limit_price
-                combo_ask = self._compute_combo_ask_to_close(sim_order.request, chain)
-                if combo_ask <= sim_order.request.limit_price:
-                    self._fill_order(sim_order, combo_ask, now, closing=True)
+                # TP / debit order: fill if close_debit <= limit_price
+                close_debit = self._compute_close_debit(sim_order.request, chain)
+                if close_debit <= sim_order.request.limit_price:
+                    self._fill_order(sim_order, close_debit, now, closing=True)
                     filled_ids.append(order_id)
             else:
-                # Entry / credit order: fill if combo_bid >= limit_price
+                # Entry / credit order fill logic:
+                # - combo_bid = minimum credit market pays immediately
+                # - combo_ask = maximum credit achievable (ask side of spread)
+                # Fill if limit_price is achievable (≤ combo_ask).
+                # Fill price = max(combo_bid, limit_price):
+                #   • limit_price < combo_bid → market improves our order, fill at bid
+                #   • combo_bid ≤ limit_price ≤ combo_ask → passive fill at limit price
                 combo_bid = self._compute_combo_bid(sim_order.request, chain)
-                if combo_bid >= sim_order.request.limit_price:
-                    self._fill_order(sim_order, combo_bid, now, closing=False)
+                combo_ask = self._compute_combo_ask(sim_order.request, chain)
+                limit = sim_order.request.limit_price
+                if limit <= combo_ask:
+                    fill_price = max(combo_bid, limit)
+                    self._fill_order(sim_order, fill_price, now, closing=False)
                     filled_ids.append(order_id)
 
         return filled_ids
@@ -189,6 +198,22 @@ class OrderEngine:
                 total -= contract.ask
         return round(total, 2)
 
+    def _compute_combo_ask(self, request: OrderRequest, chain) -> float:
+        """Combo ask = sum(sell_leg asks) - sum(buy_leg bids).
+        This is the maximum credit the market could give us (ask side of the spread).
+        Used to determine whether a credit limit order price is achievable.
+        """
+        total = 0.0
+        for leg in request.legs:
+            contract = self._find_contract(chain, leg.strike, leg.option_type)
+            if contract is None:
+                return 0.0
+            if leg.action == "SELL":
+                total += contract.ask
+            else:
+                total -= contract.bid
+        return round(total, 2)
+
     def _compute_combo_ask_to_close(self, request: OrderRequest, chain) -> float:
         """Combo ask-to-close = cost to buy back all sell legs and sell all buy legs.
         This is the debit we pay to exit the trade.
@@ -201,6 +226,23 @@ class OrderEngine:
             # Reversed: original SELL → now BUY back (cost = ask)
             #           original BUY → now SELL (receive = bid)
             if leg.action == "SELL":
+                total += contract.ask
+            else:
+                total -= contract.bid
+        return round(max(0.0, total), 2)
+
+    def _compute_close_debit(self, request: OrderRequest, chain) -> float:
+        """Debit to fill a TP (closing) order with reversed legs.
+
+        TP legs: BUY original-sell strikes, SELL original-buy strikes.
+        Cost = sum(BUY legs at ask) - sum(SELL legs at bid).
+        """
+        total = 0.0
+        for leg in request.legs:
+            contract = self._find_contract(chain, leg.strike, leg.option_type)
+            if contract is None:
+                return float("inf")
+            if leg.action == "BUY":
                 total += contract.ask
             else:
                 total -= contract.bid

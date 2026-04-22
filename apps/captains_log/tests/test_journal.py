@@ -120,6 +120,24 @@ def test_list_trades_by_outcome(journal):
     assert len(filled) == 1
 
 
+def test_account_stored_and_retrieved(journal):
+    t = _filled(account="TRDS")
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.account == "TRDS"
+
+
+def test_list_trades_by_account(journal):
+    journal.record(_filled(account="TRD"))
+    journal.record(_filled(account="HD"))
+    trd = journal.list_trades(account="TRD")
+    assert len(trd) == 1
+    assert trd[0].account == "TRD"
+    hd = journal.list_trades(account="HD")
+    assert len(hd) == 1
+    assert hd[0].account == "HD"
+
+
 def test_update_tp_fill(journal):
     t = _filled()
     journal.record(t)
@@ -128,3 +146,13 @@ def test_update_tp_fill(journal):
     assert fetched.tp_fill_price == pytest.approx(0.75)
     assert fetched.realized_pnl == pytest.approx(35.0)
     assert fetched.tp_status == "FILLED"
+
+
+def test_update_expiration(journal):
+    t = _filled()
+    journal.record(t)
+    journal.update_expiration(t.trade_id, realized_pnl=110.0)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.realized_pnl == pytest.approx(110.0)
+    assert fetched.tp_status == "EXPIRED"
+    assert fetched.tp_fill_price is None

@@ -52,6 +52,9 @@ class TradeRecord:
     # ── P&L ───────────────────────────────────────────────────────────────────
     realized_pnl: float | None = None
 
+    # ── Account ───────────────────────────────────────────────────────────────
+    account: str = "TRD"           # TRD | TRDS | HD
+
     # ── Timing / Identity (auto-populated) ───────────────────────────────────
     entered_at: str = field(default_factory=_now_iso)
     trade_id: str = field(default_factory=_new_trade_id)

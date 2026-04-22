@@ -8,7 +8,12 @@ from pathlib import Path
 
 from captains_log.models import TradeRecord
 
-_DEFAULT_DB = Path("data/captains_log/trades.db")
+_DEFAULT_DB_DIR = Path("data/captains_log")
+
+
+def _default_db(account: str) -> Path:
+    return _DEFAULT_DB_DIR / f"{account}.db"
+
 
 _CREATE_SQL = """
 CREATE TABLE IF NOT EXISTS trades (
@@ -33,7 +38,8 @@ CREATE TABLE IF NOT EXISTS trades (
     tp_status           TEXT NOT NULL,
     tp_fill_price       REAL,
     realized_pnl        REAL,
-    entered_at          TEXT NOT NULL
+    entered_at          TEXT NOT NULL,
+    account             TEXT NOT NULL DEFAULT 'TRD'
 )
 """
 
@@ -44,14 +50,14 @@ INSERT OR IGNORE INTO trades (
     outcome, reason, errors,
     entry_order_id, entry_filled_price, net_credit,
     tp_order_id, tp_limit_price, tp_status, tp_fill_price,
-    realized_pnl, entered_at
+    realized_pnl, entered_at, account
 ) VALUES (
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?, ?,
-    ?, ?
+    ?, ?, ?
 )
 """
 
@@ -80,16 +86,29 @@ def _row_to_record(row: sqlite3.Row) -> TradeRecord:
         tp_fill_price=row["tp_fill_price"],
         realized_pnl=row["realized_pnl"],
         entered_at=row["entered_at"],
+        account=row["account"],
     )
 
 
 class Journal:
-    """Reads and writes TradeRecords to a SQLite database."""
+    """Reads and writes TradeRecords to a SQLite database.
 
-    DEFAULT_DB = _DEFAULT_DB
+    Each account (TRD, TRDS, HD) uses an isolated database file.
+    """
 
-    def __init__(self, db_path: Path | None = None) -> None:
-        self._db = db_path or Path(os.environ.get("CL_DB_PATH", str(self.DEFAULT_DB)))
+    DEFAULT_DB_DIR = _DEFAULT_DB_DIR
+
+    def __init__(
+        self,
+        account: str = "TRD",
+        db_path: Path | None = None,
+    ) -> None:
+        self._account = account
+        if db_path is not None:
+            self._db = db_path
+        else:
+            env_path = os.environ.get("CL_DB_PATH")
+            self._db = Path(env_path) if env_path else _default_db(account)
         self._db.parent.mkdir(parents=True, exist_ok=True)
         self._init_schema()
 
@@ -101,6 +120,12 @@ class Journal:
     def _init_schema(self) -> None:
         with self._connect() as conn:
             conn.execute(_CREATE_SQL)
+            # Migrate existing DBs: add account column if absent
+            cols = {row[1] for row in conn.execute("PRAGMA table_info(trades)")}
+            if "account" not in cols:
+                conn.execute(
+                    "ALTER TABLE trades ADD COLUMN account TEXT NOT NULL DEFAULT 'TRD'"
+                )
 
     def record(self, trade: TradeRecord) -> None:
         """Insert a TradeRecord. Silently no-ops if trade_id already exists."""
@@ -130,6 +155,7 @@ class Journal:
                     trade.tp_fill_price,
                     trade.realized_pnl,
                     trade.entered_at,
+                    trade.account,
                 ),
             )
 
@@ -146,6 +172,7 @@ class Journal:
         date: str | None = None,
         outcome: str | None = None,
         spec_name: str | None = None,
+        account: str | None = None,
     ) -> list[TradeRecord]:
         """Return TradeRecords matching the given filters, ordered by entered_at DESC."""
         clauses: list[str] = []
@@ -160,6 +187,9 @@ class Journal:
         if spec_name:
             clauses.append("spec_name = ?")
             params.append(spec_name)
+        if account:
+            clauses.append("account = ?")
+            params.append(account)
 
         where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
         sql = f"SELECT * FROM trades {where} ORDER BY entered_at DESC"
@@ -185,4 +215,21 @@ class Journal:
                 WHERE trade_id = ?
                 """,
                 (tp_fill_price, realized_pnl, trade_id),
+            )
+
+    def update_expiration(
+        self,
+        trade_id: str,
+        realized_pnl: float,
+    ) -> None:
+        """Update a FILLED trade that held to expiration (TP not hit)."""
+        with self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE trades
+                SET realized_pnl = ?,
+                    tp_status    = 'EXPIRED'
+                WHERE trade_id = ?
+                """,
+                (realized_pnl, trade_id),
             )

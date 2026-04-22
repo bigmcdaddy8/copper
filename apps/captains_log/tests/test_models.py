@@ -35,6 +35,7 @@ def test_trade_record_defaults():
     assert "T" in t.entered_at or "+" in t.entered_at, "entered_at should be ISO UTC"
     assert t.tp_fill_price is None
     assert t.realized_pnl is None
+    assert t.account == "TRD"
 
 
 def test_trade_record_filled_fields():

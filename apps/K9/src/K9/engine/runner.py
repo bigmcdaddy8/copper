@@ -1,6 +1,7 @@
 """K9 entry execution runner — orchestration (K9-0060/K9-0070/K9-0090)."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -44,6 +45,7 @@ def run_entry(
     spec_name: str,
     broker: Broker,
     log_dir: Path | None = None,
+    tick: Callable[[], None] | None = None,
 ) -> RunResult:
     """Execute the K9 entry flow for *spec* using *broker*.
 
@@ -56,6 +58,9 @@ def run_entry(
         broker: Pre-instantiated Broker (HolodeckBroker or TradierBroker).
         log_dir: Path to log directory (used for daily entry count check).
                  Defaults to logs/K9/.
+        tick: Optional callback to advance the broker's virtual time between order
+              polls. Pass ``broker.advance_time`` when using HolodeckBroker so
+              that limit orders are evaluated during the fill-wait loop.
 
     Returns:
         RunResult describing the execution outcome.
@@ -151,6 +156,7 @@ def run_entry(
             broker,
             order,
             max_fill_seconds=spec.entry.max_fill_time_seconds,
+            tick=tick,
         )
         result.outcome = outcome.status
         result.order_id = outcome.order_id

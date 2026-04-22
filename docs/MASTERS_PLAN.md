@@ -180,10 +180,11 @@ Reports:
 - total account report
 	- total summation of the yearly data
 - report data for 'Holodeck' environment is not that important and is complicated because of virtual time
-	- either don't support for 'Holodeck' or support data 'reset'
+	- need to support data 'reset' every time a run is done that uses 'holodeck' data
 
 #### Ad Hoc Reports
    - be able to show a trade's change history, CREDITs / DEBITs per change, log journal descriptions, totals
+   - Trade Listing report: all trades with the following columns: 'Account','trade #', 'status'
   
 ---
 

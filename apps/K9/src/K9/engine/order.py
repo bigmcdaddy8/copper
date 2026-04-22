@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from bic.broker import Broker
@@ -29,14 +30,18 @@ def place_and_poll(
     order: OrderRequest,
     max_fill_seconds: int,
     poll_interval: float = 5.0,
+    tick: Callable[[], None] | None = None,
 ) -> OrderOutcome:
     """Submit *order* and poll until filled, canceled, or timeout.
 
     Args:
         broker: BIC Broker instance.
         order: The OrderRequest to submit.
-        max_fill_seconds: Maximum seconds to wait for a fill before canceling.
-        poll_interval: Seconds between status polls (default 5s).
+        max_fill_seconds: Maximum seconds (or ticks when tick is set) before canceling.
+        poll_interval: Seconds between polls (ignored when tick is set).
+        tick: Optional callback invoked between each poll. Use with simulation brokers
+              that require explicit time advancement (e.g. HolodeckBroker.advance_time).
+              When set, max_fill_seconds is treated as a tick count, not wall-clock seconds.
 
     Returns:
         OrderOutcome describing the final state.
@@ -52,27 +57,44 @@ def place_and_poll(
         )
 
     order_id = response.order_id
-    deadline = time.monotonic() + max_fill_seconds
 
-    while time.monotonic() < deadline:
-        current: Order = broker.get_order(order_id)
-
-        if current.status == "FILLED":
-            return OrderOutcome(
-                status="FILLED",
-                order_id=order_id,
-                filled_price=current.filled_price,
-            )
-
-        if current.status == "CANCELED":
-            return OrderOutcome(
-                status="CANCELED",
-                order_id=order_id,
-                filled_price=None,
-                reason="Order was canceled externally.",
-            )
-
-        time.sleep(poll_interval)
+    if tick is not None:
+        # Simulation path: advance virtual time between polls
+        for _ in range(max_fill_seconds):
+            tick()
+            current: Order = broker.get_order(order_id)
+            if current.status == "FILLED":
+                return OrderOutcome(
+                    status="FILLED",
+                    order_id=order_id,
+                    filled_price=current.filled_price,
+                )
+            if current.status == "CANCELED":
+                return OrderOutcome(
+                    status="CANCELED",
+                    order_id=order_id,
+                    filled_price=None,
+                    reason="Order was canceled externally.",
+                )
+    else:
+        # Real-time path: sleep between polls
+        deadline = time.monotonic() + max_fill_seconds
+        while time.monotonic() < deadline:
+            current = broker.get_order(order_id)
+            if current.status == "FILLED":
+                return OrderOutcome(
+                    status="FILLED",
+                    order_id=order_id,
+                    filled_price=current.filled_price,
+                )
+            if current.status == "CANCELED":
+                return OrderOutcome(
+                    status="CANCELED",
+                    order_id=order_id,
+                    filled_price=None,
+                    reason="Order was canceled externally.",
+                )
+            time.sleep(poll_interval)
 
     # Timeout — cancel the order
     broker.cancel_order(order_id)

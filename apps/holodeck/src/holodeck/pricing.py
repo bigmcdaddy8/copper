@@ -27,12 +27,12 @@ def compute_option_price(
         intrinsic = max(0.0, strike - underlying)
 
     moneyness_distance = abs(underlying - strike)
-    time_factor = max(0.0, minutes_to_close / 390.0)
+    time_factor = max(0.0, math.sqrt(minutes_to_close / (252 * 390)))
     extrinsic = (
         iv_base
         * underlying
         * time_factor
-        * math.exp(-moneyness_distance / (underlying * 0.02))
+        * math.exp(-moneyness_distance / (underlying * 0.01))
     )
 
     raw_price = intrinsic + extrinsic

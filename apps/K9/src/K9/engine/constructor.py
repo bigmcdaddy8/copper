@@ -81,7 +81,7 @@ def build_tp_order(
 
     return OrderRequest(
         symbol=entry_order.symbol,
-        strategy_type=entry_order.strategy_type,
+        strategy_type=entry_order.strategy_type + "_TP",
         legs=reversed_legs,
         quantity=entry_order.quantity,
         order_type="LIMIT",

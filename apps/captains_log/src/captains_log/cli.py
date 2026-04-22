@@ -29,11 +29,14 @@ def list_trades(
     spec: str = typer.Option(
         None, "--spec", help="Filter by spec name."
     ),
+    account: str = typer.Option(
+        "TRD", "--account", "-a", help="Account DB to query (TRD, TRDS, HD)."
+    ),
 ) -> None:
     """List recorded trades, most recent first."""
     from captains_log.journal import Journal
 
-    trades = Journal().list_trades(date=date, outcome=outcome, spec_name=spec)
+    trades = Journal(account=account).list_trades(date=date, outcome=outcome, spec_name=spec)
 
     if not trades:
         console.print("[dim]No trades found.[/dim]")
@@ -78,11 +81,14 @@ def list_trades(
 @app.command(name="show")
 def show_trade(
     trade_id: str = typer.Argument(..., help="Trade ID (or prefix) to display."),
+    account: str = typer.Option(
+        "TRD", "--account", "-a", help="Account DB to query (TRD, TRDS, HD)."
+    ),
 ) -> None:
     """Show all fields for a single trade record."""
     from captains_log.journal import Journal
 
-    journal = Journal()
+    journal = Journal(account=account)
 
     # Try exact match first, then prefix search
     trade = journal.get_trade(trade_id)
@@ -107,6 +113,7 @@ def show_trade(
 
     rows = [
         ("trade_id",            trade.trade_id),
+        ("account",             trade.account),
         ("spec_name",           trade.spec_name),
         ("environment",         trade.environment),
         ("underlying",          trade.underlying),
