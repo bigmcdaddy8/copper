@@ -214,11 +214,15 @@ def run_after_hours_gtc(
     account_id: str,
     conn: sqlite3.Connection,
 ) -> dict:
-    """Attempt to place a GTC BTC limit order after market close."""
-    from tradier_sniffer.options import get_0dte_expiration
+    """Attempt to place a GTC BTC limit order after market close.
+
+    Uses the nearest next-day (1DTE+) expiration so this test works after
+    today's 0DTE options have expired and their quotes are stale/zero.
+    """
+    from tradier_sniffer.options import get_next_expiration
 
     expirations = client.get_option_expirations("SPX")
-    expiry = get_0dte_expiration(expirations)
+    expiry = get_next_expiration(expirations)
     if not expiry:
         findings = {"test": "after_hours_gtc", "status": "skipped", "reason": "No expiration found"}
         _log_findings(conn, findings)

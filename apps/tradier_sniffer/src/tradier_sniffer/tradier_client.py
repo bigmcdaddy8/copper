@@ -1,4 +1,5 @@
 import time
+import urllib.parse
 
 import httpx
 
@@ -108,8 +109,18 @@ class TradierClient:
 
     def _post(self, path: str, data: dict) -> dict:
         self._throttle()
+        # Build form body with literal bracket keys — httpx's data= encoding
+        # percent-encodes '[' and ']' which breaks Tradier's leg[N][field] parsing,
+        # causing the API to see 0 legs and reject with "number of legs must be > 1".
+        body = "&".join(
+            f"{k}={urllib.parse.quote(str(v), safe='')}" for k, v in data.items()
+        )
         try:
-            response = self._client.post(path, data=data)
+            response = self._client.post(
+                path,
+                content=body,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
         except httpx.RequestError as exc:
             raise TradierAPIError(0, str(exc)) from exc
 

@@ -33,6 +33,8 @@ The answers to the following questions will be obtained during the development a
 **Question**: Some options trade on nickel pricing (i.e., they only trade on 0.05 boundaries such as 1.05, 1.10 etc.)
   - What happens when we place an Day STO Limit order with a penny based entry price (1.08) on a nickel only option ?
 
+**Answer:** Tested 2026-04-13 (EC-1) via `tradier_sniffer demo edge_cases --run nickel_pricing`. Placed a Day STO Limit on `SPXW260413P05000000` at `$0.06` (a penny price). Result: **order accepted as-submitted**, status = `ok`, order ID 27894349. Tradier sandbox does **not** enforce nickel increment rules — it accepted the penny price without rejection or silent rounding. This is likely a sandbox-only permissiveness; behavior on production may differ. **Action item:** re-run this test on production once a live account is available to confirm whether exchange-level nickel enforcement applies.
+
 **Story:** TS-0095 (edge case sandbox test — place penny-priced limit on nickel option, observe broker response)
 
 ---
@@ -73,11 +75,15 @@ The answers to the following questions will be obtained during the development a
 
 **Question**: Can a TP trade be placed / adjusted after hours so that it in essence takes effect during the next trading session ?
 
+**Answer:** Tested 2026-04-15 (EC-3, Wednesday evening after market close) via `tradier_sniffer demo edge_cases --run after_hours_gtc`. Placed a GTC BTC limit on `SPXW260416P06370000` (1DTE put). Result: **order accepted**, status = `ok`, order ID `28150911`. No `market_closed` rejection. GTC orders are queued after hours and become active the next trading session. Safe to place TP/GTC orders at any time — no need to wait for market open.
+
 **Story:** TS-0095 (edge case sandbox test — attempt to place/modify GTC order after market close; document behavior)
 
 ---
 
 **Question**: Can after hours / extended hours pricing information be retrieved for Stocks ?
+
+**Answer:** Tested via `after_hours_check.sh` (EC-4) across 5 trading days (2026-04-16 through 2026-04-22) at 3:15 PM CT / 4:15 PM ET. Queried SPY, QQQ, and SPX each evening. Result was **identical every day**: `has_extended_trade: False`, `has_post_market: False` for all three symbols. The `last` price returned is the regular-session closing price — no extended-hours trade data is surfaced. **Conclusion:** The Tradier sandbox does **not** return after-hours pricing. The `bid`/`ask` fields do update after close (they reflect the NBBO at query time), but `last` is frozen at the regular-session close. Behavior on production may differ — re-test once a live account is available.
 
 **Story:** TS-0095 (edge case sandbox test — call quotes endpoint after hours on a stock; document response)
 

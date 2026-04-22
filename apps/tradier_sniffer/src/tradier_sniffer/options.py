@@ -38,6 +38,25 @@ def build_occ_symbol(underlying: str, expiry: str, option_type: str, strike: flo
 # ---------------------------------------------------------------------------
 
 
+def get_next_expiration(expirations: list[str]) -> str | None:
+    """Return the nearest expiration strictly after today (1DTE or later).
+
+    Useful when today's options have expired or have no valid quotes (e.g. after
+    market close).  Never returns today's date.
+
+    Args:
+        expirations: Sorted list of ``YYYY-MM-DD`` expiration strings.
+
+    Returns:
+        The nearest future expiration string, or ``None`` if none exists.
+    """
+    today = date.today().isoformat()
+    for exp in sorted(expirations):
+        if exp > today:
+            return exp
+    return None
+
+
 def get_0dte_expiration(expirations: list[str]) -> str | None:
     """Return the 0DTE (today) expiration if available, else the nearest future date.
 

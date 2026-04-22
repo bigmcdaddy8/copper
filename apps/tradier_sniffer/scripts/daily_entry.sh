@@ -2,6 +2,7 @@
 # daily_entry.sh — Place the daily SPX 0DTE SIC entry order.
 # Intended to run at 8:45 AM CT / 9:45 AM ET (Mon–Fri) via cron.
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 source .env 2>/dev/null || true

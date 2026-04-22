@@ -2,6 +2,7 @@
 # after_hours_check.sh — Query stock quotes after market close.
 # Intended to run at 3:15 PM CT / 4:15 PM ET (Mon–Fri) via cron.
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 source .env 2>/dev/null || true
