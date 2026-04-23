@@ -6,7 +6,7 @@ import os
 import sqlite3
 from pathlib import Path
 
-from captains_log.models import TradeRecord
+from captains_log.models import TradeRecord, build_legacy_trade_num
 
 _DEFAULT_DB_DIR = Path("data/captains_log")
 
@@ -39,7 +39,14 @@ CREATE TABLE IF NOT EXISTS trades (
     tp_fill_price       REAL,
     realized_pnl        REAL,
     entered_at          TEXT NOT NULL,
-    account             TEXT NOT NULL DEFAULT 'TRD'
+    account             TEXT NOT NULL DEFAULT 'TRD',
+    legacy_trade_num    TEXT
+)
+"""
+
+_CREATE_TRADE_SEQUENCE_SQL = """
+CREATE TABLE IF NOT EXISTS trade_sequence (
+    last_seq INTEGER NOT NULL DEFAULT 0
 )
 """
 
@@ -50,14 +57,14 @@ INSERT OR IGNORE INTO trades (
     outcome, reason, errors,
     entry_order_id, entry_filled_price, net_credit,
     tp_order_id, tp_limit_price, tp_status, tp_fill_price,
-    realized_pnl, entered_at, account
+    realized_pnl, entered_at, account, legacy_trade_num
 ) VALUES (
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?, ?,
-    ?, ?, ?
+    ?, ?, ?, ?
 )
 """
 
@@ -87,6 +94,7 @@ def _row_to_record(row: sqlite3.Row) -> TradeRecord:
         realized_pnl=row["realized_pnl"],
         entered_at=row["entered_at"],
         account=row["account"],
+        legacy_trade_num=row["legacy_trade_num"],
     )
 
 
@@ -120,16 +128,43 @@ class Journal:
     def _init_schema(self) -> None:
         with self._connect() as conn:
             conn.execute(_CREATE_SQL)
+            conn.execute(_CREATE_TRADE_SEQUENCE_SQL)
+            # Seed the sequence row if the table was just created (empty).
+            conn.execute("INSERT OR IGNORE INTO trade_sequence SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM trade_sequence)")
             # Migrate existing DBs: add account column if absent
             cols = {row[1] for row in conn.execute("PRAGMA table_info(trades)")}
             if "account" not in cols:
                 conn.execute(
                     "ALTER TABLE trades ADD COLUMN account TEXT NOT NULL DEFAULT 'TRD'"
                 )
+            if "legacy_trade_num" not in cols:
+                conn.execute(
+                    "ALTER TABLE trades ADD COLUMN legacy_trade_num TEXT"
+                )
+
+    def _next_seq(self, conn: sqlite3.Connection) -> int:
+        """Atomically increment and return the per-account trade sequence counter."""
+        conn.execute("UPDATE trade_sequence SET last_seq = last_seq + 1")
+        return conn.execute("SELECT last_seq FROM trade_sequence").fetchone()[0]
 
     def record(self, trade: TradeRecord) -> None:
-        """Insert a TradeRecord. Silently no-ops if trade_id already exists."""
+        """Insert a TradeRecord. Silently no-ops if trade_id already exists.
+
+        If *trade.entry_filled_price* is set and this is a new record, a
+        ``legacy_trade_num`` (e.g. ``TRD_00001_PCS``) is allocated and stored
+        alongside the UUID ``trade_id``.
+        """
         with self._connect() as conn:
+            already_exists = conn.execute(
+                "SELECT 1 FROM trades WHERE trade_id = ?", (trade.trade_id,)
+            ).fetchone() is not None
+
+            if not already_exists and trade.entry_filled_price is not None:
+                seq = self._next_seq(conn)
+                trade.legacy_trade_num = build_legacy_trade_num(
+                    self._account, seq, trade.trade_type
+                )
+
             conn.execute(
                 _INSERT_SQL,
                 (
@@ -156,6 +191,7 @@ class Journal:
                     trade.realized_pnl,
                     trade.entered_at,
                     trade.account,
+                    trade.legacy_trade_num,
                 ),
             )
 

@@ -1,7 +1,8 @@
 """Tests for TradeRecord model (CL-0010)."""
 from __future__ import annotations
 
-from captains_log.models import TradeRecord
+import pytest
+from captains_log.models import TradeRecord, build_legacy_trade_num, TRADE_TYPE_LEGACY_CODES
 
 
 def _filled_record(**kwargs) -> TradeRecord:
@@ -79,3 +80,33 @@ def test_errors_is_list():
     t = _filled_record()
     assert isinstance(t.errors, list)
     assert len(t.errors) == 0
+
+
+# ── build_legacy_trade_num ────────────────────────────────────────────────────
+
+def test_build_legacy_trade_num_format():
+    assert build_legacy_trade_num("TRD", 1, "PUT_CREDIT_SPREAD") == "TRD_00001_PCS"
+
+
+def test_build_legacy_trade_num_zero_padding():
+    assert build_legacy_trade_num("TRDS", 42, "IRON_CONDOR") == "TRDS_00042_SIC"
+
+
+def test_build_legacy_trade_num_large_seq():
+    assert build_legacy_trade_num("HD", 99999, "CALL_CREDIT_SPREAD") == "HD_99999_CCS"
+
+
+def test_build_legacy_trade_num_unknown_type_raises():
+    with pytest.raises(ValueError, match="No legacy code"):
+        build_legacy_trade_num("TRD", 1, "UNKNOWN_TYPE")
+
+
+def test_all_known_trade_types_have_codes():
+    for trade_type in ("IRON_CONDOR", "PUT_CREDIT_SPREAD", "CALL_CREDIT_SPREAD",
+                       "NAKED_SHORT_PUT", "NAKED_SHORT_CALL"):
+        assert trade_type in TRADE_TYPE_LEGACY_CODES
+
+
+def test_legacy_trade_num_defaults_to_none():
+    t = _filled_record()
+    assert t.legacy_trade_num is None

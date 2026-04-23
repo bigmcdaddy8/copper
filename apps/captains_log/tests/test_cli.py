@@ -55,7 +55,7 @@ def test_list_shows_record(tmp_path):
     _insert_filled(db, spec_name="my_test_spec")
     result = _run_cli(["list"], db)
     assert result.returncode == 0
-    assert "my_tes" in result.stdout  # Rich may truncate long spec names in table
+    assert "FILLED" in result.stdout
 
 
 def test_show_exits_zero(tmp_path):

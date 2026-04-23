@@ -14,6 +14,30 @@ def _new_trade_id() -> str:
     return uuid.uuid4().hex
 
 
+# Maps captains_log trade_type strings to the abbreviations used in legacy Trade #s.
+TRADE_TYPE_LEGACY_CODES: dict[str, str] = {
+    "IRON_CONDOR":       "SIC",
+    "PUT_CREDIT_SPREAD": "PCS",
+    "CALL_CREDIT_SPREAD": "CCS",
+    "NAKED_SHORT_PUT":   "NPUT",
+    "NAKED_SHORT_CALL":  "NCALL",
+}
+
+
+def build_legacy_trade_num(account: str, seq: int, trade_type: str) -> str:
+    """Build a legacy Trade # string, e.g. ``TRD_00001_PCS``.
+
+    Raises ``ValueError`` if *trade_type* has no registered abbreviation.
+    """
+    code = TRADE_TYPE_LEGACY_CODES.get(trade_type)
+    if code is None:
+        raise ValueError(
+            f"No legacy code for trade_type {trade_type!r}. "
+            f"Known types: {list(TRADE_TYPE_LEGACY_CODES)}"
+        )
+    return f"{account}_{seq:05d}_{code}"
+
+
 @dataclass
 class TradeRecord:
     """Authoritative record of a single trade attempt, from entry through close."""
@@ -58,3 +82,4 @@ class TradeRecord:
     # ── Timing / Identity (auto-populated) ───────────────────────────────────
     entered_at: str = field(default_factory=_now_iso)
     trade_id: str = field(default_factory=_new_trade_id)
+    legacy_trade_num: str | None = None   # e.g. TRD_00001_PCS; set on filled entry

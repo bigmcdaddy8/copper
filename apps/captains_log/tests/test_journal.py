@@ -156,3 +156,54 @@ def test_update_expiration(journal):
     assert fetched.realized_pnl == pytest.approx(110.0)
     assert fetched.tp_status == "EXPIRED"
     assert fetched.tp_fill_price is None
+
+
+# ── legacy_trade_num allocation ───────────────────────────────────────────────
+
+def test_filled_trade_gets_legacy_trade_num(journal):
+    t = _filled()
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.legacy_trade_num is not None
+    assert fetched.legacy_trade_num == "TRD_00001_SIC"
+
+
+def test_unfilled_trade_has_no_legacy_trade_num(journal):
+    t = _filled(entry_filled_price=None, outcome="SKIPPED",
+                entry_order_id="", net_credit=None,
+                tp_order_id="", tp_limit_price=None, tp_status="UNKNOWN")
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.legacy_trade_num is None
+
+
+def test_legacy_trade_nums_are_sequential(journal):
+    t1 = _filled()
+    t2 = _filled()
+    journal.record(t1)
+    journal.record(t2)
+    f1 = journal.get_trade(t1.trade_id)
+    f2 = journal.get_trade(t2.trade_id)
+    assert f1.legacy_trade_num == "TRD_00001_SIC"
+    assert f2.legacy_trade_num == "TRD_00002_SIC"
+
+
+def test_record_idempotent_does_not_reallocate_sequence(journal):
+    t = _filled()
+    journal.record(t)
+    journal.record(t)  # second call is a no-op
+    assert len(journal.list_trades()) == 1
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.legacy_trade_num == "TRD_00001_SIC"
+    # Sequence should only have been incremented once; next new trade gets 00002.
+    t2 = _filled()
+    journal.record(t2)
+    assert journal.get_trade(t2.trade_id).legacy_trade_num == "TRD_00002_SIC"
+
+
+def test_legacy_trade_num_reflects_account(tmp_path):
+    journal_trds = Journal(db_path=tmp_path / "TRDS.db", account="TRDS")
+    t = _filled(account="TRDS", trade_type="PUT_CREDIT_SPREAD")
+    journal_trds.record(t)
+    fetched = journal_trds.get_trade(t.trade_id)
+    assert fetched.legacy_trade_num == "TRDS_00001_PCS"

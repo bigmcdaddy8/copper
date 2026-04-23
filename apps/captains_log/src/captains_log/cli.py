@@ -44,6 +44,7 @@ def list_trades(
 
     tbl = Table(show_header=True, header_style="bold")
     tbl.add_column("ID", style="dim", width=9)
+    tbl.add_column("Legacy #")
     tbl.add_column("Spec")
     tbl.add_column("Outcome")
     tbl.add_column("Underlying")
@@ -65,6 +66,7 @@ def list_trades(
         credit = f"{t.net_credit:.2f}" if t.net_credit is not None else "—"
         tbl.add_row(
             t.trade_id[:8],
+            t.legacy_trade_num or "—",
             t.spec_name,
             f"[{style}]{t.outcome}[/{style}]",
             t.underlying,
@@ -113,6 +115,7 @@ def show_trade(
 
     rows = [
         ("trade_id",            trade.trade_id),
+        ("legacy_trade_num",    trade.legacy_trade_num or "—"),
         ("account",             trade.account),
         ("spec_name",           trade.spec_name),
         ("environment",         trade.environment),

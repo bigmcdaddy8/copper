@@ -49,6 +49,7 @@ def trades_cmd(
     tbl = Table(show_header=True, header_style="bold")
     tbl.add_column("Account")
     tbl.add_column("Trade ID", style="dim", width=9)
+    tbl.add_column("Legacy #")
     tbl.add_column("Outcome")
     tbl.add_column("Underlying")
     tbl.add_column("Expiration")
@@ -65,6 +66,7 @@ def trades_cmd(
         tbl.add_row(
             t.account,
             t.trade_id[:8],
+            t.legacy_trade_num or "—",
             f"[{style}]{t.outcome}[/{style}]",
             t.underlying,
             t.expiration or "—",
