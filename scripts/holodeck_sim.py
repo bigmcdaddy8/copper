@@ -103,11 +103,13 @@ def main(
         )
         raise typer.Exit(1)
 
-    # ── Clear HD journal if requested ─────────────────────────────────────────
+    # ── Clear HD journal and reports if requested ─────────────────────────────
     if clear:
         if _HD_DB.exists():
             _HD_DB.unlink()
-            console.print("[yellow]HD journal cleared.[/yellow]")
+        from encyclopedia_galactica.store import Store
+        Store().reset_account("HD")
+        console.print("[yellow]HD journal and reports cleared.[/yellow]")
 
     # ── Set up ────────────────────────────────────────────────────────────────
     _SIM_LOG_DIR.mkdir(parents=True, exist_ok=True)
