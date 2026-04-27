@@ -63,7 +63,7 @@ def run(client: TradierClient, account_id: str) -> dict:
         {"option_symbol": legs["long_call"]["symbol"],  "side": "buy_to_open",   "quantity": 1},
     ]
 
-    response = client.place_multileg_order(account_id, leg_list, credit)
+    response = client.place_multileg_order(account_id, leg_list, credit, underlying=UNDERLYING)
     order_id = str(response.get("order", {}).get("id", "unknown"))
 
     return {

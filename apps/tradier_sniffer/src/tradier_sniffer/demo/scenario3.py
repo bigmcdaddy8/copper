@@ -44,7 +44,7 @@ def run(
         {"option_symbol": entry["legs"]["short_call"]["symbol"], "side": "buy_to_close",  "quantity": 1},
         {"option_symbol": entry["legs"]["long_call"]["symbol"],  "side": "sell_to_close", "quantity": 1},
     ]
-    tp_response = client.place_multileg_order(account_id, tp_legs, tp_price, duration="gtc")
+    tp_response = client.place_multileg_order(account_id, tp_legs, tp_price, underlying="SPX", duration="gtc")
     tp_order_id = str(tp_response.get("order", {}).get("id", "unknown"))
 
     return {

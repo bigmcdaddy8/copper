@@ -62,7 +62,7 @@ def run(
         {"option_symbol": entry["legs"]["short_call"]["symbol"], "side": "sell_to_open", "quantity": 1},
         {"option_symbol": entry["legs"]["long_call"]["symbol"],  "side": "buy_to_open",  "quantity": 1},
     ]
-    response = client.place_multileg_order(account_id, leg_list, new_credit)
+    response = client.place_multileg_order(account_id, leg_list, new_credit, underlying="SPX")
     new_order_id = str(response.get("order", {}).get("id", "unknown"))
 
     return {

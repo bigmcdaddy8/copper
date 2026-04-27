@@ -256,12 +256,14 @@ class TradierClient:
         account_id: str,
         legs: list[dict],
         price: float,
+        underlying: str | None = None,
         duration: str = "day",
         tag: str | None = None,
     ) -> dict:
         """Place a multileg limit order (Iron Condor, spread, etc.).
 
         Each leg dict must have keys: option_symbol, side, quantity.
+        Tradier expects flat indexed keys: option_symbol[N], side[N], quantity[N].
         Returns the raw Tradier order response dict.
         """
         data: dict = {
@@ -270,12 +272,14 @@ class TradierClient:
             "duration": duration,
             "price": f"{price:.2f}",
         }
+        if underlying:
+            data["symbol"] = underlying
         if tag:
             data["tag"] = tag
         for i, leg in enumerate(legs):
-            data[f"leg[{i}][option_symbol]"] = leg["option_symbol"]
-            data[f"leg[{i}][side]"] = leg["side"]
-            data[f"leg[{i}][quantity]"] = str(leg["quantity"])
+            data[f"option_symbol[{i}]"] = leg["option_symbol"]
+            data[f"side[{i}]"] = leg["side"]
+            data[f"quantity[{i}]"] = str(leg["quantity"])
         return self._post(f"accounts/{account_id}/orders", data)
 
     def cancel_order(self, account_id: str, order_id: str) -> dict:

@@ -86,7 +86,7 @@ def run(
         {"option_symbol": short_put_sym,     "side": "buy_to_close",  "quantity": 1},
         {"option_symbol": new_short_put_sym,  "side": "sell_to_open",  "quantity": 1},
     ]
-    adj_response = client.place_multileg_order(account_id, adj_legs, adj_credit)
+    adj_response = client.place_multileg_order(account_id, adj_legs, adj_credit, underlying="SPX")
     adj_order_id = str(adj_response.get("order", {}).get("id", "unknown"))
 
     # Link adjustment order to the same Trade # (will be mapped on fill detection)

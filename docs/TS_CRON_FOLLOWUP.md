@@ -23,7 +23,7 @@ That is fine for this phase — the goal is observing sandbox behaviour, not liv
 
 ---
 
-## Status as of 2026-04-22
+## Status as of 2026-04-26
 
 | Date | Event | Result |
 |---|---|---|
@@ -35,13 +35,17 @@ That is fine for this phase — the goal is observing sandbox behaviour, not liv
 | 2026-04-16–22 | `daily_entry.sh` (7 runs) | ❌ Failed — HTTP 400 "number of legs must be > 1" |
 | 2026-04-16–22 | `expiry_check.sh` (EC-2, 7 runs) | ⏸ No data — blocked by `daily_entry.sh` failure |
 | 2026-04-16–22 | `after_hours_check.sh` (EC-4, 5 trading days) | ✅ EC-4 complete — consistent data, FAQ answered |
-| 2026-04-22 | `daily_entry.sh` bug fixed in `tradier_client.py` | ✅ `_post` now sends literal bracket keys |
+| 2026-04-22 | Fix attempt 1: `_post` encoding fix | ⚠️ Necessary but not sufficient — bracket encoding fixed; wrong key format remained |
+| 2026-04-23–24 | `daily_entry.sh` (2 runs) | ❌ Still failed — same HTTP 400 error with fix attempt 1 |
+| 2026-04-26 | Fix attempt 2: leg key format corrected | ✅ Changed `leg[N][field]` → `field[N]`; added `symbol=SPX` — matches Tradier's documented multileg format |
 
 **EC-1 finding (nickel pricing):** Tradier sandbox accepted a `$0.06` penny-priced Day STO Limit without rejection or rounding. Production behavior may differ — re-test needed when live account is available.
 
 **EC-4 finding (after-hours quotes):** Tested 5 days (Apr 16–22). `has_extended_trade: False`, `has_post_market: False` every day for SPY, QQQ, SPX. Sandbox does not return extended-hours pricing — `last` is frozen at regular-session close.
 
-**Root cause of `daily_entry.sh` failures (Apr 16–22):** `httpx` percent-encodes `[` and `]` when using `data=dict`, turning `leg[0][option_symbol]` into `leg%5B0%5D%5Boption_symbol%5D`. Tradier's backend did not parse this as leg parameters, seeing 0 legs and rejecting with "number of legs must be greater than 1". Fixed in `tradier_client.py:_post` — form body is now built manually with literal bracket keys.
+**Root cause of `daily_entry.sh` failures (Apr 16–26, two separate bugs):**
+1. **Bug 1 (Apr 16–22):** `httpx` percent-encodes `[` and `]` when using `data=dict`. Fixed Apr 22 by building form body manually in `_post` using `content=` with `Content-Type: application/x-www-form-urlencoded`.
+2. **Bug 2 (Apr 22–24):** Even with literal brackets, the key structure was wrong. Tradier's multileg API requires flat indexed keys: `option_symbol[0]`, `side[0]`, `quantity[0]` — NOT the nested `leg[0][option_symbol]` format that was being sent. Fixed Apr 26 in `tradier_client.py:place_multileg_order`. Also added `symbol=SPX` (underlying) per Tradier's documented API spec.
 
 ---
 
