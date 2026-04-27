@@ -29,6 +29,20 @@ def _fmt(val: float | None, decimals: int = 2) -> str:
     return f"{val:.{decimals}f}" if val is not None else "—"
 
 
+def _mdy(iso_dt: str | None) -> str:
+    if not iso_dt:
+        return "—"
+    return iso_dt[5:7] + "/" + iso_dt[8:10] + "/" + iso_dt[0:4]
+
+
+def _fmt_metric(val: float | str | None, decimals: int = 2) -> str:
+    if isinstance(val, str):
+        return val
+    if val is None:
+        return "—"
+    return f"{val:.{decimals}f}"
+
+
 # ── enc trades ────────────────────────────────────────────────────────────────
 
 @app.command(name="trades")
@@ -251,6 +265,188 @@ def report_show(
             grand = sum(totals)
             sign = "green" if grand >= 0 else "red"
             console.print(f"[bold]Grand total: [{sign}]{_fmt(grand)}[/{sign}][/bold]")
+
+
+@report_app.command(name="trade-number")
+def report_trade_number(
+    account: str = _ACCOUNT_OPTION,
+    trade_number: str = typer.Option(None, "--trade-number", help="Filter exact trade number."),
+) -> None:
+    """Trade Number report (TradeManagerNotes)."""
+    from encyclopedia_galactica.reader import Reader, sort_by_trade_number_desc, trade_status
+
+    records = Reader(account=account).all_trades()
+    records = [t for t in records if t.legacy_trade_num]
+    if trade_number:
+        records = [t for t in records if t.legacy_trade_num == trade_number]
+    records = sort_by_trade_number_desc(records)
+
+    if not records:
+        console.print("[dim]No trades found.[/dim]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=f"Trade Number Report - {account}")
+    tbl.add_column("Trade #")
+    tbl.add_column("Status")
+    tbl.add_column("Entry Date")
+    tbl.add_column("Underlying")
+
+    for t in records:
+        tbl.add_row(
+            t.legacy_trade_num or "—",
+            trade_status(t),
+            _mdy(t.entered_at),
+            t.underlying,
+        )
+    console.print(tbl)
+
+
+@report_app.command(name="daily-notes")
+def report_daily_notes(
+    account: str = _ACCOUNT_OPTION,
+    trade_number: str = typer.Option(None, "--trade-number", help="Filter exact trade number."),
+    underlying: str = typer.Option(None, "--underlying", help="Filter by underlying symbol."),
+) -> None:
+    """Daily Notes multi-line ledger report (traders_daily_work_notes)."""
+    from encyclopedia_galactica.reader import Reader, sort_by_trade_number_desc, trade_status
+
+    reader = Reader(account=account)
+    records = reader.all_trades()
+    records = [t for t in records if t.legacy_trade_num]
+
+    if trade_number:
+        records = [t for t in records if t.legacy_trade_num == trade_number]
+    if underlying:
+        records = [t for t in records if t.underlying.upper() == underlying.upper()]
+
+    records = sort_by_trade_number_desc(records)
+    if not records:
+        console.print("[dim]No trades found.[/dim]")
+        return
+
+    for t in records:
+        header = f"{t.underlying}({t.legacy_trade_num}): {trade_status(t)}"
+        console.print(f"[bold]{header}[/bold]")
+        events = reader.trade_events(t.trade_id)
+        if not events:
+            console.print("  [dim]No notes available[/dim]")
+            continue
+        for ev in events:
+            console.print(f"  {ev.line_text}")
+        console.print()
+
+
+@report_app.command(name="trade-history")
+def report_trade_history(
+    account: str = _ACCOUNT_OPTION,
+    status: str = typer.Option("BOTH", "--status", help="ACTIVE, CLOSED, or BOTH."),
+    trade_number: str = typer.Option(None, "--trade-number", help="Filter exact trade number."),
+    entry_date: str = typer.Option(None, "--entry-date", help='Date filter like ">=01/01/2026".'),
+    exit_date: str = typer.Option(None, "--exit-date", help='Date filter like "<02/01/2026".'),
+) -> None:
+    """Trade PnL history report with trailer metrics."""
+    from encyclopedia_galactica.reader import (
+        Reader,
+        annualized_return_percent,
+        days_in_market,
+        filter_by_expression,
+        sort_by_trade_number_desc,
+        tp_percent,
+        trade_status,
+        trailer_stats,
+    )
+
+    reader = Reader(account=account)
+    records = reader.all_trades()
+    records = [t for t in records if t.legacy_trade_num]
+
+    if trade_number:
+        records = [t for t in records if t.legacy_trade_num == trade_number]
+
+    status_u = status.upper()
+    if status_u not in {"ACTIVE", "CLOSED", "BOTH"}:
+        console.print("[red]Invalid status. Use ACTIVE, CLOSED, or BOTH.[/red]")
+        raise typer.Exit(1)
+    if status_u != "BOTH":
+        records = [t for t in records if trade_status(t) == status_u]
+
+    try:
+        records = filter_by_expression(records, "entered_at", entry_date)
+        records = filter_by_expression(records, "closed_at", exit_date)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1)
+
+    records = sort_by_trade_number_desc(records)
+    if not records:
+        console.print("[dim]No trades found.[/dim]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=f"Trade History - {account}")
+    tbl.add_column("Trade #")
+    tbl.add_column("Status")
+    tbl.add_column("Entry Date")
+    tbl.add_column("Exit Date")
+    tbl.add_column("DiM", justify="right")
+    tbl.add_column("CREDIT Received", justify="right")
+    tbl.add_column("CREDIT Fees", justify="right")
+    tbl.add_column("DEBIT Paid", justify="right")
+    tbl.add_column("DEBIT Fees", justify="right")
+    tbl.add_column("Total", justify="right")
+    tbl.add_column("TP%", justify="right")
+    tbl.add_column("Annualized Return%", justify="right")
+
+    for t in records:
+        st = trade_status(t)
+        credit_received = t.credit_received or 0.0
+        credit_fees = t.credit_fees or 0.0
+        debit_paid = t.debit_paid or 0.0
+        debit_fees = t.debit_fees or 0.0
+        total = credit_received - credit_fees - debit_paid - debit_fees
+        dim = days_in_market(t)
+        tp_pct_val = tp_percent(t)
+        ann_ret = annualized_return_percent(t)
+
+        total_style = "green" if total >= 0 else "red"
+        tbl.add_row(
+            t.legacy_trade_num or "—",
+            st,
+            _mdy(t.entered_at),
+            _mdy(t.closed_at),
+            str(dim) if dim is not None else "—",
+            _fmt(credit_received),
+            _fmt(credit_fees),
+            _fmt(debit_paid),
+            _fmt(debit_fees),
+            f"[{total_style}]{_fmt(total)}[/{total_style}]",
+            _fmt(tp_pct_val),
+            _fmt(ann_ret),
+        )
+
+    console.print(tbl)
+
+    closed = [t for t in records if trade_status(t) == "CLOSED"]
+    stats = trailer_stats(closed)
+    trailer = Table(show_header=False, box=None, padding=(0, 2))
+    trailer.add_column("Metric", style="bold dim")
+    trailer.add_column("Value")
+    trailer.add_row("Closed Trade Count", str(stats["closed_count"]))
+    trailer.add_row("Winning Trade Count", str(stats["winning_count"]))
+    trailer.add_row("Losing Trade Count", str(stats["losing_count"]))
+    trailer.add_row("Win%", _fmt_metric(stats["win_pct"]))
+    trailer.add_row("Total PnL", _fmt_metric(stats["total_pnl"]))
+    trailer.add_row("Average PnL", _fmt_metric(stats["avg_pnl"]))
+    trailer.add_row("Max PnL", _fmt_metric(stats["max_pnl"]))
+    trailer.add_row("Max DD", _fmt_metric(stats["max_dd"]))
+    trailer.add_row("Avg. DiM", _fmt_metric(stats["avg_dim"]))
+    trailer.add_row("Avg. TP%", _fmt_metric(stats["avg_tp_pct"]))
+    trailer.add_row("Profit Factor", _fmt_metric(stats["profit_factor"]))
+    trailer.add_row("Profit Expectancy", _fmt_metric(stats["profit_expectancy"]))
+    trailer.add_row("Payoff Ratio", _fmt_metric(stats["payoff_ratio"]))
+    trailer.add_row("Sharpe Ratio", _fmt_metric(stats["sharpe_ratio"]))
+    trailer.add_row("Sortino Ratio", _fmt_metric(stats["sortino_ratio"]))
+    trailer.add_row("Calmar Ratio", _fmt_metric(stats["calmar_ratio"]))
+    console.print(trailer)
 
 
 # ── enc reset ─────────────────────────────────────────────────────────────────

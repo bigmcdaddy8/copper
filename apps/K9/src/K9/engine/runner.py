@@ -36,6 +36,14 @@ class RunResult:
     short_call_strike: float | None = None
     tp_order_id: str = ""
     tp_price: float | None = None
+    quantity: int = 1
+    entry_dte: int | None = None
+    entry_underlying_last: float | None = None
+    bpr: float | None = None
+    long_put_delta: float | None = None
+    short_put_delta: float | None = None
+    short_call_delta: float | None = None
+    long_call_delta: float | None = None
     reason: str = ""
     errors: list[str] = field(default_factory=list)
 
@@ -123,6 +131,7 @@ def run_entry(
 
         # Step 8 — underlying quote (informational — chain prices are the source of truth)
         _quote = broker.get_underlying_quote(spec.underlying)
+        result.entry_underlying_last = _quote.last
 
         # Step 9 — option chain (use today as 0DTE expiration)
         expiration = today
@@ -138,11 +147,18 @@ def run_entry(
 
         result.short_put_strike = short_put.strike
         result.short_call_strike = short_call.strike
+        result.short_put_delta = short_put.delta
+        result.short_call_delta = short_call.delta
+        result.long_put_delta = long_put.delta
+        result.long_call_delta = long_call.delta if long_call is not None else None
 
         # Step 11 — construct order
         order = build_order(spec, expiration, short_put, long_put, short_call, long_call)
         credit = net_credit(order)
         result.net_credit = credit
+        result.quantity = order.quantity
+        result.entry_dte = 0
+        result.bpr = round(max(0.0, (spec.wing_size - credit) * 100 * order.quantity), 2)
 
         # Step 12 — validate trade
         validation = validate_trade(spec, order, short_put, long_put, short_call, long_call)

@@ -61,7 +61,8 @@ def main(
     from K9.engine.runner import run_entry
 
     from captains_log.journal import Journal
-    from captains_log.models import TradeRecord
+    from captains_log.models import TradeLogEntry, TradeRecord
+    from captains_log.formatters import format_entry_line, format_exit_line, format_gtc_line
 
     from encyclopedia_galactica.reader import Reader, group_by_month, pnl_stats
 
@@ -170,10 +171,55 @@ def main(
             tp_order_id=result.tp_order_id,
             tp_limit_price=result.tp_price,
             tp_status="PLACED" if result.tp_order_id else "UNKNOWN",
+            bpr=result.bpr,
+            credit_received=(round((result.filled_price or 0.0) * 100 * result.quantity, 2)
+                             if result.filled_price is not None else None),
+            quantity=result.quantity,
+            entry_dte=result.entry_dte,
+            entry_underlying_last=result.entry_underlying_last,
+            long_put_delta=result.long_put_delta,
+            short_put_delta=result.short_put_delta,
+            short_call_delta=result.short_call_delta,
+            long_call_delta=result.long_call_delta,
         )
         # Stamp the entered_at to the virtual time so journal dates make sense
         trade.entered_at = start_dt.isoformat()
         journal.record(trade)
+
+        if trade.outcome == "FILLED":
+            entry_price = result.filled_price or 0.0
+            entry_line = format_entry_line(trade, occurred_at=trade.entered_at)
+            journal.append_event(
+                TradeLogEntry(
+                    trade_id=trade.trade_id,
+                    event_type="ENTRY",
+                    occurred_at=trade.entered_at,
+                    line_text=entry_line,
+                    payload={
+                        "quantity": trade.quantity,
+                        "entry_price": entry_price,
+                        "credit_received": trade.credit_received,
+                    },
+                )
+            )
+
+            if trade.tp_order_id and trade.tp_limit_price is not None and trade.credit_received is not None:
+                tp_keep = trade_spec.exit.take_profit_percent
+                potential_profit = round(trade.credit_received * (tp_keep / 100.0), 2)
+                gtc_line = format_gtc_line(trade, tp_percent=tp_keep, occurred_at=trade.entered_at)
+                journal.append_event(
+                    TradeLogEntry(
+                        trade_id=trade.trade_id,
+                        event_type="GTC",
+                        occurred_at=trade.entered_at,
+                        line_text=gtc_line,
+                        payload={
+                            "tp_percent": tp_keep,
+                            "tp_limit_price": trade.tp_limit_price,
+                            "potential_profit": potential_profit,
+                        },
+                    )
+                )
 
         day_row: dict = {
             "date": trade_date_str,
@@ -187,6 +233,7 @@ def main(
             filled_ids = broker.advance_to_close()
             post_nav = broker.get_account().net_liquidation
             realized_pnl = round(post_nav - pre_nav, 2)
+            close_ts = broker.get_current_time().isoformat()
             day_row["realized_pnl"] = realized_pnl
             day_row["close"] = post_nav
 
@@ -196,10 +243,53 @@ def main(
                     trade.trade_id,
                     tp_fill_price=tp_order.filled_price or 0.0,
                     realized_pnl=realized_pnl,
+                    closed_at=close_ts,
+                )
+                exit_line = format_exit_line(
+                    reason="GTC",
+                    occurred_at=close_ts,
+                    exit_price=tp_order.filled_price or 0.0,
+                    fees=0.0,
+                )
+                journal.append_event(
+                    TradeLogEntry(
+                        trade_id=trade.trade_id,
+                        event_type="EXIT",
+                        occurred_at=close_ts,
+                        line_text=exit_line,
+                        payload={
+                            "reason": "GTC",
+                            "exit_price": tp_order.filled_price or 0.0,
+                            "realized_pnl": realized_pnl,
+                        },
+                    )
                 )
                 day_row["exit"] = "TP"
             else:
-                journal.update_expiration(trade.trade_id, realized_pnl=realized_pnl)
+                journal.update_expiration(
+                    trade.trade_id,
+                    realized_pnl=realized_pnl,
+                    closed_at=close_ts,
+                )
+                exit_line = format_exit_line(
+                    reason="EXPIRED",
+                    occurred_at=close_ts,
+                    exit_price=0.0,
+                    fees=0.0,
+                )
+                journal.append_event(
+                    TradeLogEntry(
+                        trade_id=trade.trade_id,
+                        event_type="EXIT",
+                        occurred_at=close_ts,
+                        line_text=exit_line,
+                        payload={
+                            "reason": "EXPIRED",
+                            "exit_price": 0.0,
+                            "realized_pnl": realized_pnl,
+                        },
+                    )
+                )
                 day_row["exit"] = "EXP"
         else:
             day_row["exit"] = "—"

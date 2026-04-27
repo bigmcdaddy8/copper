@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 from captains_log.journal import Journal
-from captains_log.models import TradeRecord
+from captains_log.models import TradeLogEntry, TradeRecord
 
 
 def _filled(trade_id: str | None = None, **kwargs) -> TradeRecord:
@@ -146,6 +146,9 @@ def test_update_tp_fill(journal):
     assert fetched.tp_fill_price == pytest.approx(0.75)
     assert fetched.realized_pnl == pytest.approx(35.0)
     assert fetched.tp_status == "FILLED"
+    assert fetched.exit_reason == "GTC"
+    assert fetched.closed_at is not None
+    assert fetched.debit_paid == pytest.approx(75.0)
 
 
 def test_update_expiration(journal):
@@ -156,6 +159,36 @@ def test_update_expiration(journal):
     assert fetched.realized_pnl == pytest.approx(110.0)
     assert fetched.tp_status == "EXPIRED"
     assert fetched.tp_fill_price is None
+    assert fetched.exit_reason == "EXPIRED"
+    assert fetched.closed_at is not None
+    assert fetched.debit_paid == pytest.approx(0.0)
+
+
+def test_append_and_list_trade_events(journal):
+    t = _filled()
+    journal.record(t)
+    entry = TradeLogEntry(
+        trade_id=t.trade_id,
+        event_type="ENTRY",
+        occurred_at="2026-01-05T10:00:00+00:00",
+        line_text="01/05/2026: ENTRY #1 SOLD 1x SIC(5795/5800/5840/5845)",
+        payload={"quantity": 1},
+    )
+    exit_event = TradeLogEntry(
+        trade_id=t.trade_id,
+        event_type="EXIT",
+        occurred_at="2026-01-05T15:00:00+00:00",
+        line_text="01/05/2026: GTC CLOSED TRADE @0.75 - $0.00",
+        payload={"reason": "GTC"},
+    )
+    journal.append_event(entry)
+    journal.append_event(exit_event)
+
+    events = journal.list_events(t.trade_id)
+    assert len(events) == 2
+    assert events[0].event_type == "ENTRY"
+    assert events[1].event_type == "EXIT"
+    assert events[0].payload["quantity"] == 1
 
 
 # ── legacy_trade_num allocation ───────────────────────────────────────────────

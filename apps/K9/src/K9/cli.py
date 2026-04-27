@@ -83,8 +83,20 @@ def enter(
     log_path = log.write()
 
     # Write to trade journal
-    from captains_log import Journal, TradeRecord
+    from captains_log import (
+        Journal,
+        TradeLogEntry,
+        TradeRecord,
+        format_entry_line,
+        format_gtc_line,
+    )
     account = _ENV_ACCOUNT.get(spec.environment, "TRD")
+    quantity = result.quantity or 1
+    credit_received = (
+        round((result.filled_price or 0.0) * 100 * quantity, 2)
+        if result.filled_price is not None
+        else None
+    )
     trade = TradeRecord(
         spec_name=trade_spec,
         environment=spec.environment,
@@ -107,8 +119,57 @@ def enter(
         tp_order_id=result.tp_order_id,
         tp_limit_price=result.tp_price,
         tp_status="PLACED" if result.tp_order_id else "UNKNOWN",
+        bpr=result.bpr,
+        credit_received=credit_received,
+        quantity=quantity,
+        entry_dte=result.entry_dte,
+        entry_underlying_last=result.entry_underlying_last,
+        long_put_delta=result.long_put_delta,
+        short_put_delta=result.short_put_delta,
+        short_call_delta=result.short_call_delta,
+        long_call_delta=result.long_call_delta,
     )
-    Journal(account=account).record(trade)
+    journal = Journal(account=account)
+    journal.record(trade)
+
+    if trade.outcome == "FILLED":
+        trade_num = trade.legacy_trade_num or trade.trade_id[:8]
+        entry_price = result.filled_price or 0.0
+        entry_line = format_entry_line(trade, occurred_at=trade.entered_at)
+        journal.append_event(
+            TradeLogEntry(
+                trade_id=trade.trade_id,
+                event_type="ENTRY",
+                occurred_at=trade.entered_at,
+                line_text=entry_line,
+                payload={
+                    "trade_num": trade_num,
+                    "quantity": quantity,
+                    "entry_price": entry_price,
+                    "credit_received": trade.credit_received,
+                    "credit_fees": trade.credit_fees,
+                },
+            )
+        )
+
+        if trade.tp_order_id and trade.tp_limit_price is not None and trade.credit_received is not None:
+            tp_keep = spec.exit.take_profit_percent
+            potential_profit = round(trade.credit_received * (tp_keep / 100.0), 2)
+            gtc_line = format_gtc_line(trade, tp_percent=tp_keep, occurred_at=trade.entered_at)
+            journal.append_event(
+                TradeLogEntry(
+                    trade_id=trade.trade_id,
+                    event_type="GTC",
+                    occurred_at=trade.entered_at,
+                    line_text=gtc_line,
+                    payload={
+                        "tp_percent": tp_keep,
+                        "tp_limit_price": trade.tp_limit_price,
+                        "potential_profit": potential_profit,
+                        "credit_balance": trade.credit_received,
+                    },
+                )
+            )
 
     # Print outcome
     _OUTCOME_COLOR = {

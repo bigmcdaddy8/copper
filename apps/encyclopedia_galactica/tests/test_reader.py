@@ -5,7 +5,20 @@ import pytest
 from captains_log.journal import Journal
 from captains_log.models import TradeRecord
 
-from encyclopedia_galactica.reader import Reader, group_by_month, group_by_year, pnl_stats
+from encyclopedia_galactica.reader import (
+    Reader,
+    annualized_return_percent,
+    days_in_market,
+    filter_by_expression,
+    group_by_month,
+    group_by_year,
+    pnl_stats,
+    sort_by_trade_number_desc,
+    tp_percent,
+    trade_number_seq,
+    trade_status,
+    trailer_stats,
+)
 
 
 def _record(entered_at: str, realized_pnl: float | None = None, **kwargs) -> TradeRecord:
@@ -84,3 +97,44 @@ def test_pnl_stats_empty():
     s = pnl_stats([])
     assert s["total"] is None
     assert s["pnl_count"] == 0
+
+
+def test_trade_number_sorting(reader):
+    trades = reader.filled_trades()
+    for idx, t in enumerate(trades, start=1):
+        t.legacy_trade_num = f"HD_{idx:05d}_SIC"
+    ordered = sort_by_trade_number_desc(trades)
+    assert trade_number_seq(ordered[0].legacy_trade_num) == 3
+
+
+def test_trade_status_and_days_in_market(reader):
+    t = reader.filled_trades()[0]
+    t.entered_at = "2026-01-05T10:00:00+00:00"
+    t.closed_at = "2026-01-07T15:00:00+00:00"
+    t.exit_reason = "GTC"
+    assert trade_status(t) == "CLOSED"
+    assert days_in_market(t) == 2
+
+
+def test_filter_by_expression(reader):
+    trades = reader.filled_trades()
+    filtered = filter_by_expression(trades, "entered_at", ">=01/10/2026")
+    assert len(filtered) == 2
+
+
+def test_tp_and_annualized_return(reader):
+    t = reader.filled_trades()[0]
+    t.entered_at = "2026-01-05T10:00:00+00:00"
+    t.credit_received = 100.0
+    t.realized_pnl = 40.0
+    t.bpr = 500.0
+    t.closed_at = "2026-01-06T15:00:00+00:00"
+    t.exit_reason = "GTC"
+    assert tp_percent(t) == pytest.approx(40.0)
+    assert annualized_return_percent(t) == pytest.approx((40.0 / 500.0) * (365.0 / 1) * 100.0)
+
+
+def test_trailer_stats_empty():
+    stats = trailer_stats([])
+    assert stats["closed_count"] == 0
+    assert stats["profit_factor"] == "N/A"

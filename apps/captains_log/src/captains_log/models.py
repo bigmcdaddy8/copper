@@ -75,6 +75,24 @@ class TradeRecord:
 
     # ── P&L ───────────────────────────────────────────────────────────────────
     realized_pnl: float | None = None
+    closed_at: str | None = None
+    exit_reason: str | None = None   # GTC | MANUALLY | EXPIRED
+
+    # ── Reporting components ──────────────────────────────────────────────────
+    bpr: float | None = None
+    credit_received: float | None = None
+    credit_fees: float = 0.0
+    debit_paid: float | None = None
+    debit_fees: float = 0.0
+
+    # ── Daily Notes data ──────────────────────────────────────────────────────
+    quantity: int = 1
+    entry_dte: int | None = None
+    entry_underlying_last: float | None = None
+    long_put_delta: float | None = None
+    short_put_delta: float | None = None
+    short_call_delta: float | None = None
+    long_call_delta: float | None = None
 
     # ── Account ───────────────────────────────────────────────────────────────
     account: str = "TRD"           # TRD | TRDS | HD
@@ -83,3 +101,14 @@ class TradeRecord:
     entered_at: str = field(default_factory=_now_iso)
     trade_id: str = field(default_factory=_new_trade_id)
     legacy_trade_num: str | None = None   # e.g. TRD_00001_PCS; set on filled entry
+
+
+@dataclass
+class TradeLogEntry:
+    """Structured ledger event associated with a trade lifecycle."""
+
+    trade_id: str
+    event_type: str            # ENTRY | ADJ | GTC | EXIT
+    occurred_at: str = field(default_factory=_now_iso)
+    line_text: str = ""
+    payload: dict[str, object] = field(default_factory=dict)

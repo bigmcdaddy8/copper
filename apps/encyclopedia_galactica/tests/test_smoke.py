@@ -24,3 +24,18 @@ def test_pnl_help():
 def test_report_help():
     result = runner.invoke(app, ["report", "--help"])
     assert result.exit_code == 0
+
+
+def test_report_trade_number_help():
+    result = runner.invoke(app, ["report", "trade-number", "--help"])
+    assert result.exit_code == 0
+
+
+def test_report_daily_notes_help():
+    result = runner.invoke(app, ["report", "daily-notes", "--help"])
+    assert result.exit_code == 0
+
+
+def test_report_trade_history_help():
+    result = runner.invoke(app, ["report", "trade-history", "--help"])
+    assert result.exit_code == 0

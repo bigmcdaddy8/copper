@@ -4,15 +4,20 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
-from captains_log.models import TradeRecord, build_legacy_trade_num
+from captains_log.models import TradeLogEntry, TradeRecord, build_legacy_trade_num
 
 _DEFAULT_DB_DIR = Path("data/captains_log")
 
 
 def _default_db(account: str) -> Path:
     return _DEFAULT_DB_DIR / f"{account}.db"
+
+
+def _now_iso() -> str:
+    return datetime.now(tz=timezone.utc).isoformat()
 
 
 _CREATE_SQL = """
@@ -38,9 +43,35 @@ CREATE TABLE IF NOT EXISTS trades (
     tp_status           TEXT NOT NULL,
     tp_fill_price       REAL,
     realized_pnl        REAL,
+    closed_at           TEXT,
+    exit_reason         TEXT,
+    bpr                 REAL,
+    credit_received     REAL,
+    credit_fees         REAL NOT NULL DEFAULT 0,
+    debit_paid          REAL,
+    debit_fees          REAL NOT NULL DEFAULT 0,
+    quantity            INTEGER NOT NULL DEFAULT 1,
+    entry_dte           INTEGER,
+    entry_underlying_last REAL,
+    long_put_delta      REAL,
+    short_put_delta     REAL,
+    short_call_delta    REAL,
+    long_call_delta     REAL,
     entered_at          TEXT NOT NULL,
     account             TEXT NOT NULL DEFAULT 'TRD',
     legacy_trade_num    TEXT
+)
+"""
+
+_CREATE_TRADE_EVENTS_SQL = """
+CREATE TABLE IF NOT EXISTS trade_events (
+    event_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    trade_id            TEXT NOT NULL,
+    event_type          TEXT NOT NULL,
+    occurred_at         TEXT NOT NULL,
+    line_text           TEXT NOT NULL,
+    payload             TEXT NOT NULL,
+    FOREIGN KEY(trade_id) REFERENCES trades(trade_id)
 )
 """
 
@@ -57,15 +88,29 @@ INSERT OR IGNORE INTO trades (
     outcome, reason, errors,
     entry_order_id, entry_filled_price, net_credit,
     tp_order_id, tp_limit_price, tp_status, tp_fill_price,
-    realized_pnl, entered_at, account, legacy_trade_num
+    realized_pnl, closed_at, exit_reason,
+    bpr, credit_received, credit_fees, debit_paid, debit_fees,
+    quantity, entry_dte, entry_underlying_last,
+    long_put_delta, short_put_delta, short_call_delta, long_call_delta,
+    entered_at, account, legacy_trade_num
 ) VALUES (
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?, ?,
-    ?, ?, ?, ?
+    ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?,
+    ?, ?, ?, ?,
+    ?, ?, ?
 )
+"""
+
+_INSERT_EVENT_SQL = """
+INSERT INTO trade_events (
+    trade_id, event_type, occurred_at, line_text, payload
+) VALUES (?, ?, ?, ?, ?)
 """
 
 
@@ -92,9 +137,33 @@ def _row_to_record(row: sqlite3.Row) -> TradeRecord:
         tp_status=row["tp_status"],
         tp_fill_price=row["tp_fill_price"],
         realized_pnl=row["realized_pnl"],
+        closed_at=row["closed_at"],
+        exit_reason=row["exit_reason"],
+        bpr=row["bpr"],
+        credit_received=row["credit_received"],
+        credit_fees=row["credit_fees"],
+        debit_paid=row["debit_paid"],
+        debit_fees=row["debit_fees"],
+        quantity=row["quantity"],
+        entry_dte=row["entry_dte"],
+        entry_underlying_last=row["entry_underlying_last"],
+        long_put_delta=row["long_put_delta"],
+        short_put_delta=row["short_put_delta"],
+        short_call_delta=row["short_call_delta"],
+        long_call_delta=row["long_call_delta"],
         entered_at=row["entered_at"],
         account=row["account"],
         legacy_trade_num=row["legacy_trade_num"],
+    )
+
+
+def _row_to_event(row: sqlite3.Row) -> TradeLogEntry:
+    return TradeLogEntry(
+        trade_id=row["trade_id"],
+        event_type=row["event_type"],
+        occurred_at=row["occurred_at"],
+        line_text=row["line_text"],
+        payload=json.loads(row["payload"]),
     )
 
 
@@ -128,6 +197,7 @@ class Journal:
     def _init_schema(self) -> None:
         with self._connect() as conn:
             conn.execute(_CREATE_SQL)
+            conn.execute(_CREATE_TRADE_EVENTS_SQL)
             conn.execute(_CREATE_TRADE_SEQUENCE_SQL)
             # Seed the sequence row if the table was just created (empty).
             conn.execute("INSERT OR IGNORE INTO trade_sequence SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM trade_sequence)")
@@ -141,6 +211,34 @@ class Journal:
                 conn.execute(
                     "ALTER TABLE trades ADD COLUMN legacy_trade_num TEXT"
                 )
+            if "closed_at" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN closed_at TEXT")
+            if "exit_reason" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN exit_reason TEXT")
+            if "bpr" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN bpr REAL")
+            if "credit_received" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN credit_received REAL")
+            if "credit_fees" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN credit_fees REAL NOT NULL DEFAULT 0")
+            if "debit_paid" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN debit_paid REAL")
+            if "debit_fees" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN debit_fees REAL NOT NULL DEFAULT 0")
+            if "quantity" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1")
+            if "entry_dte" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN entry_dte INTEGER")
+            if "entry_underlying_last" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN entry_underlying_last REAL")
+            if "long_put_delta" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN long_put_delta REAL")
+            if "short_put_delta" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN short_put_delta REAL")
+            if "short_call_delta" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN short_call_delta REAL")
+            if "long_call_delta" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN long_call_delta REAL")
 
     def _next_seq(self, conn: sqlite3.Connection) -> int:
         """Atomically increment and return the per-account trade sequence counter."""
@@ -154,6 +252,9 @@ class Journal:
         ``legacy_trade_num`` (e.g. ``TRD_00001_PCS``) is allocated and stored
         alongside the UUID ``trade_id``.
         """
+        if trade.credit_received is None and trade.entry_filled_price is not None:
+            trade.credit_received = round(trade.entry_filled_price * 100 * trade.quantity, 2)
+
         with self._connect() as conn:
             already_exists = conn.execute(
                 "SELECT 1 FROM trades WHERE trade_id = ?", (trade.trade_id,)
@@ -189,11 +290,53 @@ class Journal:
                     trade.tp_status,
                     trade.tp_fill_price,
                     trade.realized_pnl,
+                    trade.closed_at,
+                    trade.exit_reason,
+                    trade.bpr,
+                    trade.credit_received,
+                    trade.credit_fees,
+                    trade.debit_paid,
+                    trade.debit_fees,
+                    trade.quantity,
+                    trade.entry_dte,
+                    trade.entry_underlying_last,
+                    trade.long_put_delta,
+                    trade.short_put_delta,
+                    trade.short_call_delta,
+                    trade.long_call_delta,
                     trade.entered_at,
                     trade.account,
                     trade.legacy_trade_num,
                 ),
             )
+
+    def append_event(self, entry: TradeLogEntry) -> None:
+        """Append a structured lifecycle event for a trade."""
+        with self._connect() as conn:
+            conn.execute(
+                _INSERT_EVENT_SQL,
+                (
+                    entry.trade_id,
+                    entry.event_type,
+                    entry.occurred_at,
+                    entry.line_text,
+                    json.dumps(entry.payload),
+                ),
+            )
+
+    def list_events(self, trade_id: str) -> list[TradeLogEntry]:
+        """Return all events for a trade ordered by timestamp ascending."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT trade_id, event_type, occurred_at, line_text, payload
+                FROM trade_events
+                WHERE trade_id = ?
+                ORDER BY occurred_at ASC, event_id ASC
+                """,
+                (trade_id,),
+            ).fetchall()
+        return [_row_to_event(r) for r in rows]
 
     def get_trade(self, trade_id: str) -> TradeRecord | None:
         """Return a single TradeRecord by trade_id, or None if not found."""
@@ -239,33 +382,46 @@ class Journal:
         trade_id: str,
         tp_fill_price: float,
         realized_pnl: float,
+        closed_at: str | None = None,
+        debit_fees: float = 0.0,
     ) -> None:
         """Update a FILLED trade when its take-profit order executes."""
+        debit_paid = round(tp_fill_price * 100, 2)
+        closed_ts = closed_at or _now_iso()
         with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE trades
                 SET tp_fill_price = ?,
                     realized_pnl  = ?,
-                    tp_status     = 'FILLED'
+                    tp_status     = 'FILLED',
+                    closed_at     = ?,
+                    exit_reason   = 'GTC',
+                    debit_paid    = ?,
+                    debit_fees    = ?
                 WHERE trade_id = ?
                 """,
-                (tp_fill_price, realized_pnl, trade_id),
+                (tp_fill_price, realized_pnl, closed_ts, debit_paid, debit_fees, trade_id),
             )
 
     def update_expiration(
         self,
         trade_id: str,
         realized_pnl: float,
+        closed_at: str | None = None,
     ) -> None:
         """Update a FILLED trade that held to expiration (TP not hit)."""
+        closed_ts = closed_at or _now_iso()
         with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE trades
                 SET realized_pnl = ?,
-                    tp_status    = 'EXPIRED'
+                    tp_status    = 'EXPIRED',
+                    closed_at    = ?,
+                    exit_reason  = 'EXPIRED',
+                    debit_paid   = 0
                 WHERE trade_id = ?
                 """,
-                (realized_pnl, trade_id),
+                (realized_pnl, closed_ts, trade_id),
             )
