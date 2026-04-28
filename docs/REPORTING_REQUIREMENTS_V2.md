@@ -44,15 +44,16 @@ This document describes the next set of reporting requirements that need to be p
             - 'PP:$#.##': The potential profit that this trade will make if this 'take profit' trade is filled, so if $75.00 will be made -> 'PP:$75.00'
             - 'CB:$###.##': Is the CREDIT balance of the trade before this 'take profit' is filled, so if we SOLD an SIC for $150 -> 'CB:$150.00'
         - GTC Example: '01/05/2026: GTC Quantity:1 TP:50%@-0.75 PP:$75.00 CB:$150.00`
-    - 'EXIT' format: 'MM/DD/YYYY: RRRR CLOSED TRADE @-#.## - $#.##
+    - 'EXIT' format: 'MM/DD/YYYY: EXIT #N RRRR CLOSED TRADE @-#.## - $#.##
         - 'MM/DD/YYYY': date the trade was closed
+        - 'EXIT #N': the 'N' is a number that is a counter of the trade exits that have been made within this trade. We are not supporting multiple exit trades at this time so this number will always be 1.
         - 'RRR': String representing the reason for the trade closure: 'GTC', 'MANUALLY' or 'EXPIRED'
             - 'GTC': mean the GTC 'take profit' was hit
             - 'MANUALLY': means the human user manually closed the trade via the brokerage application
             - 'EXPIRED': means that the options expired, thereby closing the trade
         - GTC EXIT Example: '01/05/2026: GTC CLOSED TRADE @-0.75 - $0.50'
     - Additional Thoughts: 
-        - Architecture: At the time of this writing the thought is that these log entries would best be formatted in the BIC layere and stored via the captains_log
+        - Architecture: At the time of this writing the thought is that these log entries would best be formatted in the BIC layer and stored via the captains_log
         - EXIT Types: After a trade is entered it is very common the a GTC LIMIT order will be placed as a 'take profit' mechanism to close the trade at a pre-defined profit level. This order is a 'PENDING' order in the brokerage system. That pending order may or may not get filled, it is also possibly that the trade could be manually closed by the human trader via the brokerage website, desktop application or mobile app. Another alternative is that the options in the trade will expire naturally. It is the job of the BIC layer to be able to detect when one of these close conditions occurs and to update the captains_log appropriately.
     - filters:
         - account: the 'XXX' portion of the 'Trade #' - should be 'TRD' by default, 'TRDS' and 'HD" should be valid options that can also be specified

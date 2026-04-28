@@ -4,6 +4,8 @@ K9 is a CLI tool that executes 0DTE options trades (Iron Condors, Put Credit Spr
 
 ## Quick Start
 
+> Fresh machine note: run `./setup.sh` once from the repo root before running `uv run ...` commands.
+
 ```bash
 # Run a holodeck (simulated) trade entry
 uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900

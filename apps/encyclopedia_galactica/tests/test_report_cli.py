@@ -1,6 +1,8 @@
 """Functional CLI tests for reporting commands."""
 from __future__ import annotations
 
+import re
+
 from typer.testing import CliRunner
 
 from captains_log.formatters import (
@@ -92,7 +94,7 @@ def _seed_data(db_path) -> None:
             trade_id=t1.trade_id,
             event_type="EXIT",
             occurred_at=t1.closed_at or t1.entered_at,
-            line_text="01/01/2026: GTC CLOSED TRADE @0.75 - $0.50",
+            line_text="01/01/2026: EXIT #1 GTC CLOSED TRADE @0.75 - $0.50",
             payload={"reason": "GTC"},
         )
     )
@@ -132,7 +134,7 @@ def test_daily_notes_report_header_and_lines(tmp_path, monkeypatch):
     assert "SPX(TRD_00001_SIC): CLOSED" in result.output
     assert "ENTRY #1 SOLD 1x SIC" in result.output
     assert "GTC Quantity:1 TP:50%@-0.75" in result.output
-    assert "GTC CLOSED TRADE @0.75 - $0.50" in result.output
+    assert "EXIT #1 GTC CLOSED TRADE @0.75 - $0.50" in result.output
     assert "NDX(TRD_00002_SIC)" not in result.output
 
 
@@ -239,3 +241,7 @@ def test_daily_notes_exact_formatter_output(tmp_path, monkeypatch):
     assert " ".join(entry_line.split()) in flat_output
     assert " ".join(gtc_line.split()) in flat_output
     assert " ".join(exit_line.split()) in flat_output
+    assert re.search(
+        r"\b\d{2}/\d{2}/\d{4}: EXIT #1 (GTC|MANUALLY|EXPIRED) CLOSED TRADE @\d+\.\d{2} - \$\d+\.\d{2}\b",
+        flat_output,
+    )

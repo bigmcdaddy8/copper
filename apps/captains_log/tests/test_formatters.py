@@ -1,6 +1,8 @@
 """Tests for shared Daily Notes formatter helpers."""
 from __future__ import annotations
 
+import re
+
 from captains_log.formatters import (
     format_daily_notes_header,
     format_entry_line,
@@ -80,4 +82,8 @@ def test_format_exit_line():
         exit_price=0.75,
         fees=0.50,
     )
-    assert line == "01/05/2026: GTC CLOSED TRADE @0.75 - $0.50"
+    assert line == "01/05/2026: EXIT #1 GTC CLOSED TRADE @0.75 - $0.50"
+    assert re.fullmatch(
+        r"\d{2}/\d{2}/\d{4}: EXIT #1 (GTC|MANUALLY|EXPIRED) CLOSED TRADE @\d+\.\d{2} - \$\d+\.\d{2}",
+        line,
+    )

@@ -178,7 +178,7 @@ def test_append_and_list_trade_events(journal):
         trade_id=t.trade_id,
         event_type="EXIT",
         occurred_at="2026-01-05T15:00:00+00:00",
-        line_text="01/05/2026: GTC CLOSED TRADE @0.75 - $0.00",
+        line_text="01/05/2026: EXIT #1 GTC CLOSED TRADE @0.75 - $0.00",
         payload={"reason": "GTC"},
     )
     journal.append_event(entry)

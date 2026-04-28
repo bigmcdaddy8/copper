@@ -90,4 +90,4 @@ def format_exit_line(
 ) -> str:
     """Return EXIT line in required Daily Notes format."""
     event_date = _mdy(occurred_at)
-    return f"{event_date}: {reason} CLOSED TRADE @{exit_price:.2f} - ${fees:.2f}"
+    return f"{event_date}: EXIT #1 {reason} CLOSED TRADE @{exit_price:.2f} - ${fees:.2f}"

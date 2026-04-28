@@ -80,6 +80,8 @@ This will:
 - Install all workspace apps in editable mode
 - Make CLI commands available
 
+> **Fresh machine note**: Run `./setup.sh` once before running repo scripts such as `uv run scripts/holodeck_sim.py --clear`.
+
 #### Option 2: Manual Installation
 
 Install step-by-step:
