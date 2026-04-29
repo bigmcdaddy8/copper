@@ -266,11 +266,12 @@ class TradierClient:
         Tradier expects flat indexed keys: option_symbol[N], side[N], quantity[N].
         Returns the raw Tradier order response dict.
         """
+        net_type = "credit" if price > 0 else ("debit" if price < 0 else "even")
         data: dict = {
             "class": "multileg",
-            "type": "limit",
+            "type": net_type,
             "duration": duration,
-            "price": f"{price:.2f}",
+            "price": f"{abs(price):.2f}",
         }
         if underlying:
             data["symbol"] = underlying

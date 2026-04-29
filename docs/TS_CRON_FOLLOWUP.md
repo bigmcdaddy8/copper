@@ -38,6 +38,8 @@ That is fine for this phase — the goal is observing sandbox behaviour, not liv
 | 2026-04-22 | Fix attempt 1: `_post` encoding fix | ⚠️ Necessary but not sufficient — bracket encoding fixed; wrong key format remained |
 | 2026-04-23–24 | `daily_entry.sh` (2 runs) | ❌ Still failed — same HTTP 400 error with fix attempt 1 |
 | 2026-04-26 | Fix attempt 2: leg key format corrected | ✅ Changed `leg[N][field]` → `field[N]`; added `symbol=SPX` — matches Tradier's documented multileg format |
+| 2026-04-27–29 | `daily_entry.sh` (3 runs) | ❌ Still failed — HTTP 400 "Invalid parameter, type: is not valid." |
+| 2026-04-29 | Fix attempt 3: multileg `type` field | ✅ Changed `type=limit` → `type=credit/debit/even` (Tradier multileg API only accepts these values, not `limit`); price sent as `abs(price)` |
 
 **EC-1 finding (nickel pricing):** Tradier sandbox accepted a `$0.06` penny-priced Day STO Limit without rejection or rounding. Production behavior may differ — re-test needed when live account is available.
 
