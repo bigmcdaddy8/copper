@@ -1,0 +1,45 @@
+schema_version: 2
+enabled: true
+environment: HD
+underlying: SPX
+
+trade:
+  option_strategy: CCS
+
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 500.0
+
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "09:30"
+    allowed_entry_before: "14:30"
+
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 120
+    max_entry_attempts: 1
+    retry_price_decrement: 0.0
+    entry_price: MIDPOINT
+    min_credit_received: 0.30
+
+  leg_selection:
+    short_call:
+      delta_range:
+        min: 0.15
+        max: 0.25
+    long_call:
+      wing_distance_points: 5.0
+
+  exit_order:
+    exit_type: TAKE_PROFIT
+    order_type: LIMIT
+    time_in_force: GTC
+    exit_price:
+      type: PERCENT_OF_INITIAL_CREDIT
+      value: 50.0
+
+notes: SPX 0DTE Call Credit Spread - 20 delta short call, $5 wing, 50% TP - Holodeck dev spec

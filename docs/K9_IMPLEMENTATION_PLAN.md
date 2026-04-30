@@ -123,7 +123,14 @@ controls which `Broker` implementation is instantiated by `broker_factory.py`.
 | K9-0090 | End-to-End Integration + Guard Rails |
 | K9-0100 | README & Example Trade Specs |
 
-Total: **11 stories** across 7 phases.
+### Phase 7 — Reliability & YAML Cutover
+| Story | Title | Status |
+|---|---|---|
+| K9-0110 | Error Taxonomy + Actionable Failures | Complete |
+| K9-0120 | YAML-Only Cutover (Remove JSON Runtime Path) | Complete |
+| K9-0130 | Preflight Command + Dry-Run Mode | Complete |
+
+Total: **14 stories** across 8 phases.
 
 ---
 

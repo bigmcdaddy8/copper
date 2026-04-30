@@ -20,6 +20,12 @@ from K9.tradier.selector import (
 
 _CT = ZoneInfo("America/Chicago")
 
+ERR_DATA_UNAVAILABLE = "DATA_UNAVAILABLE"
+ERR_SELECTION_FAILED = "SELECTION_FAILED"
+ERR_ORDER_REJECTED = "ORDER_REJECTED"
+ERR_BROKER_ERROR = "BROKER_ERROR"
+ERR_CONFIG_ERROR = "CONFIG_ERROR"
+
 
 @dataclass
 class RunResult:
@@ -45,7 +51,30 @@ class RunResult:
     short_call_delta: float | None = None
     long_call_delta: float | None = None
     reason: str = ""
+    error_category: str = ""
+    error_code: str = ""
+    dry_run: bool = False
+    preflight: bool = False
     errors: list[str] = field(default_factory=list)
+
+
+def _set_error(
+    result: RunResult,
+    *,
+    category: str,
+    code: str,
+    reason: str,
+    exc: Exception | None = None,
+) -> None:
+    """Populate a structured ERROR state on RunResult."""
+    result.outcome = "ERROR"
+    result.error_category = category
+    result.error_code = code
+    result.reason = reason
+    entry = f"{category}|{code}|{reason}"
+    if exc is not None:
+        entry = f"{entry}|{exc.__class__.__name__}: {exc}"
+    result.errors.append(entry)
 
 
 def run_entry(
@@ -54,6 +83,7 @@ def run_entry(
     broker: Broker,
     log_dir: Path | None = None,
     tick: Callable[[], None] | None = None,
+    dry_run: bool = False,
 ) -> RunResult:
     """Execute the K9 entry flow for *spec* using *broker*.
 
@@ -73,7 +103,7 @@ def run_entry(
     Returns:
         RunResult describing the execution outcome.
     """
-    result = RunResult(spec_name=spec_name, environment=spec.environment)
+    result = RunResult(spec_name=spec_name, environment=spec.environment, dry_run=dry_run)
     _log_dir = log_dir or Path("logs/K9")
 
     try:
@@ -130,20 +160,59 @@ def run_entry(
                 return result
 
         # Step 8 — underlying quote (informational — chain prices are the source of truth)
-        _quote = broker.get_underlying_quote(spec.underlying)
+        try:
+            _quote = broker.get_underlying_quote(spec.underlying)
+        except Exception as exc:  # noqa: BLE001
+            _set_error(
+                result,
+                category=ERR_DATA_UNAVAILABLE,
+                code="MARKET_DATA_UNAVAILABLE",
+                reason=(
+                    f"Market data unavailable for {spec.underlying} at "
+                    f"{today.isoformat()}. Check broker dataset/time alignment."
+                ),
+                exc=exc,
+            )
+            return result
         result.entry_underlying_last = _quote.last
 
         # Step 9 — option chain (use today as 0DTE expiration)
         expiration = today
-        chain = broker.get_option_chain(spec.underlying, expiration)
+        try:
+            chain = broker.get_option_chain(spec.underlying, expiration)
+        except Exception as exc:  # noqa: BLE001
+            _set_error(
+                result,
+                category=ERR_DATA_UNAVAILABLE,
+                code="OPTION_CHAIN_UNAVAILABLE",
+                reason=(
+                    f"Option chain unavailable for {spec.underlying} {expiration.isoformat()}. "
+                    "Check broker dataset/time alignment."
+                ),
+                exc=exc,
+            )
+            return result
         result.expiration = expiration.isoformat()
 
         # Step 10 — select strikes
-        target_delta = spec.short_strike_selection.value
-        short_put = select_short_put(chain, target_delta)
-        short_call = select_short_call(chain, target_delta)
-        long_put = select_long_put(chain, short_put, spec.wing_size)
-        long_call = select_long_call(chain, short_call, spec.wing_size)
+        try:
+            target_delta = spec.short_strike_selection.value
+            short_put = select_short_put(chain, target_delta)
+            short_call = select_short_call(chain, target_delta)
+            long_put = select_long_put(chain, short_put, spec.wing_size)
+            long_call = select_long_call(chain, short_call, spec.wing_size)
+        except Exception as exc:  # noqa: BLE001
+            _set_error(
+                result,
+                category=ERR_SELECTION_FAILED,
+                code="STRIKE_SELECTION_FAILED",
+                reason=(
+                    "Unable to select strategy legs from option chain. "
+                    "Review strike-selection constraints and market liquidity."
+                ),
+                exc=exc,
+            )
+            return result
 
         result.short_put_strike = short_put.strike
         result.short_call_strike = short_call.strike
@@ -167,13 +236,31 @@ def run_entry(
             result.reason = validation.reason
             return result
 
+        if dry_run:
+            result.outcome = "SKIPPED"
+            result.reason = (
+                "Dry-run complete: entry validated and order construction succeeded; "
+                "no orders were submitted."
+            )
+            return result
+
         # Steps 13–16 — place order and poll
-        outcome: OrderOutcome = place_and_poll(
-            broker,
-            order,
-            max_fill_seconds=spec.entry.max_fill_time_seconds,
-            tick=tick,
-        )
+        try:
+            outcome: OrderOutcome = place_and_poll(
+                broker,
+                order,
+                max_fill_seconds=spec.entry.max_fill_time_seconds,
+                tick=tick,
+            )
+        except Exception as exc:  # noqa: BLE001
+            _set_error(
+                result,
+                category=ERR_BROKER_ERROR,
+                code="ORDER_FLOW_EXCEPTION",
+                reason="Order placement/polling failed unexpectedly.",
+                exc=exc,
+            )
+            return result
         result.outcome = outcome.status
         result.order_id = outcome.order_id
         result.filled_price = outcome.filled_price
@@ -182,14 +269,115 @@ def run_entry(
         # Step 15 — place take-profit order after fill
         if result.outcome == "FILLED" and result.filled_price is not None:
             tp_order = build_tp_order(spec, order, result.filled_price)
-            tp: TpOutcome = place_tp_order(broker, tp_order)
+            try:
+                tp: TpOutcome = place_tp_order(broker, tp_order)
+            except Exception as exc:  # noqa: BLE001
+                _set_error(
+                    result,
+                    category=ERR_BROKER_ERROR,
+                    code="TP_ORDER_EXCEPTION",
+                    reason="Take-profit order placement failed unexpectedly.",
+                    exc=exc,
+                )
+                return result
             result.tp_order_id = tp.order_id
             result.tp_price = tp.tp_price
             if tp.status == "FAILED":
                 result.errors.append(f"TP order failed: {tp.reason}")
 
     except Exception as exc:  # noqa: BLE001
-        result.outcome = "ERROR"
-        result.errors.append(str(exc))
+        _set_error(
+            result,
+            category=ERR_BROKER_ERROR,
+            code="UNHANDLED_RUN_EXCEPTION",
+            reason="Unexpected failure during run execution.",
+            exc=exc,
+        )
 
     return result
+
+
+def run_preflight(spec: TradeSpec, spec_name: str, broker: Broker) -> RunResult:
+    """Run non-trading readiness checks for a trade spec and broker.
+
+    Checks:
+    - broker current time
+    - account retrieval
+    - underlying quote retrieval
+    - option chain retrieval for today's expiration
+    """
+    result = RunResult(
+        spec_name=spec_name,
+        environment=spec.environment,
+        preflight=True,
+    )
+
+    try:
+        now = broker.get_current_time()
+        today = now.date()
+
+        account = broker.get_account()
+        if account.net_liquidation <= 0:
+            _set_error(
+                result,
+                category=ERR_BROKER_ERROR,
+                code="ACCOUNT_INVALID",
+                reason="Account snapshot returned non-positive net liquidation.",
+            )
+            return result
+
+        try:
+            quote = broker.get_underlying_quote(spec.underlying)
+            result.entry_underlying_last = quote.last
+        except Exception as exc:  # noqa: BLE001
+            _set_error(
+                result,
+                category=ERR_DATA_UNAVAILABLE,
+                code="MARKET_DATA_UNAVAILABLE",
+                reason=(
+                    f"Market data unavailable for {spec.underlying} at "
+                    f"{today.isoformat()}. Check broker dataset/time alignment."
+                ),
+                exc=exc,
+            )
+            return result
+
+        try:
+            chain = broker.get_option_chain(spec.underlying, today)
+            result.expiration = today.isoformat()
+            if not getattr(chain, "contracts", []):
+                _set_error(
+                    result,
+                    category=ERR_DATA_UNAVAILABLE,
+                    code="OPTION_CHAIN_EMPTY",
+                    reason=(
+                        f"Option chain for {spec.underlying} {today.isoformat()} returned no contracts."
+                    ),
+                )
+                return result
+        except Exception as exc:  # noqa: BLE001
+            _set_error(
+                result,
+                category=ERR_DATA_UNAVAILABLE,
+                code="OPTION_CHAIN_UNAVAILABLE",
+                reason=(
+                    f"Option chain unavailable for {spec.underlying} {today.isoformat()}. "
+                    "Check broker dataset/time alignment."
+                ),
+                exc=exc,
+            )
+            return result
+
+        result.outcome = "PREFLIGHT_OK"
+        result.reason = "Preflight checks passed."
+        return result
+
+    except Exception as exc:  # noqa: BLE001
+        _set_error(
+            result,
+            category=ERR_BROKER_ERROR,
+            code="PREFLIGHT_EXCEPTION",
+            reason="Unexpected preflight failure.",
+            exc=exc,
+        )
+        return result

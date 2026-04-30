@@ -21,6 +21,17 @@ def test_enter_help_exits_zero():
     )
     assert result.returncode == 0, f"stderr: {result.stderr}"
     assert "trade-spec" in result.stdout
+    assert "--dry-run" in result.stdout
+
+
+def test_preflight_help_exits_zero():
+    result = subprocess.run(
+        [sys.executable, "-m", "K9", "preflight", "--help"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert "trade-spec" in result.stdout
 
 
 def test_enter_missing_spec_exits_nonzero():

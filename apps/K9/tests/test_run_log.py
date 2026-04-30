@@ -42,6 +42,8 @@ def test_run_log_content_is_valid_json(tmp_path, filled_result):
     assert data["tp_price"] == 0.75
     assert data["short_put_strike"] == 5800.0
     assert data["short_call_strike"] == 5840.0
+    assert data["dry_run"] is False
+    assert data["preflight"] is False
 
 
 def test_run_log_skipped_outcome(tmp_path):

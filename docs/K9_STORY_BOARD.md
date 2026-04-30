@@ -15,3 +15,6 @@ The K9 stories are located in the `docs/stories/K9/` directory.
 | K9-0080 | 5 — Output | Run Log | Complete |
 | K9-0090 | 6 — Integration & Polish | End-to-End Integration + Guard Rails | Complete |
 | K9-0100 | 6 — Integration & Polish | README & Example Trade Specs | Complete |
+| K9-0110 | 7 — Reliability & YAML Cutover | Error Taxonomy + Actionable Failures | Complete |
+| K9-0120 | 7 — Reliability & YAML Cutover | YAML-Only Cutover (Remove JSON Runtime Path) | Complete |
+| K9-0130 | 7 — Reliability & YAML Cutover | Preflight Command + Dry-Run Mode | Complete |

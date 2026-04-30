@@ -1,9 +1,10 @@
-"""TradeSpec — configuration dataclass loaded from JSON files (K9-0010)."""
+"""TradeSpec — configuration dataclass loaded from YAML files."""
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
+
+import yaml
 
 
 @dataclass
@@ -61,15 +62,54 @@ class TradeSpec:
     # Construction                                                         #
     # ------------------------------------------------------------------ #
 
+    _ENV_ALIASES = {
+        "HD": "holodeck",
+        "TRDS": "sandbox",
+        "TRD": "production",
+    }
+
+    _STRATEGY_ALIASES = {
+        "SIC": "IRON_CONDOR",
+        "PCS": "PUT_CREDIT_SPREAD",
+        "CCS": "CALL_CREDIT_SPREAD",
+    }
+
     @classmethod
-    def from_json(cls, path: str | Path) -> "TradeSpec":
-        """Load a TradeSpec from a JSON file."""
-        data = json.loads(Path(path).read_text())
+    def from_file(cls, path: str | Path) -> "TradeSpec":
+        """Load a TradeSpec from a .yaml/.yml file."""
+        p = Path(path)
+        suffix = p.suffix.lower()
+        if suffix in {".yaml", ".yml"}:
+            return cls.from_yaml(p)
+        if suffix == ".json":
+            raise ValueError(
+                "JSON trade specs are no longer supported. Convert to YAML v2 and retry."
+            )
+        raise ValueError(f"Unsupported trade spec extension: {suffix!r}. Expected .yaml or .yml.")
+
+    @classmethod
+    def from_yaml(cls, path: str | Path) -> "TradeSpec":
+        """Load a TradeSpec from a YAML file.
+
+        Supports:
+        - v1-compatible YAML (same keys as JSON schema)
+        - v2 YAML shape from docs/K9_TRADE_SPEC_CRITERIA_REFERENCE_v2.md
+        """
+        data = yaml.safe_load(Path(path).read_text())
+        if not isinstance(data, dict):
+            raise ValueError("Trade spec YAML must be a mapping/object.")
+
+        if "trade" in data:
+            return cls._from_v2_yaml_mapping(data)
+        return cls._from_v1_mapping(data)
+
+    @classmethod
+    def _from_v1_mapping(cls, data: dict) -> "TradeSpec":
         return cls(
             enabled=data["enabled"],
-            environment=data["environment"],
-            underlying=data["underlying"],
-            trade_type=data["trade_type"],
+            environment=cls._normalize_environment(data["environment"]),
+            underlying=str(data["underlying"]).upper(),
+            trade_type=cls._normalize_trade_type(data["trade_type"]),
             wing_size=data["wing_size"],
             short_strike_selection=ShortStrikeSelection(
                 **data["short_strike_selection"]
@@ -86,6 +126,372 @@ class TradeSpec:
             allowed_entry_after=data.get("allowed_entry_after", "09:25"),
             allowed_entry_before=data.get("allowed_entry_before", "14:30"),
         )
+
+    @classmethod
+    def _from_v2_yaml_mapping(cls, data: dict) -> "TradeSpec":
+        """Map v2 YAML schema to current K9 internal TradeSpec model."""
+        cls._assert_only_keys(
+            data,
+            {
+                "schema_version",
+                "enabled",
+                "environment",
+                "underlying",
+                "account_minimum",
+                "max_combo_bid_ask_width",
+                "notes",
+                "trade",
+            },
+            "root",
+        )
+
+        if "schema_version" in data and int(data["schema_version"]) != 2:
+            raise ValueError("root.schema_version must be 2 for v2 YAML.")
+
+        trade = data.get("trade")
+        if not isinstance(trade, dict):
+            raise ValueError("v2 YAML requires 'trade' object.")
+
+        cls._assert_only_keys(
+            trade,
+            {
+                "option_strategy",
+                "entry_constraints",
+                "entry_criteria",
+                "entry_order",
+                "leg_selection",
+                "exit_order",
+            },
+            "trade",
+        )
+
+        entry_constraints = trade.get("entry_constraints")
+        entry_criteria = trade.get("entry_criteria")
+        entry_order = trade.get("entry_order")
+        exit_order = trade.get("exit_order")
+        leg_selection = trade.get("leg_selection")
+
+        if not isinstance(entry_constraints, dict):
+            raise ValueError("v2 YAML requires trade.entry_constraints object.")
+        if not isinstance(entry_criteria, dict):
+            raise ValueError("v2 YAML requires trade.entry_criteria object.")
+        if not isinstance(entry_order, dict):
+            raise ValueError("v2 YAML requires trade.entry_order object.")
+        if not isinstance(exit_order, dict):
+            raise ValueError("v2 YAML requires trade.exit_order object.")
+        if not isinstance(leg_selection, dict):
+            raise ValueError("v2 YAML requires trade.leg_selection object.")
+
+        cls._assert_only_keys(
+            entry_constraints,
+            {"allow_multiple_trades", "quantity", "max_entries_per_day", "max_risk_dollars"},
+            "trade.entry_constraints",
+        )
+        cls._assert_only_keys(
+            entry_criteria,
+            {"type", "allowed_entry_after", "allowed_entry_before"},
+            "trade.entry_criteria",
+        )
+        cls._assert_only_keys(
+            entry_order,
+            {
+                "order_type",
+                "time_in_force",
+                "max_fill_wait_time_seconds",
+                "max_entry_attempts",
+                "retry_price_decrement",
+                "entry_price",
+                "min_credit_received",
+            },
+            "trade.entry_order",
+        )
+        cls._assert_only_keys(
+            exit_order,
+            {"exit_type", "order_type", "time_in_force", "exit_price"},
+            "trade.exit_order",
+        )
+
+        option_strategy = trade.get("option_strategy")
+        trade_type = cls._normalize_trade_type(option_strategy)
+
+        if entry_criteria.get("type") != "time_window":
+            raise ValueError("Only trade.entry_criteria.type='time_window' is supported.")
+        if entry_order.get("order_type") != "LIMIT":
+            raise ValueError("Only trade.entry_order.order_type='LIMIT' is supported.")
+        if entry_order.get("time_in_force") != "DAY":
+            raise ValueError("Only trade.entry_order.time_in_force='DAY' is supported.")
+        if entry_order.get("entry_price") != "MIDPOINT":
+            raise ValueError("Only trade.entry_order.entry_price='MIDPOINT' is supported.")
+        if exit_order.get("exit_type") != "TAKE_PROFIT":
+            raise ValueError("Only trade.exit_order.exit_type='TAKE_PROFIT' is supported.")
+        if exit_order.get("order_type") != "LIMIT":
+            raise ValueError("Only trade.exit_order.order_type='LIMIT' is supported.")
+        if exit_order.get("time_in_force") != "GTC":
+            raise ValueError("Only trade.exit_order.time_in_force='GTC' is supported.")
+
+        exit_price = exit_order.get("exit_price")
+        if not isinstance(exit_price, dict):
+            raise ValueError("v2 YAML requires trade.exit_order.exit_price object.")
+        cls._assert_only_keys(
+            exit_price,
+            {"type", "value"},
+            "trade.exit_order.exit_price",
+        )
+        if (
+            exit_price.get("type") != "PERCENT_OF_INITIAL_CREDIT"
+        ):
+            raise ValueError(
+                "Only trade.exit_order.exit_price.type='PERCENT_OF_INITIAL_CREDIT' is supported."
+            )
+
+        if "max_entry_attempts" in entry_order and int(entry_order["max_entry_attempts"]) != 1:
+            raise ValueError("trade.entry_order.max_entry_attempts > 1 is not yet supported.")
+        if "retry_price_decrement" in entry_order and float(entry_order["retry_price_decrement"]) != 0.0:
+            raise ValueError("trade.entry_order.retry_price_decrement is not yet supported.")
+
+        wing_size = cls._extract_wing_size(trade_type, leg_selection)
+        delta_target = cls._extract_delta_target(trade_type, leg_selection)
+
+        return cls(
+            enabled=data["enabled"],
+            environment=cls._normalize_environment(data["environment"]),
+            underlying=str(data["underlying"]).upper(),
+            trade_type=trade_type,
+            wing_size=wing_size,
+            short_strike_selection=ShortStrikeSelection(method="DELTA", value=delta_target),
+            position_size=PositionSize(
+                mode="fixed_contracts",
+                contracts=int(entry_constraints["quantity"]),
+            ),
+            account_minimum=float(data.get("account_minimum", 0.0)),
+            max_risk_per_trade=float(entry_constraints["max_risk_dollars"]),
+            minimum_net_credit=float(entry_order["min_credit_received"]),
+            # v2 defines spread percent, while current runner expects absolute combo width.
+            # Keep permissive default until percent-based liquidity checks are implemented.
+            max_combo_bid_ask_width=float(data.get("max_combo_bid_ask_width", 1000.0)),
+            entry=EntryConfig(
+                order_type="LIMIT",
+                limit_price_strategy="MID",
+                max_fill_time_seconds=int(entry_order["max_fill_wait_time_seconds"]),
+            ),
+            exit=ExitConfig(
+                take_profit_percent=float(exit_order["exit_price"]["value"]),
+                expiration_day_exit_mode="HOLD_TO_EXPIRATION",
+            ),
+            constraints=Constraints(
+                max_entries_per_day=int(entry_constraints["max_entries_per_day"]),
+                one_position_per_underlying=not bool(entry_constraints.get("allow_multiple_trades", False)),
+            ),
+            notes=str(data.get("notes", "")),
+            allowed_entry_after=str(entry_criteria["allowed_entry_after"]),
+            allowed_entry_before=str(entry_criteria["allowed_entry_before"]),
+        )
+
+    @classmethod
+    def _extract_wing_size(cls, trade_type: str, leg_selection: dict) -> int:
+        cls._validate_leg_selection(trade_type, leg_selection)
+
+        if trade_type == "IRON_CONDOR":
+            long_put = leg_selection.get("long_put") or {}
+            long_call = leg_selection.get("long_call") or {}
+            put_wing = float(long_put.get("wing_distance_points", 0.0))
+            call_wing = float(long_call.get("wing_distance_points", 0.0))
+            if put_wing <= 0 or call_wing <= 0:
+                raise ValueError(
+                    "SIC requires positive leg_selection.long_put/long_call.wing_distance_points."
+                )
+            if abs(put_wing - call_wing) > 1e-9:
+                raise ValueError(
+                    "SIC requires matching put/call wing_distance_points in v2 mapping."
+                )
+            return int(round(put_wing))
+
+        if trade_type == "PUT_CREDIT_SPREAD":
+            long_put = leg_selection.get("long_put") or {}
+            wing = float(long_put.get("wing_distance_points", 0.0))
+            if wing <= 0:
+                raise ValueError(
+                    "PCS requires positive leg_selection.long_put.wing_distance_points."
+                )
+            return int(round(wing))
+
+        if trade_type == "CALL_CREDIT_SPREAD":
+            long_call = leg_selection.get("long_call") or {}
+            wing = float(long_call.get("wing_distance_points", 0.0))
+            if wing <= 0:
+                raise ValueError(
+                    "CCS requires positive leg_selection.long_call.wing_distance_points."
+                )
+            return int(round(wing))
+
+        raise ValueError(f"Unsupported trade_type mapping: {trade_type!r}")
+
+    @classmethod
+    def _extract_delta_target(cls, trade_type: str, leg_selection: dict) -> float:
+        def midpoint_abs(dr: dict) -> float:
+            cls._assert_only_keys(dr, {"min", "max"}, "trade.leg_selection.*.delta_range")
+            lo = abs(float(dr["min"]))
+            hi = abs(float(dr["max"]))
+            return ((lo + hi) / 2.0) * 100.0
+
+        if trade_type == "IRON_CONDOR":
+            sp = ((leg_selection.get("short_put") or {}).get("delta_range") or {})
+            sc = ((leg_selection.get("short_call") or {}).get("delta_range") or {})
+            if not sp or not sc:
+                raise ValueError("SIC requires both short_put.delta_range and short_call.delta_range.")
+            return round((midpoint_abs(sp) + midpoint_abs(sc)) / 2.0, 2)
+
+        if trade_type == "PUT_CREDIT_SPREAD":
+            sp = ((leg_selection.get("short_put") or {}).get("delta_range") or {})
+            if not sp:
+                raise ValueError("PCS requires short_put.delta_range.")
+            return round(midpoint_abs(sp), 2)
+
+        if trade_type == "CALL_CREDIT_SPREAD":
+            sc = ((leg_selection.get("short_call") or {}).get("delta_range") or {})
+            if not sc:
+                raise ValueError("CCS requires short_call.delta_range.")
+            return round(midpoint_abs(sc), 2)
+
+        raise ValueError(f"Unsupported trade_type mapping: {trade_type!r}")
+
+    @classmethod
+    def _normalize_environment(cls, value: str) -> str:
+        env = str(value).strip()
+        return cls._ENV_ALIASES.get(env, env)
+
+    @classmethod
+    def _normalize_trade_type(cls, value: str) -> str:
+        raw = str(value).strip().upper()
+        return cls._STRATEGY_ALIASES.get(raw, raw)
+
+    @classmethod
+    def _assert_only_keys(cls, data: dict, allowed: set[str], path: str) -> None:
+        extra = sorted(set(data.keys()) - allowed)
+        if extra:
+            raise ValueError(
+                f"Unsupported field(s) at {path}: {', '.join(extra)}"
+            )
+
+    @classmethod
+    def _validate_leg_selection(cls, trade_type: str, leg_selection: dict) -> None:
+        if trade_type == "IRON_CONDOR":
+            required_legs = {"short_put", "short_call", "long_put", "long_call"}
+        elif trade_type == "PUT_CREDIT_SPREAD":
+            required_legs = {"short_put", "long_put"}
+        elif trade_type == "CALL_CREDIT_SPREAD":
+            required_legs = {"short_call", "long_call"}
+        else:
+            raise ValueError(f"Unsupported trade_type mapping: {trade_type!r}")
+
+        cls._assert_only_keys(leg_selection, required_legs, "trade.leg_selection")
+
+        for leg_name, leg_data in leg_selection.items():
+            if not isinstance(leg_data, dict):
+                raise ValueError(f"trade.leg_selection.{leg_name} must be an object.")
+            if leg_name in {"short_put", "short_call"}:
+                cls._assert_only_keys(
+                    leg_data,
+                    {"delta_range"},
+                    f"trade.leg_selection.{leg_name}",
+                )
+                if not isinstance(leg_data.get("delta_range"), dict):
+                    raise ValueError(
+                        f"trade.leg_selection.{leg_name}.delta_range must be an object."
+                    )
+            else:
+                cls._assert_only_keys(
+                    leg_data,
+                    {"wing_distance_points"},
+                    f"trade.leg_selection.{leg_name}",
+                )
+
+    def to_v2_yaml_dict(self) -> dict:
+        """Render this TradeSpec into v2 YAML dictionary shape."""
+        strategy = {
+            "IRON_CONDOR": "SIC",
+            "PUT_CREDIT_SPREAD": "PCS",
+            "CALL_CREDIT_SPREAD": "CCS",
+        }.get(self.trade_type)
+        if strategy is None:
+            raise ValueError(f"Unsupported trade_type for v2 conversion: {self.trade_type!r}")
+
+        env = {
+            "holodeck": "HD",
+            "sandbox": "TRDS",
+            "production": "TRD",
+        }.get(self.environment)
+        if env is None:
+            raise ValueError(f"Unsupported environment for v2 conversion: {self.environment!r}")
+
+        # Build a deterministic delta range around the target (e.g. 20 -> 0.15..0.25).
+        center = float(self.short_strike_selection.value) / 100.0
+        half_width = 0.05
+        low = round(max(0.0, center - half_width), 2)
+        high = round(center + half_width, 2)
+
+        leg_selection: dict[str, dict] = {}
+        if self.trade_type in {"IRON_CONDOR", "PUT_CREDIT_SPREAD"}:
+            leg_selection["short_put"] = {
+                "delta_range": {"min": -high, "max": -low}
+            }
+            leg_selection["long_put"] = {
+                "wing_distance_points": float(self.wing_size)
+            }
+        if self.trade_type in {"IRON_CONDOR", "CALL_CREDIT_SPREAD"}:
+            leg_selection["short_call"] = {
+                "delta_range": {"min": low, "max": high}
+            }
+            leg_selection["long_call"] = {
+                "wing_distance_points": float(self.wing_size)
+            }
+
+        return {
+            "schema_version": 2,
+            "enabled": self.enabled,
+            "environment": env,
+            "underlying": self.underlying,
+            "account_minimum": float(self.account_minimum),
+            "max_combo_bid_ask_width": float(self.max_combo_bid_ask_width),
+            "notes": self.notes,
+            "trade": {
+                "option_strategy": strategy,
+                "entry_constraints": {
+                    "allow_multiple_trades": not self.constraints.one_position_per_underlying,
+                    "quantity": int(self.position_size.contracts),
+                    "max_entries_per_day": int(self.constraints.max_entries_per_day),
+                    "max_risk_dollars": float(self.max_risk_per_trade),
+                },
+                "entry_criteria": {
+                    "type": "time_window",
+                    "allowed_entry_after": self.allowed_entry_after,
+                    "allowed_entry_before": self.allowed_entry_before,
+                },
+                "entry_order": {
+                    "order_type": "LIMIT",
+                    "time_in_force": "DAY",
+                    "max_fill_wait_time_seconds": int(self.entry.max_fill_time_seconds),
+                    "max_entry_attempts": 1,
+                    "retry_price_decrement": 0.0,
+                    "entry_price": "MIDPOINT",
+                    "min_credit_received": float(self.minimum_net_credit),
+                },
+                "leg_selection": leg_selection,
+                "exit_order": {
+                    "exit_type": "TAKE_PROFIT",
+                    "order_type": "LIMIT",
+                    "time_in_force": "GTC",
+                    "exit_price": {
+                        "type": "PERCENT_OF_INITIAL_CREDIT",
+                        "value": float(self.exit.take_profit_percent),
+                    },
+                },
+            },
+        }
+
+    def to_v2_yaml_text(self) -> str:
+        """Render v2 YAML text for writing to file."""
+        return yaml.safe_dump(self.to_v2_yaml_dict(), sort_keys=False)
 
     # ------------------------------------------------------------------ #
     # Validation                                                           #

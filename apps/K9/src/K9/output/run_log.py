@@ -46,6 +46,10 @@ class RunLog:
             "tp_order_id":       result.tp_order_id,
             "tp_price":          result.tp_price,
             "reason":            result.reason,
+            "error_category":    result.error_category,
+            "error_code":        result.error_code,
+            "dry_run":           result.dry_run,
+            "preflight":         result.preflight,
             "errors":            result.errors,
         }
 

@@ -30,12 +30,17 @@ _ENV_ACCOUNT = {
 @app.command(name="enter")
 def enter(
     trade_spec: str = typer.Option(
-        ..., "--trade-spec", help="Trade spec name (without .json extension)."
+        ..., "--trade-spec", help="Trade spec name (without extension)."
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Run full selection/validation path without placing any orders.",
     ),
     specs_dir: str = typer.Option(
         str(_TRADE_SPECS_DIR),
         "--specs-dir",
-        help="Directory containing trade spec JSON files.",
+        help="Directory containing trade spec YAML files.",
         hidden=True,
     ),
 ) -> None:
@@ -45,13 +50,16 @@ def enter(
     from K9.engine.runner import run_entry
     from K9.output.run_log import RunLog
 
-    spec_path = Path(specs_dir) / f"{trade_spec}.json"
-    if not spec_path.exists():
-        console.print(f"[bold red]Trade spec not found: {spec_path}[/bold red]")
+    spec_path = _resolve_spec_path(Path(specs_dir), trade_spec)
+    if spec_path is None:
+        console.print(
+            "[bold red]Trade spec not found:[/bold red] "
+            f"{trade_spec} (looked for .yaml, .yml)"
+        )
         raise typer.Exit(1)
 
     try:
-        spec = TradeSpec.from_json(spec_path)
+        spec = TradeSpec.from_file(spec_path)
         spec.validate()
     except (KeyError, ValueError) as exc:
         console.print(f"[bold red]Invalid trade spec: {exc}[/bold red]")
@@ -75,7 +83,7 @@ def enter(
     # Resolve log dir (supports K9_LOG_DIR env override for testing)
     log_dir = Path(os.environ.get("K9_LOG_DIR", "logs/K9"))
 
-    result = run_entry(spec, trade_spec, broker, log_dir=log_dir)
+    result = run_entry(spec, trade_spec, broker, log_dir=log_dir, dry_run=dry_run)
 
     # Write run log
     log = RunLog(spec_name=trade_spec, log_dir=log_dir)
@@ -183,6 +191,14 @@ def enter(
     console.print(f"[{color}]Outcome: {result.outcome}[/{color}]")
     if result.reason:
         console.print(f"[dim]{result.reason}[/dim]")
+    if result.dry_run:
+        console.print("[yellow]Mode:[/yellow] dry-run")
+    if result.error_category or result.error_code:
+        console.print(
+            "[red]Error category:[/red] "
+            f"{result.error_category or 'UNKNOWN'}"
+            f" / {result.error_code or 'UNKNOWN'}"
+        )
     if result.net_credit is not None:
         console.print(
             f"[dim]Net credit: {result.net_credit:.2f}  "
@@ -197,3 +213,84 @@ def enter(
     bad_outcomes = {"CANCELED", "REJECTED", "ERROR"}
     if result.outcome in bad_outcomes:
         raise typer.Exit(1)
+
+
+@app.command(name="preflight")
+def preflight(
+    trade_spec: str = typer.Option(
+        ..., "--trade-spec", help="Trade spec name (without extension)."
+    ),
+    specs_dir: str = typer.Option(
+        str(_TRADE_SPECS_DIR),
+        "--specs-dir",
+        help="Directory containing trade spec YAML files.",
+        hidden=True,
+    ),
+) -> None:
+    """Validate spec and broker/data readiness without placing orders."""
+    from K9.broker_factory import create_broker
+    from K9.config import TradeSpec
+    from K9.engine.runner import run_preflight
+    from K9.output.run_log import RunLog
+
+    spec_path = _resolve_spec_path(Path(specs_dir), trade_spec)
+    if spec_path is None:
+        console.print(
+            "[bold red]Trade spec not found:[/bold red] "
+            f"{trade_spec} (looked for .yaml, .yml)"
+        )
+        raise typer.Exit(1)
+
+    try:
+        spec = TradeSpec.from_file(spec_path)
+        spec.validate()
+    except (KeyError, ValueError) as exc:
+        console.print(f"[bold red]Invalid trade spec: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    try:
+        broker = create_broker(spec)
+    except (KeyError, FileNotFoundError, ValueError) as exc:
+        console.print(f"[bold red]Broker init failed: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    log_dir = Path(os.environ.get("K9_LOG_DIR", "logs/K9"))
+    result = run_preflight(spec, trade_spec, broker)
+
+    log = RunLog(spec_name=trade_spec, log_dir=log_dir)
+    log.record(result)
+    log_path = log.write()
+
+    if result.outcome == "PREFLIGHT_OK":
+        console.print("[green]Preflight passed[/green]")
+    else:
+        console.print("[bold red]Preflight failed[/bold red]")
+
+    if result.reason:
+        console.print(f"[dim]{result.reason}[/dim]")
+    if result.error_category or result.error_code:
+        console.print(
+            "[red]Error category:[/red] "
+            f"{result.error_category or 'UNKNOWN'}"
+            f" / {result.error_code or 'UNKNOWN'}"
+        )
+    if result.errors:
+        for err in result.errors:
+            console.print(f"[red]Error: {err}[/red]")
+    console.print(f"[dim]Log: {log_path}[/dim]")
+
+    raise typer.Exit(0 if result.outcome == "PREFLIGHT_OK" else 1)
+
+
+def _resolve_spec_path(specs_dir: Path, trade_spec: str) -> Path | None:
+    """Resolve trade spec file with deterministic extension preference."""
+    if Path(trade_spec).suffix.lower() in {".yaml", ".yml"}:
+        direct = specs_dir / trade_spec
+        return direct if direct.exists() else None
+
+    for ext in (".yaml", ".yml"):
+        candidate = specs_dir / f"{trade_spec}{ext}"
+        if candidate.exists():
+            return candidate
+
+    return None
