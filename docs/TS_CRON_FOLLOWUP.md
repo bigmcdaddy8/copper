@@ -23,7 +23,7 @@ That is fine for this phase — the goal is observing sandbox behaviour, not liv
 
 ---
 
-## Status as of 2026-04-26
+## Status as of 2026-04-30
 
 | Date | Event | Result |
 |---|---|---|
@@ -40,14 +40,22 @@ That is fine for this phase — the goal is observing sandbox behaviour, not liv
 | 2026-04-26 | Fix attempt 2: leg key format corrected | ✅ Changed `leg[N][field]` → `field[N]`; added `symbol=SPX` — matches Tradier's documented multileg format |
 | 2026-04-27–29 | `daily_entry.sh` (3 runs) | ❌ Still failed — HTTP 400 "Invalid parameter, type: is not valid." |
 | 2026-04-29 | Fix attempt 3: multileg `type` field | ✅ Changed `type=limit` → `type=credit/debit/even` (Tradier multileg API only accepts these values, not `limit`); price sent as `abs(price)` |
+| 2026-04-30 | `daily_entry.sh` | ✅ **First successful order placed** — Order 29004858, filled instantly (sandbox auto-fill), 4-leg SIC on SPX 0DTE |
+| 2026-04-30 | `expiry_check.sh` (EC-2) | ⚠️ Partial — `today_orders_count: 0` due to multileg filter bug (fixed); `today_positions_count: 4` confirmed; positions still open 10 min post-close and beyond |
+| 2026-04-30 | EC-2 filter bug fixed | ✅ `run_expiry_timing` now checks leg-level `option_symbol` for multileg orders |
 
 **EC-1 finding (nickel pricing):** Tradier sandbox accepted a `$0.06` penny-priced Day STO Limit without rejection or rounding. Production behavior may differ — re-test needed when live account is available.
 
 **EC-4 finding (after-hours quotes):** Tested 5 days (Apr 16–22). `has_extended_trade: False`, `has_post_market: False` every day for SPY, QQQ, SPX. Sandbox does not return extended-hours pricing — `last` is frozen at regular-session close.
 
-**Root cause of `daily_entry.sh` failures (Apr 16–26, two separate bugs):**
+**EC-2 finding (expiry timing) — partial, 2026-04-30:** First successful SIC order placed (ID 29004858). Filled instantly by sandbox. At 3:10 PM CT (T+10 min after close), all 4 0DTE SPX positions still showing as **open** — sandbox had not yet processed expiry. Positions remained open hours later (confirmed via direct API query). Sandbox may not auto-expire 0DTE positions, or does so much later than 10 min post-close. More observation needed on subsequent trading days with the fixed EC-2 filter.
+
+**Root cause of `daily_entry.sh` failures (Apr 16–29, three separate bugs):**
 1. **Bug 1 (Apr 16–22):** `httpx` percent-encodes `[` and `]` when using `data=dict`. Fixed Apr 22 by building form body manually in `_post` using `content=` with `Content-Type: application/x-www-form-urlencoded`.
 2. **Bug 2 (Apr 22–24):** Even with literal brackets, the key structure was wrong. Tradier's multileg API requires flat indexed keys: `option_symbol[0]`, `side[0]`, `quantity[0]` — NOT the nested `leg[0][option_symbol]` format that was being sent. Fixed Apr 26 in `tradier_client.py:place_multileg_order`. Also added `symbol=SPX` (underlying) per Tradier's documented API spec.
+3. **Bug 3 (Apr 27–29):** Tradier's multileg endpoint rejects `type=limit` — only accepts `market`, `debit`, `credit`, `even`. Fixed Apr 29: type derived from sign of price, `abs(price)` sent.
+
+**EC-2 filter bug (Apr 30):** `run_expiry_timing` only checked top-level `option_symbol` field; multileg orders nest symbols in `leg[N].option_symbol`. Fixed Apr 30 in `edge_cases.py:run_expiry_timing`.
 
 ---
 

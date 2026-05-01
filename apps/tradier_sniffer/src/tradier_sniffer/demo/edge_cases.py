@@ -147,10 +147,14 @@ def run_expiry_timing(
     orders = client.get_orders(account_id)
     positions = client.get_positions(account_id)
 
-    today_orders = [
-        o for o in orders
-        if (o.get("expiration_date") or "") == today or today in str(o.get("option_symbol") or "")
-    ]
+    def _order_matches_today(o: dict) -> bool:
+        if (o.get("expiration_date") or "") == today:
+            return True
+        if today in str(o.get("option_symbol") or ""):
+            return True
+        return any(today in str(leg.get("option_symbol") or "") for leg in (o.get("leg") or []))
+
+    today_orders = [o for o in orders if _order_matches_today(o)]
     today_positions = [
         p for p in positions
         if today.replace("-", "")[2:] in str(p.get("symbol") or "")
