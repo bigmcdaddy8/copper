@@ -244,11 +244,6 @@ class TradeSpec:
                 "Only trade.exit_order.exit_price.type='PERCENT_OF_INITIAL_CREDIT' is supported."
             )
 
-        if "max_entry_attempts" in entry_order and int(entry_order["max_entry_attempts"]) != 1:
-            raise ValueError("trade.entry_order.max_entry_attempts > 1 is not yet supported.")
-        if "retry_price_decrement" in entry_order and float(entry_order["retry_price_decrement"]) != 0.0:
-            raise ValueError("trade.entry_order.retry_price_decrement is not yet supported.")
-
         wing_size = cls._extract_wing_size(trade_type, leg_selection)
         delta_target = cls._extract_delta_target(trade_type, leg_selection)
 

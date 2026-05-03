@@ -91,7 +91,7 @@ def test_not_in_universe_excluded(universe, candidates):
     active = frozenset()
     df, warnings = filter_and_join(candidates, universe, active, side="BULL")
     assert "NVDA" not in df["Symbol"].values
-    assert any("NVDA" in w and "Universal Data Set" in w for w in warnings)
+    assert any("NVDA" in w and "TastyTrade Russell 1000 universe" in w for w in warnings)
 
 
 def test_open_trade_check_runs_first(universe):
@@ -101,7 +101,7 @@ def test_open_trade_check_runs_first(universe):
     _, warnings = filter_and_join(cands, universe, active, side="BULL")
     assert len(warnings) == 1
     assert "open trade" in warnings[0]
-    assert "Universal Data Set" not in warnings[0]
+    assert "TastyTrade Russell 1000 universe" not in warnings[0]
 
 
 # ---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ def test_join_columns_combined(universe, candidates):
     # SeekingAlpha columns
     assert "Quant Rating" in df.columns
     assert "Momentum" in df.columns
-    # Universal Data Set columns
+    # TastyTrade Russell 1000 universe columns
     assert "IV Rank" in df.columns
     assert "Sector" in df.columns
     assert "Sector Bucket" in df.columns

@@ -97,6 +97,10 @@ class TradeRecord:
     # ── Account ───────────────────────────────────────────────────────────────
     account: str = "TRD"           # TRD | TRDS | HD
 
+    # ── Broker correlation ────────────────────────────────────────────────────
+    rejection_reason: str | None = None   # normalized BIC code when outcome=="REJECTED"
+    broker_order_tag: str | None = None   # short UUID linking entry+TP orders
+
     # ── Timing / Identity (auto-populated) ───────────────────────────────────
     entered_at: str = field(default_factory=_now_iso)
     trade_id: str = field(default_factory=_new_trade_id)

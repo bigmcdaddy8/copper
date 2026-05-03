@@ -301,8 +301,8 @@ def build_active_diversity_lists(
 ) -> tuple[list[str], list[str]]:
     """Return (active_buckets, active_sectors) for diversity quality calculations.
 
-    Filters the Universal Data Set to active symbols and extracts their
-    Sector Bucket and Sector. Active symbols not found in the Universal Data Set
+    Filters the TastyTrade Russell 1000 universe to active symbols and extracts their
+    Sector Bucket and Sector. Active symbols not found in the TastyTrade Russell 1000 universe
     are silently skipped (they were already warned about in Story-0050).
 
     Returns:

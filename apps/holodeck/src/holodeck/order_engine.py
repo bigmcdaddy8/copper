@@ -2,7 +2,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from bic.models import Order, OrderRequest, OrderResponse
+from bic.models import (
+    Order, OrderRequest, OrderResponse,
+    ORDER_STATUS_OPEN, ORDER_STATUS_FILLED, ORDER_STATUS_CANCELED,
+)
 from holodeck.clock import VirtualClock
 from holodeck.config import HolodeckConfig
 from holodeck.ledger import AccountLedger
@@ -15,7 +18,7 @@ class SimOrder:
     """Internal order record. NOT a BIC model."""
     order_id: str
     request: OrderRequest
-    status: str               # "OPEN", "FILLED", "CANCELED", "REJECTED"
+    status: str               # uses canonical BIC ORDER_STATUS_* strings
     submitted_at: datetime
     filled_at: datetime | None = None
     filled_price: float | None = None
@@ -51,28 +54,36 @@ class OrderEngine:
         - Insufficient buying power (estimated max_loss > available buying_power)
         """
         if not self._clock.is_market_open():
-            return OrderResponse(order_id="", status="REJECTED")
+            return OrderResponse(order_id="", status="REJECTED",
+                                 rejection_reason="market_closed",
+                                 rejection_text="Market is not open")
 
         if request.order_type != "LIMIT":
-            return OrderResponse(order_id="", status="REJECTED")
+            return OrderResponse(order_id="", status="REJECTED",
+                                 rejection_reason="invalid_price",
+                                 rejection_text="Only LIMIT orders are supported")
 
         # Block duplicate positions (unless this is a TP/closing order)
         if not self._is_closing_order(request):
             if self._ledger.has_position_for(request.symbol):
-                return OrderResponse(order_id="", status="REJECTED")
+                return OrderResponse(order_id="", status="REJECTED",
+                                     rejection_reason="duplicate_order",
+                                     rejection_text="Position already exists for symbol")
 
         # Check buying power for entry orders
         if not self._is_closing_order(request):
             estimated_bp = self._estimate_buying_power(request)
             if estimated_bp > self._ledger.get_snapshot().buying_power:
-                return OrderResponse(order_id="", status="REJECTED")
+                return OrderResponse(order_id="", status="REJECTED",
+                                     rejection_reason="insufficient_buying_power",
+                                     rejection_text="Insufficient buying power")
 
         order_id = f"HD-{self._next_order_num:06d}"
         self._next_order_num += 1
         sim_order = SimOrder(
             order_id=order_id,
             request=request,
-            status="OPEN",
+            status=ORDER_STATUS_OPEN,
             submitted_at=self._clock.current_time(),
             remaining_quantity=request.quantity,
         )
@@ -85,7 +96,7 @@ class OrderEngine:
         now = self._clock.current_time()
 
         for order_id, sim_order in self._orders.items():
-            if sim_order.status != "OPEN":
+            if sim_order.status != ORDER_STATUS_OPEN:
                 continue
 
             try:
@@ -123,8 +134,8 @@ class OrderEngine:
     def cancel_order(self, order_id: str) -> None:
         """Cancel an open order. No-op if already filled or unknown."""
         sim_order = self._orders.get(order_id)
-        if sim_order is not None and sim_order.status == "OPEN":
-            sim_order.status = "CANCELED"
+        if sim_order is not None and sim_order.status == ORDER_STATUS_OPEN:
+            sim_order.status = ORDER_STATUS_CANCELED
 
     def get_order(self, order_id: str) -> Order:
         """Return BIC Order for the given order_id. Raises KeyError if unknown."""
@@ -134,6 +145,8 @@ class OrderEngine:
             status=sim_order.status,
             filled_price=sim_order.filled_price,
             remaining_quantity=sim_order.remaining_quantity,
+            tag=getattr(sim_order.request, "tag", None),
+            raw_status=sim_order.status.lower(),
         )
 
     def get_open_orders(self) -> list[Order]:
@@ -143,10 +156,29 @@ class OrderEngine:
                 status=o.status,
                 filled_price=o.filled_price,
                 remaining_quantity=o.remaining_quantity,
+                tag=getattr(o.request, "tag", None),
+                raw_status=o.status.lower(),
             )
             for o in self._orders.values()
-            if o.status == "OPEN"
+            if o.status == ORDER_STATUS_OPEN
         ]
+
+    def get_all_orders(self, statuses: list[str] | None = None) -> list[Order]:
+        """Return all orders in this session, optionally filtered by canonical status."""
+        orders = [
+            Order(
+                order_id=o.order_id,
+                status=o.status,
+                filled_price=o.filled_price,
+                remaining_quantity=o.remaining_quantity,
+                tag=getattr(o.request, "tag", None),
+                raw_status=o.status.lower(),
+            )
+            for o in self._orders.values()
+        ]
+        if statuses:
+            orders = [o for o in orders if o.status in statuses]
+        return orders
 
     # --- Private helpers ---
 
@@ -165,7 +197,7 @@ class OrderEngine:
         now: datetime,
         closing: bool,
     ) -> None:
-        sim_order.status = "FILLED"
+        sim_order.status = ORDER_STATUS_FILLED
         sim_order.filled_at = now
         sim_order.filled_price = filled_price
         sim_order.remaining_quantity = 0

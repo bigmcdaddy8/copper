@@ -42,7 +42,7 @@ def load_tastytrade(
     downloads_dir: Path,
     explicit_path: Path | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
-    """Load TastyTrade CSV and return the Universal Data Set plus a list of warnings.
+    """Load TastyTrade CSV and return the TastyTrade Russell 1000 universe plus a list of warnings.
 
     If explicit_path is provided it is used directly; otherwise the newest matching
     file in downloads_dir is discovered automatically.

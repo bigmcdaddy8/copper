@@ -39,6 +39,19 @@ class Broker(ABC):
         """Return all open orders."""
         ...
 
+    @abstractmethod
+    def get_orders(self, statuses: list[str] | None = None) -> list[Order]:
+        """Return recent orders, optionally filtered to the given canonical status list.
+
+        Used for startup reconciliation: fetch all known orders from the broker and
+        diff against local state to detect transitions that occurred while offline.
+
+        Args:
+            statuses: if None, return all orders the broker makes available.
+                      Pass e.g. [\"OPEN\", \"PENDING\"] to narrow the result.
+        """
+        ...
+
     # --- Market Data ---
     @abstractmethod
     def get_underlying_quote(self, symbol: str) -> Quote:

@@ -5,7 +5,7 @@ def check_active_symbols_in_universe(
     active_symbols: frozenset[str],
     universal_dataset: pd.DataFrame,
 ) -> list[str]:
-    """Return a warning for each active symbol absent from the Universal Data Set.
+    """Return a warning for each active symbol absent from the TastyTrade Russell 1000 universe.
 
     Does not raise — missing active symbols are informational, not a blocking error.
     """
@@ -13,7 +13,7 @@ def check_active_symbols_in_universe(
     universe_symbols = set(universal_dataset["Symbol"])
     for sym in sorted(active_symbols):  # sorted for deterministic warning order
         if sym not in universe_symbols:
-            warnings.append(f"[Journal] Active symbol '{sym}' not found in Universal Data Set")
+            warnings.append(f"[Journal] Active symbol '{sym}' not found in TastyTrade Russell 1000 universe")
     return warnings
 
 
@@ -23,7 +23,7 @@ def filter_and_join(
     active_symbols: frozenset[str],
     side: str,
 ) -> tuple[pd.DataFrame, list[str]]:
-    """Apply open-trade exclusion and universe membership filter, then join to Universal Data Set.
+    """Apply open-trade exclusion and universe membership filter, then join to TastyTrade Russell 1000 universe.
 
     Steps:
       1. Drop GOOG (use GOOGL instead).
@@ -65,15 +65,15 @@ def filter_and_join(
     if remaining.empty:
         return pd.DataFrame(), warnings
 
-    # Step 4: exclude candidates not in the Universal Data Set
+    # Step 4: exclude candidates not in the TastyTrade Russell 1000 universe
     not_in_universe_mask = ~remaining["Symbol"].isin(universe_symbols)
     for sym in remaining.loc[not_in_universe_mask, "Symbol"]:
-        warnings.append(f"[{side}] '{sym}' not in TastyTrade Russell 1000 universe — skipped")
+        warnings.append(f"[{side}] '{sym}' not found in TastyTrade Russell 1000 universe — skipped")
     remaining = remaining[~not_in_universe_mask].copy()
 
     if remaining.empty:
         return pd.DataFrame(), warnings
 
-    # Step 5: join to Universal Data Set
+    # Step 5: join to TastyTrade Russell 1000 universe
     joined = pd.merge(remaining, universal_dataset, on="Symbol", how="inner")
     return joined.reset_index(drop=True), warnings

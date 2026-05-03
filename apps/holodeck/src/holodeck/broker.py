@@ -68,6 +68,14 @@ class HolodeckBroker(Broker):
     def get_open_orders(self) -> list[Order]:
         return self._order_engine.get_open_orders()
 
+    def get_orders(self, statuses: list[str] | None = None) -> list[Order]:
+        """Return all simulated orders, optionally filtered to canonical status list.
+
+        Holodeck keeps all orders in-memory for the current session only; there is
+        no persistent store, so this is inherently a same-session reconciliation aid.
+        """
+        return self._order_engine.get_all_orders(statuses=statuses)
+
     def get_underlying_quote(self, symbol: str) -> Quote:
         if symbol != "SPX":
             raise ValueError(

@@ -6,15 +6,24 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from bic.broker import Broker
-from bic.models import Order, OrderRequest, OrderResponse
+from bic.models import (
+    Order,
+    OrderRequest,
+    OrderResponse,
+    ORDER_FILL_STATUSES,
+    ORDER_DONE_STATUSES,
+    ORDER_STATUS_REJECTED,
+    ORDER_STATUS_EXPIRED,
+)
 
 
 @dataclass
 class OrderOutcome:
-    status: str           # "FILLED" | "CANCELED" | "REJECTED"
+    status: str           # "FILLED" | "CANCELED" | "REJECTED" | "EXPIRED"
     order_id: str
     filled_price: float | None
     reason: str = ""
+    rejection_reason: str | None = None   # normalized BIC rejection code when status=="REJECTED"
 
 
 @dataclass
@@ -54,6 +63,7 @@ def place_and_poll(
             order_id=response.order_id,
             filled_price=None,
             reason="Order was rejected by broker.",
+            rejection_reason=getattr(response, "rejection_reason", None),
         )
 
     order_id = response.order_id
@@ -63,37 +73,67 @@ def place_and_poll(
         for _ in range(max_fill_seconds):
             tick()
             current: Order = broker.get_order(order_id)
-            if current.status == "FILLED":
+            if current.status in ORDER_FILL_STATUSES:
                 return OrderOutcome(
                     status="FILLED",
                     order_id=order_id,
                     filled_price=current.filled_price,
                 )
-            if current.status == "CANCELED":
+            if current.status == ORDER_STATUS_REJECTED:
+                return OrderOutcome(
+                    status="REJECTED",
+                    order_id=order_id,
+                    filled_price=None,
+                    reason="Order rejected during fill window.",
+                )
+            if current.status == ORDER_STATUS_EXPIRED:
+                return OrderOutcome(
+                    status="EXPIRED",
+                    order_id=order_id,
+                    filled_price=None,
+                    reason="Order expired during fill window.",
+                )
+            if current.status in ORDER_DONE_STATUSES:
                 return OrderOutcome(
                     status="CANCELED",
                     order_id=order_id,
                     filled_price=None,
                     reason="Order was canceled externally.",
                 )
+            # ORDER_ACTIVE_STATUSES (OPEN, PENDING, PENDING_CANCEL) — continue polling
     else:
         # Real-time path: sleep between polls
         deadline = time.monotonic() + max_fill_seconds
         while time.monotonic() < deadline:
             current = broker.get_order(order_id)
-            if current.status == "FILLED":
+            if current.status in ORDER_FILL_STATUSES:
                 return OrderOutcome(
                     status="FILLED",
                     order_id=order_id,
                     filled_price=current.filled_price,
                 )
-            if current.status == "CANCELED":
+            if current.status == ORDER_STATUS_REJECTED:
+                return OrderOutcome(
+                    status="REJECTED",
+                    order_id=order_id,
+                    filled_price=None,
+                    reason="Order rejected during fill window.",
+                )
+            if current.status == ORDER_STATUS_EXPIRED:
+                return OrderOutcome(
+                    status="EXPIRED",
+                    order_id=order_id,
+                    filled_price=None,
+                    reason="Order expired during fill window.",
+                )
+            if current.status in ORDER_DONE_STATUSES:
                 return OrderOutcome(
                     status="CANCELED",
                     order_id=order_id,
                     filled_price=None,
                     reason="Order was canceled externally.",
                 )
+            # ORDER_ACTIVE_STATUSES — continue polling
             time.sleep(poll_interval)
 
     # Timeout — cancel the order

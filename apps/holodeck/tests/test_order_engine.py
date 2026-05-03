@@ -167,3 +167,62 @@ def test_get_open_orders_returns_open(engine):
     open_orders = engine.get_open_orders()
     assert len(open_orders) == 1
     assert open_orders[0].status == "OPEN"
+
+
+# ------------------------------------------------------------------ #
+# get_all_orders (BIC get_orders reconciliation path)                #
+# ------------------------------------------------------------------ #
+
+def test_get_all_orders_empty(engine):
+    assert engine.get_all_orders() == []
+
+
+def test_get_all_orders_returns_open_and_filled(engine):
+    # One order that fills (low limit price), one that stays open (very high price)
+    engine.submit_order(pcs_order(limit_price=0.01))   # will fill
+    engine.submit_order(pcs_order(limit_price=999.0))  # stays open (also hits duplicate-position guard)
+    engine.evaluate_orders()
+    all_orders = engine.get_all_orders()
+    # At least the first (filled) order must be present
+    statuses = {o.status for o in all_orders}
+    assert "FILLED" in statuses
+
+
+def test_get_all_orders_filter_by_open(engine):
+    engine.submit_order(pcs_order(limit_price=0.01))   # fills
+    engine.submit_order(pcs_order(limit_price=999.0))  # blocked by position guard after first fills
+    engine.evaluate_orders()
+    open_only = engine.get_all_orders(statuses=["OPEN"])
+    assert all(o.status == "OPEN" for o in open_only)
+
+
+def test_get_all_orders_filter_by_filled(engine):
+    engine.submit_order(pcs_order(limit_price=0.01))
+    engine.evaluate_orders()
+    filled_only = engine.get_all_orders(statuses=["FILLED"])
+    assert len(filled_only) >= 1
+    assert all(o.status == "FILLED" for o in filled_only)
+
+
+def test_get_all_orders_filter_returns_empty_for_missing_status(engine):
+    engine.submit_order(pcs_order(limit_price=0.01))
+    engine.evaluate_orders()
+    pending = engine.get_all_orders(statuses=["PENDING"])
+    assert pending == []
+
+
+def test_get_all_orders_tag_is_preserved(engine):
+    req = pcs_order(limit_price=0.01)
+    req.tag = "TRD-TEST-01"
+    engine.submit_order(req)
+    engine.evaluate_orders()
+    orders = engine.get_all_orders(statuses=["FILLED"])
+    assert len(orders) == 1
+    assert orders[0].tag == "TRD-TEST-01"
+
+
+def test_get_all_orders_raw_status_is_lowercase(engine):
+    engine.submit_order(pcs_order(limit_price=999.0))
+    orders = engine.get_all_orders(statuses=["OPEN"])
+    assert len(orders) == 1
+    assert orders[0].raw_status == "open"

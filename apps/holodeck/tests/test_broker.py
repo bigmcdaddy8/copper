@@ -176,6 +176,100 @@ def test_reset_reinitializes(broker):
     assert broker.get_current_time() == START
 
 
+# ------------------------------------------------------------------ #
+# get_orders — BIC reconciliation path                               #
+# ------------------------------------------------------------------ #
+
+def test_get_orders_empty_initially(broker):
+    assert broker.get_orders() == []
+
+
+def test_get_orders_returns_all_statuses(broker):
+    """Place two orders: one fills, one stays open (blocked by position guard)."""
+    entry_resp = broker.place_order(pcs_order(limit_price=0.01))
+    assert entry_resp.status == "ACCEPTED"
+
+    # Fill the entry
+    for _ in range(60):
+        filled = broker.advance_time()
+        if entry_resp.order_id in filled:
+            break
+
+    # After fill, the filled order is visible via get_orders()
+    all_orders = broker.get_orders()
+    assert len(all_orders) >= 1
+    statuses = {o.status for o in all_orders}
+    assert "FILLED" in statuses
+
+
+def test_get_orders_filter_open_only(broker):
+    """Open orders appear in get_orders(statuses=['OPEN'])."""
+    broker.place_order(pcs_order(limit_price=999.0))  # stays open
+    open_orders = broker.get_orders(statuses=["OPEN"])
+    assert len(open_orders) == 1
+    assert open_orders[0].status == "OPEN"
+
+
+def test_get_orders_filter_excludes_other_statuses(broker):
+    """get_orders(['OPEN']) does not return FILLED orders."""
+    entry_resp = broker.place_order(pcs_order(limit_price=0.01))
+    for _ in range(60):
+        filled = broker.advance_time()
+        if entry_resp.order_id in filled:
+            break
+    open_only = broker.get_orders(statuses=["OPEN"])
+    assert all(o.status == "OPEN" for o in open_only)
+
+
+def test_get_orders_tag_survives_fill(broker):
+    """A tag set on submission is present in get_orders() after the order fills."""
+    req = pcs_order(limit_price=0.01)
+    req.tag = "TRD-INTEG-01"
+    entry_resp = broker.place_order(req)
+    assert entry_resp.status == "ACCEPTED"
+
+    for _ in range(60):
+        filled = broker.advance_time()
+        if entry_resp.order_id in filled:
+            break
+
+    filled_orders = broker.get_orders(statuses=["FILLED"])
+    assert len(filled_orders) == 1
+    assert filled_orders[0].tag == "TRD-INTEG-01"
+
+
+def test_get_orders_reconciliation_lifecycle(broker):
+    """Full lifecycle integration: entry → fill → TP → get_orders shows both orders."""
+    # Entry
+    entry_req = pcs_order(limit_price=0.01)
+    entry_req.tag = "TRD-RECON-01"
+    entry_resp = broker.place_order(entry_req)
+    for _ in range(60):
+        if entry_resp.order_id in broker.advance_time():
+            break
+
+    # TP placement
+    tp_req = tp_order(limit_price=999.0)
+    tp_req.tag = "TRD-RECON-01"
+    tp_resp = broker.place_order(tp_req)
+    for _ in range(60):
+        if tp_resp.order_id in broker.advance_time():
+            break
+
+    # Both orders should be visible; both should carry the same tag
+    all_orders = broker.get_orders()
+    assert len(all_orders) == 2
+    assert all(o.tag == "TRD-RECON-01" for o in all_orders)
+
+    # After both fill, get_orders(["OPEN"]) returns nothing
+    open_orders = broker.get_orders(statuses=["OPEN"])
+    assert open_orders == []
+
+    # get_orders(["FILLED"]) returns both
+    filled_orders = broker.get_orders(statuses=["FILLED"])
+    assert len(filled_orders) == 2
+
+
 # ---------------------------------------------------------------------------
 # get_ohlcv_bars tests
 # ---------------------------------------------------------------------------

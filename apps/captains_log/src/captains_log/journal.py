@@ -59,7 +59,9 @@ CREATE TABLE IF NOT EXISTS trades (
     long_call_delta     REAL,
     entered_at          TEXT NOT NULL,
     account             TEXT NOT NULL DEFAULT 'TRD',
-    legacy_trade_num    TEXT
+    legacy_trade_num    TEXT,
+    rejection_reason    TEXT,
+    broker_order_tag    TEXT
 )
 """
 
@@ -92,7 +94,8 @@ INSERT OR IGNORE INTO trades (
     bpr, credit_received, credit_fees, debit_paid, debit_fees,
     quantity, entry_dte, entry_underlying_last,
     long_put_delta, short_put_delta, short_call_delta, long_call_delta,
-    entered_at, account, legacy_trade_num
+    entered_at, account, legacy_trade_num,
+    rejection_reason, broker_order_tag
 ) VALUES (
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?,
@@ -103,7 +106,8 @@ INSERT OR IGNORE INTO trades (
     ?, ?, ?, ?, ?,
     ?, ?, ?,
     ?, ?, ?, ?,
-    ?, ?, ?
+    ?, ?, ?,
+    ?, ?
 )
 """
 
@@ -154,6 +158,8 @@ def _row_to_record(row: sqlite3.Row) -> TradeRecord:
         entered_at=row["entered_at"],
         account=row["account"],
         legacy_trade_num=row["legacy_trade_num"],
+        rejection_reason=row["rejection_reason"],
+        broker_order_tag=row["broker_order_tag"],
     )
 
 
@@ -239,6 +245,10 @@ class Journal:
                 conn.execute("ALTER TABLE trades ADD COLUMN short_call_delta REAL")
             if "long_call_delta" not in cols:
                 conn.execute("ALTER TABLE trades ADD COLUMN long_call_delta REAL")
+            if "rejection_reason" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN rejection_reason TEXT")
+            if "broker_order_tag" not in cols:
+                conn.execute("ALTER TABLE trades ADD COLUMN broker_order_tag TEXT")
 
     def _next_seq(self, conn: sqlite3.Connection) -> int:
         """Atomically increment and return the per-account trade sequence counter."""
@@ -307,6 +317,8 @@ class Journal:
                     trade.entered_at,
                     trade.account,
                     trade.legacy_trade_num,
+                    trade.rejection_reason,
+                    trade.broker_order_tag,
                 ),
             )
 

@@ -239,7 +239,7 @@ def test_build_active_diversity_lists_basic():
 
 
 def test_build_active_diversity_lists_symbol_not_in_universe():
-    """Active symbols absent from Universal Data Set are silently skipped."""
+    """Active symbols absent from TastyTrade Russell 1000 universe are silently skipped."""
     universal = pd.DataFrame(
         {
             "Symbol": ["AAPL"],

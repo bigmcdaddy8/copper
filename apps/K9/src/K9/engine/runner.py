@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from bic.broker import Broker
@@ -51,6 +52,8 @@ class RunResult:
     short_call_delta: float | None = None
     long_call_delta: float | None = None
     reason: str = ""
+    rejection_reason: str | None = None   # normalized BIC code when outcome=="REJECTED"
+    trade_tag: str = ""                   # short UUID linking entry + TP to the same trade
     error_category: str = ""
     error_code: str = ""
     dry_run: bool = False
@@ -222,7 +225,10 @@ def run_entry(
         result.long_call_delta = long_call.delta if long_call is not None else None
 
         # Step 11 — construct order
+        trade_tag = uuid4().hex[:8]
+        result.trade_tag = trade_tag
         order = build_order(spec, expiration, short_put, long_put, short_call, long_call)
+        order.tag = trade_tag
         credit = net_credit(order)
         result.net_credit = credit
         result.quantity = order.quantity
@@ -265,10 +271,13 @@ def run_entry(
         result.order_id = outcome.order_id
         result.filled_price = outcome.filled_price
         result.reason = outcome.reason
+        if outcome.status == "REJECTED":
+            result.rejection_reason = outcome.rejection_reason
 
         # Step 15 — place take-profit order after fill
         if result.outcome == "FILLED" and result.filled_price is not None:
             tp_order = build_tp_order(spec, order, result.filled_price)
+            tp_order.tag = trade_tag
             try:
                 tp: TpOutcome = place_tp_order(broker, tp_order)
             except Exception as exc:  # noqa: BLE001

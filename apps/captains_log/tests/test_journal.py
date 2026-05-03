@@ -240,3 +240,88 @@ def test_legacy_trade_num_reflects_account(tmp_path):
     journal_trds.record(t)
     fetched = journal_trds.get_trade(t.trade_id)
     assert fetched.legacy_trade_num == "TRDS_00001_PCS"
+
+
+# ------------------------------------------------------------------ #
+# rejection_reason and broker_order_tag                              #
+# ------------------------------------------------------------------ #
+
+def test_rejection_reason_persists(journal):
+    t = TradeRecord(
+        spec_name="spx_pcs",
+        environment="sandbox",
+        underlying="SPX",
+        trade_type="PUT_CREDIT_SPREAD",
+        expiration="2026-01-05",
+        short_put_strike=5700.0,
+        long_put_strike=5695.0,
+        short_call_strike=None,
+        long_call_strike=None,
+        outcome="REJECTED",
+        reason="Order rejected by broker.",
+        rejection_reason="insufficient_buying_power",
+    )
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched is not None
+    assert fetched.outcome == "REJECTED"
+    assert fetched.rejection_reason == "insufficient_buying_power"
+    assert fetched.broker_order_tag is None
+
+
+def test_broker_order_tag_persists(journal):
+    t = _filled(broker_order_tag="a1b2c3d4")
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched is not None
+    assert fetched.broker_order_tag == "a1b2c3d4"
+
+
+def test_rejection_reason_and_tag_round_trip(journal):
+    t = TradeRecord(
+        spec_name="spx_ic",
+        environment="sandbox",
+        underlying="SPX",
+        trade_type="IRON_CONDOR",
+        expiration="2026-05-03",
+        short_put_strike=5500.0,
+        long_put_strike=5495.0,
+        short_call_strike=5700.0,
+        long_call_strike=5705.0,
+        outcome="REJECTED",
+        reason="Duplicate order.",
+        rejection_reason="duplicate_order",
+        broker_order_tag="ff00aa11",
+    )
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.rejection_reason == "duplicate_order"
+    assert fetched.broker_order_tag == "ff00aa11"
+
+
+def test_default_new_trade_has_no_broker_fields(journal):
+    """Fields default to None for trades that have no broker tag or rejection."""
+    t = _filled()
+    journal.record(t)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.rejection_reason is None
+    assert fetched.broker_order_tag is None
+
+
+def test_reconciled_event_marker(journal):
+    """A reconciled=True payload can be stored and retrieved from trade_events."""
+    t = _filled()
+    journal.record(t)
+    journal.append_event(
+        TradeLogEntry(
+            trade_id=t.trade_id,
+            event_type="RECONCILE",
+            line_text="Reconciled: OPEN -> FILLED while offline.",
+            payload={"reconciled": True, "prev_status": "OPEN", "new_status": "FILLED"},
+        )
+    )
+    events = journal.list_events(t.trade_id)
+    assert len(events) == 1
+    assert events[0].event_type == "RECONCILE"
+    assert events[0].payload["reconciled"] is True
+    assert events[0].payload["new_status"] == "FILLED"

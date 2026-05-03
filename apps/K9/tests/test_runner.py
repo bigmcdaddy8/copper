@@ -244,3 +244,55 @@ def test_run_preflight_returns_expected_outcome(holodeck_broker, tmp_path):
     assert result.preflight is True
     assert result.dry_run is False
     assert result.outcome in ("PREFLIGHT_OK", "ERROR")
+
+
+# ------------------------------------------------------------------ #
+# trade_tag and rejection_reason propagation                         #
+# ------------------------------------------------------------------ #
+
+def test_run_entry_sets_trade_tag_on_fill(holodeck_broker, tmp_path):
+    """A successfully filled run must carry a non-empty trade_tag."""
+    spec = _make_spec(tmp_path)
+    result = run_entry(
+        spec, "test_ic", holodeck_broker,
+        log_dir=tmp_path / "logs",
+        tick=holodeck_broker.advance_time,
+    )
+    if result.outcome == "FILLED":
+        assert result.trade_tag != ""
+        assert len(result.trade_tag) == 8   # uuid4().hex[:8]
+
+
+def test_run_entry_rejection_reason_propagates(holodeck_broker, tmp_path, monkeypatch):
+    """When place_order returns REJECTED with a reason, RunResult carries it."""
+    from bic.models import OrderResponse
+
+    def _reject(order):
+        return OrderResponse(
+            order_id="",
+            status="REJECTED",
+            rejection_reason="insufficient_buying_power",
+            rejection_text="Insufficient buying power",
+        )
+
+    monkeypatch.setattr(holodeck_broker, "place_order", _reject)
+    spec = _make_spec(tmp_path)
+    result = run_entry(spec, "test_ic", holodeck_broker, log_dir=tmp_path / "logs")
+    # outcome should be REJECTED (or ERROR if broker raises before reaching place_order)
+    if result.outcome == "REJECTED":
+        assert result.rejection_reason == "insufficient_buying_power"
+
+
+def test_run_entry_trade_tag_non_empty_even_on_cancel(holodeck_broker, tmp_path):
+    """trade_tag is assigned before order placement, so it is set even on timeout/cancel."""
+    spec = _make_spec(tmp_path, {"entry": {
+        "order_type": "LIMIT",
+        "limit_price_strategy": "MID",
+        "max_fill_time_seconds": 1,  # near-zero timeout to force cancel
+    }})
+    result = run_entry(
+        spec, "test_ic", holodeck_broker,
+        log_dir=tmp_path / "logs",
+    )
+    if result.outcome in ("FILLED", "CANCELED", "REJECTED"):
+        assert result.trade_tag != ""

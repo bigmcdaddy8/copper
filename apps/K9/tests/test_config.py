@@ -162,8 +162,9 @@ trade:
     assert spec.minimum_net_credit == 0.30
 
 
-def test_reject_v2_retry_decrement(tmp_path):
-    path = tmp_path / "bad_v2.yaml"
+def test_v2_retry_decrement_now_accepted(tmp_path):
+    """retry_price_decrement was previously rejected; now it is parsed and accepted."""
+    path = tmp_path / "retry_v2.yaml"
     path.write_text(
         """
 enabled: true
@@ -204,8 +205,8 @@ trade:
 """.strip()
     )
 
-    with pytest.raises(ValueError, match="retry_price_decrement"):
-        TradeSpec.from_file(path)
+    spec = TradeSpec.from_file(path)
+    assert spec is not None
 
 
 def test_reject_v2_constants_block(tmp_path):

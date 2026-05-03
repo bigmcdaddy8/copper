@@ -244,3 +244,212 @@ def test_cancel_order(broker):
         )
     )
     broker.cancel_order("77")  # should not raise
+
+
+# ------------------------------------------------------------------ #
+# Extended status mapping                                             #
+# ------------------------------------------------------------------ #
+
+_STATUS_CASES = [
+    ("partially_filled",          "PARTIALLY_FILLED"),
+    ("pending",                   "PENDING"),
+    ("pending_cancel",            "PENDING_CANCEL"),
+    ("rejected",                  "REJECTED"),
+    ("expired",                   "EXPIRED"),
+    ("partially_filled_canceled", "CANCELED"),
+]
+
+
+@pytest.mark.parametrize("raw_status,expected_bic", _STATUS_CASES)
+@respx.mock
+def test_get_order_status_mapping(broker, raw_status, expected_bic):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders/55").mock(
+        return_value=httpx.Response(
+            200,
+            json={"order": {"id": 55, "status": raw_status, "remaining_quantity": 0}},
+        )
+    )
+    order = broker.get_order("55")
+    assert order.status == expected_bic
+    assert order.raw_status == raw_status
+
+
+# ------------------------------------------------------------------ #
+# Rejection reason propagation                                        #
+# ------------------------------------------------------------------ #
+
+@respx.mock
+def test_place_order_rejected_with_reason(broker):
+    from bic.models import OrderLeg
+    from datetime import date
+    legs = [
+        OrderLeg("SELL", "PUT",  5700.0, date(2026, 5, 3)),
+        OrderLeg("BUY",  "PUT",  5650.0, date(2026, 5, 3)),
+    ]
+    respx.post(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "order": {
+                    "status": "error",
+                    "reason_description": "insufficient_buying_power",
+                }
+            },
+        )
+    )
+    from bic.models import OrderRequest
+    req = OrderRequest("SPX", "PUT_CREDIT_SPREAD", legs=legs, limit_price=0.50)
+    resp = broker.place_order(req)
+    assert resp.status == "REJECTED"
+    assert resp.rejection_reason == "insufficient_buying_power"
+    assert resp.rejection_text == "insufficient_buying_power"
+
+
+@respx.mock
+def test_place_order_rejected_unknown_reason(broker):
+    from bic.models import OrderLeg, OrderRequest
+    from datetime import date
+    legs = [OrderLeg("SELL", "PUT", 5700.0, date(2026, 5, 3))]
+    respx.post(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(
+        return_value=httpx.Response(
+            200,
+            json={"order": {"status": "error", "reason_description": ""}},
+        )
+    )
+    req = OrderRequest("SPX", "NPUT", legs=legs, limit_price=1.00)
+    resp = broker.place_order(req)
+    assert resp.status == "REJECTED"
+    assert resp.rejection_reason == "unknown"
+    assert resp.rejection_text is None
+
+
+# ------------------------------------------------------------------ #
+# Tag round-trip                                                      #
+# ------------------------------------------------------------------ #
+
+@respx.mock
+def test_get_order_returns_tag(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders/88").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "order": {
+                    "id": 88,
+                    "status": "open",
+                    "tag": "TRD-0001",
+                    "remaining_quantity": 1,
+                }
+            },
+        )
+    )
+    order = broker.get_order("88")
+    assert order.tag == "TRD-0001"
+
+
+@respx.mock
+def test_place_order_sends_tag_and_gtc(broker):
+    from bic.models import OrderLeg, OrderRequest
+    from datetime import date
+    legs = [
+        OrderLeg("BUY", "PUT", 5700.0, date(2026, 5, 3)),
+        OrderLeg("BUY", "PUT", 5650.0, date(2026, 5, 3)),
+    ]
+    captured: list[httpx.Request] = []
+
+    def capture(request: httpx.Request, **_):
+        captured.append(request)
+        return httpx.Response(200, json={"order": {"status": "ok", "id": 1234}})
+
+    respx.post(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(side_effect=capture)
+
+    req = OrderRequest("SPX", "PUT_CREDIT_SPREAD_TP",
+                       legs=legs, limit_price=0.20, duration="gtc", tag="TRD-0001")
+    resp = broker.place_order(req)
+    assert resp.status == "ACCEPTED"
+    body = captured[0].content.decode()
+    assert "duration=gtc" in body
+    assert "tag=TRD-0001" in body
+
+
+# ------------------------------------------------------------------ #
+# Form encoding: bracket keys must not be percent-encoded            #
+# ------------------------------------------------------------------ #
+
+@respx.mock
+def test_place_multileg_form_encoding_preserves_brackets(broker):
+    from bic.models import OrderLeg, OrderRequest
+    from datetime import date
+    legs = [
+        OrderLeg("SELL", "PUT",  5700.0, date(2026, 5, 3)),
+        OrderLeg("BUY",  "PUT",  5650.0, date(2026, 5, 3)),
+        OrderLeg("SELL", "CALL", 5900.0, date(2026, 5, 3)),
+        OrderLeg("BUY",  "CALL", 5950.0, date(2026, 5, 3)),
+    ]
+    captured: list[httpx.Request] = []
+
+    def capture(request: httpx.Request, **_):
+        captured.append(request)
+        return httpx.Response(200, json={"order": {"status": "ok", "id": 999}})
+
+    respx.post(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(side_effect=capture)
+
+    req = OrderRequest("SPX", "IRON_CONDOR", legs=legs, limit_price=1.00)
+    broker.place_order(req)
+
+    body = captured[0].content.decode()
+    # Literal brackets must appear in the body; percent-encoded %5B/%5D would break Tradier
+    assert "option_symbol[0]=" in body
+    assert "option_symbol[1]=" in body
+    assert "option_symbol[2]=" in body
+    assert "option_symbol[3]=" in body
+    assert "%5B" not in body
+    assert "%5D" not in body
+
+
+# ------------------------------------------------------------------ #
+# get_orders (reconciliation)                                        #
+# ------------------------------------------------------------------ #
+
+@respx.mock
+def test_get_orders_all(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "orders": {
+                    "order": [
+                        {"id": 1, "status": "open",   "remaining_quantity": 1},
+                        {"id": 2, "status": "filled", "avg_fill_price": 1.50, "remaining_quantity": 0},
+                        {"id": 3, "status": "canceled","remaining_quantity": 0},
+                    ]
+                }
+            },
+        )
+    )
+    orders = broker.get_orders()
+    assert len(orders) == 3
+    statuses = {o.status for o in orders}
+    assert "OPEN" in statuses
+    assert "FILLED" in statuses
+    assert "CANCELED" in statuses
+
+
+@respx.mock
+def test_get_orders_filtered(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "orders": {
+                    "order": [
+                        {"id": 1, "status": "open",    "remaining_quantity": 1},
+                        {"id": 2, "status": "filled",  "avg_fill_price": 1.50, "remaining_quantity": 0},
+                        {"id": 3, "status": "pending", "remaining_quantity": 1},
+                    ]
+                }
+            },
+        )
+    )
+    orders = broker.get_orders(statuses=["OPEN", "PENDING"])
+    assert len(orders) == 2
+    assert all(o.status in ("OPEN", "PENDING") for o in orders)

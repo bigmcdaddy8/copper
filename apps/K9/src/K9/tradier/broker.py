@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+import urllib.parse
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -18,12 +19,38 @@ from bic.models import (
     OrderResponse,
     Position,
     Quote,
+    ORDER_STATUS_OPEN,
+    ORDER_STATUS_PENDING,
+    ORDER_STATUS_FILLED,
+    ORDER_STATUS_PARTIALLY_FILLED,
+    ORDER_STATUS_CANCELED,
+    ORDER_STATUS_REJECTED,
+    ORDER_STATUS_EXPIRED,
+    ORDER_STATUS_PENDING_CANCEL,
 )
 
 _SANDBOX_BASE = "https://sandbox.tradier.com/v1"
 _PROD_BASE = "https://api.tradier.com/v1"
 _TZ = ZoneInfo("America/Chicago")
-_RATE_LIMIT_DELAY = 0.12   # ~8 req/s — well within Tradier's 120 req/min limit
+
+# Adaptive throttle constants (mirrors tradier_sniffer._compute_delay pattern).
+_TARGET_UTILIZATION = 0.90
+_THROTTLE_MIN_DELAY = 0.05
+_THROTTLE_MAX_DELAY = 2.00
+_THROTTLE_DEFAULT_DELAY = 0.20
+
+# Tradier raw status → canonical BIC status (Option B: mirror full Tradier granularity).
+_STATUS_MAP: dict[str, str] = {
+    "filled":                    ORDER_STATUS_FILLED,
+    "partially_filled":          ORDER_STATUS_PARTIALLY_FILLED,
+    "open":                      ORDER_STATUS_OPEN,
+    "pending":                   ORDER_STATUS_PENDING,
+    "pending_cancel":            ORDER_STATUS_PENDING_CANCEL,
+    "canceled":                  ORDER_STATUS_CANCELED,
+    "rejected":                  ORDER_STATUS_REJECTED,
+    "expired":                   ORDER_STATUS_EXPIRED,
+    "partially_filled_canceled": ORDER_STATUS_CANCELED,
+}
 
 
 class TradierBroker(Broker):
@@ -40,6 +67,9 @@ class TradierBroker(Broker):
         self._account_id = account_id
         self._base = _SANDBOX_BASE if sandbox else _PROD_BASE
         self._last_call: float = 0.0
+        # Adaptive throttle state (populated from X-Ratelimit-* response headers).
+        self._ratelimit_available: int | None = None
+        self._ratelimit_expiry: int | None = None
 
     # ------------------------------------------------------------------ #
     # Internal helpers                                                     #
@@ -51,11 +81,45 @@ class TradierBroker(Broker):
             "Accept": "application/json",
         }
 
+    # --- Adaptive throttle helpers ---
+
+    def _update_ratelimit(self, headers: httpx.Headers) -> None:
+        """Parse rate-limit headers from Tradier response and update internal state."""
+        available = headers.get("X-Ratelimit-Available")
+        expiry = headers.get("X-Ratelimit-Expiry")
+        if available is not None:
+            self._ratelimit_available = int(available)
+        if expiry is not None:
+            self._ratelimit_expiry = int(expiry)
+
+    def _throttle(self) -> None:
+        """Block if near rate-limit exhaustion, then sleep for the computed delay."""
+        if self._ratelimit_available is not None and self._ratelimit_available <= 5:
+            if self._ratelimit_expiry is not None:
+                wake_at = self._ratelimit_expiry / 1000.0 + 1.0
+                sleep_for = wake_at - time.time()
+                if sleep_for > 0:
+                    time.sleep(sleep_for)
+            self._ratelimit_available = None
+            self._ratelimit_expiry = None
+        else:
+            time.sleep(self._compute_delay())
+
+    def _compute_delay(self) -> float:
+        """Return inter-call sleep duration based on remaining rate-limit budget."""
+        if self._ratelimit_available is None:
+            return _THROTTLE_DEFAULT_DELAY
+        if self._ratelimit_expiry is not None:
+            remaining_seconds = max(1.0, self._ratelimit_expiry / 1000.0 - time.time())
+        else:
+            remaining_seconds = 60.0
+        safe_calls = self._ratelimit_available * _TARGET_UTILIZATION
+        delay = remaining_seconds / max(safe_calls, 1.0)
+        return max(_THROTTLE_MIN_DELAY, min(_THROTTLE_MAX_DELAY, delay))
+
     def _get(self, path: str, params: dict | None = None) -> dict:
         """GET with adaptive rate-limit throttle."""
-        elapsed = time.monotonic() - self._last_call
-        if elapsed < _RATE_LIMIT_DELAY:
-            time.sleep(_RATE_LIMIT_DELAY - elapsed)
+        self._throttle()
         resp = httpx.get(
             f"{self._base}{path}",
             headers=self._headers(),
@@ -63,33 +127,45 @@ class TradierBroker(Broker):
             timeout=10.0,
         )
         resp.raise_for_status()
+        self._update_ratelimit(resp.headers)
         self._last_call = time.monotonic()
         return resp.json()
 
     def _post(self, path: str, data: dict) -> dict:
-        elapsed = time.monotonic() - self._last_call
-        if elapsed < _RATE_LIMIT_DELAY:
-            time.sleep(_RATE_LIMIT_DELAY - elapsed)
+        """POST with adaptive throttle and literal bracket-key form encoding.
+
+        Uses urllib.parse.quote to encode values but preserves literal '[' and ']'
+        in keys so that Tradier can parse indexed leg parameters (option_symbol[0] etc.).
+        If the brackets were percent-encoded the broker would see 0 legs and reject.
+        """
+        self._throttle()
+        body = "&".join(
+            f"{k}={urllib.parse.quote(str(v), safe='')}"
+            for k, v in data.items()
+        )
         resp = httpx.post(
             f"{self._base}{path}",
-            headers=self._headers(),
-            data=data,
+            headers={
+                **self._headers(),
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            content=body,
             timeout=10.0,
         )
         resp.raise_for_status()
+        self._update_ratelimit(resp.headers)
         self._last_call = time.monotonic()
         return resp.json()
 
     def _delete(self, path: str) -> dict:
-        elapsed = time.monotonic() - self._last_call
-        if elapsed < _RATE_LIMIT_DELAY:
-            time.sleep(_RATE_LIMIT_DELAY - elapsed)
+        self._throttle()
         resp = httpx.delete(
             f"{self._base}{path}",
             headers=self._headers(),
             timeout=10.0,
         )
         resp.raise_for_status()
+        self._update_ratelimit(resp.headers)
         self._last_call = time.monotonic()
         return resp.json()
 
@@ -184,21 +260,31 @@ class TradierBroker(Broker):
         """Return all open orders from Tradier /accounts/{id}/orders."""
         data = self._get(
             f"/accounts/{self._account_id}/orders",
-            params={"includeTags": "false"},
+            params={"includeTags": "true"},
         )
         raw = (data.get("orders") or {}).get("order") or []
         if isinstance(raw, dict):
             raw = [raw]
-        open_orders = [o for o in raw if o.get("status") == "open"]
-        return [
-            Order(
-                order_id=str(o["id"]),
-                status="OPEN",
-                filled_price=None,
-                remaining_quantity=int(o.get("quantity", 1)),
-            )
-            for o in open_orders
-        ]
+        open_orders = [o for o in raw if o.get("status") in ("open", "pending")]
+        return [_raw_to_order(o) for o in open_orders]
+
+    def get_orders(self, statuses: list[str] | None = None) -> list[Order]:
+        """Return all recent orders, optionally filtered to canonical status list.
+
+        Fetches all orders from the broker (Tradier returns up to the last 180 days
+        for standard accounts). Used for startup reconciliation.
+        """
+        data = self._get(
+            f"/accounts/{self._account_id}/orders",
+            params={"includeTags": "true"},
+        )
+        raw = (data.get("orders") or {}).get("order") or []
+        if isinstance(raw, dict):
+            raw = [raw]
+        orders = [_raw_to_order(o) for o in raw]
+        if statuses:
+            orders = [o for o in orders if o.status in statuses]
+        return orders
 
     # ------------------------------------------------------------------ #
     # BIC — Orders                                                         #
@@ -206,15 +292,16 @@ class TradierBroker(Broker):
 
     def place_order(self, order: OrderRequest) -> OrderResponse:
         """Submit a multi-leg combo order to Tradier."""
-        duration = getattr(order, "duration", "day")
         payload: dict = {
             "class": "multileg",
             "symbol": order.symbol,
             "type": "limit",
-            "duration": duration,
+            "duration": order.duration,
             "price": round(order.limit_price, 2),
             "quantity": order.quantity,
         }
+        if order.tag:
+            payload["tag"] = order.tag
         for i, leg in enumerate(order.legs):
             payload[f"option_symbol[{i}]"] = _build_occ_symbol(leg)
             payload[f"side[{i}]"] = _tradier_side(leg.action, leg.option_type)
@@ -222,32 +309,24 @@ class TradierBroker(Broker):
 
         data = self._post(f"/accounts/{self._account_id}/orders", payload)
         result = data.get("order", {})
-        status = result.get("status", "").upper()
+        raw_status = result.get("status", "").upper()
         order_id = str(result.get("id", ""))
+        if raw_status == "OK":
+            return OrderResponse(order_id=order_id, status="ACCEPTED")
+        # Extract broker-provided rejection detail when available.
+        reason_code = result.get("reason_description", "") or ""
         return OrderResponse(
             order_id=order_id,
-            status="ACCEPTED" if status == "OK" else "REJECTED",
+            status="REJECTED",
+            rejection_reason=_normalize_rejection_reason(reason_code),
+            rejection_text=reason_code or None,
         )
 
     def get_order(self, order_id: str) -> Order:
         """Return current order status from Tradier."""
         data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
         o = data.get("order", {})
-        raw_status = o.get("status", "").lower()
-        status_map = {
-            "filled": "FILLED",
-            "canceled": "CANCELED",
-            "open": "OPEN",
-            "pending": "OPEN",
-        }
-        bic_status = status_map.get(raw_status, "OPEN")
-        avg_fill = o.get("avg_fill_price")
-        return Order(
-            order_id=order_id,
-            status=bic_status,
-            filled_price=float(avg_fill) if avg_fill else None,
-            remaining_quantity=int(o.get("remaining_quantity", 0)),
-        )
+        return _raw_to_order(o, order_id_fallback=order_id)
 
     def cancel_order(self, order_id: str) -> None:
         """Cancel an open order."""
@@ -257,6 +336,39 @@ class TradierBroker(Broker):
 # ------------------------------------------------------------------ #
 # Module-level helpers                                                #
 # ------------------------------------------------------------------ #
+
+# Known rejection reason codes mirrored from tradier_sniffer.REJECTION_REASONS.
+_KNOWN_REJECTION_REASONS: frozenset[str] = frozenset({
+    "insufficient_buying_power",
+    "invalid_price",
+    "invalid_quantity",
+    "market_closed",
+    "duplicate_order",
+})
+
+
+def _normalize_rejection_reason(raw: str) -> str:
+    """Map a broker reason_description string to a known normalized code, or 'unknown'."""
+    if not raw:
+        return "unknown"
+    key = raw.lower().replace(" ", "_")
+    return key if key in _KNOWN_REJECTION_REASONS else "unknown"
+
+
+def _raw_to_order(o: dict, order_id_fallback: str = "") -> Order:
+    """Convert a Tradier order dict to a canonical BIC Order."""
+    raw_status = o.get("status", "").lower()
+    bic_status = _STATUS_MAP.get(raw_status, ORDER_STATUS_OPEN)
+    avg_fill = o.get("avg_fill_price")
+    return Order(
+        order_id=str(o.get("id", order_id_fallback)),
+        status=bic_status,
+        filled_price=float(avg_fill) if avg_fill else None,
+        remaining_quantity=int(o.get("remaining_quantity", 0)),
+        tag=o.get("tag") or None,
+        raw_status=raw_status or None,
+    )
+
 
 def _build_occ_symbol(leg: "OrderLeg") -> str:  # noqa: F821
     """Build the OCC option symbol string expected by Tradier.

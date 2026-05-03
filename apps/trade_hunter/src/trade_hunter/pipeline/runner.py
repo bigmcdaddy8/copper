@@ -42,7 +42,7 @@ def run_pipeline(
 
     log = RunLog(run_start=datetime.now(), verbose=config.verbose)
 
-    # 1. Load Universal Data Set
+    # 1. Load TastyTrade Russell 1000 universe
     universal, warnings = load_tastytrade(config.downloads_dir, config.tastytrade_file)
     log.add_warnings(warnings)
 
@@ -50,7 +50,7 @@ def run_pipeline(
     active_symbols, warnings = load_journal(config.worksheets_dir, config.journal_file)
     log.add_warnings(warnings)
 
-    # 3. Warn about active symbols absent from the Universal Data Set
+    # 3. Warn about active symbols absent from the TastyTrade Russell 1000 universe
     log.add_warnings(check_active_symbols_in_universe(active_symbols, universal))
 
     # 4. Instantiate sector cache once — shared across active-trade and candidate resolution.

@@ -51,6 +51,38 @@ class OrderLeg:
     expiration: date
 
 
+# Canonical order status values shared by all broker adapters.
+# Adapters must map broker-native strings to one of these values.
+ORDER_STATUS_OPEN = "OPEN"
+ORDER_STATUS_PENDING = "PENDING"
+ORDER_STATUS_FILLED = "FILLED"
+ORDER_STATUS_PARTIALLY_FILLED = "PARTIALLY_FILLED"
+ORDER_STATUS_CANCELED = "CANCELED"
+ORDER_STATUS_REJECTED = "REJECTED"
+ORDER_STATUS_EXPIRED = "EXPIRED"
+ORDER_STATUS_PENDING_CANCEL = "PENDING_CANCEL"
+
+# Statuses that mean the order is still active and should keep being polled.
+ORDER_ACTIVE_STATUSES: frozenset[str] = frozenset({
+    ORDER_STATUS_OPEN,
+    ORDER_STATUS_PENDING,
+    ORDER_STATUS_PENDING_CANCEL,
+})
+
+# Statuses that mean the order has reached a terminal fill/partial-fill state.
+ORDER_FILL_STATUSES: frozenset[str] = frozenset({
+    ORDER_STATUS_FILLED,
+    ORDER_STATUS_PARTIALLY_FILLED,
+})
+
+# Statuses that mean the order is done without a fill.
+ORDER_DONE_STATUSES: frozenset[str] = frozenset({
+    ORDER_STATUS_CANCELED,
+    ORDER_STATUS_REJECTED,
+    ORDER_STATUS_EXPIRED,
+})
+
+
 @dataclass
 class OrderRequest:
     symbol: str
@@ -59,20 +91,26 @@ class OrderRequest:
     quantity: int = 1
     order_type: str = "LIMIT"
     limit_price: float = 0.0
+    duration: str = "day"       # time-in-force: "day" | "gtc"
+    tag: str | None = None      # broker correlation / trade-reference tag
 
 
 @dataclass
 class OrderResponse:
     order_id: str
-    status: str   # "ACCEPTED" or "REJECTED"
+    status: str                          # "ACCEPTED" or "REJECTED"
+    rejection_reason: str | None = None  # normalized reason code, e.g. "insufficient_buying_power"
+    rejection_text: str | None = None    # broker-native description for diagnostics
 
 
 @dataclass
 class Order:
     order_id: str
-    status: str              # "OPEN", "FILLED", "CANCELED"
+    status: str              # canonical: see ORDER_STATUS_* constants above
     filled_price: float | None = None
     remaining_quantity: int = 0
+    tag: str | None = None           # correlation / trade-reference tag (round-tripped from OrderRequest)
+    raw_status: str | None = None    # broker-native status string, preserved for diagnostics
 
 
 @dataclass

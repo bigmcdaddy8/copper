@@ -21,6 +21,9 @@ class StubBroker(Broker):
     def get_open_orders(self) -> list[Order]:
         return []
 
+    def get_orders(self, statuses: list[str] | None = None) -> list[Order]:
+        return []
+
     def get_underlying_quote(self, symbol: str) -> Quote:
         return Quote(symbol, 5800.0, 5799.95, 5800.05)
 
@@ -55,6 +58,7 @@ def test_broker_cannot_be_instantiated_directly():
 def test_all_abstract_methods_present():
     expected = {
         "get_current_time", "get_account", "get_positions", "get_open_orders",
+        "get_orders",
         "get_underlying_quote", "get_option_chain", "get_ohlcv_bars",
         "place_order", "cancel_order", "get_order",
     }
