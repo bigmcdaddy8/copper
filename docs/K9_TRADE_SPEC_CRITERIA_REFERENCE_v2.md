@@ -41,9 +41,9 @@ trade:
     order_type: LIMIT
     time_in_force: DAY
     max_fill_wait_time_seconds: 15
-    max_entry_attempts: 1
+    max_entry_attempts: 5
     entry_price: MIDPOINT
-    retry_price_decrement: 0.0
+    retry_price_decrement: 0.02
     min_credit_received: 0.50
 
   leg_selection:
@@ -52,6 +52,7 @@ trade:
     # CCS requires short_call, long_call
 
     short_put:
+      delta_preferred: -0.13
       delta_range:
         min: -0.25
         max: -0.15
@@ -68,10 +69,10 @@ trade:
       wing_distance_points: 5.00
 
   exit_order:
-    exit_type: TAKE_PROFIT
-    order_type: LIMIT
-    time_in_force: GTC
-    exit_price:
+    exit_type: TAKE_PROFIT   # or NONE
+    order_type: LIMIT        # required for TAKE_PROFIT
+    time_in_force: GTC       # required for TAKE_PROFIT
+    exit_price:              # required for TAKE_PROFIT
       type: PERCENT_OF_INITIAL_CREDIT
       value: 34.0
 ```
@@ -92,14 +93,22 @@ K9 normalizes these values:
 - PCS -> PUT_CREDIT_SPREAD
 - CCS -> CALL_CREDIT_SPREAD
 
+## Supported Entry Behavior
+
+- Entry is submitted as LIMIT at midpoint.
+- K9 waits up to `max_fill_wait_time_seconds` per attempt.
+- If timed out and attempts remain, K9 cancel-replaces with
+  `retry_price_decrement` lower credit.
+- K9 stops retrying when attempts are exhausted or next retry would drop below
+  `min_credit_received`.
+
 ## Currently Unsupported (Rejected in Phase 2)
 
 The following v2-style fields/behaviors are rejected:
 - root.constants
 - Any unknown extra fields at root, trade, and nested objects
-- trade.entry_order.max_entry_attempts > 1
-- trade.entry_order.retry_price_decrement != 0.0
-- Any short leg fields beyond delta_range
+- Any short_call fields beyond delta_range
+- Any short_put fields beyond delta_range and delta_preferred
 - Any long leg fields beyond wing_distance_points
 - Any delta_range keys beyond min and max
 

@@ -207,6 +207,97 @@ trade:
 
     spec = TradeSpec.from_file(path)
     assert spec is not None
+    assert spec.entry.retry_price_decrement == 0.05
+    assert spec.entry.max_entry_attempts == 1
+
+
+def test_v2_supports_short_put_delta_preferred(tmp_path):
+    path = tmp_path / "preferred_v2.yaml"
+    path.write_text(
+        """
+enabled: true
+environment: TRDS
+underlying: XSP
+trade:
+  option_strategy: PCS
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 500
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "09:00"
+    allowed_entry_before: "14:30"
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 120
+    max_entry_attempts: 5
+    retry_price_decrement: 0.02
+    entry_price: MIDPOINT
+    min_credit_received: 0.08
+  leg_selection:
+    short_put:
+      delta_preferred: -0.13
+      delta_range:
+        min: -0.15
+        max: -0.10
+    long_put:
+      wing_distance_points: 2
+  exit_order:
+    exit_type: NONE
+""".strip()
+    )
+
+    spec = TradeSpec.from_file(path)
+    assert spec.short_put_selection is not None
+    assert spec.short_put_selection.delta_preferred == -0.13
+    assert spec.exit.exit_type == "NONE"
+    assert spec.exit.take_profit_percent is None
+
+
+def test_v2_exit_none_rejects_extra_fields(tmp_path):
+    path = tmp_path / "exit_none_bad.yaml"
+    path.write_text(
+        """
+enabled: true
+environment: TRDS
+underlying: XSP
+trade:
+  option_strategy: PCS
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 500
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "09:00"
+    allowed_entry_before: "14:30"
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 120
+    max_entry_attempts: 1
+    retry_price_decrement: 0.0
+    entry_price: MIDPOINT
+    min_credit_received: 0.08
+  leg_selection:
+    short_put:
+      delta_range:
+        min: -0.15
+        max: -0.10
+    long_put:
+      wing_distance_points: 2
+  exit_order:
+    exit_type: NONE
+    order_type: LIMIT
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match="trade.exit_order"):
+        TradeSpec.from_file(path)
 
 
 def test_reject_v2_constants_block(tmp_path):

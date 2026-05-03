@@ -10,11 +10,13 @@ from zoneinfo import ZoneInfo
 from bic.broker import Broker
 from K9.config import TradeSpec
 from K9.engine.constructor import build_order, build_tp_order, net_credit
-from K9.engine.order import OrderOutcome, TpOutcome, place_and_poll, place_tp_order
+from K9.engine.order import OrderOutcome, TpOutcome, place_tp_order, place_with_retries
+from K9.market_calendar import is_regular_session_open_ct, is_us_market_holiday
 from K9.engine.validator import validate_trade
 from K9.tradier.selector import (
     select_long_call,
     select_long_put,
+    select_short_put_preferred,
     select_short_call,
     select_short_put,
 )
@@ -58,6 +60,7 @@ class RunResult:
     error_code: str = ""
     dry_run: bool = False
     preflight: bool = False
+    entry_attempts: int = 0
     errors: list[str] = field(default_factory=list)
 
 
@@ -125,6 +128,22 @@ def run_entry(
             result.reason = (
                 f"Current time {ct.strftime('%H:%M')} CT is outside entry window "
                 f"{spec.allowed_entry_after}–{spec.allowed_entry_before} CT."
+            )
+            return result
+
+        if ct.weekday() >= 5:
+            result.outcome = "SKIPPED"
+            result.reason = "Market is closed on weekends."
+            return result
+        if is_us_market_holiday(ct.date()):
+            result.outcome = "SKIPPED"
+            result.reason = "Market is closed for a U.S. market holiday."
+            return result
+        if not is_regular_session_open_ct(ct):
+            result.outcome = "SKIPPED"
+            result.reason = (
+                f"Market appears closed at {ct.strftime('%H:%M')} CT. "
+                "Regular session is 08:30-15:00 CT."
             )
             return result
 
@@ -200,7 +219,16 @@ def run_entry(
         # Step 10 — select strikes
         try:
             target_delta = spec.short_strike_selection.value
-            short_put = select_short_put(chain, target_delta)
+            if spec.short_put_selection is not None:
+                short_put = select_short_put_preferred(
+                    chain,
+                    delta_preferred=spec.short_put_selection.delta_preferred,
+                    delta_range_min=spec.short_put_selection.delta_range_min,
+                    delta_range_max=spec.short_put_selection.delta_range_max,
+                    underlying_last=result.entry_underlying_last or 0.0,
+                )
+            else:
+                short_put = select_short_put(chain, target_delta)
             short_call = select_short_call(chain, target_delta)
             long_put = select_long_put(chain, short_put, spec.wing_size)
             long_call = select_long_call(chain, short_call, spec.wing_size)
@@ -217,11 +245,11 @@ def run_entry(
             )
             return result
 
-        result.short_put_strike = short_put.strike
-        result.short_call_strike = short_call.strike
-        result.short_put_delta = short_put.delta
-        result.short_call_delta = short_call.delta
-        result.long_put_delta = long_put.delta
+        result.short_put_strike = short_put.strike if short_put is not None else None
+        result.short_call_strike = short_call.strike if short_call is not None else None
+        result.short_put_delta = short_put.delta if short_put is not None else None
+        result.short_call_delta = short_call.delta if short_call is not None else None
+        result.long_put_delta = long_put.delta if long_put is not None else None
         result.long_call_delta = long_call.delta if long_call is not None else None
 
         # Step 11 — construct order
@@ -252,10 +280,13 @@ def run_entry(
 
         # Steps 13–16 — place order and poll
         try:
-            outcome: OrderOutcome = place_and_poll(
+            outcome: OrderOutcome = place_with_retries(
                 broker,
                 order,
                 max_fill_seconds=spec.entry.max_fill_time_seconds,
+                max_entry_attempts=spec.entry.max_entry_attempts,
+                retry_price_decrement=spec.entry.retry_price_decrement,
+                min_credit_received=spec.minimum_net_credit,
                 tick=tick,
             )
         except Exception as exc:  # noqa: BLE001
@@ -271,11 +302,19 @@ def run_entry(
         result.order_id = outcome.order_id
         result.filled_price = outcome.filled_price
         result.reason = outcome.reason
+        result.entry_attempts = outcome.attempts_used
         if outcome.status == "REJECTED":
             result.rejection_reason = outcome.rejection_reason
+            if result.rejection_reason == "market_closed":
+                result.outcome = "SKIPPED"
+                result.reason = "Broker rejected entry because market is closed."
 
         # Step 15 — place take-profit order after fill
-        if result.outcome == "FILLED" and result.filled_price is not None:
+        if (
+            result.outcome == "FILLED"
+            and result.filled_price is not None
+            and spec.exit.exit_type == "TAKE_PROFIT"
+        ):
             tp_order = build_tp_order(spec, order, result.filled_price)
             tp_order.tag = trade_tag
             try:

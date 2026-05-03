@@ -437,3 +437,20 @@ class Journal:
                 """,
                 (realized_pnl, closed_ts, trade_id),
             )
+
+    def mark_orphan(
+        self,
+        trade_id: str,
+        note: str,
+    ) -> None:
+        """Mark an unresolved trade for manual reconciliation follow-up."""
+        with self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE trades
+                SET tp_status = 'ORPHAN',
+                    reason    = ?
+                WHERE trade_id = ?
+                """,
+                (note, trade_id),
+            )

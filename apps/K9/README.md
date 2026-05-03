@@ -13,6 +13,9 @@ uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900
 # Validate broker/data readiness without placing orders
 uv run K9 preflight --trade-spec spx_ic_20d_w5_tp34_0900
 
+# Reconcile closures (TP fill / expiration) into captains_log
+uv run K9 close --account TRDS
+
 # Execute full selection/validation path without submitting orders
 uv run K9 enter --trade-spec spx_ic_20d_w5_tp34_0900 --dry-run
 
@@ -30,6 +33,7 @@ Trade specs are YAML files in `apps/K9/trade_specs/`. JSON trade specs are not s
 | `spx_pcs_20d_w5_tp50_0930` | Put Credit Spread | holodeck | 20Δ short put, $5 wing, 50% TP |
 | `spx_ccs_20d_w5_tp50_0930` | Call Credit Spread | holodeck | 20Δ short call, $5 wing, 50% TP |
 | `spx_ic_20d_w5_tp34_sandbox` | Iron Condor | sandbox | Same as above; Tradier sandbox (disabled by default) |
+| `xsp_pcs_0dte_w2_none_0900_trds` | Put Credit Spread | sandbox | ~13Δ short put, $2 wing, no TP (expire flow) |
 
 ### Spec Fields
 
@@ -60,13 +64,14 @@ trade:
     order_type: LIMIT
     time_in_force: DAY
     max_fill_wait_time_seconds: 120
-    max_entry_attempts: 1
-    retry_price_decrement: 0.0
+    max_entry_attempts: 5
+    retry_price_decrement: 0.02
     entry_price: MIDPOINT
     min_credit_received: 0.30
 
   leg_selection:
     short_put:
+      delta_preferred: -0.13
       delta_range:
         min: -0.25
         max: -0.15
@@ -80,12 +85,24 @@ trade:
       wing_distance_points: 5.0
 
   exit_order:
-    exit_type: TAKE_PROFIT
-    order_type: LIMIT
-    time_in_force: GTC
-    exit_price:
+    exit_type: TAKE_PROFIT   # or NONE
+    order_type: LIMIT        # required for TAKE_PROFIT
+    time_in_force: GTC       # required for TAKE_PROFIT
+    exit_price:              # required for TAKE_PROFIT
       type: PERCENT_OF_INITIAL_CREDIT
       value: 34
+
+### Entry Retry Behavior
+
+- Attempt 1 uses midpoint LIMIT.
+- K9 waits up to `max_fill_wait_time_seconds`.
+- On timeout, K9 cancel-replaces with a lower credit by `retry_price_decrement`.
+- K9 stops when `max_entry_attempts` is reached or the next retry would be below `min_credit_received`.
+
+### Market-Open Guard
+
+- K9 skips runs outside regular session and on weekends.
+- Holiday/off-session broker rejections are normalized to SKIPPED outcomes.
 ```
 
 ## Exit Codes

@@ -50,6 +50,44 @@ def select_short_put(chain: OptionChain, target_delta: float) -> OptionContract:
     return min(puts, key=lambda o: abs(o.delta - target))
 
 
+def select_short_put_preferred(
+    chain: OptionChain,
+    delta_preferred: float,
+    delta_range_min: float,
+    delta_range_max: float,
+    underlying_last: float,
+) -> OptionContract:
+    """Select short put using preferred delta within range and ATM tie-break.
+
+    Selection steps:
+    1) Keep only puts within [delta_range_min, delta_range_max] inclusive.
+    2) Pick contract with minimum distance to delta_preferred.
+    3) On ties, pick strike closest to ATM (underlying_last).
+    4) If still tied, prefer higher strike for deterministic behavior.
+    """
+    puts = [o for o in chain.options if o.option_type == "PUT"]
+    if not puts:
+        raise ValueError(f"No PUT contracts found in chain for {chain.symbol}.")
+
+    low = min(delta_range_min, delta_range_max)
+    high = max(delta_range_min, delta_range_max)
+    in_range = [o for o in puts if low <= o.delta <= high]
+    if not in_range:
+        raise ValueError(
+            "No PUT contracts matched short_put.delta_range "
+            f"[{low:.3f}, {high:.3f}] for {chain.symbol}."
+        )
+
+    return min(
+        in_range,
+        key=lambda o: (
+            abs(o.delta - delta_preferred),
+            abs(o.strike - underlying_last),
+            -o.strike,
+        ),
+    )
+
+
 def select_short_call(chain: OptionChain, target_delta: float) -> OptionContract:
     """Return the call contract whose delta is closest to *+target_delta/100*.
 

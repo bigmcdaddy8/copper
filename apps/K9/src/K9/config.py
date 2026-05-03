@@ -24,12 +24,22 @@ class EntryConfig:
     order_type: str             # "LIMIT"
     limit_price_strategy: str   # "MID"
     max_fill_time_seconds: int
+    max_entry_attempts: int = 1
+    retry_price_decrement: float = 0.0
+
+
+@dataclass
+class ShortPutSelection:
+    delta_preferred: float
+    delta_range_min: float
+    delta_range_max: float
 
 
 @dataclass
 class ExitConfig:
-    take_profit_percent: float
-    expiration_day_exit_mode: str  # "HOLD_TO_EXPIRATION"
+    exit_type: str = "TAKE_PROFIT"
+    take_profit_percent: float | None = None
+    expiration_day_exit_mode: str = "HOLD_TO_EXPIRATION"  # "HOLD_TO_EXPIRATION"
 
 
 @dataclass
@@ -54,6 +64,7 @@ class TradeSpec:
     entry: EntryConfig
     exit: ExitConfig
     constraints: Constraints
+    short_put_selection: ShortPutSelection | None = None
     notes: str = ""
     allowed_entry_after: str = "09:25"   # HH:MM CT
     allowed_entry_before: str = "14:30"  # HH:MM CT
@@ -120,7 +131,11 @@ class TradeSpec:
             minimum_net_credit=data["minimum_net_credit"],
             max_combo_bid_ask_width=data["max_combo_bid_ask_width"],
             entry=EntryConfig(**data["entry"]),
-            exit=ExitConfig(**data["exit"]),
+            exit=ExitConfig(
+                exit_type="TAKE_PROFIT",
+                take_profit_percent=float(data["exit"]["take_profit_percent"]),
+                expiration_day_exit_mode=data["exit"]["expiration_day_exit_mode"],
+            ),
             constraints=Constraints(**data["constraints"]),
             notes=data.get("notes", ""),
             allowed_entry_after=data.get("allowed_entry_after", "09:25"),
@@ -222,30 +237,37 @@ class TradeSpec:
             raise ValueError("Only trade.entry_order.time_in_force='DAY' is supported.")
         if entry_order.get("entry_price") != "MIDPOINT":
             raise ValueError("Only trade.entry_order.entry_price='MIDPOINT' is supported.")
-        if exit_order.get("exit_type") != "TAKE_PROFIT":
-            raise ValueError("Only trade.exit_order.exit_type='TAKE_PROFIT' is supported.")
-        if exit_order.get("order_type") != "LIMIT":
-            raise ValueError("Only trade.exit_order.order_type='LIMIT' is supported.")
-        if exit_order.get("time_in_force") != "GTC":
-            raise ValueError("Only trade.exit_order.time_in_force='GTC' is supported.")
+        exit_type = str(exit_order.get("exit_type", "")).upper()
+        if exit_type not in {"TAKE_PROFIT", "NONE"}:
+            raise ValueError("trade.exit_order.exit_type must be TAKE_PROFIT or NONE.")
 
-        exit_price = exit_order.get("exit_price")
-        if not isinstance(exit_price, dict):
-            raise ValueError("v2 YAML requires trade.exit_order.exit_price object.")
-        cls._assert_only_keys(
-            exit_price,
-            {"type", "value"},
-            "trade.exit_order.exit_price",
-        )
-        if (
-            exit_price.get("type") != "PERCENT_OF_INITIAL_CREDIT"
-        ):
-            raise ValueError(
-                "Only trade.exit_order.exit_price.type='PERCENT_OF_INITIAL_CREDIT' is supported."
+        exit_take_profit_percent: float | None = None
+        if exit_type == "TAKE_PROFIT":
+            if exit_order.get("order_type") != "LIMIT":
+                raise ValueError("Only trade.exit_order.order_type='LIMIT' is supported.")
+            if exit_order.get("time_in_force") != "GTC":
+                raise ValueError("Only trade.exit_order.time_in_force='GTC' is supported.")
+            exit_price = exit_order.get("exit_price")
+            if not isinstance(exit_price, dict):
+                raise ValueError("v2 YAML requires trade.exit_order.exit_price object.")
+            cls._assert_only_keys(
+                exit_price,
+                {"type", "value"},
+                "trade.exit_order.exit_price",
             )
+            if (
+                exit_price.get("type") != "PERCENT_OF_INITIAL_CREDIT"
+            ):
+                raise ValueError(
+                    "Only trade.exit_order.exit_price.type='PERCENT_OF_INITIAL_CREDIT' is supported."
+                )
+            exit_take_profit_percent = float(exit_price["value"])
+        else:
+            cls._assert_only_keys(exit_order, {"exit_type"}, "trade.exit_order")
 
         wing_size = cls._extract_wing_size(trade_type, leg_selection)
         delta_target = cls._extract_delta_target(trade_type, leg_selection)
+        short_put_selection = cls._extract_short_put_selection(trade_type, leg_selection)
 
         return cls(
             enabled=data["enabled"],
@@ -254,6 +276,7 @@ class TradeSpec:
             trade_type=trade_type,
             wing_size=wing_size,
             short_strike_selection=ShortStrikeSelection(method="DELTA", value=delta_target),
+            short_put_selection=short_put_selection,
             position_size=PositionSize(
                 mode="fixed_contracts",
                 contracts=int(entry_constraints["quantity"]),
@@ -268,9 +291,12 @@ class TradeSpec:
                 order_type="LIMIT",
                 limit_price_strategy="MID",
                 max_fill_time_seconds=int(entry_order["max_fill_wait_time_seconds"]),
+                max_entry_attempts=int(entry_order.get("max_entry_attempts", 1)),
+                retry_price_decrement=float(entry_order.get("retry_price_decrement", 0.0)),
             ),
             exit=ExitConfig(
-                take_profit_percent=float(exit_order["exit_price"]["value"]),
+                exit_type=exit_type,
+                take_profit_percent=exit_take_profit_percent,
                 expiration_day_exit_mode="HOLD_TO_EXPIRATION",
             ),
             constraints=Constraints(
@@ -337,6 +363,10 @@ class TradeSpec:
             return round((midpoint_abs(sp) + midpoint_abs(sc)) / 2.0, 2)
 
         if trade_type == "PUT_CREDIT_SPREAD":
+            sp_leg = (leg_selection.get("short_put") or {})
+            preferred = sp_leg.get("delta_preferred")
+            if preferred is not None:
+                return round(abs(float(preferred)) * 100.0, 2)
             sp = ((leg_selection.get("short_put") or {}).get("delta_range") or {})
             if not sp:
                 raise ValueError("PCS requires short_put.delta_range.")
@@ -349,6 +379,31 @@ class TradeSpec:
             return round(midpoint_abs(sc), 2)
 
         raise ValueError(f"Unsupported trade_type mapping: {trade_type!r}")
+
+    @classmethod
+    def _extract_short_put_selection(
+        cls, trade_type: str, leg_selection: dict
+    ) -> ShortPutSelection | None:
+        if trade_type not in {"PUT_CREDIT_SPREAD", "IRON_CONDOR"}:
+            return None
+
+        short_put = leg_selection.get("short_put") or {}
+        dr = short_put.get("delta_range") or {}
+        if not dr:
+            return None
+
+        cls._assert_only_keys(dr, {"min", "max"}, "trade.leg_selection.short_put.delta_range")
+        min_delta = float(dr["min"])
+        max_delta = float(dr["max"])
+        preferred = short_put.get("delta_preferred")
+        if preferred is None:
+            preferred = (min_delta + max_delta) / 2.0
+
+        return ShortPutSelection(
+            delta_preferred=float(preferred),
+            delta_range_min=min_delta,
+            delta_range_max=max_delta,
+        )
 
     @classmethod
     def _normalize_environment(cls, value: str) -> str:
@@ -385,9 +440,12 @@ class TradeSpec:
             if not isinstance(leg_data, dict):
                 raise ValueError(f"trade.leg_selection.{leg_name} must be an object.")
             if leg_name in {"short_put", "short_call"}:
+                allowed_keys = {"delta_range"}
+                if leg_name == "short_put":
+                    allowed_keys.add("delta_preferred")
                 cls._assert_only_keys(
                     leg_data,
-                    {"delta_range"},
+                    allowed_keys,
                     f"trade.leg_selection.{leg_name}",
                 )
                 if not isinstance(leg_data.get("delta_range"), dict):
@@ -427,8 +485,19 @@ class TradeSpec:
 
         leg_selection: dict[str, dict] = {}
         if self.trade_type in {"IRON_CONDOR", "PUT_CREDIT_SPREAD"}:
+            short_put_delta_preferred = center
+            short_put_min = -high
+            short_put_max = -low
+            if self.short_put_selection is not None:
+                short_put_delta_preferred = self.short_put_selection.delta_preferred
+                short_put_min = self.short_put_selection.delta_range_min
+                short_put_max = self.short_put_selection.delta_range_max
             leg_selection["short_put"] = {
-                "delta_range": {"min": -high, "max": -low}
+                "delta_preferred": float(short_put_delta_preferred),
+                "delta_range": {
+                    "min": float(short_put_min),
+                    "max": float(short_put_max),
+                },
             }
             leg_selection["long_put"] = {
                 "wing_distance_points": float(self.wing_size)
@@ -466,21 +535,27 @@ class TradeSpec:
                     "order_type": "LIMIT",
                     "time_in_force": "DAY",
                     "max_fill_wait_time_seconds": int(self.entry.max_fill_time_seconds),
-                    "max_entry_attempts": 1,
-                    "retry_price_decrement": 0.0,
+                    "max_entry_attempts": int(self.entry.max_entry_attempts),
+                    "retry_price_decrement": float(self.entry.retry_price_decrement),
                     "entry_price": "MIDPOINT",
                     "min_credit_received": float(self.minimum_net_credit),
                 },
                 "leg_selection": leg_selection,
-                "exit_order": {
-                    "exit_type": "TAKE_PROFIT",
-                    "order_type": "LIMIT",
-                    "time_in_force": "GTC",
-                    "exit_price": {
-                        "type": "PERCENT_OF_INITIAL_CREDIT",
-                        "value": float(self.exit.take_profit_percent),
-                    },
-                },
+                "exit_order": (
+                    {
+                        "exit_type": "NONE",
+                    }
+                    if self.exit.exit_type == "NONE"
+                    else {
+                        "exit_type": "TAKE_PROFIT",
+                        "order_type": "LIMIT",
+                        "time_in_force": "GTC",
+                        "exit_price": {
+                            "type": "PERCENT_OF_INITIAL_CREDIT",
+                            "value": float(self.exit.take_profit_percent or 0.0),
+                        },
+                    }
+                ),
             },
         }
 
@@ -531,3 +606,15 @@ class TradeSpec:
             raise ValueError(
                 f"minimum_net_credit must be positive. Got: {self.minimum_net_credit}"
             )
+        if self.entry.max_entry_attempts <= 0:
+            raise ValueError("entry.max_entry_attempts must be >= 1")
+        if self.entry.retry_price_decrement < 0:
+            raise ValueError("entry.retry_price_decrement must be >= 0")
+        if self.entry.max_entry_attempts > 1 and self.entry.retry_price_decrement <= 0:
+            raise ValueError(
+                "entry.retry_price_decrement must be > 0 when max_entry_attempts > 1"
+            )
+        if self.exit.exit_type not in {"TAKE_PROFIT", "NONE"}:
+            raise ValueError("exit.exit_type must be TAKE_PROFIT or NONE")
+        if self.exit.exit_type == "TAKE_PROFIT" and self.exit.take_profit_percent is None:
+            raise ValueError("exit.take_profit_percent is required when exit_type is TAKE_PROFIT")

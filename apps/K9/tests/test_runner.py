@@ -296,3 +296,66 @@ def test_run_entry_trade_tag_non_empty_even_on_cancel(holodeck_broker, tmp_path)
     )
     if result.outcome in ("FILLED", "CANCELED", "REJECTED"):
         assert result.trade_tag != ""
+
+
+def test_run_entry_market_closed_rejection_becomes_skipped(holodeck_broker, tmp_path, monkeypatch):
+        from bic.models import OrderResponse
+
+        def _reject_market_closed(order):
+                return OrderResponse(
+                        order_id="",
+                        status="REJECTED",
+                        rejection_reason="market_closed",
+                        rejection_text="Market is closed",
+                )
+
+        monkeypatch.setattr(holodeck_broker, "place_order", _reject_market_closed)
+        spec = _make_spec(tmp_path)
+        result = run_entry(spec, "test_ic", holodeck_broker, log_dir=tmp_path / "logs")
+        assert result.outcome == "SKIPPED"
+        assert "market is closed" in result.reason.lower()
+
+
+def test_run_entry_exit_none_skips_tp_order(holodeck_broker, tmp_path):
+        spec_path = tmp_path / "none_spec.yaml"
+        spec_path.write_text(
+                """
+enabled: true
+environment: HD
+underlying: SPX
+trade:
+    option_strategy: PCS
+    entry_constraints:
+        allow_multiple_trades: false
+        quantity: 1
+        max_entries_per_day: 1
+        max_risk_dollars: 500
+    entry_criteria:
+        type: time_window
+        allowed_entry_after: "00:00"
+        allowed_entry_before: "23:59"
+    entry_order:
+        order_type: LIMIT
+        time_in_force: DAY
+        max_fill_wait_time_seconds: 10
+        max_entry_attempts: 1
+        retry_price_decrement: 0.0
+        entry_price: MIDPOINT
+        min_credit_received: 0.01
+    leg_selection:
+        short_put:
+            delta_preferred: -0.13
+            delta_range:
+                min: -0.20
+                max: -0.10
+        long_put:
+            wing_distance_points: 5
+    exit_order:
+        exit_type: NONE
+""".strip()
+        )
+        spec = TradeSpec.from_file(spec_path)
+        result = run_entry(spec, "none_spec", holodeck_broker, log_dir=tmp_path / "logs")
+        if result.outcome == "FILLED":
+                assert result.tp_order_id == ""
+                assert result.tp_price is None

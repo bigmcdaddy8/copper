@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
+from datetime import date
 from pathlib import Path
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import typer
 from rich.console import Console
@@ -126,7 +129,11 @@ def enter(
         net_credit=result.net_credit,
         tp_order_id=result.tp_order_id,
         tp_limit_price=result.tp_price,
-        tp_status="PLACED" if result.tp_order_id else "UNKNOWN",
+        tp_status=(
+            "PLACED"
+            if result.tp_order_id
+            else ("NONE" if spec.exit.exit_type == "NONE" else "UNKNOWN")
+        ),
         bpr=result.bpr,
         credit_received=credit_received,
         quantity=quantity,
@@ -160,7 +167,12 @@ def enter(
             )
         )
 
-        if trade.tp_order_id and trade.tp_limit_price is not None and trade.credit_received is not None:
+        if (
+            spec.exit.exit_type == "TAKE_PROFIT"
+            and trade.tp_order_id
+            and trade.tp_limit_price is not None
+            and trade.credit_received is not None
+        ):
             tp_keep = spec.exit.take_profit_percent
             potential_profit = round(trade.credit_received * (tp_keep / 100.0), 2)
             gtc_line = format_gtc_line(trade, tp_percent=tp_keep, occurred_at=trade.entered_at)
@@ -282,6 +294,146 @@ def preflight(
     raise typer.Exit(0 if result.outcome == "PREFLIGHT_OK" else 1)
 
 
+@app.command(name="close")
+def close(
+    account: str = typer.Option("TRDS", "--account", help="Account code: TRDS or TRD."),
+    spec_name: str | None = typer.Option(None, "--spec-name", help="Optional trade spec filter."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview closure actions without writing."),
+) -> None:
+    """Reconcile open FILLED trades and record closure outcomes.
+
+    Conservative mode: only broker-confirmed TP fills auto-close positions.
+    Unresolved stale trades are marked ORPHAN for manual intervention.
+    """
+    from bic.models import (
+        ORDER_FILL_STATUSES,
+        ORDER_STATUS_CANCELED,
+        ORDER_STATUS_EXPIRED,
+        ORDER_STATUS_REJECTED,
+    )
+    from captains_log import Journal, TradeLogEntry
+
+    broker = _create_broker_for_account(account)
+    journal = Journal(account=account)
+    trades = journal.list_trades(outcome="FILLED", spec_name=spec_name, account=account)
+    positions = broker.get_positions()
+    now_utc = datetime.now(tz=timezone.utc)
+    now_ct = now_utc.astimezone(ZoneInfo("America/Chicago"))
+
+    checked = 0
+    updated = 0
+    skipped = 0
+    orphaned = 0
+    for trade in trades:
+        if trade.closed_at is not None:
+            skipped += 1
+            continue
+        checked += 1
+
+        occurred_at = now_utc.isoformat()
+        qty = trade.quantity or 1
+        credit_received = trade.credit_received or (
+            round((trade.entry_filled_price or 0.0) * 100 * qty, 2)
+            if trade.entry_filled_price is not None
+            else 0.0
+        )
+        is_stale = _trade_entered_before_today_ct(trade.entered_at, now_ct.date())
+        has_open_position = _has_open_position_for_trade(positions, trade.underlying, trade.expiration)
+
+        # No TP order (exit_type NONE): never auto-close without definitive broker settlement details.
+        if not trade.tp_order_id:
+            if is_stale:
+                orphan_reason = (
+                    "ORPHAN: no TP order and unresolved after next-day reconciliation window. "
+                    f"open_position_detected={has_open_position}."
+                )
+                orphaned += 1
+                if not dry_run:
+                    journal.mark_orphan(trade.trade_id, orphan_reason)
+                    journal.append_event(
+                        TradeLogEntry(
+                            trade_id=trade.trade_id,
+                            event_type="ADJ",
+                            occurred_at=occurred_at,
+                            line_text=f"ORPHAN FLAGGED: {orphan_reason}",
+                            payload={
+                                "reason": "ORPHAN",
+                                "open_position_detected": has_open_position,
+                                "credit_received": credit_received,
+                            },
+                        )
+                    )
+                updated += 1
+            continue
+
+        order = broker.get_order(trade.tp_order_id)
+        if order.status in ORDER_FILL_STATUSES and order.filled_price is not None:
+            debit = round(order.filled_price * 100 * qty, 2)
+            realized = round(credit_received - debit, 2)
+            if not dry_run:
+                journal.update_tp_fill(
+                    trade.trade_id,
+                    tp_fill_price=order.filled_price,
+                    realized_pnl=realized,
+                    closed_at=occurred_at,
+                )
+                journal.append_event(
+                    TradeLogEntry(
+                        trade_id=trade.trade_id,
+                        event_type="EXIT",
+                        occurred_at=occurred_at,
+                        line_text=format_exit_line(
+                            reason="GTC",
+                            occurred_at=occurred_at,
+                            exit_price=order.filled_price,
+                            fees=0.0,
+                        ),
+                        payload={
+                            "reason": "GTC",
+                            "exit_price": order.filled_price,
+                            "realized_pnl": realized,
+                        },
+                    )
+                )
+            updated += 1
+            continue
+
+        if order.status in {ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELED, ORDER_STATUS_REJECTED} and is_stale:
+            orphan_reason = (
+                "ORPHAN: TP order unresolved without broker fill confirmation after next-day "
+                f"window. tp_order_status={order.status}; open_position_detected={has_open_position}."
+            )
+            orphaned += 1
+            if not dry_run:
+                journal.mark_orphan(trade.trade_id, orphan_reason)
+                journal.append_event(
+                    TradeLogEntry(
+                        trade_id=trade.trade_id,
+                        event_type="ADJ",
+                        occurred_at=occurred_at,
+                        line_text=f"ORPHAN FLAGGED: {orphan_reason}",
+                        payload={
+                            "reason": "ORPHAN",
+                            "tp_order_status": order.status,
+                            "open_position_detected": has_open_position,
+                            "credit_received": credit_received,
+                        },
+                    )
+                )
+            updated += 1
+
+    console.print(
+        f"[green]close complete[/green] checked={checked} updated={updated} skipped={skipped}"
+        f" orphaned={orphaned} dry_run={dry_run}"
+    )
+    if orphaned > 0:
+        console.print(
+            "[bold red]ORPHAN trades detected. Manual reconciliation required. "
+            "Collect broker/journal diagnostics.[/bold red]"
+        )
+        raise typer.Exit(2)
+
+
 def _resolve_spec_path(specs_dir: Path, trade_spec: str) -> Path | None:
     """Resolve trade spec file with deterministic extension preference."""
     if Path(trade_spec).suffix.lower() in {".yaml", ".yml"}:
@@ -294,3 +446,49 @@ def _resolve_spec_path(specs_dir: Path, trade_spec: str) -> Path | None:
             return candidate
 
     return None
+
+
+def _create_broker_for_account(account: str):
+    from dotenv import load_dotenv
+    from K9.tradier.broker import TradierBroker
+
+    normalized = account.upper().strip()
+    if normalized not in {"TRDS", "TRD"}:
+        raise typer.BadParameter("--account must be TRDS or TRD")
+
+    load_dotenv()
+    if normalized == "TRDS":
+        return TradierBroker(
+            api_key=os.environ["TRADIER_SANDBOX_API_KEY"],
+            account_id=os.environ["TRADIER_ACCOUNT_ID"],
+            sandbox=True,
+        )
+    return TradierBroker(
+        api_key=os.environ["TRADIER_API_KEY"],
+        account_id=os.environ["TRADIER_ACCOUNT_ID"],
+        sandbox=False,
+    )
+
+
+def _trade_entered_before_today_ct(entered_at_iso: str, today_ct: date) -> bool:
+    try:
+        entered = datetime.fromisoformat(entered_at_iso)
+    except ValueError:
+        return True
+    if entered.tzinfo is None:
+        entered = entered.replace(tzinfo=timezone.utc)
+    entered_ct_date = entered.astimezone(ZoneInfo("America/Chicago")).date()
+    return entered_ct_date < today_ct
+
+
+def _has_open_position_for_trade(positions, underlying: str, expiration_iso: str) -> bool:
+    try:
+        exp_token = datetime.fromisoformat(f"{expiration_iso}T00:00:00").strftime("%y%m%d")
+    except ValueError:
+        exp_token = ""
+    needle = underlying.upper()
+    for pos in positions:
+        symbol = (pos.symbol or "").upper()
+        if needle in symbol and (not exp_token or exp_token in symbol):
+            return True
+    return False
