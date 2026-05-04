@@ -17,6 +17,7 @@ def _new_trade_id() -> str:
 # Maps captains_log trade_type strings to the abbreviations used in legacy Trade #s.
 TRADE_TYPE_LEGACY_CODES: dict[str, str] = {
     "IRON_CONDOR":       "SIC",
+    "SIC":               "SIC",
     "PUT_CREDIT_SPREAD": "PCS",
     "CALL_CREDIT_SPREAD": "CCS",
     "NAKED_SHORT_PUT":   "NPUT",

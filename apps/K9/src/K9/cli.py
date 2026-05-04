@@ -451,6 +451,7 @@ def _resolve_spec_path(specs_dir: Path, trade_spec: str) -> Path | None:
 def _create_broker_for_account(account: str):
     from dotenv import load_dotenv
     from K9.tradier.broker import TradierBroker
+    from K9.tradier_env import resolve_account_id
 
     normalized = account.upper().strip()
     if normalized not in {"TRDS", "TRD"}:
@@ -460,12 +461,12 @@ def _create_broker_for_account(account: str):
     if normalized == "TRDS":
         return TradierBroker(
             api_key=os.environ["TRADIER_SANDBOX_API_KEY"],
-            account_id=os.environ["TRADIER_ACCOUNT_ID"],
+            account_id=resolve_account_id("sandbox"),
             sandbox=True,
         )
     return TradierBroker(
         api_key=os.environ["TRADIER_API_KEY"],
-        account_id=os.environ["TRADIER_ACCOUNT_ID"],
+        account_id=resolve_account_id("production"),
         sandbox=False,
     )
 

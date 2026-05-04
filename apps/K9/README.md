@@ -121,8 +121,8 @@ Each execution writes a JSON log to `logs/K9/<spec>_<YYYYMMDD_HHMMSS>.json`. Ove
 | Environment | Broker | Notes |
 |---|---|---|
 | `holodeck` | HolodeckBroker | Deterministic synthetic data; no API keys required |
-| `sandbox` | TradierBroker | Requires `TRADIER_SANDBOX_TOKEN` in `.env` |
-| `production` | TradierBroker | Requires `TRADIER_PRODUCTION_TOKEN` and `TRADIER_ACCOUNT_ID` in `.env` |
+| `sandbox` | TradierBroker | Requires `TRADIER_SANDBOX_API_KEY` and prefers `TRADIER_SANDBOX_ACCOUNT_ID` (falls back to `TRADIER_ACCOUNT_ID`) |
+| `production` | TradierBroker | Requires `TRADIER_API_KEY` and `TRADIER_ACCOUNT_ID` |
 
 ## Development
 

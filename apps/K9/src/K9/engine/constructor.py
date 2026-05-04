@@ -43,6 +43,7 @@ def build_order(
         combo_ask += short_call.ask - long_call.bid
 
     mid = round((combo_bid + combo_ask) / 2, 2)
+    limit_price = round(mid + spec.entry.limit_price_offset, 2)
 
     return OrderRequest(
         symbol=spec.underlying,
@@ -50,7 +51,7 @@ def build_order(
         legs=legs,
         quantity=spec.position_size.contracts,
         order_type="LIMIT",
-        limit_price=mid,
+        limit_price=limit_price,
     )
 
 

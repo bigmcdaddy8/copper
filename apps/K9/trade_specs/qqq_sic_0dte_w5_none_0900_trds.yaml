@@ -1,23 +1,21 @@
 schema_version: 2
-notes: XSP 0DTE Put Credit Spread - ~13 delta short put, $2 wing, no TP - let it expire
+notes: NDX 0DTE Short Iron Condor - ~25 delta shorts, $5 wings, no TP - let expire
 enabled: true
 environment: TRDS
-underlying: XSP
+underlying: QQQ
 
 trade:
-  option_strategy: PCS
+  option_strategy: SIC
 
   entry_constraints:
     allow_multiple_trades: false
     quantity: 1
-    max_entries_per_day: 1
-    # max_entries_per_day: 100
-    max_risk_dollars: 500.0
+    max_entries_per_day: 100
+    max_risk_dollars: 1000.0
 
   entry_criteria:
     type: time_window
     allowed_entry_after: "08:55" # Chicago time
-    # allowed_entry_before: "09:21" # Chicago time
     allowed_entry_before: "13:21" # Chicago time
 
   entry_order:
@@ -25,17 +23,24 @@ trade:
     time_in_force: DAY
     max_fill_wait_time_seconds: 120
     max_entry_attempts: 5
-    retry_price_decrement: 0.02
-    entry_price: MIDPOINT
-    min_credit_received: 0.08
+    retry_price_decrement: 0.21
+    entry_price: MIDPOINT + 0.25
+    min_credit_received: 0.34
 
   leg_selection:
     short_put:
-      delta_preferred: -0.13
+      delta_preferred: -0.25
       delta_range:
-        min: -0.21
-        max: -0.08
+        min: -0.41
+        max: -0.13
     long_put:
+      wing_distance_points: 5.0
+    short_call:
+      delta_preferred: 0.25
+      delta_range:
+        min: 0.13
+        max: 0.41
+    long_call:
       wing_distance_points: 5.0
 
   exit_order:

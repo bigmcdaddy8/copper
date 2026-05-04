@@ -17,6 +17,7 @@ from K9.tradier.selector import (
     select_long_call,
     select_long_put,
     select_short_put_preferred,
+    select_short_call_preferred,
     select_short_call,
     select_short_put,
 )
@@ -219,19 +220,36 @@ def run_entry(
         # Step 10 — select strikes
         try:
             target_delta = spec.short_strike_selection.value
-            if spec.short_put_selection is not None:
-                short_put = select_short_put_preferred(
-                    chain,
-                    delta_preferred=spec.short_put_selection.delta_preferred,
-                    delta_range_min=spec.short_put_selection.delta_range_min,
-                    delta_range_max=spec.short_put_selection.delta_range_max,
-                    underlying_last=result.entry_underlying_last or 0.0,
-                )
-            else:
-                short_put = select_short_put(chain, target_delta)
-            short_call = select_short_call(chain, target_delta)
-            long_put = select_long_put(chain, short_put, spec.wing_size)
-            long_call = select_long_call(chain, short_call, spec.wing_size)
+            short_put = None
+            long_put = None
+            short_call = None
+            long_call = None
+
+            if spec.trade_type in {"IRON_CONDOR", "PUT_CREDIT_SPREAD"}:
+                if spec.short_put_selection is not None:
+                    short_put = select_short_put_preferred(
+                        chain,
+                        delta_preferred=spec.short_put_selection.delta_preferred,
+                        delta_range_min=spec.short_put_selection.delta_range_min,
+                        delta_range_max=spec.short_put_selection.delta_range_max,
+                        underlying_last=result.entry_underlying_last or 0.0,
+                    )
+                else:
+                    short_put = select_short_put(chain, target_delta)
+                long_put = select_long_put(chain, short_put, spec.wing_size)
+
+            if spec.trade_type in {"IRON_CONDOR", "CALL_CREDIT_SPREAD"}:
+                if spec.short_call_selection is not None:
+                    short_call = select_short_call_preferred(
+                        chain,
+                        delta_preferred=spec.short_call_selection.delta_preferred,
+                        delta_range_min=spec.short_call_selection.delta_range_min,
+                        delta_range_max=spec.short_call_selection.delta_range_max,
+                        underlying_last=result.entry_underlying_last or 0.0,
+                    )
+                else:
+                    short_call = select_short_call(chain, target_delta)
+                long_call = select_long_call(chain, short_call, spec.wing_size)
         except Exception as exc:  # noqa: BLE001
             _set_error(
                 result,

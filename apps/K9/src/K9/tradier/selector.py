@@ -105,6 +105,37 @@ def select_short_call(chain: OptionChain, target_delta: float) -> OptionContract
     return min(calls, key=lambda o: abs(o.delta - target))
 
 
+def select_short_call_preferred(
+    chain: OptionChain,
+    delta_preferred: float,
+    delta_range_min: float,
+    delta_range_max: float,
+    underlying_last: float,
+) -> OptionContract:
+    """Select short call using preferred delta within range and ATM tie-break."""
+    calls = [o for o in chain.options if o.option_type == "CALL"]
+    if not calls:
+        raise ValueError(f"No CALL contracts found in chain for {chain.symbol}.")
+
+    low = min(delta_range_min, delta_range_max)
+    high = max(delta_range_min, delta_range_max)
+    in_range = [o for o in calls if low <= o.delta <= high]
+    if not in_range:
+        raise ValueError(
+            "No CALL contracts matched short_call.delta_range "
+            f"[{low:.3f}, {high:.3f}] for {chain.symbol}."
+        )
+
+    return min(
+        in_range,
+        key=lambda o: (
+            abs(o.delta - delta_preferred),
+            abs(o.strike - underlying_last),
+            o.strike,
+        ),
+    )
+
+
 # ------------------------------------------------------------------ #
 # Long (wing) leg selection                                           #
 # ------------------------------------------------------------------ #

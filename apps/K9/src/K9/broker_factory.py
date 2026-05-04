@@ -5,6 +5,7 @@ import os
 
 from bic.broker import Broker
 from K9.config import TradeSpec
+from K9.tradier_env import resolve_account_id
 
 _HOLODECK_DATA = "data/holodeck/spx_2026_01_minutes.csv"
 
@@ -47,7 +48,7 @@ def create_broker(spec: TradeSpec) -> Broker:
             api_key = os.environ["TRADIER_API_KEY"]
             sandbox = False
 
-        account_id = os.environ["TRADIER_ACCOUNT_ID"]
+        account_id = resolve_account_id(env)
         return TradierBroker(api_key=api_key, account_id=account_id, sandbox=sandbox)
 
     raise ValueError(

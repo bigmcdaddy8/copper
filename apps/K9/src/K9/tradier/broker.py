@@ -38,6 +38,8 @@ _TARGET_UTILIZATION = 0.90
 _THROTTLE_MIN_DELAY = 0.05
 _THROTTLE_MAX_DELAY = 2.00
 _THROTTLE_DEFAULT_DELAY = 0.20
+_HTTP_TIMEOUT = 20.0
+_MAX_HTTP_ATTEMPTS = 3
 
 # Tradier raw status → canonical BIC status (Option B: mirror full Tradier granularity).
 _STATUS_MAP: dict[str, str] = {
@@ -117,16 +119,65 @@ class TradierBroker(Broker):
         delay = remaining_seconds / max(safe_calls, 1.0)
         return max(_THROTTLE_MIN_DELAY, min(_THROTTLE_MAX_DELAY, delay))
 
+    def _raise_for_status_with_detail(self, resp: httpx.Response) -> None:
+        """Raise HTTPStatusError enriched with broker response detail."""
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            detail = ""
+            try:
+                payload = resp.json()
+            except ValueError:
+                payload = None
+
+            if isinstance(payload, dict):
+                fault = payload.get("fault")
+                if isinstance(fault, dict):
+                    detail = (
+                        str(fault.get("faultstring") or "")
+                        or str(fault.get("detail") or "")
+                    )
+                if not detail and isinstance(payload.get("errors"), list):
+                    errors = payload["errors"]
+                    if errors:
+                        detail = str(errors[0])
+
+            if not detail:
+                detail = (resp.text or "").strip()
+            detail = " ".join(detail.split())
+            if len(detail) > 400:
+                detail = f"{detail[:400]}..."
+
+            if detail:
+                raise httpx.HTTPStatusError(
+                    f"{exc} Tradier response: {detail}",
+                    request=exc.request,
+                    response=exc.response,
+                ) from exc
+            raise
+
     def _get(self, path: str, params: dict | None = None) -> dict:
         """GET with adaptive rate-limit throttle."""
-        self._throttle()
-        resp = httpx.get(
-            f"{self._base}{path}",
-            headers=self._headers(),
-            params=params or {},
-            timeout=10.0,
-        )
-        resp.raise_for_status()
+        last_exc: Exception | None = None
+        for attempt in range(_MAX_HTTP_ATTEMPTS):
+            self._throttle()
+            try:
+                resp = httpx.get(
+                    f"{self._base}{path}",
+                    headers=self._headers(),
+                    params=params or {},
+                    timeout=_HTTP_TIMEOUT,
+                )
+                break
+            except httpx.ReadTimeout as exc:
+                last_exc = exc
+                if attempt == _MAX_HTTP_ATTEMPTS - 1:
+                    raise
+                continue
+        else:
+            raise RuntimeError("GET retry loop exhausted") from last_exc
+
+        self._raise_for_status_with_detail(resp)
         self._update_ratelimit(resp.headers)
         self._last_call = time.monotonic()
         return resp.json()
@@ -138,33 +189,57 @@ class TradierBroker(Broker):
         in keys so that Tradier can parse indexed leg parameters (option_symbol[0] etc.).
         If the brackets were percent-encoded the broker would see 0 legs and reject.
         """
-        self._throttle()
         body = "&".join(
             f"{k}={urllib.parse.quote(str(v), safe='')}"
             for k, v in data.items()
         )
-        resp = httpx.post(
-            f"{self._base}{path}",
-            headers={
-                **self._headers(),
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            content=body,
-            timeout=10.0,
-        )
-        resp.raise_for_status()
+        last_exc: Exception | None = None
+        for attempt in range(_MAX_HTTP_ATTEMPTS):
+            self._throttle()
+            try:
+                resp = httpx.post(
+                    f"{self._base}{path}",
+                    headers={
+                        **self._headers(),
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    content=body,
+                    timeout=_HTTP_TIMEOUT,
+                )
+                break
+            except httpx.ReadTimeout as exc:
+                last_exc = exc
+                if attempt == _MAX_HTTP_ATTEMPTS - 1:
+                    raise
+                continue
+        else:
+            raise RuntimeError("POST retry loop exhausted") from last_exc
+
+        self._raise_for_status_with_detail(resp)
         self._update_ratelimit(resp.headers)
         self._last_call = time.monotonic()
         return resp.json()
 
     def _delete(self, path: str) -> dict:
-        self._throttle()
-        resp = httpx.delete(
-            f"{self._base}{path}",
-            headers=self._headers(),
-            timeout=10.0,
-        )
-        resp.raise_for_status()
+        last_exc: Exception | None = None
+        for attempt in range(_MAX_HTTP_ATTEMPTS):
+            self._throttle()
+            try:
+                resp = httpx.delete(
+                    f"{self._base}{path}",
+                    headers=self._headers(),
+                    timeout=_HTTP_TIMEOUT,
+                )
+                break
+            except httpx.ReadTimeout as exc:
+                last_exc = exc
+                if attempt == _MAX_HTTP_ATTEMPTS - 1:
+                    raise
+                continue
+        else:
+            raise RuntimeError("DELETE retry loop exhausted") from last_exc
+
+        self._raise_for_status_with_detail(resp)
         self._update_ratelimit(resp.headers)
         self._last_call = time.monotonic()
         return resp.json()
@@ -185,11 +260,30 @@ class TradierBroker(Broker):
         """Return the latest quote for *symbol* from Tradier /markets/quotes."""
         data = self._get("/markets/quotes", params={"symbols": symbol, "greeks": "false"})
         q = data["quotes"]["quote"]
+
+        last = float(q["last"]) if q.get("last") is not None else None
+        bid = float(q["bid"]) if q.get("bid") is not None else None
+        ask = float(q["ask"]) if q.get("ask") is not None else None
+
+        # Sandbox quote payloads sometimes omit `last`; midpoint is sufficient for
+        # entry pre-checks and keeps the run moving when top-of-book is present.
+        if last is None and bid is not None and ask is not None:
+            last = (bid + ask) / 2.0
+        if bid is None and last is not None:
+            bid = last
+        if ask is None and last is not None:
+            ask = last
+        if last is None or bid is None or ask is None:
+            raise ValueError(
+                "Tradier quote missing required numeric fields: "
+                f"last={q.get('last')!r}, bid={q.get('bid')!r}, ask={q.get('ask')!r}"
+            )
+
         return Quote(
             symbol=q["symbol"],
-            last=float(q["last"]),
-            bid=float(q["bid"]),
-            ask=float(q["ask"]),
+            last=last,
+            bid=bid,
+            ask=ask,
         )
 
     def get_option_chain(self, symbol: str, expiration: date) -> OptionChain:
@@ -233,11 +327,34 @@ class TradierBroker(Broker):
         """Return account balances from Tradier /accounts/{id}/balances."""
         data = self._get(f"/accounts/{self._account_id}/balances")
         b = data["balances"]
+
+        cash_block = b.get("cash") if isinstance(b, dict) else None
+        cash_available_raw = None
+        if isinstance(cash_block, dict):
+            cash_available_raw = cash_block.get("cash_available")
+        if cash_available_raw is None:
+            cash_available_raw = b.get("cash_available")
+        if cash_available_raw is None:
+            cash_available_raw = b.get("total_cash")
+
+        buying_power_raw = b.get("option_buying_power")
+        if buying_power_raw is None:
+            buying_power_raw = b.get("buying_power")
+        if buying_power_raw is None:
+            buying_power_raw = cash_available_raw
+
+        net_liquidation_raw = b.get("total_equity")
+        if net_liquidation_raw is None:
+            net_liquidation_raw = b.get("equity")
+
+        if net_liquidation_raw is None or cash_available_raw is None or buying_power_raw is None:
+            raise KeyError("missing required balance fields")
+
         return AccountSnapshot(
             account_id=self._account_id,
-            net_liquidation=float(b["total_equity"]),
-            available_funds=float(b["cash"]["cash_available"]),
-            buying_power=float(b["option_buying_power"]),
+            net_liquidation=float(net_liquidation_raw),
+            available_funds=float(cash_available_raw),
+            buying_power=float(buying_power_raw),
         )
 
     def get_positions(self) -> list[Position]:
@@ -295,7 +412,7 @@ class TradierBroker(Broker):
         payload: dict = {
             "class": "multileg",
             "symbol": order.symbol,
-            "type": "limit",
+            "type": _tradier_order_type(order),
             "duration": order.duration,
             "price": round(order.limit_price, 2),
             "quantity": order.quantity,
@@ -303,7 +420,7 @@ class TradierBroker(Broker):
         if order.tag:
             payload["tag"] = order.tag
         for i, leg in enumerate(order.legs):
-            payload[f"option_symbol[{i}]"] = _build_occ_symbol(leg)
+            payload[f"option_symbol[{i}]"] = _build_occ_symbol(order.symbol, leg)
             payload[f"side[{i}]"] = _tradier_side(leg.action, leg.option_type)
             payload[f"quantity[{i}]"] = order.quantity
 
@@ -370,16 +487,17 @@ def _raw_to_order(o: dict, order_id_fallback: str = "") -> Order:
     )
 
 
-def _build_occ_symbol(leg: "OrderLeg") -> str:  # noqa: F821
+def _build_occ_symbol(underlying: str, leg: "OrderLeg") -> str:  # noqa: F821
     """Build the OCC option symbol string expected by Tradier.
 
-    Format: SYMBOL YYMMDD C/P STRIKE (21-char OCC format).
-    Example: SPX   260105P05800000
+    Format: SYMBOL + YYMMDD + C/P + STRIKE(8 digits, x1000).
+    Example: SPX260105P05800000
     """
+    root = underlying.upper().strip()
     exp = leg.expiration.strftime("%y%m%d")
     cp = "C" if leg.option_type == "CALL" else "P"
     strike_int = int(leg.strike * 1000)
-    return f"{exp}{cp}{strike_int:08d}"
+    return f"{root}{exp}{cp}{strike_int:08d}"
 
 
 def _tradier_side(action: str, option_type: str) -> str:
@@ -395,3 +513,20 @@ def _tradier_side(action: str, option_type: str) -> str:
         ("SELL", "PUT",  "close"): "sell_to_close",
     }
     return mapping.get((action.upper(), option_type.upper()), "buy_to_open")
+
+
+def _tradier_order_type(order: OrderRequest) -> str:
+    """Map BIC OrderRequest to Tradier multi-leg order type."""
+    if order.order_type.upper() == "MARKET":
+        return "market"
+
+    strategy = order.strategy_type.upper()
+    if strategy.endswith("_TP"):
+        return "debit"
+    if "DEBIT" in strategy:
+        return "debit"
+    if "CREDIT" in strategy or strategy in {"IRON_CONDOR", "SIC"}:
+        return "credit"
+
+    # Conservative fallback for current K9 strategies.
+    return "credit"

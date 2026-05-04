@@ -1,0 +1,20 @@
+{
+  "spec_name": "ndx_sic_0dte_w5_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T17:32:19.514990+00:00",
+  "outcome": "FILLED",
+  "order_id": "29217021",
+  "filled_price": -1.09,
+  "net_credit": 1.06,
+  "expiration": "2026-05-04",
+  "short_put_strike": 668.0,
+  "short_call_strike": 673.0,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "",
+  "error_category": "",
+  "error_code": "",
+  "dry_run": false,
+  "preflight": false,
+  "errors": []
+}

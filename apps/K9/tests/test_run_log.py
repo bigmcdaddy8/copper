@@ -14,6 +14,8 @@ def filled_result() -> RunResult:
         environment="holodeck",
         outcome="FILLED",
         order_id="HD-000042",
+        trade_tag="abc123ef",
+        entry_attempts=1,
         filled_price=1.10,
         net_credit=1.10,
         expiration="2026-01-05",
@@ -38,6 +40,8 @@ def test_run_log_content_is_valid_json(tmp_path, filled_result):
     path = log.write()
     data = json.loads(path.read_text())
     assert data["outcome"] == "FILLED"
+    assert data["trade_tag"] == "abc123ef"
+    assert data["entry_attempts"] == 1
     assert data["filled_price"] == 1.10
     assert data["tp_price"] == 0.75
     assert data["short_put_strike"] == 5800.0
@@ -58,6 +62,8 @@ def test_run_log_skipped_outcome(tmp_path):
     path = log.write()
     data = json.loads(path.read_text())
     assert data["outcome"] == "SKIPPED"
+    assert data["trade_tag"] == ""
+    assert data["entry_attempts"] == 0
     assert "minimum" in data["reason"]
 
 

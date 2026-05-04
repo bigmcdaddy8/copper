@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T15:23:21.421473+00:00",
+  "outcome": "ERROR",
+  "order_id": "",
+  "filled_price": null,
+  "net_credit": 0.35,
+  "expiration": "2026-05-04",
+  "short_put_strike": 722.0,
+  "short_call_strike": 724.0,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Order placement/polling failed unexpectedly.",
+  "error_category": "BROKER_ERROR",
+  "error_code": "ORDER_FLOW_EXCEPTION",
+  "dry_run": false,
+  "preflight": false,
+  "errors": [
+    "BROKER_ERROR|ORDER_FLOW_EXCEPTION|Order placement/polling failed unexpectedly.|HTTPStatusError: Client error '400 ' for url 'https://sandbox.tradier.com/v1/accounts/VA13437428/orders'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400 Tradier response: Invalid parameter, type: is not valid."
+  ]
+}

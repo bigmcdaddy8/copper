@@ -9,6 +9,7 @@ from K9.tradier.selector import (
     select_long_call,
     select_long_put,
     select_short_put_preferred,
+    select_short_call_preferred,
     select_short_call,
     select_short_put,
 )
@@ -127,6 +128,49 @@ def test_select_short_call_no_calls_raises():
     )
     with pytest.raises(ValueError, match="No CALL"):
         select_short_call(puts_only, 20)
+
+
+def test_select_short_call_preferred_uses_delta_range_and_preference():
+    selected = select_short_call_preferred(
+        CHAIN,
+        delta_preferred=0.45,
+        delta_range_min=0.40,
+        delta_range_max=0.50,
+        underlying_last=5820.0,
+    )
+    assert selected.option_type == "CALL"
+    assert 0.40 <= selected.delta <= 0.50
+
+
+def test_select_short_call_preferred_tie_breaks_to_atm():
+    chain = OptionChain(
+        "SPX",
+        date(2026, 1, 5),
+        [
+            OptionContract(5825.0, "CALL", 1.0, 1.1, 0.25),
+            OptionContract(5850.0, "CALL", 1.0, 1.1, 0.25),
+            OptionContract(5810.0, "CALL", 1.0, 1.1, 0.12),
+        ],
+    )
+    selected = select_short_call_preferred(
+        chain,
+        delta_preferred=0.25,
+        delta_range_min=0.20,
+        delta_range_max=0.30,
+        underlying_last=5820.0,
+    )
+    assert selected.strike == 5825.0
+
+
+def test_select_short_call_preferred_no_contracts_in_range_raises():
+    with pytest.raises(ValueError, match="delta_range"):
+        select_short_call_preferred(
+            CHAIN,
+            delta_preferred=0.13,
+            delta_range_min=0.01,
+            delta_range_max=0.03,
+            underlying_last=5820.0,
+        )
 
 
 # ------------------------------------------------------------------ #

@@ -67,10 +67,16 @@ def test_validate_passes_for_valid_spec(valid_spec_path):
     spec.validate()
 
 
-def test_validate_rejects_invalid_underlying(valid_spec_path):
+def test_validate_allows_non_index_underlying(valid_spec_path):
     spec = TradeSpec.from_file(valid_spec_path)
     spec.underlying = "AAPL"
-    with pytest.raises(ValueError, match="Invalid underlying"):
+    spec.validate()
+
+
+def test_validate_rejects_empty_underlying(valid_spec_path):
+    spec = TradeSpec.from_file(valid_spec_path)
+    spec.underlying = ""
+    with pytest.raises(ValueError, match="underlying must be non-empty"):
         spec.validate()
 
 
@@ -255,6 +261,101 @@ trade:
     assert spec.short_put_selection.delta_preferred == -0.13
     assert spec.exit.exit_type == "NONE"
     assert spec.exit.take_profit_percent is None
+
+
+def test_v2_supports_midpoint_plus_offset_and_short_call_preferred(tmp_path):
+    path = tmp_path / "sic_offset_v2.yaml"
+    path.write_text(
+        """
+enabled: true
+environment: TRDS
+underlying: NDX
+trade:
+  option_strategy: SIC
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 1000
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "08:55"
+    allowed_entry_before: "12:21"
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 120
+    max_entry_attempts: 5
+    retry_price_decrement: 0.21
+    entry_price: MIDPOINT + 0.25
+    min_credit_received: 0.34
+  leg_selection:
+    short_put:
+      delta_preferred: -0.25
+      delta_range:
+        min: -0.41
+        max: -0.13
+    long_put:
+      wing_distance_points: 5
+    short_call:
+      delta_preferred: 0.25
+      delta_range:
+        min: 0.13
+        max: 0.41
+    long_call:
+      wing_distance_points: 5
+  exit_order:
+    exit_type: NONE
+""".strip()
+    )
+
+    spec = TradeSpec.from_file(path)
+    assert spec.trade_type == "IRON_CONDOR"
+    assert spec.entry.limit_price_offset == pytest.approx(0.25)
+    assert spec.short_call_selection is not None
+    assert spec.short_call_selection.delta_preferred == pytest.approx(0.25)
+
+
+def test_v2_rejects_invalid_entry_price_expression(tmp_path):
+    path = tmp_path / "bad_entry_price_v2.yaml"
+    path.write_text(
+        """
+enabled: true
+environment: TRDS
+underlying: XSP
+trade:
+  option_strategy: PCS
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 500
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "09:00"
+    allowed_entry_before: "14:30"
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 120
+    max_entry_attempts: 1
+    retry_price_decrement: 0.0
+    entry_price: MID + 0.25
+    min_credit_received: 0.08
+  leg_selection:
+    short_put:
+      delta_range:
+        min: -0.15
+        max: -0.10
+    long_put:
+      wing_distance_points: 2
+  exit_order:
+    exit_type: NONE
+""".strip()
+    )
+
+    with pytest.raises(ValueError, match="trade.entry_order.entry_price"):
+        TradeSpec.from_file(path)
 
 
 def test_v2_exit_none_rejects_extra_fields(tmp_path):

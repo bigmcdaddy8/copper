@@ -38,6 +38,8 @@ class RunLog:
             "started_at":        self._started_at.isoformat(),
             "outcome":           result.outcome,
             "order_id":          result.order_id,
+            "trade_tag":         result.trade_tag,
+            "entry_attempts":    result.entry_attempts,
             "filled_price":      result.filled_price,
             "net_credit":        result.net_credit,
             "expiration":        result.expiration,

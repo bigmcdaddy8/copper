@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 
 import yaml
 
@@ -24,12 +25,20 @@ class EntryConfig:
     order_type: str             # "LIMIT"
     limit_price_strategy: str   # "MID"
     max_fill_time_seconds: int
+    limit_price_offset: float = 0.0
     max_entry_attempts: int = 1
     retry_price_decrement: float = 0.0
 
 
 @dataclass
 class ShortPutSelection:
+    delta_preferred: float
+    delta_range_min: float
+    delta_range_max: float
+
+
+@dataclass
+class ShortCallSelection:
     delta_preferred: float
     delta_range_min: float
     delta_range_max: float
@@ -65,6 +74,7 @@ class TradeSpec:
     exit: ExitConfig
     constraints: Constraints
     short_put_selection: ShortPutSelection | None = None
+    short_call_selection: ShortCallSelection | None = None
     notes: str = ""
     allowed_entry_after: str = "09:25"   # HH:MM CT
     allowed_entry_before: str = "14:30"  # HH:MM CT
@@ -235,8 +245,9 @@ class TradeSpec:
             raise ValueError("Only trade.entry_order.order_type='LIMIT' is supported.")
         if entry_order.get("time_in_force") != "DAY":
             raise ValueError("Only trade.entry_order.time_in_force='DAY' is supported.")
-        if entry_order.get("entry_price") != "MIDPOINT":
-            raise ValueError("Only trade.entry_order.entry_price='MIDPOINT' is supported.")
+        entry_price_strategy, entry_price_offset = cls._parse_entry_price(
+            entry_order.get("entry_price")
+        )
         exit_type = str(exit_order.get("exit_type", "")).upper()
         if exit_type not in {"TAKE_PROFIT", "NONE"}:
             raise ValueError("trade.exit_order.exit_type must be TAKE_PROFIT or NONE.")
@@ -268,6 +279,7 @@ class TradeSpec:
         wing_size = cls._extract_wing_size(trade_type, leg_selection)
         delta_target = cls._extract_delta_target(trade_type, leg_selection)
         short_put_selection = cls._extract_short_put_selection(trade_type, leg_selection)
+        short_call_selection = cls._extract_short_call_selection(trade_type, leg_selection)
 
         return cls(
             enabled=data["enabled"],
@@ -289,7 +301,8 @@ class TradeSpec:
             max_combo_bid_ask_width=float(data.get("max_combo_bid_ask_width", 1000.0)),
             entry=EntryConfig(
                 order_type="LIMIT",
-                limit_price_strategy="MID",
+                limit_price_strategy=entry_price_strategy,
+                limit_price_offset=entry_price_offset,
                 max_fill_time_seconds=int(entry_order["max_fill_wait_time_seconds"]),
                 max_entry_attempts=int(entry_order.get("max_entry_attempts", 1)),
                 retry_price_decrement=float(entry_order.get("retry_price_decrement", 0.0)),
@@ -304,9 +317,28 @@ class TradeSpec:
                 one_position_per_underlying=not bool(entry_constraints.get("allow_multiple_trades", False)),
             ),
             notes=str(data.get("notes", "")),
+            short_call_selection=short_call_selection,
             allowed_entry_after=str(entry_criteria["allowed_entry_after"]),
             allowed_entry_before=str(entry_criteria["allowed_entry_before"]),
         )
+
+    @classmethod
+    def _parse_entry_price(cls, value: object) -> tuple[str, float]:
+        """Parse v2 entry_price syntax.
+
+        Supported forms:
+        - MIDPOINT
+        - MIDPOINT + <decimal>
+        """
+        raw = str(value or "").strip()
+        m = re.fullmatch(r"MIDPOINT(?:\s*\+\s*([0-9]+(?:\.[0-9]+)?))?", raw)
+        if not m:
+            raise ValueError(
+                "trade.entry_order.entry_price must be 'MIDPOINT' or "
+                "'MIDPOINT + <decimal>'."
+            )
+        offset = float(m.group(1)) if m.group(1) is not None else 0.0
+        return ("MID", offset)
 
     @classmethod
     def _extract_wing_size(cls, trade_type: str, leg_selection: dict) -> int:
@@ -406,6 +438,31 @@ class TradeSpec:
         )
 
     @classmethod
+    def _extract_short_call_selection(
+        cls, trade_type: str, leg_selection: dict
+    ) -> ShortCallSelection | None:
+        if trade_type not in {"CALL_CREDIT_SPREAD", "IRON_CONDOR"}:
+            return None
+
+        short_call = leg_selection.get("short_call") or {}
+        dr = short_call.get("delta_range") or {}
+        if not dr:
+            return None
+
+        cls._assert_only_keys(dr, {"min", "max"}, "trade.leg_selection.short_call.delta_range")
+        min_delta = float(dr["min"])
+        max_delta = float(dr["max"])
+        preferred = short_call.get("delta_preferred")
+        if preferred is None:
+            preferred = (min_delta + max_delta) / 2.0
+
+        return ShortCallSelection(
+            delta_preferred=float(preferred),
+            delta_range_min=min_delta,
+            delta_range_max=max_delta,
+        )
+
+    @classmethod
     def _normalize_environment(cls, value: str) -> str:
         env = str(value).strip()
         return cls._ENV_ALIASES.get(env, env)
@@ -441,7 +498,7 @@ class TradeSpec:
                 raise ValueError(f"trade.leg_selection.{leg_name} must be an object.")
             if leg_name in {"short_put", "short_call"}:
                 allowed_keys = {"delta_range"}
-                if leg_name == "short_put":
+                if leg_name in {"short_put", "short_call"}:
                     allowed_keys.add("delta_preferred")
                 cls._assert_only_keys(
                     leg_data,
@@ -503,8 +560,19 @@ class TradeSpec:
                 "wing_distance_points": float(self.wing_size)
             }
         if self.trade_type in {"IRON_CONDOR", "CALL_CREDIT_SPREAD"}:
+            short_call_delta_preferred = center
+            short_call_min = low
+            short_call_max = high
+            if self.short_call_selection is not None:
+                short_call_delta_preferred = self.short_call_selection.delta_preferred
+                short_call_min = self.short_call_selection.delta_range_min
+                short_call_max = self.short_call_selection.delta_range_max
             leg_selection["short_call"] = {
-                "delta_range": {"min": low, "max": high}
+                "delta_preferred": float(short_call_delta_preferred),
+                "delta_range": {
+                    "min": float(short_call_min),
+                    "max": float(short_call_max),
+                },
             }
             leg_selection["long_call"] = {
                 "wing_distance_points": float(self.wing_size)
@@ -537,7 +605,11 @@ class TradeSpec:
                     "max_fill_wait_time_seconds": int(self.entry.max_fill_time_seconds),
                     "max_entry_attempts": int(self.entry.max_entry_attempts),
                     "retry_price_decrement": float(self.entry.retry_price_decrement),
-                    "entry_price": "MIDPOINT",
+                    "entry_price": (
+                        "MIDPOINT"
+                        if self.entry.limit_price_offset == 0
+                        else f"MIDPOINT + {self.entry.limit_price_offset:.2f}"
+                    ),
                     "min_credit_received": float(self.minimum_net_credit),
                 },
                 "leg_selection": leg_selection,
@@ -567,7 +639,6 @@ class TradeSpec:
     # Validation                                                           #
     # ------------------------------------------------------------------ #
 
-    _VALID_UNDERLYINGS = frozenset({"SPX", "XSP", "NDX", "RUT"})
     _VALID_TRADE_TYPES = frozenset(
         {"IRON_CONDOR", "PUT_CREDIT_SPREAD", "CALL_CREDIT_SPREAD"}
     )
@@ -575,11 +646,8 @@ class TradeSpec:
 
     def validate(self) -> None:
         """Raise ValueError on any schema violation."""
-        if self.underlying not in self._VALID_UNDERLYINGS:
-            raise ValueError(
-                f"Invalid underlying {self.underlying!r}. "
-                f"Must be one of {sorted(self._VALID_UNDERLYINGS)}."
-            )
+        if not str(self.underlying).strip():
+            raise ValueError("underlying must be non-empty")
         if self.trade_type not in self._VALID_TRADE_TYPES:
             raise ValueError(
                 f"Invalid trade_type {self.trade_type!r}. "
@@ -610,6 +678,8 @@ class TradeSpec:
             raise ValueError("entry.max_entry_attempts must be >= 1")
         if self.entry.retry_price_decrement < 0:
             raise ValueError("entry.retry_price_decrement must be >= 0")
+        if self.entry.limit_price_offset < 0:
+            raise ValueError("entry.limit_price_offset must be >= 0")
         if self.entry.max_entry_attempts > 1 and self.entry.retry_price_decrement <= 0:
             raise ValueError(
                 "entry.retry_price_decrement must be > 0 when max_entry_attempts > 1"

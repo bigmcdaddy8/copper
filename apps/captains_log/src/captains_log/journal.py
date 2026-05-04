@@ -361,6 +361,8 @@ class Journal:
     def list_trades(
         self,
         date: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
         outcome: str | None = None,
         spec_name: str | None = None,
         account: str | None = None,
@@ -372,6 +374,12 @@ class Journal:
         if date:
             clauses.append("entered_at LIKE ?")
             params.append(f"{date}%")
+        if date_from:
+            clauses.append("substr(entered_at, 1, 10) >= ?")
+            params.append(date_from)
+        if date_to:
+            clauses.append("substr(entered_at, 1, 10) <= ?")
+            params.append(date_to)
         if outcome:
             clauses.append("outcome = ?")
             params.append(outcome)

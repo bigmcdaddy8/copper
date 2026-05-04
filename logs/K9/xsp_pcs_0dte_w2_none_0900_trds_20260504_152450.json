@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T15:24:50.790211+00:00",
+  "outcome": "ERROR",
+  "order_id": "",
+  "filled_price": null,
+  "net_credit": 0.36,
+  "expiration": "2026-05-04",
+  "short_put_strike": 722.0,
+  "short_call_strike": 724.0,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Order placement/polling failed unexpectedly.",
+  "error_category": "BROKER_ERROR",
+  "error_code": "ORDER_FLOW_EXCEPTION",
+  "dry_run": false,
+  "preflight": false,
+  "errors": [
+    "BROKER_ERROR|ORDER_FLOW_EXCEPTION|Order placement/polling failed unexpectedly.|ReadTimeout: The read operation timed out"
+  ]
+}

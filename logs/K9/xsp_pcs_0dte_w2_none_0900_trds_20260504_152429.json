@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T15:24:29.407268+00:00",
+  "outcome": "ERROR",
+  "order_id": "",
+  "filled_price": null,
+  "net_credit": null,
+  "expiration": "",
+  "short_put_strike": null,
+  "short_call_strike": null,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Unexpected failure during run execution.",
+  "error_category": "BROKER_ERROR",
+  "error_code": "UNHANDLED_RUN_EXCEPTION",
+  "dry_run": false,
+  "preflight": false,
+  "errors": [
+    "BROKER_ERROR|UNHANDLED_RUN_EXCEPTION|Unexpected failure during run execution.|ReadTimeout: The read operation timed out"
+  ]
+}

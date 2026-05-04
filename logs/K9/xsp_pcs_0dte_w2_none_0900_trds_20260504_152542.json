@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T15:25:42.425418+00:00",
+  "outcome": "ERROR",
+  "order_id": "",
+  "filled_price": null,
+  "net_credit": null,
+  "expiration": "",
+  "short_put_strike": null,
+  "short_call_strike": null,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Unexpected failure during run execution.",
+  "error_category": "BROKER_ERROR",
+  "error_code": "UNHANDLED_RUN_EXCEPTION",
+  "dry_run": false,
+  "preflight": false,
+  "errors": [
+    "BROKER_ERROR|UNHANDLED_RUN_EXCEPTION|Unexpected failure during run execution.|HTTPStatusError: Server error '504 Gateway Time-out' for url 'https://sandbox.tradier.com/v1/accounts/VA13437428/balances'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504 Tradier response: <html> <head><title>504 Gateway Time-out</title></head> <body> <center><h1>504 Gateway Time-out</h1></center> </body> </html>"
+  ]
+}

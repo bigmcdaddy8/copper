@@ -56,6 +56,91 @@ def test_get_underlying_quote(broker):
     assert quote.bid < quote.last < quote.ask
 
 
+@respx.mock
+def test_get_underlying_quote_null_last_uses_midpoint(broker):
+    respx.get(f"{_SANDBOX_BASE}/markets/quotes").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "quotes": {
+                    "quote": {
+                        "symbol": "XSP",
+                        "last": None,
+                        "bid": 581.10,
+                        "ask": 581.30,
+                    }
+                }
+            },
+        )
+    )
+    quote = broker.get_underlying_quote("XSP")
+    assert quote.symbol == "XSP"
+    assert quote.bid == 581.10
+    assert quote.ask == 581.30
+    assert quote.last == pytest.approx(581.20)
+
+
+@respx.mock
+def test_get_underlying_quote_missing_all_prices_raises_value_error(broker):
+    respx.get(f"{_SANDBOX_BASE}/markets/quotes").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "quotes": {
+                    "quote": {
+                        "symbol": "XSP",
+                        "last": None,
+                        "bid": None,
+                        "ask": None,
+                    }
+                }
+            },
+        )
+    )
+    with pytest.raises(ValueError, match="missing required numeric fields"):
+        broker.get_underlying_quote("XSP")
+
+
+@respx.mock
+def test_get_underlying_quote_http_error_includes_fault_detail(broker):
+    respx.get(f"{_SANDBOX_BASE}/markets/quotes").mock(
+        return_value=httpx.Response(
+            400,
+            json={"fault": {"faultstring": "account is not approved for this symbol"}},
+        )
+    )
+    with pytest.raises(httpx.HTTPStatusError, match="Tradier response: account is not approved"):
+        broker.get_underlying_quote("XSP")
+
+
+@respx.mock
+def test_get_underlying_quote_retries_read_timeout(broker):
+    calls = {"n": 0}
+
+    def flaky_quote(request: httpx.Request, **_):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ReadTimeout("timed out", request=request)
+        return httpx.Response(
+            200,
+            json={
+                "quotes": {
+                    "quote": {
+                        "symbol": "XSP",
+                        "last": 581.2,
+                        "bid": 581.1,
+                        "ask": 581.3,
+                    }
+                }
+            },
+        )
+
+    respx.get(f"{_SANDBOX_BASE}/markets/quotes").mock(side_effect=flaky_quote)
+    quote = broker.get_underlying_quote("XSP")
+    assert quote.last == 581.2
+    assert calls["n"] == 2
+
+
 # ------------------------------------------------------------------ #
 # get_option_chain                                                    #
 # ------------------------------------------------------------------ #
@@ -151,6 +236,27 @@ def test_get_account(broker):
     acct = broker.get_account()
     assert acct.account_id == FAKE_ACCT
     assert acct.net_liquidation == 50000.0
+    assert acct.buying_power == 35000.0
+
+
+@respx.mock
+def test_get_account_flat_cash_shape(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/balances").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "balances": {
+                    "total_equity": 50000.0,
+                    "cash_available": 40000.0,
+                    "option_buying_power": 35000.0,
+                }
+            },
+        )
+    )
+    acct = broker.get_account()
+    assert acct.account_id == FAKE_ACCT
+    assert acct.net_liquidation == 50000.0
+    assert acct.available_funds == 40000.0
     assert acct.buying_power == 35000.0
 
 
@@ -367,8 +473,32 @@ def test_place_order_sends_tag_and_gtc(broker):
     resp = broker.place_order(req)
     assert resp.status == "ACCEPTED"
     body = captured[0].content.decode()
+    assert "type=debit" in body
     assert "duration=gtc" in body
     assert "tag=TRD-0001" in body
+
+
+@respx.mock
+def test_place_order_sends_credit_type_for_credit_strategy(broker):
+    from bic.models import OrderLeg, OrderRequest
+    from datetime import date
+    legs = [
+        OrderLeg("SELL", "PUT", 5700.0, date(2026, 5, 3)),
+        OrderLeg("BUY", "PUT", 5650.0, date(2026, 5, 3)),
+    ]
+    captured: list[httpx.Request] = []
+
+    def capture(request: httpx.Request, **_):
+        captured.append(request)
+        return httpx.Response(200, json={"order": {"status": "ok", "id": 1235}})
+
+    respx.post(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(side_effect=capture)
+
+    req = OrderRequest("SPX", "PUT_CREDIT_SPREAD", legs=legs, limit_price=0.40)
+    resp = broker.place_order(req)
+    assert resp.status == "ACCEPTED"
+    body = captured[0].content.decode()
+    assert "type=credit" in body
 
 
 # ------------------------------------------------------------------ #
@@ -402,6 +532,8 @@ def test_place_multileg_form_encoding_preserves_brackets(broker):
     assert "option_symbol[1]=" in body
     assert "option_symbol[2]=" in body
     assert "option_symbol[3]=" in body
+    assert "SPX260503P05700000" in body
+    assert "SPX260503P05650000" in body
     assert "%5B" not in body
     assert "%5D" not in body
 

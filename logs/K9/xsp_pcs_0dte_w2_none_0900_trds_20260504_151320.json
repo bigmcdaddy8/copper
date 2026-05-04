@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T15:13:20.001513+00:00",
+  "outcome": "ERROR",
+  "order_id": "",
+  "filled_price": null,
+  "net_credit": null,
+  "expiration": "",
+  "short_put_strike": null,
+  "short_call_strike": null,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Market data unavailable for XSP at 2026-05-04. Check broker dataset/time alignment.",
+  "error_category": "DATA_UNAVAILABLE",
+  "error_code": "MARKET_DATA_UNAVAILABLE",
+  "dry_run": false,
+  "preflight": false,
+  "errors": [
+    "DATA_UNAVAILABLE|MARKET_DATA_UNAVAILABLE|Market data unavailable for XSP at 2026-05-04. Check broker dataset/time alignment.|TypeError: float() argument must be a string or a real number, not 'NoneType'"
+  ]
+}

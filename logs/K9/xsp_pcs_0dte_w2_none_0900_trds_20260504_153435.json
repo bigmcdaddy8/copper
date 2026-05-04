@@ -1,0 +1,20 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T15:34:35.770569+00:00",
+  "outcome": "FILLED",
+  "order_id": "29209429",
+  "filled_price": -0.85,
+  "net_credit": 0.82,
+  "expiration": "2026-05-04",
+  "short_put_strike": 723.0,
+  "short_call_strike": 724.0,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "",
+  "error_category": "",
+  "error_code": "",
+  "dry_run": false,
+  "preflight": false,
+  "errors": []
+}

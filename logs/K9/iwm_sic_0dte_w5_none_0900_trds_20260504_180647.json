@@ -1,0 +1,22 @@
+{
+  "spec_name": "iwm_sic_0dte_w5_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-04T18:06:47.338153+00:00",
+  "outcome": "CANCELED",
+  "order_id": "29220985",
+  "trade_tag": "6a9d2aa8",
+  "entry_attempts": 5,
+  "filled_price": null,
+  "net_credit": 3.41,
+  "expiration": "2026-05-04",
+  "short_put_strike": 276.0,
+  "short_call_strike": 277.0,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Order not filled within 120s. Canceled. Attempts exhausted: 5/5.",
+  "error_category": "",
+  "error_code": "",
+  "dry_run": false,
+  "preflight": false,
+  "errors": []
+}

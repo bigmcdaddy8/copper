@@ -83,6 +83,12 @@ def test_net_credit_equals_limit_price(spec):
     assert net_credit(order) == order.limit_price
 
 
+def test_mid_price_applies_entry_offset(spec):
+  spec.entry.limit_price_offset = 0.25
+  order = build_order(spec, EXP, SP, LP, SC, LC)
+  assert order.limit_price == pytest.approx(1.35, abs=0.01)
+
+
 def test_build_order_put_credit_spread(tmp_path):
     p = tmp_path / "pcs.yaml"
     p.write_text(

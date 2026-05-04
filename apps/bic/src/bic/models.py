@@ -86,7 +86,7 @@ ORDER_DONE_STATUSES: frozenset[str] = frozenset({
 @dataclass
 class OrderRequest:
     symbol: str
-    strategy_type: str   # e.g. "IRON_CONDOR", "PUT_CREDIT_SPREAD"
+    strategy_type: str   # e.g. "IRON_CONDOR" (aka SIC), "PUT_CREDIT_SPREAD"
     legs: list[OrderLeg] = field(default_factory=list)
     quantity: int = 1
     order_type: str = "LIMIT"

@@ -1,6 +1,8 @@
 """captains_log CLI — query the trade journal."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -21,7 +23,17 @@ def callback() -> None:
 @app.command(name="list")
 def list_trades(
     date: str = typer.Option(
-        None, "--date", help="Filter by date (YYYY-MM-DD)."
+        None, "--date", help="Filter by date (YYYY-MM-DD, today, yesterday, tomorrow)."
+    ),
+    from_date: str = typer.Option(
+        None,
+        "--from",
+        help="Filter from date inclusive (YYYY-MM-DD, today, yesterday, tomorrow).",
+    ),
+    to_date: str = typer.Option(
+        None,
+        "--to",
+        help="Filter to date inclusive (YYYY-MM-DD, today, yesterday, tomorrow).",
     ),
     outcome: str = typer.Option(
         None, "--outcome", help="Filter by outcome (FILLED, SKIPPED, etc.)."
@@ -36,7 +48,23 @@ def list_trades(
     """List recorded trades, most recent first."""
     from captains_log.journal import Journal
 
-    trades = Journal(account=account).list_trades(date=date, outcome=outcome, spec_name=spec)
+    if date and (from_date or to_date):
+        raise typer.BadParameter("Use either --date or --from/--to, not both")
+
+    normalized_date = _normalize_date_filter(date, option_name="--date")
+    normalized_from = _normalize_date_filter(from_date, option_name="--from")
+    normalized_to = _normalize_date_filter(to_date, option_name="--to")
+
+    if normalized_from and normalized_to and normalized_from > normalized_to:
+        raise typer.BadParameter("--from must be <= --to")
+
+    trades = Journal(account=account).list_trades(
+        date=normalized_date,
+        date_from=normalized_from,
+        date_to=normalized_to,
+        outcome=outcome,
+        spec_name=spec,
+    )
 
     if not trades:
         console.print("[dim]No trades found.[/dim]")
@@ -78,6 +106,27 @@ def list_trades(
 
     console.print(tbl)
     console.print(f"[dim]{len(trades)} record(s)[/dim]")
+
+
+def _normalize_date_filter(value: str | None, option_name: str) -> str | None:
+    """Normalize human-friendly date filters to ISO YYYY-MM-DD."""
+    if value is None:
+        return None
+
+    token = value.strip().lower()
+    if token == "today":
+        return datetime.now(timezone.utc).date().isoformat()
+    if token == "yesterday":
+        return (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+    if token == "tomorrow":
+        return (datetime.now(timezone.utc).date() + timedelta(days=1)).isoformat()
+
+    try:
+        return datetime.fromisoformat(value).date().isoformat()
+    except ValueError as exc:
+        raise typer.BadParameter(
+            f"{option_name} must be YYYY-MM-DD, today, yesterday, or tomorrow"
+        ) from exc
 
 
 @app.command(name="show")
