@@ -302,14 +302,22 @@ class TradierBroker(Broker):
 
         contracts: list[OptionContract] = []
         for o in raw_options:
+            strike = _float_or_none(o.get("strike"))
+            bid = _float_or_none(o.get("bid"))
+            ask = _float_or_none(o.get("ask"))
+            option_type = str(o.get("option_type") or "").upper()
+            if strike is None or bid is None or ask is None or option_type not in {"PUT", "CALL"}:
+                continue
+
             delta_raw = (o.get("greeks") or {}).get("delta")
+            delta = _float_or_none(delta_raw)
             contracts.append(
                 OptionContract(
-                    strike=float(o["strike"]),
-                    option_type=o["option_type"].upper(),
-                    bid=float(o["bid"]),
-                    ask=float(o["ask"]),
-                    delta=float(delta_raw) if delta_raw is not None else 0.0,
+                    strike=strike,
+                    option_type=option_type,
+                    bid=bid,
+                    ask=ask,
+                    delta=delta if delta is not None else 0.0,
                 )
             )
         return OptionChain(symbol=symbol, expiration=expiration, options=contracts)
@@ -360,18 +368,47 @@ class TradierBroker(Broker):
     def get_positions(self) -> list[Position]:
         """Return all open positions from Tradier /accounts/{id}/positions."""
         data = self._get(f"/accounts/{self._account_id}/positions")
-        raw = (data.get("positions") or {}).get("position") or []
+        if not isinstance(data, dict):
+            return []
+
+        positions_block = data.get("positions")
+        if not isinstance(positions_block, dict):
+            return []
+
+        raw = positions_block.get("position") or []
         if isinstance(raw, dict):
             raw = [raw]
-        return [
-            Position(
-                symbol=p["symbol"],
-                quantity=int(p["quantity"]),
-                avg_price=float(p["cost_basis"]) / abs(int(p["quantity"])) / 100,
-                position_type="OPTION" if len(p["symbol"]) > 10 else "STOCK",
+        if not isinstance(raw, list):
+            return []
+
+        positions: list[Position] = []
+        for p in raw:
+            if not isinstance(p, dict):
+                continue
+
+            symbol = p.get("symbol")
+            quantity_raw = p.get("quantity")
+            cost_basis_raw = p.get("cost_basis")
+            if not isinstance(symbol, str):
+                continue
+            try:
+                quantity = int(quantity_raw)
+                cost_basis = float(cost_basis_raw)
+            except (TypeError, ValueError):
+                continue
+            if quantity == 0:
+                continue
+
+            positions.append(
+                Position(
+                    symbol=symbol,
+                    quantity=quantity,
+                    avg_price=cost_basis / abs(quantity) / 100,
+                    position_type="OPTION" if len(symbol) > 10 else "STOCK",
+                )
             )
-            for p in raw
-        ]
+
+        return positions
 
     def get_open_orders(self) -> list[Order]:
         """Return all open orders from Tradier /accounts/{id}/orders."""
@@ -379,9 +416,18 @@ class TradierBroker(Broker):
             f"/accounts/{self._account_id}/orders",
             params={"includeTags": "true"},
         )
-        raw = (data.get("orders") or {}).get("order") or []
+        if not isinstance(data, dict):
+            return []
+
+        orders_block = data.get("orders")
+        if not isinstance(orders_block, dict):
+            return []
+
+        raw = orders_block.get("order") or []
         if isinstance(raw, dict):
             raw = [raw]
+        if not isinstance(raw, list):
+            return []
         open_orders = [o for o in raw if o.get("status") in ("open", "pending")]
         return [_raw_to_order(o) for o in open_orders]
 
@@ -395,9 +441,18 @@ class TradierBroker(Broker):
             f"/accounts/{self._account_id}/orders",
             params={"includeTags": "true"},
         )
-        raw = (data.get("orders") or {}).get("order") or []
+        if not isinstance(data, dict):
+            return []
+
+        orders_block = data.get("orders")
+        if not isinstance(orders_block, dict):
+            return []
+
+        raw = orders_block.get("order") or []
         if isinstance(raw, dict):
             raw = [raw]
+        if not isinstance(raw, list):
+            return []
         orders = [_raw_to_order(o) for o in raw]
         if statuses:
             orders = [o for o in orders if o.status in statuses]
@@ -470,6 +525,16 @@ def _normalize_rejection_reason(raw: str) -> str:
         return "unknown"
     key = raw.lower().replace(" ", "_")
     return key if key in _KNOWN_REJECTION_REASONS else "unknown"
+
+
+def _float_or_none(value) -> float | None:
+    """Return float(value) when possible; otherwise None."""
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _raw_to_order(o: dict, order_id_fallback: str = "") -> Order:

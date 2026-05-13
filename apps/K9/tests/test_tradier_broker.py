@@ -215,6 +215,65 @@ def test_get_option_chain_missing_greeks(broker):
     assert chain.options[0].delta == 0.0  # defaults to 0.0 when greeks is None
 
 
+@respx.mock
+def test_get_option_chain_skips_contracts_with_null_numeric_fields(broker):
+    expiry = date(2026, 1, 5)
+    respx.get(f"{_SANDBOX_BASE}/markets/options/chains").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "options": {
+                    "option": [
+                        {
+                            "strike": 5800.0,
+                            "option_type": "put",
+                            "bid": None,
+                            "ask": 1.35,
+                            "greeks": {"delta": -0.20},
+                        },
+                        {
+                            "strike": 5840.0,
+                            "option_type": "call",
+                            "bid": 0.95,
+                            "ask": 1.10,
+                            "greeks": {"delta": 0.18},
+                        },
+                    ]
+                }
+            },
+        )
+    )
+    chain = broker.get_option_chain("SPX", expiry)
+    assert len(chain.options) == 1
+    assert chain.options[0].option_type == "CALL"
+    assert chain.options[0].strike == 5840.0
+
+
+@respx.mock
+def test_get_option_chain_all_malformed_returns_empty(broker):
+    expiry = date(2026, 1, 5)
+    respx.get(f"{_SANDBOX_BASE}/markets/options/chains").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "options": {
+                    "option": [
+                        {
+                            "strike": None,
+                            "option_type": "put",
+                            "bid": None,
+                            "ask": None,
+                            "greeks": {"delta": None},
+                        }
+                    ]
+                }
+            },
+        )
+    )
+    chain = broker.get_option_chain("SPX", expiry)
+    assert chain.options == []
+
+
 # ------------------------------------------------------------------ #
 # get_account                                                         #
 # ------------------------------------------------------------------ #
@@ -273,6 +332,14 @@ def test_get_positions_empty(broker):
 
 
 @respx.mock
+def test_get_positions_non_dict_payload_returns_empty(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/positions").mock(
+        return_value=httpx.Response(200, json="")
+    )
+    assert broker.get_positions() == []
+
+
+@respx.mock
 def test_get_positions_single_item(broker):
     respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/positions").mock(
         return_value=httpx.Response(
@@ -291,6 +358,28 @@ def test_get_positions_single_item(broker):
     positions = broker.get_positions()
     assert len(positions) == 1
     assert positions[0].symbol == "SPX260105P05800000"
+    assert positions[0].quantity == -1
+
+
+@respx.mock
+def test_get_positions_skips_malformed_rows(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/positions").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "positions": {
+                    "position": [
+                        "bad-row",
+                        {"symbol": "XSP260105P00580000", "quantity": 0, "cost_basis": -100.0},
+                        {"symbol": "XSP260105P00580000", "quantity": -1, "cost_basis": -120.0},
+                    ]
+                }
+            },
+        )
+    )
+    positions = broker.get_positions()
+    assert len(positions) == 1
+    assert positions[0].symbol == "XSP260105P00580000"
     assert positions[0].quantity == -1
 
 
@@ -564,6 +653,14 @@ def test_get_orders_all(broker):
     assert "OPEN" in statuses
     assert "FILLED" in statuses
     assert "CANCELED" in statuses
+
+
+@respx.mock
+def test_get_orders_non_dict_payload_returns_empty(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/orders").mock(
+        return_value=httpx.Response(200, json="")
+    )
+    assert broker.get_orders() == []
 
 
 @respx.mock
