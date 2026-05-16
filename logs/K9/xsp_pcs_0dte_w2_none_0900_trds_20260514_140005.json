@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-14T14:00:05.002617+00:00",
+  "outcome": "SKIPPED",
+  "order_id": "",
+  "trade_tag": "5e8b9f9b",
+  "entry_attempts": 0,
+  "filled_price": null,
+  "net_credit": 0.04,
+  "expiration": "2026-05-14",
+  "short_put_strike": 737.0,
+  "short_call_strike": null,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "Net credit 0.04 is below minimum 0.08.",
+  "error_category": "",
+  "error_code": "",
+  "dry_run": false,
+  "preflight": false,
+  "errors": []
+}

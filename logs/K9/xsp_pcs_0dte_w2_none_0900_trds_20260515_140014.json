@@ -1,0 +1,22 @@
+{
+  "spec_name": "xsp_pcs_0dte_w2_none_0900_trds",
+  "environment": "sandbox",
+  "started_at": "2026-05-15T14:00:14.788282+00:00",
+  "outcome": "FILLED",
+  "order_id": "29974270",
+  "trade_tag": "b95bb7ae",
+  "entry_attempts": 1,
+  "filled_price": -2.39,
+  "net_credit": 2.35,
+  "expiration": "2026-05-15",
+  "short_put_strike": 743.0,
+  "short_call_strike": null,
+  "tp_order_id": "",
+  "tp_price": null,
+  "reason": "",
+  "error_category": "",
+  "error_code": "",
+  "dry_run": false,
+  "preflight": false,
+  "errors": []
+}
