@@ -164,6 +164,18 @@ def test_update_expiration(journal):
     assert fetched.debit_paid == pytest.approx(0.0)
 
 
+def test_update_settlement(journal):
+    t = _filled()
+    journal.record(t)
+    journal.update_settlement(t.trade_id, realized_pnl=65.0, debit_paid=35.0)
+    fetched = journal.get_trade(t.trade_id)
+    assert fetched.realized_pnl == pytest.approx(65.0)
+    assert fetched.tp_status == "SETTLED"
+    assert fetched.exit_reason == "SETTLED"
+    assert fetched.closed_at is not None
+    assert fetched.debit_paid == pytest.approx(35.0)
+
+
 def test_append_and_list_trade_events(journal):
     t = _filled()
     journal.record(t)

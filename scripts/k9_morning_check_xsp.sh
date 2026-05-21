@@ -6,8 +6,8 @@ export PATH="$HOME/.local/bin:$PATH"
 REPO_ROOT="/home/temckee8/Documents/REPOs/copper"
 cd "$REPO_ROOT"
 
-SPEC_NAME="xsp_pcs_0dte_w2_none_0900_trds"
-ACCOUNT="TRDS"
+SPEC_NAME="xsp_pcs_0dte_w1_none_0900_trds"
+ACCOUNT="TRD"
 UNDERLYING="XSP"
 TRADE_TYPE="PUT_CREDIT_SPREAD"
 
@@ -49,8 +49,8 @@ import os
 import sys
 from captains_log.journal import Journal
 
-spec = "xsp_pcs_0dte_w2_none_0900_trds"
-account = "TRDS"
+spec = "xsp_pcs_0dte_w1_none_0900_trds"
+account = "TRD"
 today = os.popen("TZ=America/Chicago date +%F").read().strip()
 
 journal = Journal(account=account)

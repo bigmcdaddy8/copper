@@ -31,7 +31,7 @@ def _fmt_delta(delta: float | None) -> str:
 
 
 def _status(trade: TradeRecord) -> str:
-    if trade.closed_at or trade.exit_reason in {"GTC", "MANUALLY", "EXPIRED"}:
+    if trade.closed_at or trade.exit_reason in {"GTC", "MANUALLY", "EXPIRED", "SETTLED"}:
         return "CLOSED"
     return "ACTIVE"
 

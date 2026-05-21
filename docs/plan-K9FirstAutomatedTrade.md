@@ -54,7 +54,7 @@ Implement a safe MVP for first automated XSP 0DTE PCS by extending K9 spec parsi
 1. Recommended name: `xsp_pcs_0dte_w2_none_0900_trds.yaml` (or repository naming variant consistent with existing conventions).
 1. Add/update script(s) under `/home/temckee8/Documents/REPOs/copper/scripts/` to run:
 1. Entry at 09:00 CT weekdays via `uv run K9 enter --trade-spec <new_spec_name>`.
-1. Closure reconciliation at post-close buffer time (recommend 15:15 CT weekdays) via `uv run K9 close --account TRDS`.
+1. Closure reconciliation at morning buffer time (06:15 CT weekdays) via `uv run K9 close --account TRDS`.
 1. Document crontab lines and PATH requirements (include `$HOME/.local/bin` for `uv`, based on prior cron failures).
 
 1. Phase 6 — Tests, docs, and smoke checks (parallel with Phases 4-5 after core code changes)
@@ -117,6 +117,6 @@ Implement a safe MVP for first automated XSP 0DTE PCS by extending K9 spec parsi
 - Manual close auto-detection and advanced reconciliation beyond MVP idempotent daily run.
 
 **Further Considerations**
-1. Decide exact post-close cron time buffer for closure job based on observed Tradier sandbox expiry lag; recommendation is start at 15:15 CT and adjust after one week of observations.
+1. Morning-only close reconciliation (06:15 CT) aligns with broker expiration/settlement posting cadence: expirations typically posted overnight, cash settlements in batch mode around 5 PM CT. Afternoon reconciliation (15:15 CT) removed to eliminate premature orphan flagging noise and reduce manual reconciliation churn.
 1. Decide whether `exit_order` schema for `NONE` should still permit `order_type/time_in_force/exit_price` keys (ignored) or require they be omitted to enforce clean specs; recommendation is enforce omission for clarity.
 1. Decide whether to add `delta_preferred` for short_call symmetry now or explicitly defer; recommendation is defer for this first PCS-only trade to reduce blast radius.

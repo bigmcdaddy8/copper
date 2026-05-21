@@ -17,12 +17,20 @@ runner = CliRunner()
 class _FakeBroker:
     order: Order
     positions: list[Position] = field(default_factory=list)
+    gainloss: list[dict] = field(default_factory=list)
+    history: list[dict] = field(default_factory=list)
 
     def get_order(self, _order_id: str) -> Order:
         return self.order
 
     def get_positions(self) -> list[Position]:
         return self.positions
+
+    def get_gainloss(self, start=None, end=None) -> list[dict]:
+        return self.gainloss
+
+    def get_history(self, start=None, end=None) -> list[dict]:
+        return self.history
 
 
 def _make_filled_trade(*, tp_order_id: str = "", tp_limit_price: float | None = None) -> TradeRecord:
@@ -144,3 +152,95 @@ def test_close_marks_stale_none_exit_trade_orphan(tmp_path, monkeypatch):
 
     events = journal.list_events(trade.trade_id)
     assert any(e.event_type == "ADJ" and "ORPHAN" in e.line_text for e in events)
+
+
+def test_close_does_not_repeat_orphan_marking(tmp_path, monkeypatch):
+    db_path = tmp_path / "trades.db"
+    monkeypatch.setenv("CL_DB_PATH", str(db_path))
+
+    journal = Journal(account="TRDS")
+    trade = _make_filled_trade(tp_order_id="")
+    trade.entered_at = "2026-01-05T15:30:00+00:00"
+    journal.record(trade)
+
+    monkeypatch.setattr(
+        "K9.cli._create_broker_for_account",
+        lambda account: _FakeBroker(
+            Order(order_id="unused", status=ORDER_STATUS_FILLED, filled_price=0.25),
+            positions=[],
+        ),
+    )
+    monkeypatch.setattr(
+        "K9.cli.datetime",
+        type(
+            "_DT",
+            (),
+            {
+                "now": staticmethod(
+                    lambda tz=None: datetime(2026, 1, 6, 12, 0, tzinfo=timezone.utc)
+                ),
+                "fromisoformat": staticmethod(datetime.fromisoformat),
+            },
+        ),
+    )
+
+    first = runner.invoke(app, ["close", "--account", "TRDS"])
+    second = runner.invoke(app, ["close", "--account", "TRDS"])
+    assert first.exit_code == 2
+    assert second.exit_code == 0
+
+    events = journal.list_events(trade.trade_id)
+    orphan_events = [e for e in events if e.event_type == "ADJ" and "ORPHAN" in e.line_text]
+    assert len(orphan_events) == 1
+
+
+def test_close_uses_gainloss_evidence_to_close_no_tp_trade(tmp_path, monkeypatch):
+    db_path = tmp_path / "trades.db"
+    monkeypatch.setenv("CL_DB_PATH", str(db_path))
+
+    journal = Journal(account="TRDS")
+    trade = _make_filled_trade(tp_order_id="")
+    trade.entered_at = "2026-01-05T15:30:00+00:00"
+    journal.record(trade)
+
+    monkeypatch.setattr(
+        "K9.cli._create_broker_for_account",
+        lambda account: _FakeBroker(
+            Order(order_id="unused", status=ORDER_STATUS_FILLED, filled_price=0.25),
+            positions=[],
+            gainloss=[
+                {
+                    "symbol": "XSP260105P00580000",
+                    "gain_loss": 65.0,
+                },
+            ],
+            history=[],
+        ),
+    )
+    monkeypatch.setattr(
+        "K9.cli.datetime",
+        type(
+            "_DT",
+            (),
+            {
+                "now": staticmethod(
+                    lambda tz=None: datetime(2026, 1, 6, 12, 0, tzinfo=timezone.utc)
+                ),
+                "fromisoformat": staticmethod(datetime.fromisoformat),
+            },
+        ),
+    )
+
+    result = runner.invoke(app, ["close", "--account", "TRDS"])
+    assert result.exit_code == 0
+
+    saved = journal.get_trade(trade.trade_id)
+    assert saved is not None
+    assert saved.tp_status == "SETTLED"
+    assert saved.exit_reason == "SETTLED"
+    assert saved.closed_at is not None
+    assert saved.realized_pnl == 65.0
+    assert saved.debit_paid == 35.0
+
+    events = journal.list_events(trade.trade_id)
+    assert any(e.event_type == "EXIT" and "SETTLED" in e.line_text for e in events)

@@ -458,6 +458,56 @@ class TradierBroker(Broker):
             orders = [o for o in orders if o.status in statuses]
         return orders
 
+    def get_history(self, start: date | None = None, end: date | None = None) -> list[dict]:
+        """Return account history events from Tradier /accounts/{id}/history."""
+        params: dict[str, str] = {}
+        if start is not None:
+            params["start"] = start.isoformat()
+        if end is not None:
+            params["end"] = end.isoformat()
+
+        data = self._get(f"/accounts/{self._account_id}/history", params=params or None)
+        if not isinstance(data, dict):
+            return []
+
+        history_block = data.get("history")
+        if history_block in (None, "null"):
+            return []
+        if not isinstance(history_block, dict):
+            return []
+
+        raw = history_block.get("event") or []
+        if isinstance(raw, dict):
+            raw = [raw]
+        if not isinstance(raw, list):
+            return []
+        return [row for row in raw if isinstance(row, dict)]
+
+    def get_gainloss(self, start: date | None = None, end: date | None = None) -> list[dict]:
+        """Return closed-position gain/loss rows from Tradier /accounts/{id}/gainloss."""
+        params: dict[str, str] = {}
+        if start is not None:
+            params["start"] = start.isoformat()
+        if end is not None:
+            params["end"] = end.isoformat()
+
+        data = self._get(f"/accounts/{self._account_id}/gainloss", params=params or None)
+        if not isinstance(data, dict):
+            return []
+
+        gainloss_block = data.get("gainloss")
+        if gainloss_block in (None, "null"):
+            return []
+        if not isinstance(gainloss_block, dict):
+            return []
+
+        raw = gainloss_block.get("closed_position") or []
+        if isinstance(raw, dict):
+            raw = [raw]
+        if not isinstance(raw, list):
+            return []
+        return [row for row in raw if isinstance(row, dict)]
+
     # ------------------------------------------------------------------ #
     # BIC — Orders                                                         #
     # ------------------------------------------------------------------ #

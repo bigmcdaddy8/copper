@@ -446,6 +446,31 @@ class Journal:
                 (realized_pnl, closed_ts, trade_id),
             )
 
+    def update_settlement(
+        self,
+        trade_id: str,
+        realized_pnl: float,
+        debit_paid: float,
+        closed_at: str | None = None,
+        debit_fees: float = 0.0,
+    ) -> None:
+        """Update a FILLED trade closed via broker-confirmed expiration settlement."""
+        closed_ts = closed_at or _now_iso()
+        with self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE trades
+                SET realized_pnl = ?,
+                    tp_status    = 'SETTLED',
+                    closed_at    = ?,
+                    exit_reason  = 'SETTLED',
+                    debit_paid   = ?,
+                    debit_fees   = ?
+                WHERE trade_id = ?
+                """,
+                (realized_pnl, closed_ts, debit_paid, debit_fees, trade_id),
+            )
+
     def mark_orphan(
         self,
         trade_id: str,

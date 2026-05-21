@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from datetime import datetime, timezone
@@ -311,7 +312,7 @@ def close(
         ORDER_STATUS_EXPIRED,
         ORDER_STATUS_REJECTED,
     )
-    from captains_log import Journal, TradeLogEntry
+    from captains_log import Journal, TradeLogEntry, format_exit_line
 
     broker = _create_broker_for_account(account)
     journal = Journal(account=account)
@@ -343,9 +344,63 @@ def close(
         # No TP order (exit_type NONE): never auto-close without definitive broker settlement details.
         if not trade.tp_order_id:
             if is_stale:
+                settlement = _probe_settlement_evidence(broker, trade, now_ct.date())
+                if settlement.evidence_found and settlement.realized_pnl is not None:
+                    realized = round(settlement.realized_pnl, 2)
+                    debit_paid = round(max(credit_received - realized, 0.0), 2)
+                    if not dry_run:
+                        if debit_paid <= 0.0:
+                            journal.update_expiration(
+                                trade.trade_id,
+                                realized_pnl=realized,
+                                closed_at=occurred_at,
+                            )
+                            exit_reason = "EXPIRED"
+                            exit_price = 0.0
+                        else:
+                            journal.update_settlement(
+                                trade.trade_id,
+                                realized_pnl=realized,
+                                debit_paid=debit_paid,
+                                closed_at=occurred_at,
+                            )
+                            exit_reason = "SETTLED"
+                            exit_price = round(debit_paid / (100 * qty), 2)
+
+                        journal.append_event(
+                            TradeLogEntry(
+                                trade_id=trade.trade_id,
+                                event_type="EXIT",
+                                occurred_at=occurred_at,
+                                line_text=format_exit_line(
+                                    reason=exit_reason,
+                                    occurred_at=occurred_at,
+                                    exit_price=exit_price,
+                                    fees=0.0,
+                                ),
+                                payload={
+                                    "reason": exit_reason,
+                                    "reconciliation": "definitive_settlement_evidence_found",
+                                    "realized_pnl": realized,
+                                    "debit_paid": debit_paid,
+                                    "credit_received": credit_received,
+                                    "gainloss_matches": settlement.gainloss_matches,
+                                    "history_matches": settlement.history_matches,
+                                },
+                            )
+                        )
+                    updated += 1
+                    continue
+
+                if trade.tp_status == "ORPHAN":
+                    skipped += 1
+                    continue
+
                 orphan_reason = (
-                    "ORPHAN: no TP order and unresolved after next-day reconciliation window. "
-                    f"open_position_detected={has_open_position}."
+                    "ORPHAN: broker settlement evidence unavailable after next-day reconciliation "
+                    f"window. open_position_detected={has_open_position}; "
+                    f"gainloss_matches={settlement.gainloss_matches}; "
+                    f"history_matches={settlement.history_matches}."
                 )
                 orphaned += 1
                 if not dry_run:
@@ -358,8 +413,11 @@ def close(
                             line_text=f"ORPHAN FLAGGED: {orphan_reason}",
                             payload={
                                 "reason": "ORPHAN",
+                                "reconciliation": "broker_settlement_evidence_unavailable",
                                 "open_position_detected": has_open_position,
                                 "credit_received": credit_received,
+                                "gainloss_matches": settlement.gainloss_matches,
+                                "history_matches": settlement.history_matches,
                             },
                         )
                     )
@@ -493,3 +551,112 @@ def _has_open_position_for_trade(positions, underlying: str, expiration_iso: str
         if needle in symbol and (not exp_token or exp_token in symbol):
             return True
     return False
+
+
+@dataclass
+class _SettlementEvidence:
+    evidence_found: bool
+    realized_pnl: float | None
+    gainloss_matches: int
+    history_matches: int
+
+
+def _probe_settlement_evidence(broker, trade, today_ct: date) -> _SettlementEvidence:
+    start_date = _entered_date_or_today(trade.entered_at, today_ct)
+    end_date = today_ct
+    gainloss_rows = _safe_broker_rows(broker, "get_gainloss", start_date, end_date)
+    history_rows = _safe_broker_rows(broker, "get_history", start_date, end_date)
+
+    leg_symbols = _trade_leg_symbols(trade)
+    matched_gainloss = [row for row in gainloss_rows if _row_matches_symbols(row, leg_symbols)]
+    matched_history = [row for row in history_rows if _row_matches_symbols(row, leg_symbols)]
+
+    realized = _infer_realized_pnl(matched_gainloss)
+    return _SettlementEvidence(
+        evidence_found=realized is not None,
+        realized_pnl=realized,
+        gainloss_matches=len(matched_gainloss),
+        history_matches=len(matched_history),
+    )
+
+
+def _safe_broker_rows(broker, method_name: str, start_date: date, end_date: date) -> list[dict]:
+    method = getattr(broker, method_name, None)
+    if method is None:
+        return []
+    try:
+        rows = method(start=start_date, end=end_date)
+    except Exception:
+        return []
+    if not isinstance(rows, list):
+        return []
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def _entered_date_or_today(entered_at_iso: str, today_ct: date) -> date:
+    try:
+        entered = datetime.fromisoformat(entered_at_iso)
+    except ValueError:
+        return today_ct
+    if entered.tzinfo is None:
+        entered = entered.replace(tzinfo=timezone.utc)
+    return entered.astimezone(ZoneInfo("America/Chicago")).date()
+
+
+def _trade_leg_symbols(trade) -> list[str]:
+    expiration = trade.expiration.replace("-", "")
+    if len(expiration) != 8:
+        return []
+    yymmdd = expiration[2:]
+    underlying = (trade.underlying or "").upper()
+
+    def _occ(right: str, strike: float | None) -> str | None:
+        if strike is None:
+            return None
+        return f"{underlying}{yymmdd}{right}{int(strike * 1000):08d}"
+
+    symbols: list[str] = []
+    for right, strike in (
+        ("P", trade.short_put_strike),
+        ("P", trade.long_put_strike),
+        ("C", trade.short_call_strike),
+        ("C", trade.long_call_strike),
+    ):
+        symbol = _occ(right, strike)
+        if symbol:
+            symbols.append(symbol)
+    return symbols
+
+
+def _row_matches_symbols(row: dict, symbols: list[str]) -> bool:
+    if not symbols:
+        return False
+    row_text = " ".join(str(value) for value in row.values()).upper()
+    return any(symbol in row_text for symbol in symbols)
+
+
+def _infer_realized_pnl(rows: list[dict]) -> float | None:
+    if not rows:
+        return None
+    realized_values: list[float] = []
+    for row in rows:
+        value = _first_numeric(
+            row,
+            keys=("gain_loss", "gainloss", "realized_pnl", "realized_gain_loss"),
+        )
+        if value is not None:
+            realized_values.append(value)
+    if not realized_values:
+        return None
+    return round(sum(realized_values), 2)
+
+
+def _first_numeric(row: dict, keys: tuple[str, ...]) -> float | None:
+    for key in keys:
+        if key not in row:
+            continue
+        try:
+            return float(row[key])
+        except (TypeError, ValueError):
+            continue
+    return None

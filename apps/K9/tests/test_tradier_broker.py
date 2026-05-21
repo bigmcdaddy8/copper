@@ -682,3 +682,61 @@ def test_get_orders_filtered(broker):
     orders = broker.get_orders(statuses=["OPEN", "PENDING"])
     assert len(orders) == 2
     assert all(o.status in ("OPEN", "PENDING") for o in orders)
+
+
+# ------------------------------------------------------------------ #
+# get_history / get_gainloss                                         #
+# ------------------------------------------------------------------ #
+
+@respx.mock
+def test_get_history_returns_rows(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/history").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "history": {
+                    "event": [
+                        {"symbol": "XSP260519P00733000", "type": "option"},
+                        {"symbol": "XSP260519P00728000", "type": "option"},
+                    ]
+                }
+            },
+        )
+    )
+    rows = broker.get_history()
+    assert len(rows) == 2
+
+
+@respx.mock
+def test_get_history_null_payload_returns_empty(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/history").mock(
+        return_value=httpx.Response(200, json={"history": "null"})
+    )
+    assert broker.get_history() == []
+
+
+@respx.mock
+def test_get_gainloss_returns_rows(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/gainloss").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "gainloss": {
+                    "closed_position": [
+                        {"symbol": "XSP260519P00733000", "gain_loss": 65.0}
+                    ]
+                }
+            },
+        )
+    )
+    rows = broker.get_gainloss()
+    assert len(rows) == 1
+    assert rows[0]["gain_loss"] == 65.0
+
+
+@respx.mock
+def test_get_gainloss_null_payload_returns_empty(broker):
+    respx.get(f"{_SANDBOX_BASE}/accounts/{FAKE_ACCT}/gainloss").mock(
+        return_value=httpx.Response(200, json={"gainloss": "null"})
+    )
+    assert broker.get_gainloss() == []
