@@ -386,6 +386,7 @@ def close(
                                     "credit_received": credit_received,
                                     "gainloss_matches": settlement.gainloss_matches,
                                     "history_matches": settlement.history_matches,
+                                    "expiration_matches": settlement.expiration_matches,
                                 },
                             )
                         )
@@ -400,7 +401,8 @@ def close(
                     "ORPHAN: broker settlement evidence unavailable after next-day reconciliation "
                     f"window. open_position_detected={has_open_position}; "
                     f"gainloss_matches={settlement.gainloss_matches}; "
-                    f"history_matches={settlement.history_matches}."
+                    f"history_matches={settlement.history_matches}; "
+                    f"expiration_matches={settlement.expiration_matches}."
                 )
                 orphaned += 1
                 if not dry_run:
@@ -418,6 +420,7 @@ def close(
                                 "credit_received": credit_received,
                                 "gainloss_matches": settlement.gainloss_matches,
                                 "history_matches": settlement.history_matches,
+                                "expiration_matches": settlement.expiration_matches,
                             },
                         )
                     )
@@ -559,6 +562,7 @@ class _SettlementEvidence:
     realized_pnl: float | None
     gainloss_matches: int
     history_matches: int
+    expiration_matches: int
 
 
 def _probe_settlement_evidence(broker, trade, today_ct: date) -> _SettlementEvidence:
@@ -572,11 +576,19 @@ def _probe_settlement_evidence(broker, trade, today_ct: date) -> _SettlementEvid
     matched_history = [row for row in history_rows if _row_matches_symbols(row, leg_symbols)]
 
     realized = _infer_realized_pnl(matched_gainloss)
+    expiration_symbols = _expiration_symbols_from_history(matched_history)
+    expiration_matches = sum(1 for symbol in leg_symbols if symbol in expiration_symbols)
+    expiration_evidence = bool(leg_symbols) and expiration_matches == len(leg_symbols)
+
+    if realized is None and expiration_evidence:
+        realized = _infer_expired_realized_pnl(trade)
+
     return _SettlementEvidence(
-        evidence_found=realized is not None,
+        evidence_found=realized is not None or expiration_evidence,
         realized_pnl=realized,
         gainloss_matches=len(matched_gainloss),
         history_matches=len(matched_history),
+        expiration_matches=expiration_matches,
     )
 
 
@@ -659,4 +671,32 @@ def _first_numeric(row: dict, keys: tuple[str, ...]) -> float | None:
             return float(row[key])
         except (TypeError, ValueError):
             continue
+    return None
+
+
+def _expiration_symbols_from_history(rows: list[dict]) -> set[str]:
+    symbols: set[str] = set()
+    for row in rows:
+        if str(row.get("type", "")).lower() != "option":
+            continue
+        option = row.get("option")
+        if not isinstance(option, dict):
+            continue
+        option_type = str(option.get("option_type", "")).lower()
+        if option_type not in {"optexp", "expiration"}:
+            continue
+        symbol = option.get("symbol") or row.get("symbol")
+        if isinstance(symbol, str) and symbol:
+            symbols.add(symbol.upper())
+    return symbols
+
+
+def _infer_expired_realized_pnl(trade) -> float | None:
+    qty = trade.quantity or 1
+    if trade.net_credit is not None:
+        return round(float(trade.net_credit) * 100 * qty, 2)
+    if trade.credit_received is not None:
+        return round(abs(float(trade.credit_received)), 2)
+    if trade.entry_filled_price is not None:
+        return round(abs(float(trade.entry_filled_price) * 100 * qty), 2)
     return None

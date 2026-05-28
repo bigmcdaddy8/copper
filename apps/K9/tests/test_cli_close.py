@@ -244,3 +244,65 @@ def test_close_uses_gainloss_evidence_to_close_no_tp_trade(tmp_path, monkeypatch
 
     events = journal.list_events(trade.trade_id)
     assert any(e.event_type == "EXIT" and "SETTLED" in e.line_text for e in events)
+
+
+def test_close_uses_history_optexp_evidence_to_close_no_tp_trade(tmp_path, monkeypatch):
+    db_path = tmp_path / "trades.db"
+    monkeypatch.setenv("CL_DB_PATH", str(db_path))
+
+    journal = Journal(account="TRDS")
+    trade = _make_filled_trade(tp_order_id="")
+    trade.entered_at = "2026-01-05T15:30:00+00:00"
+    journal.record(trade)
+
+    monkeypatch.setattr(
+        "K9.cli._create_broker_for_account",
+        lambda account: _FakeBroker(
+            Order(order_id="unused", status=ORDER_STATUS_FILLED, filled_price=0.25),
+            positions=[],
+            gainloss=[],
+            history=[
+                {
+                    "type": "option",
+                    "option": {
+                        "symbol": "XSP260105P00580000",
+                        "option_type": "optexp",
+                    },
+                },
+                {
+                    "type": "option",
+                    "option": {
+                        "symbol": "XSP260105P00578000",
+                        "option_type": "optexp",
+                    },
+                },
+            ],
+        ),
+    )
+    monkeypatch.setattr(
+        "K9.cli.datetime",
+        type(
+            "_DT",
+            (),
+            {
+                "now": staticmethod(
+                    lambda tz=None: datetime(2026, 1, 6, 12, 0, tzinfo=timezone.utc)
+                ),
+                "fromisoformat": staticmethod(datetime.fromisoformat),
+            },
+        ),
+    )
+
+    result = runner.invoke(app, ["close", "--account", "TRDS"])
+    assert result.exit_code == 0
+
+    saved = journal.get_trade(trade.trade_id)
+    assert saved is not None
+    assert saved.tp_status == "EXPIRED"
+    assert saved.exit_reason == "EXPIRED"
+    assert saved.closed_at is not None
+    assert saved.realized_pnl == 100.0
+    assert saved.debit_paid == 0.0
+
+    events = journal.list_events(trade.trade_id)
+    assert any(e.event_type == "EXIT" and "EXPIRED" in e.line_text for e in events)
