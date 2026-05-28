@@ -10,15 +10,15 @@ trade:
   entry_constraints:
     allow_multiple_trades: false
     quantity: 1
-    max_entries_per_day: 1
+    max_entries_per_day: 4
     # max_entries_per_day: 100
     max_risk_dollars: 100.0
 
   entry_criteria:
     type: time_window
     allowed_entry_after: "08:55" # Chicago time
-    allowed_entry_before: "09:21" # Chicago time
-    # allowed_entry_before: "13:21" # Chicago time
+    # allowed_entry_before: "09:21" # Chicago time
+    allowed_entry_before: "14:21" # Chicago time
 
   entry_order:
     order_type: LIMIT

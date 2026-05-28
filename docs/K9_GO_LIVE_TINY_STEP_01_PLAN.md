@@ -75,6 +75,7 @@ Use one row per trading day.
 | Date | Entry Outcome | Entry Order ID | 06:15 Close Result | Broker History Evidence | Final Trade State | Notes |
 |---|---|---|---|---|---|---|
 | YYYY-MM-DD | FILLED/SKIPPED | <id or blank> | checked=x updated=y orphaned=z | present/absent | CLOSED/ORPHAN/OPEN | |
+| 2026-05-21 | FILLED | 127603644 | pending (next run 2026-05-22 06:15 CT) | present (history count=3 at entry snapshot) | OPEN | Entry filled net credit 0.23; evidence snapshot saved at logs/K9/evidence_snapshot_TRD_2026-05-21_0dte_entry_127603644.json; get-account-order hit=true; get-account-orders contains id=true; positions count=2. |
 
 ## Success Criteria (Step 01 Exit)
 Step 01 is considered successful when all are true:
