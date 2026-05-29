@@ -416,6 +416,7 @@ class Journal:
                     realized_pnl  = ?,
                     tp_status     = 'FILLED',
                     closed_at     = ?,
+                    reason        = '',
                     exit_reason   = 'GTC',
                     debit_paid    = ?,
                     debit_fees    = ?
@@ -439,6 +440,7 @@ class Journal:
                 SET realized_pnl = ?,
                     tp_status    = 'EXPIRED',
                     closed_at    = ?,
+                    reason       = '',
                     exit_reason  = 'EXPIRED',
                     debit_paid   = 0
                 WHERE trade_id = ?
@@ -463,6 +465,7 @@ class Journal:
                 SET realized_pnl = ?,
                     tp_status    = 'SETTLED',
                     closed_at    = ?,
+                    reason       = '',
                     exit_reason  = 'SETTLED',
                     debit_paid   = ?,
                     debit_fees   = ?
