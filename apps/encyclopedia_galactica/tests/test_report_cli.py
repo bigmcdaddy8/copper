@@ -245,3 +245,124 @@ def test_daily_notes_exact_formatter_output(tmp_path, monkeypatch):
         r"\b\d{2}/\d{2}/\d{4}: EXIT #1 (GTC|MANUALLY|EXPIRED) CLOSED TRADE @\d+\.\d{2} - \$\d+\.\d{2}\b",
         flat_output,
     )
+
+
+def test_weekly_flow_report_groups_conditions_and_non_standard(tmp_path, monkeypatch):
+    db_path = tmp_path / "TRD.db"
+    monkeypatch.setenv("CL_DB_PATH", str(db_path))
+
+    journal = Journal(account="TRD", db_path=db_path)
+
+    def _pcs_trade(seq: int, entered: str, pnl: float | None, *, closed: bool = True) -> TradeRecord:
+        trade = TradeRecord(
+            spec_name="xsp_pcs_0dte_w1_none_0900_trds",
+            environment="production",
+            account="TRD",
+            underlying="XSP",
+            trade_type="PUT_CREDIT_SPREAD",
+            expiration=entered[:10],
+            short_put_strike=750.0,
+            long_put_strike=748.0,
+            short_call_strike=None,
+            long_call_strike=None,
+            outcome="FILLED",
+            reason="",
+            errors=[],
+            entry_order_id=f"TRD-E-{seq}",
+            entry_filled_price=-0.50,
+            net_credit=0.50,
+            tp_order_id="",
+            tp_limit_price=None,
+            tp_status="EXPIRED",
+            realized_pnl=pnl,
+            closed_at=(entered[:10] + "T16:00:00+00:00") if closed else None,
+            exit_reason="EXPIRED" if closed else None,
+            credit_received=50.0,
+            quantity=1,
+        )
+        trade.entered_at = entered
+        return trade
+
+    # Above both strikes (max profit), standard flow.
+    t1 = _pcs_trade(1, "2026-06-01T14:00:00+00:00", 50.0)
+    journal.record(t1)
+    journal.append_event(
+        TradeLogEntry(
+            trade_id=t1.trade_id,
+            event_type="ADJ",
+            occurred_at="2026-06-02T11:15:00+00:00",
+            line_text="ORPHAN FLAGGED: test",
+            payload={"reason": "ORPHAN"},
+        )
+    )
+    journal.append_event(
+        TradeLogEntry(
+            trade_id=t1.trade_id,
+            event_type="EXIT",
+            occurred_at="2026-06-03T11:15:00+00:00",
+            line_text="06/03/2026: EXIT #1 EXPIRED CLOSED TRADE @0.00 - $0.00",
+            payload={"reason": "EXPIRED"},
+        )
+    )
+
+    # Between strikes (partial), standard flow.
+    t2 = _pcs_trade(2, "2026-06-02T14:00:00+00:00", -20.0)
+    journal.record(t2)
+    journal.append_event(
+        TradeLogEntry(
+            trade_id=t2.trade_id,
+            event_type="ADJ",
+            occurred_at="2026-06-03T11:15:00+00:00",
+            line_text="ORPHAN FLAGGED: test",
+            payload={"reason": "ORPHAN"},
+        )
+    )
+    journal.append_event(
+        TradeLogEntry(
+            trade_id=t2.trade_id,
+            event_type="EXIT",
+            occurred_at="2026-06-04T11:15:00+00:00",
+            line_text="06/04/2026: EXIT #1 EXPIRED CLOSED TRADE @0.00 - $0.00",
+            payload={"reason": "EXPIRED"},
+        )
+    )
+
+    # Below both strikes (max loss), non-standard flow (no ORPHAN).
+    t3 = _pcs_trade(3, "2026-06-03T14:00:00+00:00", -150.0)
+    journal.record(t3)
+    journal.append_event(
+        TradeLogEntry(
+            trade_id=t3.trade_id,
+            event_type="EXIT",
+            occurred_at="2026-06-04T11:15:00+00:00",
+            line_text="06/04/2026: EXIT #1 EXPIRED CLOSED TRADE @1.50 - $0.00",
+            payload={"reason": "EXPIRED"},
+        )
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "report",
+            "weekly-flow",
+            "--account",
+            "TRD",
+            "--spec",
+            "xsp_pcs_0dte_w1_none_0900_trds",
+            "--from",
+            "2026-06-01",
+            "--to",
+            "2026-06-05",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Weekly Flow Report" in result.output
+    assert "Flow Pattern Counts" in result.output
+    assert "Market Condition Buckets" in result.output
+    assert "Non-Standard Flow Trades" in result.output
+    assert "Above both strikes" in result.output
+    assert "Between strikes" in result.output
+    assert "Below both strikes" in result.output
+    assert "ENTRY->ORPHAN->CLOSED" in result.output
+    assert "ENTRY->CLOSED(EXPIRED)" in result.output

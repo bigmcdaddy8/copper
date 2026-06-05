@@ -1,6 +1,10 @@
 """encyclopedia_galactica CLI — reporting and accounting for the trading system."""
 from __future__ import annotations
 
+from collections import Counter
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -41,6 +45,91 @@ def _fmt_metric(val: float | str | None, decimals: int = 2) -> str:
     if val is None:
         return "—"
     return f"{val:.{decimals}f}"
+
+
+def _to_ct(iso_dt: str | None) -> str:
+    if not iso_dt:
+        return "—"
+    dt = datetime.fromisoformat(iso_dt)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+    return dt.astimezone(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S %Z")
+
+
+def _parse_yyyy_mm_dd(value: str, option_name: str) -> datetime:
+    try:
+        return datetime.strptime(value, "%Y-%m-%d")
+    except ValueError as exc:
+        raise typer.BadParameter(f"{option_name} must be YYYY-MM-DD") from exc
+
+
+def _entry_date(iso_dt: str) -> str:
+    return iso_dt[:10]
+
+
+def _credit_dollars(trade) -> float | None:
+    qty = trade.quantity or 1
+    if trade.credit_received is not None:
+        return float(trade.credit_received)
+    if trade.net_credit is not None:
+        return round(float(trade.net_credit) * 100 * qty, 2)
+    if trade.entry_filled_price is not None:
+        return round(abs(float(trade.entry_filled_price) * 100 * qty), 2)
+    return None
+
+
+def _market_close_bucket(trade) -> str:
+    """Infer market-close condition from realized P/L vs spread economics.
+
+    The journal does not persist underlying close directly, so this reports an inferred
+    close bucket for put credit spreads once they are closed.
+    """
+    if trade.outcome != "FILLED" or trade.closed_at is None or trade.realized_pnl is None:
+        return "N/A (not closed)"
+
+    if trade.trade_type != "PUT_CREDIT_SPREAD":
+        return "N/A (unsupported trade_type)"
+
+    if trade.short_put_strike is None or trade.long_put_strike is None:
+        return "N/A (missing strikes)"
+
+    credit = _credit_dollars(trade)
+    if credit is None:
+        return "N/A (missing credit)"
+
+    qty = trade.quantity or 1
+    width_points = abs(float(trade.short_put_strike) - float(trade.long_put_strike))
+    width_dollars = width_points * 100 * qty
+
+    max_profit = round(credit, 2)
+    max_loss = round(credit - width_dollars, 2)
+    realized = round(float(trade.realized_pnl), 2)
+
+    # Allow a small tolerance for fee/rounding drift.
+    tol = 1.0
+    if realized >= max_profit - tol:
+        return "Above both strikes"
+    if realized <= max_loss + tol:
+        return "Below both strikes"
+    return "Between strikes"
+
+
+def _flow_label(trade, events: list) -> tuple[str, bool]:
+    has_orphan = any(ev.event_type == "ADJ" and "ORPHAN FLAGGED:" in ev.line_text for ev in events)
+    has_exit = any(ev.event_type == "EXIT" for ev in events)
+
+    if trade.outcome != "FILLED":
+        return f"ENTRY->{trade.outcome}", False
+
+    if trade.closed_at is None:
+        return ("ENTRY->ORPHAN->OPEN" if has_orphan else "ENTRY->OPEN"), False
+
+    closed_reason = trade.exit_reason or trade.tp_status or "CLOSED"
+    if has_orphan and has_exit:
+        return f"ENTRY->ORPHAN->CLOSED({closed_reason})", True
+    if has_exit:
+        return f"ENTRY->CLOSED({closed_reason})", False
+    return "ENTRY->CLOSED(no EXIT event)", False
 
 
 # ── enc trades ────────────────────────────────────────────────────────────────
@@ -447,6 +536,136 @@ def report_trade_history(
     trailer.add_row("Sortino Ratio", _fmt_metric(stats["sortino_ratio"]))
     trailer.add_row("Calmar Ratio", _fmt_metric(stats["calmar_ratio"]))
     console.print(trailer)
+
+
+@report_app.command(name="weekly-flow")
+def report_weekly_flow(
+    account: str = _ACCOUNT_OPTION,
+    spec: str = typer.Option(
+        "xsp_pcs_0dte_w1_none_0900_trds",
+        "--spec",
+        help="Trade spec to analyze.",
+    ),
+    date_from: str = typer.Option(
+        None,
+        "--from",
+        help="Inclusive start date YYYY-MM-DD. Defaults to 7 days ending today (CT).",
+    ),
+    date_to: str = typer.Option(
+        None,
+        "--to",
+        help="Inclusive end date YYYY-MM-DD. Defaults to today (CT).",
+    ),
+) -> None:
+    """Weekly flow report with market-condition buckets and non-standard flow capture."""
+    from encyclopedia_galactica.reader import Reader
+
+    today_ct = datetime.now(tz=ZoneInfo("America/Chicago")).date()
+    to_date = _parse_yyyy_mm_dd(date_to, "--to").date() if date_to else today_ct
+    from_date = _parse_yyyy_mm_dd(date_from, "--from").date() if date_from else (to_date - timedelta(days=6))
+    if from_date > to_date:
+        raise typer.BadParameter("--from must be on or before --to")
+
+    reader = Reader(account=account)
+    records = [
+        t
+        for t in reader.all_trades()
+        if t.spec_name == spec and from_date.isoformat() <= _entry_date(t.entered_at) <= to_date.isoformat()
+    ]
+    records.sort(key=lambda t: t.entered_at)
+
+    title = (
+        f"Weekly Flow Report — {account} / {spec} "
+        f"({from_date.isoformat()} to {to_date.isoformat()})"
+    )
+
+    if not records:
+        console.print(f"[dim]{title}[/dim]")
+        console.print("[dim]No trades found for this window.[/dim]")
+        return
+
+    flow_counts: Counter[str] = Counter()
+    bucket_counts: Counter[str] = Counter()
+    non_standard_rows: list[tuple[str, str, str, str, str]] = []
+
+    details = Table(show_header=True, header_style="bold", title=title)
+    details.add_column("Trade ID", style="dim", width=9)
+    details.add_column("Entered (CT)")
+    details.add_column("Flow")
+    details.add_column("Market Condition")
+    details.add_column("Outcome")
+    details.add_column("P/L", justify="right")
+
+    for trade in records:
+        events = reader.trade_events(trade.trade_id)
+        flow, is_standard = _flow_label(trade, events)
+        bucket = _market_close_bucket(trade)
+
+        flow_counts[flow] += 1
+        bucket_counts[bucket] += 1
+
+        pnl_text = _fmt(trade.realized_pnl)
+        if trade.realized_pnl is not None:
+            pnl_style = "green" if trade.realized_pnl >= 0 else "red"
+            pnl_text = f"[{pnl_style}]{pnl_text}[/{pnl_style}]"
+
+        details.add_row(
+            trade.trade_id[:8],
+            _to_ct(trade.entered_at),
+            flow,
+            bucket,
+            trade.outcome,
+            pnl_text,
+        )
+
+        if not is_standard:
+            non_standard_rows.append(
+                (
+                    trade.trade_id[:8],
+                    _to_ct(trade.entered_at),
+                    flow,
+                    trade.outcome,
+                    _fmt(trade.realized_pnl),
+                )
+            )
+
+    console.print(details)
+
+    flow_tbl = Table(show_header=True, header_style="bold", title="Flow Pattern Counts")
+    flow_tbl.add_column("Flow")
+    flow_tbl.add_column("Count", justify="right")
+    for flow, count in flow_counts.items():
+        flow_tbl.add_row(flow, str(count))
+    console.print(flow_tbl)
+
+    bucket_tbl = Table(show_header=True, header_style="bold", title="Market Condition Buckets")
+    bucket_tbl.add_column("Condition")
+    bucket_tbl.add_column("Count", justify="right")
+    ordered_buckets = [
+        "Above both strikes",
+        "Between strikes",
+        "Below both strikes",
+    ]
+    for name in ordered_buckets:
+        bucket_tbl.add_row(name, str(bucket_counts.get(name, 0)))
+    for name, count in bucket_counts.items():
+        if name not in ordered_buckets:
+            bucket_tbl.add_row(name, str(count))
+    console.print(bucket_tbl)
+
+    non_std_tbl = Table(show_header=True, header_style="bold", title="Non-Standard Flow Trades")
+    non_std_tbl.add_column("Trade ID", style="dim", width=9)
+    non_std_tbl.add_column("Entered (CT)")
+    non_std_tbl.add_column("Flow")
+    non_std_tbl.add_column("Outcome")
+    non_std_tbl.add_column("P/L", justify="right")
+
+    if non_standard_rows:
+        for row in non_standard_rows:
+            non_std_tbl.add_row(*row)
+    else:
+        non_std_tbl.add_row("—", "—", "All trades matched ENTRY->ORPHAN->CLOSED", "—", "—")
+    console.print(non_std_tbl)
 
 
 # ── enc reset ─────────────────────────────────────────────────────────────────

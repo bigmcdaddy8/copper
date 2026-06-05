@@ -39,3 +39,8 @@ def test_report_daily_notes_help():
 def test_report_trade_history_help():
     result = runner.invoke(app, ["report", "trade-history", "--help"])
     assert result.exit_code == 0
+
+
+def test_report_weekly_flow_help():
+    result = runner.invoke(app, ["report", "weekly-flow", "--help"])
+    assert result.exit_code == 0
