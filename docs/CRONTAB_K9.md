@@ -24,9 +24,9 @@ Current offset: CDT = UTC-5 (valid Mar–Nov).
 # DST END: change to -> 30 15 * * 1-5
 30 14 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_morning_check_xsp.sh >> /home/temckee8/Documents/REPOs/copper/logs/K9/k9_morning_check_xsp_$(TZ=America/Chicago date +\%F).log 2>&1
 
-# K9 — weekly flow report at 06:00 CT = 11:00 UTC (Saturday)
-# DST END: change to -> 0 12 * * 6
-0 11 * * 6     bash /home/temckee8/Documents/REPOs/copper/scripts/k9_weekly_flow_report_xsp.sh
+# K9 — weekly flow report at 07:00 CT = 12:00 UTC (Monday) — runs before the 07:15 close job
+# DST END: change to -> 0 13 * * 1
+0 12 * * 1     bash /home/temckee8/Documents/REPOs/copper/scripts/k9_weekly_flow_report_xsp.sh
 
 # Smart shutdown at 10:15 CT = 15:15 UTC weekdays — skips if SSH/VS Code session active, defers to 01:08 AM failsafe
 # DST END: change to -> 15 16 * * 1-5
