@@ -41,11 +41,15 @@ def discover_tastytrade_file(downloads_dir: Path) -> Path:
 def load_tastytrade(
     downloads_dir: Path,
     explicit_path: Path | None = None,
-) -> tuple[pd.DataFrame, list[str]]:
+) -> tuple[pd.DataFrame, list[str], int]:
     """Load TastyTrade CSV and return the TastyTrade Russell 1000 universe plus a list of warnings.
 
     If explicit_path is provided it is used directly; otherwise the newest matching
     file in downloads_dir is discovered automatically.
+
+    Returns a 3-tuple: (dataframe, warnings, raw_row_count).
+    raw_row_count is the total number of data rows read from the file before any
+    filtering, used by callers to report input quality statistics.
 
     Raises:
         FileNotFoundError: if explicit_path does not exist, or discovery finds no files.
@@ -61,6 +65,7 @@ def load_tastytrade(
         path = discover_tastytrade_file(downloads_dir)
 
     df = pd.read_csv(path)
+    raw_count = len(df)
 
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
@@ -114,4 +119,4 @@ def load_tastytrade(
             )
 
     available = [c for c in _OUTPUT_COLUMNS if c in df.columns]
-    return df[available].reset_index(drop=True), warnings
+    return df[available].reset_index(drop=True), warnings, raw_count

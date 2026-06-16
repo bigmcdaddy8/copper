@@ -76,7 +76,7 @@ def test_load_null_symbol(tmp_path):
         {"Symbol": None, "Quant Rating": 3.0, "Growth": "B", "Momentum": "C"},
     ]
     path = _make_xlsx(tmp_path, "Copper_BULLish 2026-04-01.xlsx", rows)
-    df, warnings = load_seekingalpha(tmp_path, explicit_path=path)
+    df, warnings, _ = load_seekingalpha(tmp_path, explicit_path=path)
     assert len(df) == 1
     assert any("null" in w.lower() or "symbol" in w.lower() for w in warnings)
 
@@ -88,7 +88,7 @@ def test_load_null_symbol(tmp_path):
 
 def test_load_bull_happy_path(tmp_path):
     path = _make_xlsx(tmp_path, "Copper_BULLish 2026-04-01.xlsx")
-    df, warnings = load_seekingalpha(tmp_path, explicit_path=path, side="BULL")
+    df, warnings, _ = load_seekingalpha(tmp_path, explicit_path=path, side="BULL")
     assert len(df) == 1
     assert set(_REQUIRED).issubset(df.columns)
     assert warnings == []
@@ -96,14 +96,14 @@ def test_load_bull_happy_path(tmp_path):
 
 def test_load_bear_uses_bear_glob(tmp_path):
     _make_xlsx(tmp_path, "Copper_BEARish 2026-04-01.xlsx")
-    df, warnings = load_seekingalpha(tmp_path, side="BEAR")
+    df, warnings, _ = load_seekingalpha(tmp_path, side="BEAR")
     assert len(df) == 1
     assert "Symbol" in df.columns
 
 
 def test_load_optional_columns_included(tmp_path):
     path = _make_xlsx(tmp_path, "Copper_BULLish 2026-04-01.xlsx")
-    df, _ = load_seekingalpha(tmp_path, explicit_path=path)
+    df, _, _ = load_seekingalpha(tmp_path, explicit_path=path)
     assert "Company Name" in df.columns
     assert "Upcoming Announce Date" in df.columns
 
@@ -111,7 +111,7 @@ def test_load_optional_columns_included(tmp_path):
 def test_load_optional_columns_absent(tmp_path):
     rows = [{"Symbol": "AAPL", "Quant Rating": 4.5, "Growth": "A", "Momentum": "B+"}]
     path = _make_xlsx(tmp_path, "Copper_BULLish 2026-04-01.xlsx", rows)
-    df, warnings = load_seekingalpha(tmp_path, explicit_path=path)
+    df, warnings, _ = load_seekingalpha(tmp_path, explicit_path=path)
     assert set(_REQUIRED).issubset(df.columns)
     assert "Company Name" not in df.columns
     assert warnings == []

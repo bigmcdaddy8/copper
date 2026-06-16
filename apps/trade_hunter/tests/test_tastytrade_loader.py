@@ -105,7 +105,7 @@ def test_load_unknown_sector(tmp_path):
         },
     ]
     path = _make_csv(tmp_path, "tastytrade_watchlist_m8investments_Russell 1000_250101.csv", rows)
-    df, warnings = load_tastytrade(tmp_path, explicit_path=path)
+    df, warnings, _ = load_tastytrade(tmp_path, explicit_path=path)
     assert len(df) == 1
     assert df.iloc[0]["Symbol"] == "AAPL"
     assert any("Mystery Sector" in w for w in warnings)
@@ -135,7 +135,7 @@ def test_load_null_symbol(tmp_path):
         },
     ]
     path = _make_csv(tmp_path, "tastytrade_watchlist_m8investments_Russell 1000_250101.csv", rows)
-    df, warnings = load_tastytrade(tmp_path, explicit_path=path)
+    df, warnings, _ = load_tastytrade(tmp_path, explicit_path=path)
     assert len(df) == 1
     assert any("null" in w.lower() or "symbol" in w.lower() for w in warnings)
 
@@ -147,7 +147,7 @@ def test_load_null_symbol(tmp_path):
 
 def test_load_happy_path(tmp_path):
     path = _make_csv(tmp_path, "tastytrade_watchlist_m8investments_Russell 1000_250101.csv")
-    df, warnings = load_tastytrade(tmp_path, explicit_path=path)
+    df, warnings, _ = load_tastytrade(tmp_path, explicit_path=path)
     assert len(df) == 1
     assert "Sector" in df.columns
     assert "Sector Bucket" in df.columns
@@ -156,18 +156,18 @@ def test_load_happy_path(tmp_path):
 
 def test_load_sector_normalized(tmp_path):
     path = _make_csv(tmp_path, "tastytrade_watchlist_m8investments_Russell 1000_250101.csv")
-    df, _ = load_tastytrade(tmp_path, explicit_path=path)
+    df, _, _ = load_tastytrade(tmp_path, explicit_path=path)
     assert df.iloc[0]["Sector"] == "Information Technology"
 
 
 def test_load_sector_bucket_assigned(tmp_path):
     path = _make_csv(tmp_path, "tastytrade_watchlist_m8investments_Russell 1000_250101.csv")
-    df, _ = load_tastytrade(tmp_path, explicit_path=path)
+    df, _, _ = load_tastytrade(tmp_path, explicit_path=path)
     assert df.iloc[0]["Sector Bucket"] == "Growth"
 
 
 def test_load_uses_discovery_when_no_explicit_path(tmp_path):
     _make_csv(tmp_path, "tastytrade_watchlist_m8investments_Russell 1000_250101.csv")
-    df, warnings = load_tastytrade(tmp_path)
+    df, warnings, _ = load_tastytrade(tmp_path)
     assert len(df) == 1
     assert "Sector Bucket" in df.columns

@@ -22,7 +22,7 @@ def run_pipeline(
     config: RunConfig,
     client: TradierClient,
     run_date: date | None = None,
-) -> tuple[Path, Path]:
+) -> tuple[Path, Path, dict[str, int | float]]:
     """Orchestrate the full trade_hunter pipeline.
 
     Args:
@@ -31,7 +31,8 @@ def run_pipeline(
         run_date:  Date of the run (defaults to date.today()).
 
     Returns:
-        (workbook_path, log_path) — paths of the written output files.
+        (workbook_path, log_path, stats) — paths of the written output files plus an
+        input-quality statistics dict for the caller to display.
 
     Raises:
         FileNotFoundError: if any required input file cannot be found.
@@ -43,7 +44,7 @@ def run_pipeline(
     log = RunLog(run_start=datetime.now(), verbose=config.verbose)
 
     # 1. Load TastyTrade Russell 1000 universe
-    universal, warnings = load_tastytrade(config.downloads_dir, config.tastytrade_file)
+    universal, warnings, tt_raw = load_tastytrade(config.downloads_dir, config.tastytrade_file)
     log.add_warnings(warnings)
 
     # 2. Load active trades
@@ -74,10 +75,15 @@ def run_pipeline(
     active_buckets, active_sectors = build_active_diversity_lists(active_symbols, universal)
 
     # 7. Load SeekingAlpha candidates
-    bull_sa, warnings = load_seekingalpha(config.downloads_dir, config.bull_file, side="BULL")
+    bull_sa, warnings, bull_raw = load_seekingalpha(config.downloads_dir, config.bull_file, side="BULL")
     log.add_warnings(warnings)
-    bear_sa, warnings = load_seekingalpha(config.downloads_dir, config.bear_file, side="BEAR")
+    bear_sa, warnings, bear_raw = load_seekingalpha(config.downloads_dir, config.bear_file, side="BEAR")
     log.add_warnings(warnings)
+
+    # 7a. Compute universe-match counts (ignoring active-trade exclusion — pure data quality signal)
+    universe_symbols = set(universal["Symbol"])
+    bull_universe_match = int(bull_sa["Symbol"].isin(universe_symbols).sum())
+    bear_universe_match = int(bear_sa["Symbol"].isin(universe_symbols).sum())
 
     # 8. Filter candidates (open-trade exclusion + universe join)
     bull_joined, warnings = filter_and_join(bull_sa, universal, active_symbols, "BULL")
@@ -140,4 +146,25 @@ def run_pipeline(
     }
     log_path = log.write(config.output_dir, summary=summary)
 
-    return workbook_path, log_path
+    tt_valid = len(universal)
+    bull_valid = len(bull_sa)
+    bear_valid = len(bear_sa)
+    stats: dict[str, int | float] = {
+        "tt_raw": tt_raw,
+        "tt_valid": tt_valid,
+        "tt_valid_pct": round(tt_valid / tt_raw * 100, 2) if tt_raw else 0.0,
+        "bull_raw": bull_raw,
+        "bull_valid": bull_valid,
+        "bull_valid_pct": round(bull_valid / bull_raw * 100, 2) if bull_raw else 0.0,
+        "bull_universe_match": bull_universe_match,
+        "bull_universe_match_pct": round(bull_universe_match / bull_valid * 100, 2) if bull_valid else 0.0,
+        "bear_raw": bear_raw,
+        "bear_valid": bear_valid,
+        "bear_valid_pct": round(bear_valid / bear_raw * 100, 2) if bear_raw else 0.0,
+        "bear_universe_match": bear_universe_match,
+        "bear_universe_match_pct": round(bear_universe_match / bear_valid * 100, 2) if bear_valid else 0.0,
+        "bull_trades_found": len(bull_scored),
+        "bear_trades_found": len(bear_scored),
+    }
+
+    return workbook_path, log_path, stats

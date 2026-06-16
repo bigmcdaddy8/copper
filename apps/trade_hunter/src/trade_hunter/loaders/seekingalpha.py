@@ -59,11 +59,13 @@ def load_seekingalpha(
     downloads_dir: Path,
     explicit_path: Path | None = None,
     side: str = "BULL",
-) -> tuple[pd.DataFrame, list[str]]:
-    """Load a SeekingAlpha Excel file and return (DataFrame, warnings).
+) -> tuple[pd.DataFrame, list[str], int]:
+    """Load a SeekingAlpha Excel file and return (DataFrame, warnings, raw_row_count).
 
     If explicit_path is provided it is used directly; otherwise the appropriate
     glob (BULL_GLOB or BEAR_GLOB) is used for discovery based on side.
+    raw_row_count is the total number of data rows read from the file before any
+    filtering, used by callers to report input quality statistics.
 
     Args:
         downloads_dir: Directory to search when explicit_path is None.
@@ -86,6 +88,7 @@ def load_seekingalpha(
         path = discover_seekingalpha_file(downloads_dir, glob)
 
     df = _read_xlsx_tolerant(path)
+    raw_count = len(df)
 
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
@@ -100,4 +103,4 @@ def load_seekingalpha(
     df["Symbol"] = df["Symbol"].astype(str).str.strip()
 
     available = [c for c in _OUTPUT_COLUMNS if c in df.columns]
-    return df[available].reset_index(drop=True), warnings
+    return df[available].reset_index(drop=True), warnings, raw_count

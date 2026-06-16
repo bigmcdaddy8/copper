@@ -128,7 +128,7 @@ def pipeline_result(tmp_path):
     mock_yf_ticker.info = {"sector": "Technology"}
     with patch("trade_hunter.loaders.sector_cache.yfinance") as mock_yf:
         mock_yf.Ticker.return_value = mock_yf_ticker
-        workbook_path, log_path = run_pipeline(config, mock_client, run_date=_RUN_DATE)
+        workbook_path, log_path, _ = run_pipeline(config, mock_client, run_date=_RUN_DATE)
     return workbook_path, log_path, output
 
 

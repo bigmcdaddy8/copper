@@ -107,7 +107,8 @@ def run(
 
     try:
         tradier_client = TradierClient(api_key=config.tradier_api_key, sandbox=config.sandbox)
-        workbook_path, log_path = run_pipeline(config, tradier_client, run_date=date.today())
+        workbook_path, log_path, stats = run_pipeline(config, tradier_client, run_date=date.today())
+        _print_input_quality(stats)
         console.print(f"[green]Workbook written:[/green] {workbook_path}")
         console.print(f"[green]Run log written:[/green]  {log_path}")
     except Exception as exc:
@@ -117,6 +118,33 @@ def run(
 
 def _auto_or_explicit(path: Path | None, downloads_dir: Path) -> str:
     return str(path) if path else f"auto-discover from {downloads_dir}"
+
+
+def _print_input_quality(stats: dict) -> None:
+    console.rule("Input Quality Summary")
+    console.print(
+        f"  TastyTrade universe  : "
+        f"{stats['tt_raw']:>5} total, {stats['tt_valid']:>5} valid"
+        f"  ({stats['tt_valid_pct']:.2f}%)"
+    )
+    console.print(
+        f"  BULL-ish candidates  : "
+        f"{stats['bull_raw']:>5} total, {stats['bull_valid']:>5} valid"
+        f"  ({stats['bull_valid_pct']:.2f}%),"
+        f"  {stats['bull_universe_match']:>5} in universe"
+        f"  ({stats['bull_universe_match_pct']:.2f}% of valid)"
+    )
+    console.print(
+        f"  BEAR-ish candidates  : "
+        f"{stats['bear_raw']:>5} total, {stats['bear_valid']:>5} valid"
+        f"  ({stats['bear_valid_pct']:.2f}%),"
+        f"  {stats['bear_universe_match']:>5} in universe"
+        f"  ({stats['bear_universe_match_pct']:.2f}% of valid)"
+    )
+    console.rule()
+    console.print(f"  Trades found (BULL)  : {stats['bull_trades_found']}")
+    console.print(f"  Trades found (BEAR)  : {stats['bear_trades_found']}")
+    console.rule()
 
 
 def _print_summary(config: RunConfig) -> None:
