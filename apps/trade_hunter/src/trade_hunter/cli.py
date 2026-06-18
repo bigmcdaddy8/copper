@@ -52,7 +52,7 @@ def run(
     max_spread_pct: float = typer.Option(
         0.13, help="Maximum spread % hard filter ((ask-bid)/mid, default 13%)"
     ),
-    min_dte: int = typer.Option(30, help="Minimum days-to-expiration for expiration selection"),
+    min_dte: int = typer.Option(28, help="Minimum days-to-expiration for expiration selection"),
     max_dte: int = typer.Option(60, help="Maximum days-to-expiration for expiration selection"),
     sandbox: bool = typer.Option(False, "--sandbox", help="Use Tradier sandbox environment"),
     verbose: bool = typer.Option(

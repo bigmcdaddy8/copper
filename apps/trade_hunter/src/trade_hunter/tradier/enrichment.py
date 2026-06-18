@@ -15,7 +15,7 @@ def enrich_candidates(
     side: str,
     client: TradierClient,
     run_date: date,
-    min_dte: int = 30,
+    min_dte: int = 28,
     max_dte: int = 60,
     verbose: bool = False,
 ) -> tuple[pd.DataFrame, list[str]]:

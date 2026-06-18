@@ -19,7 +19,7 @@ def _is_monthly_expiration(exp_date: date) -> bool:
 def select_expiration(
     expirations: list[str],
     run_date: date,
-    min_dte: int = 30,
+    min_dte: int = 28,
     max_dte: int = 60,
 ) -> str | None:
     """Return the nearest qualifying monthly expiration string, or None.

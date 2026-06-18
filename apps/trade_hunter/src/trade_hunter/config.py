@@ -25,7 +25,7 @@ class RunConfig:
     min_open_interest: int = 8
     min_bid: float = 0.55
     max_spread_pct: float = 0.13
-    min_dte: int = 30
+    min_dte: int = 28
     max_dte: int = 60
     sandbox: bool = False
     verbose: bool = False

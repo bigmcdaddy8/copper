@@ -17,5 +17,5 @@ def test_runconfig_defaults():
     assert config.min_open_interest == 8
     assert config.min_bid == 0.55
     assert config.max_spread_pct == 0.13
-    assert config.min_dte == 30
+    assert config.min_dte == 28
     assert config.max_dte == 60
