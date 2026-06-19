@@ -1015,6 +1015,122 @@ def report_orphans(
     )
 
 
+# ── enc report balance-history ────────────────────────────────────────────────
+
+@report_app.command(name="balance-history")
+def report_balance_history(
+    account: str = _ACCOUNT_OPTION,
+    period: str = typer.Option(
+        "WEEK", "--period", "-p",
+        help="Period: WEEK (default) | MONTH | YTD | YEAR | YEAR_3 | YEAR_5 | ALL.",
+    ),
+    as_json: bool = typer.Option(False, "--json", "-j", help="Output parsed snapshots as JSON."),
+    raw: bool = typer.Option(False, "--raw", "-r", help="Dump the raw Tradier API response (for debugging)."),
+) -> None:
+    """Daily account balance history from Tradier (calls live API)."""
+    import json as _json
+    import os
+    import dataclasses
+
+    _VALID_PERIODS = {"WEEK", "MONTH", "YTD", "YEAR", "YEAR_3", "YEAR_5", "ALL"}
+    period = period.upper()
+    if period not in _VALID_PERIODS:
+        console.print(
+            f"[red]Invalid period '{period}'. Must be one of: {', '.join(sorted(_VALID_PERIODS))}[/red]"
+        )
+        raise typer.Exit(1)
+
+    if account.upper() == "HD":
+        console.print("[red]Balance history is not available for the Holodeck simulator.[/red]")
+        raise typer.Exit(1)
+
+    sandbox = account.upper() == "TRDS"
+
+    from dotenv import load_dotenv
+    from K9.tradier.broker import TradierBroker
+
+    load_dotenv()
+
+    if sandbox:
+        api_key = os.environ.get("TRADIER_SANDBOX_API_KEY", "")
+        account_id = (
+            os.environ.get("TRADIER_SANDBOX_ACCOUNT_ID")
+            or os.environ.get("TRADIER_ACCOUNT_ID", "")
+        )
+        if not api_key:
+            console.print("[red]Error: TRADIER_SANDBOX_API_KEY is not set.[/red]")
+            raise typer.Exit(1)
+    else:
+        api_key = os.environ.get("TRADIER_API_KEY", "")
+        account_id = os.environ.get("TRADIER_ACCOUNT_ID", "")
+        if not api_key:
+            console.print("[red]Error: TRADIER_API_KEY is not set.[/red]")
+            raise typer.Exit(1)
+
+    if not account_id:
+        console.print("[red]Error: TRADIER_ACCOUNT_ID is not set.[/red]")
+        raise typer.Exit(1)
+
+    broker = TradierBroker(api_key=api_key, account_id=account_id, sandbox=sandbox)
+
+    if raw:
+        resp = broker.get_raw_historical_balances(period=period)
+        console.print_json(_json.dumps(resp))
+        return
+
+    snapshots = broker.get_historical_balances(period=period)
+
+    if as_json:
+        console.print_json(_json.dumps([dataclasses.asdict(s) for s in snapshots]))
+        return
+
+    title = f"Account Balance History — {account} (period: {period})"
+    if not snapshots:
+        console.print(f"[dim]{title}[/dim]")
+        console.print(
+            "[dim]No balance history returned. "
+            "Run with --raw to inspect the raw API response.[/dim]"
+        )
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=title)
+    tbl.add_column("Date")
+    tbl.add_column("Value $", justify="right")
+    tbl.add_column("Daily Change $", justify="right")
+
+    prev_value: float | None = None
+    for s in snapshots:
+        if s.value is not None and prev_value is not None:
+            change = s.value - prev_value
+            ch_style = "green" if change >= 0 else "red"
+            change_str = f"[{ch_style}]{_fmt(change)}[/{ch_style}]"
+        else:
+            change_str = "—"
+        tbl.add_row(
+            s.date,
+            _fmt(s.value),
+            change_str,
+        )
+        prev_value = s.value
+
+    console.print(tbl)
+
+    # Footer: period delta from raw response
+    raw_resp = broker.get_raw_historical_balances(period=period)
+    outer = raw_resp.get("historical_balances") or {}
+    delta = outer.get("delta")
+    delta_pct = outer.get("delta_percent")
+    if delta is not None and delta_pct is not None:
+        d_style = "green" if float(delta) >= 0 else "red"
+        console.print(
+            f"[bold]Period change: [{d_style}]{_fmt(delta)}[/{d_style}]  "
+            f"([{d_style}]{_fmt(delta_pct)}%[/{d_style}])[/bold]  "
+            f"[dim]({len(snapshots)} trading day(s))[/dim]"
+        )
+    else:
+        console.print(f"[dim]{len(snapshots)} snapshot(s)[/dim]")
+
+
 # ── enc reset ─────────────────────────────────────────────────────────────────
 
 @app.command(name="reset")

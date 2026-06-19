@@ -354,7 +354,9 @@ name = "encyclopedia-galactica"
 version = "0.1.0"
 source = { editable = "apps/encyclopedia_galactica" }
 dependencies = [
+    { name = "bic" },
     { name = "captains-log" },
+    { name = "k9" },
     { name = "rich" },
     { name = "typer" },
 ]
@@ -366,7 +368,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bic", editable = "apps/bic" },
     { name = "captains-log", editable = "apps/captains_log" },
+    { name = "k9", editable = "apps/K9" },
     { name = "rich", specifier = ">=13" },
     { name = "typer", specifier = ">=0.12" },
 ]

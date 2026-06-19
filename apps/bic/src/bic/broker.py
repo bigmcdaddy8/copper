@@ -4,6 +4,7 @@ from datetime import date, datetime
 
 from bic.models import (
     AccountSnapshot,
+    BalanceSnapshot,
     OHLCVBar,
     OptionChain,
     Order,
@@ -88,4 +89,14 @@ class Broker(ABC):
     @abstractmethod
     def get_order(self, order_id: str) -> Order:
         """Retrieve current order status."""
+        ...
+
+    @abstractmethod
+    def get_historical_balances(self, period: str = "WEEK") -> list[BalanceSnapshot]:
+        """Return historical account balance snapshots for *period*.
+
+        period: broker-defined period string.
+            Tradier supports: "WEEK", "MONTH", "YTD", "YEAR", "YEAR_3", "YEAR_5", "ALL".
+        Returns snapshots sorted by date ascending.
+        """
         ...

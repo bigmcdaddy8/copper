@@ -122,3 +122,10 @@ class OHLCVBar:
     low: float
     close: float
     volume: int = 0       # always 0 for Holodeck (no synthetic volume data)
+
+
+@dataclass
+class BalanceSnapshot:
+    """A single historical account balance snapshot returned by the broker."""
+    date: str              # ISO date string "YYYY-MM-DD"
+    value: float | None    # account value for that day

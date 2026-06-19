@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 from bic.broker import Broker
 from bic.models import (
     AccountSnapshot,
+    BalanceSnapshot,
     OHLCVBar,
     OptionChain,
     Order,
@@ -160,6 +161,12 @@ class HolodeckBroker(Broker):
                 )
             )
         return bars
+
+    def get_historical_balances(self, period: str = "WEEK") -> list[BalanceSnapshot]:
+        """Not supported by Holodeck — historical balance queries require a live broker."""
+        raise NotImplementedError(
+            "HolodeckBroker does not support historical balance queries."
+        )
 
     # ==========================================================================
     # Simulation Control — Holodeck-only (not part of BIC interface)

@@ -6,6 +6,8 @@ dependencies = [
     "typer>=0.12",
     "rich>=13",
     "captains_log",
+    "bic",
+    "K9",
 ]
 
 [project.scripts]
@@ -23,3 +25,5 @@ dev = ["pytest>=8"]
 
 [tool.uv.sources]
 captains_log = { workspace = true }
+bic = { workspace = true }
+K9 = { workspace = true }

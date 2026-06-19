@@ -11,6 +11,7 @@ import httpx
 from bic.broker import Broker
 from bic.models import (
     AccountSnapshot,
+    BalanceSnapshot,
     OHLCVBar,
     OptionChain,
     OptionContract,
@@ -553,6 +554,59 @@ class TradierBroker(Broker):
     def cancel_order(self, order_id: str) -> None:
         """Cancel an open order."""
         self._delete(f"/accounts/{self._account_id}/orders/{order_id}")
+
+    # ------------------------------------------------------------------ #
+    # BIC — Historical Balances                                            #
+    # ------------------------------------------------------------------ #
+
+    def get_raw_historical_balances(self, period: str = "WEEK") -> dict:
+        """Return the raw Tradier API response for historical balances (for debugging)."""
+        return self._get(
+            f"/accounts/{self._account_id}/historical-balances",
+            params={"period": period},
+        )
+
+    def get_historical_balances(self, period: str = "WEEK") -> list[BalanceSnapshot]:
+        """Return historical account balance snapshots for *period* from Tradier.
+
+        Response structure:
+          {"historical_balances": {"balances": {"balance": [{"date": ..., "value": ...}]}}}
+        """
+        data = self.get_raw_historical_balances(period=period)
+        if not isinstance(data, dict):
+            return []
+
+        # Navigate: historical_balances -> balances -> balance[]
+        outer = data.get("historical_balances")
+        if not isinstance(outer, dict):
+            return []
+
+        balances_block = outer.get("balances")
+        if not isinstance(balances_block, dict):
+            return []
+
+        raw = balances_block.get("balance")
+        if raw in (None, "null", ""):
+            return []
+        if isinstance(raw, dict):
+            raw = [raw]
+        if not isinstance(raw, list):
+            return []
+
+        snapshots: list[BalanceSnapshot] = []
+        for row in raw:
+            if not isinstance(row, dict):
+                continue
+            date_str = row.get("date")
+            if not isinstance(date_str, str):
+                continue
+            snapshots.append(
+                BalanceSnapshot(
+                    date=date_str,
+                    value=_float_or_none(row.get("value")),
+                )
+            )
+        return sorted(snapshots, key=lambda s: s.date)
 
 
 # ------------------------------------------------------------------ #
