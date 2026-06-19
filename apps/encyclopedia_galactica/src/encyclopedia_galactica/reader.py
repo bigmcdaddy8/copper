@@ -4,8 +4,9 @@ from __future__ import annotations
 import math
 import re
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from captains_log.journal import Journal
 from captains_log.models import TradeLogEntry, TradeRecord
@@ -265,3 +266,76 @@ def trailer_stats(closed_trades: list[TradeRecord]) -> dict[str, float | int | s
         "sortino_ratio": sortino,
         "calmar_ratio": calmar,
     }
+
+
+# ── New report helpers ────────────────────────────────────────────────────────
+
+def dte_remaining(expiration: str | None) -> int | None:
+    """Days from today (CT) to expiration date. Negative means past expiration."""
+    if not expiration:
+        return None
+    try:
+        exp_date = datetime.strptime(expiration[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+    today = datetime.now(tz=ZoneInfo("America/Chicago")).date()
+    return (exp_date - today).days
+
+
+def active_trades(trades: list[TradeRecord]) -> list[TradeRecord]:
+    """Return trades that are filled and not yet closed."""
+    return [t for t in trades if t.outcome == "FILLED" and t.closed_at is None]
+
+
+def closed_trades_since(trades: list[TradeRecord], days: int) -> list[TradeRecord]:
+    """Return trades closed within the last N calendar days (by closed_at date)."""
+    cutoff = (datetime.now(tz=ZoneInfo("America/Chicago")).date() - timedelta(days=days - 1)).isoformat()
+    result = []
+    for t in trades:
+        if t.closed_at is None:
+            continue
+        if t.closed_at[:10] >= cutoff:
+            result.append(t)
+    return result
+
+
+def orphaned_trades(trades: list[TradeRecord]) -> list[TradeRecord]:
+    """Return filled trades that are still open but past their expiration date."""
+    result = []
+    for t in trades:
+        if t.outcome != "FILLED" or t.closed_at is not None:
+            continue
+        dte = dte_remaining(t.expiration)
+        if dte is not None and dte < 0:
+            result.append(t)
+    return result
+
+
+def daily_summary(trades: list[TradeRecord], days: int) -> list[dict]:
+    """Summarize trade activity per calendar day for the last N days (oldest first).
+
+    Each row covers one UTC calendar day and reports:
+    - entries: filled trades entered on that day
+    - attempts: all outcomes entered on that day
+    - closed: trades whose closed_at falls on that day
+    - gross_credit: sum of credit_received for filled entries
+    - realized_pnl: sum of realized_pnl for trades closed that day
+    """
+    today = datetime.now(tz=ZoneInfo("America/Chicago")).date()
+    dates = [(today - timedelta(days=i)).isoformat() for i in range(days - 1, -1, -1)]
+    rows = []
+    for d in dates:
+        entered = [t for t in trades if t.entered_at[:10] == d and t.outcome == "FILLED"]
+        attempted = [t for t in trades if t.entered_at[:10] == d]
+        closed = [t for t in trades if t.closed_at is not None and t.closed_at[:10] == d]
+        gross_credit = sum(t.credit_received or 0.0 for t in entered)
+        realized = sum(t.realized_pnl for t in closed if t.realized_pnl is not None)
+        rows.append({
+            "date": d,
+            "entered": len(entered),
+            "attempted": len(attempted),
+            "closed": len(closed),
+            "gross_credit": gross_credit,
+            "realized_pnl": realized,
+        })
+    return rows

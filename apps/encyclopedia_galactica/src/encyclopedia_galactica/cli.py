@@ -668,6 +668,353 @@ def report_weekly_flow(
     console.print(non_std_tbl)
 
 
+
+# ── enc report active ─────────────────────────────────────────────────────────
+
+@report_app.command(name="active")
+def report_active(
+    account: str = _ACCOUNT_OPTION,
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show TP order details, broker tag, and greeks."),
+) -> None:
+    """Show all open (filled but not yet closed) trades."""
+    from encyclopedia_galactica.reader import Reader, active_trades, dte_remaining
+
+    reader = Reader(account=account)
+    records = active_trades(reader.all_trades())
+    records.sort(key=lambda t: t.entered_at)
+
+    title = f"Active Trades — {account}"
+    if not records:
+        console.print(f"[dim]{title}[/dim]")
+        console.print("[dim]No active trades found.[/dim]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=title)
+    tbl.add_column("Trade #")
+    tbl.add_column("Trade ID", style="dim", width=9)
+    tbl.add_column("Underlying")
+    tbl.add_column("Strategy")
+    tbl.add_column("Entry Date")
+    tbl.add_column("Expiration")
+    tbl.add_column("DTE", justify="right")
+    tbl.add_column("Credit $", justify="right")
+    tbl.add_column("TP Status")
+    if verbose:
+        tbl.add_column("Short Put", justify="right")
+        tbl.add_column("Long Put", justify="right")
+        tbl.add_column("Short Call", justify="right")
+        tbl.add_column("Long Call", justify="right")
+        tbl.add_column("BPR", justify="right")
+        tbl.add_column("Max Risk $", justify="right")
+        tbl.add_column("Entry Order ID", style="dim")
+        tbl.add_column("TP Order ID", style="dim")
+        tbl.add_column("Broker Tag", style="dim")
+
+    for t in records:
+        dte = dte_remaining(t.expiration)
+        dte_str = str(dte) if dte is not None else "—"
+        dte_style = "red" if dte is not None and dte <= 0 else ("yellow" if dte is not None and dte <= 1 else "white")
+
+        tp_style = "green" if t.tp_status == "PLACED" else ("yellow" if t.tp_status == "NONE" else "dim")
+
+        max_risk: float | None = None
+        if t.short_put_strike is not None and t.long_put_strike is not None:
+            width = abs(t.short_put_strike - t.long_put_strike)
+            if t.short_call_strike is not None and t.long_call_strike is not None:
+                call_width = abs(t.long_call_strike - t.short_call_strike)
+                width = max(width, call_width)
+            qty = t.quantity or 1
+            credit = t.credit_received or 0.0
+            max_risk = round((width * 100 * qty) - credit, 2)
+
+        row = [
+            t.legacy_trade_num or "—",
+            t.trade_id[:8],
+            t.underlying,
+            t.trade_type,
+            _entry_date(t.entered_at),
+            t.expiration or "—",
+            f"[{dte_style}]{dte_str}[/{dte_style}]",
+            _fmt(t.credit_received),
+            f"[{tp_style}]{t.tp_status}[/{tp_style}]",
+        ]
+        if verbose:
+            row += [
+                _fmt(t.short_put_strike, decimals=0) if t.short_put_strike else "—",
+                _fmt(t.long_put_strike, decimals=0) if t.long_put_strike else "—",
+                _fmt(t.short_call_strike, decimals=0) if t.short_call_strike else "—",
+                _fmt(t.long_call_strike, decimals=0) if t.long_call_strike else "—",
+                _fmt(t.bpr),
+                _fmt(max_risk) if max_risk is not None else "—",
+                t.entry_order_id or "—",
+                t.tp_order_id or "—",
+                t.broker_order_tag or "—",
+            ]
+        tbl.add_row(*row)
+
+    console.print(tbl)
+    console.print(f"[dim]{len(records)} active trade(s)[/dim]")
+
+
+# ── enc report closed ─────────────────────────────────────────────────────────
+
+@report_app.command(name="closed")
+def report_closed(
+    account: str = _ACCOUNT_OPTION,
+    days: int = typer.Option(7, "--days", "-d", help="Number of days to look back (default 7)."),
+    date_from: str = typer.Option(None, "--from", help="Inclusive start date YYYY-MM-DD (overrides --days)."),
+    date_to: str = typer.Option(None, "--to", help="Inclusive end date YYYY-MM-DD (overrides --days)."),
+) -> None:
+    """Show trades closed in the last N days (default 7)."""
+    from encyclopedia_galactica.reader import Reader, closed_trades_since, days_in_market, tp_percent
+
+    reader = Reader(account=account)
+    all_records = reader.all_trades()
+    all_filled = [t for t in all_records if t.outcome == "FILLED" and t.closed_at is not None]
+
+    if date_from or date_to:
+        from_str = date_from or "0000-00-00"
+        to_str = date_to or "9999-99-99"
+        records = [t for t in all_filled if from_str <= (t.closed_at or "")[:10] <= to_str]
+        window_label = f"{date_from or '—'} to {date_to or 'today'}"
+    else:
+        records = closed_trades_since(all_filled, days)
+        window_label = f"last {days} day(s)"
+
+    records.sort(key=lambda t: t.closed_at or "")
+
+    title = f"Closed Trades — {account} ({window_label})"
+    if not records:
+        console.print(f"[dim]{title}[/dim]")
+        console.print("[dim]No closed trades found in window.[/dim]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=title)
+    tbl.add_column("Trade #")
+    tbl.add_column("Trade ID", style="dim", width=9)
+    tbl.add_column("Underlying")
+    tbl.add_column("Strategy")
+    tbl.add_column("Entry Date")
+    tbl.add_column("Close Date")
+    tbl.add_column("DiM", justify="right")
+    tbl.add_column("Credit $", justify="right")
+    tbl.add_column("P/L $", justify="right")
+    tbl.add_column("TP%", justify="right")
+    tbl.add_column("Exit Reason")
+
+    total_pnl = 0.0
+    for t in records:
+        dim = days_in_market(t)
+        tp_pct_val = tp_percent(t)
+        pnl = t.realized_pnl or 0.0
+        total_pnl += pnl
+        pnl_style = "green" if pnl >= 0 else "red"
+        tbl.add_row(
+            t.legacy_trade_num or "—",
+            t.trade_id[:8],
+            t.underlying,
+            t.trade_type,
+            _entry_date(t.entered_at),
+            (t.closed_at or "")[:10],
+            str(dim) if dim is not None else "—",
+            _fmt(t.credit_received),
+            f"[{pnl_style}]{_fmt(t.realized_pnl)}[/{pnl_style}]",
+            _fmt(tp_pct_val),
+            t.exit_reason or "—",
+        )
+
+    console.print(tbl)
+    sign = "green" if total_pnl >= 0 else "red"
+    console.print(
+        f"[dim]{len(records)} closed trade(s)  "
+        f"Total P/L: [{sign}]{_fmt(total_pnl)}[/{sign}][/dim]"
+    )
+
+
+# ── enc report daily ──────────────────────────────────────────────────────────
+
+@report_app.command(name="daily")
+def report_daily(
+    account: str = _ACCOUNT_OPTION,
+    days: int = typer.Option(7, "--days", "-d", help="Number of days to show (default 7)."),
+) -> None:
+    """Daily activity summary: entries, closes, gross credit collected, realized P/L."""
+    from encyclopedia_galactica.reader import Reader, daily_summary
+
+    reader = Reader(account=account)
+    all_records = reader.all_trades()
+    rows = daily_summary(all_records, days)
+
+    title = f"Daily Summary — {account} (last {days} day(s))"
+    tbl = Table(show_header=True, header_style="bold", title=title)
+    tbl.add_column("Date")
+    tbl.add_column("Entries", justify="right")
+    tbl.add_column("Attempts", justify="right")
+    tbl.add_column("Closes", justify="right")
+    tbl.add_column("Gross Credit $", justify="right")
+    tbl.add_column("Realized P/L $", justify="right")
+
+    tot_entries = tot_attempts = tot_closes = 0
+    tot_credit = 0.0
+    tot_pnl = 0.0
+
+    for row in rows:
+        pnl = row["realized_pnl"]
+        pnl_style = "green" if pnl >= 0 else "red"
+        credit_str = _fmt(row["gross_credit"]) if row["gross_credit"] else "—"
+        pnl_str = f"[{pnl_style}]{_fmt(pnl)}[/{pnl_style}]" if row["closed"] else "—"
+        tbl.add_row(
+            row["date"],
+            str(row["entered"]) if row["entered"] else "[dim]0[/dim]",
+            str(row["attempted"]) if row["attempted"] else "[dim]0[/dim]",
+            str(row["closed"]) if row["closed"] else "[dim]0[/dim]",
+            credit_str,
+            pnl_str,
+        )
+        tot_entries += row["entered"]
+        tot_attempts += row["attempted"]
+        tot_closes += row["closed"]
+        tot_credit += row["gross_credit"]
+        tot_pnl += row["realized_pnl"]
+
+    console.print(tbl)
+    sign = "green" if tot_pnl >= 0 else "red"
+    console.print(
+        f"[bold]Totals:  {tot_entries} entr(ies)  {tot_closes} close(s)  "
+        f"Credit: {_fmt(tot_credit)}  P/L: [{sign}]{_fmt(tot_pnl)}[/{sign}][/bold]"
+    )
+
+
+# ── enc report risk ───────────────────────────────────────────────────────────
+
+@report_app.command(name="risk")
+def report_risk(
+    account: str = _ACCOUNT_OPTION,
+) -> None:
+    """Capital at risk snapshot for all currently open trades."""
+    from encyclopedia_galactica.reader import Reader, active_trades, dte_remaining
+
+    reader = Reader(account=account)
+    records = active_trades(reader.all_trades())
+    records.sort(key=lambda t: t.expiration or "")
+
+    title = f"Open Risk Report — {account}"
+    if not records:
+        console.print(f"[dim]{title}[/dim]")
+        console.print("[dim]No open trades found.[/dim]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=title)
+    tbl.add_column("Trade #")
+    tbl.add_column("Underlying")
+    tbl.add_column("Expiration")
+    tbl.add_column("DTE", justify="right")
+    tbl.add_column("Short Put", justify="right")
+    tbl.add_column("Long Put", justify="right")
+    tbl.add_column("Short Call", justify="right")
+    tbl.add_column("Long Call", justify="right")
+    tbl.add_column("Qty", justify="right")
+    tbl.add_column("BPR $", justify="right")
+    tbl.add_column("Max Risk $", justify="right")
+
+    total_bpr = 0.0
+    total_max_risk = 0.0
+
+    for t in records:
+        qty = t.quantity or 1
+        dte = dte_remaining(t.expiration)
+        dte_style = "red" if dte is not None and dte <= 0 else ("yellow" if dte is not None and dte <= 1 else "white")
+
+        put_width = abs((t.short_put_strike or 0) - (t.long_put_strike or 0)) if t.short_put_strike and t.long_put_strike else None
+        call_width = abs((t.long_call_strike or 0) - (t.short_call_strike or 0)) if t.short_call_strike and t.long_call_strike else None
+        wing = max(w for w in [put_width, call_width] if w is not None) if (put_width or call_width) else None
+
+        credit = t.credit_received or 0.0
+        max_risk = round((wing * 100 * qty) - credit, 2) if wing is not None else None
+        bpr = t.bpr or 0.0
+        total_bpr += bpr
+        if max_risk is not None:
+            total_max_risk += abs(max_risk)
+
+        risk_style = "red" if max_risk is not None and max_risk < 0 else "white"
+
+        tbl.add_row(
+            t.legacy_trade_num or "—",
+            t.underlying,
+            t.expiration or "—",
+            f"[{dte_style}]{dte if dte is not None else '—'}[/{dte_style}]",
+            _fmt(t.short_put_strike, decimals=0) if t.short_put_strike else "—",
+            _fmt(t.long_put_strike, decimals=0) if t.long_put_strike else "—",
+            _fmt(t.short_call_strike, decimals=0) if t.short_call_strike else "—",
+            _fmt(t.long_call_strike, decimals=0) if t.long_call_strike else "—",
+            str(qty),
+            _fmt(bpr),
+            f"[{risk_style}]{_fmt(max_risk)}[/{risk_style}]" if max_risk is not None else "—",
+        )
+
+    console.print(tbl)
+    console.print(
+        f"[bold]Total BPR: {_fmt(total_bpr)}  Total Max Risk: [red]{_fmt(total_max_risk)}[/red]  "
+        f"({len(records)} open trade(s))[/bold]"
+    )
+
+
+# ── enc report orphans ────────────────────────────────────────────────────────
+
+@report_app.command(name="orphans")
+def report_orphans(
+    account: str = _ACCOUNT_OPTION,
+) -> None:
+    """Filled trades past expiration with no close recorded — require manual reconciliation."""
+    from encyclopedia_galactica.reader import Reader, dte_remaining, orphaned_trades
+
+    reader = Reader(account=account)
+    records = orphaned_trades(reader.all_trades())
+    records.sort(key=lambda t: t.expiration or "")
+
+    title = f"Unreconciled / Orphan Trades — {account}"
+    if not records:
+        console.print(f"[dim]{title}[/dim]")
+        console.print("[green]No orphaned trades found. All expired positions are reconciled.[/green]")
+        return
+
+    tbl = Table(show_header=True, header_style="bold", title=title)
+    tbl.add_column("Trade #")
+    tbl.add_column("Trade ID", style="dim", width=9)
+    tbl.add_column("Underlying")
+    tbl.add_column("Expiration")
+    tbl.add_column("Days Past Exp", justify="right")
+    tbl.add_column("Entry Date")
+    tbl.add_column("Credit $", justify="right")
+    tbl.add_column("TP Status")
+    tbl.add_column("Entry Order ID", style="dim")
+    tbl.add_column("TP Order ID", style="dim")
+    tbl.add_column("Broker Tag", style="dim")
+
+    for t in records:
+        dte = dte_remaining(t.expiration)
+        days_past = abs(dte) if dte is not None else "?"
+        tp_style = "yellow" if t.tp_status == "PLACED" else "dim"
+        tbl.add_row(
+            t.legacy_trade_num or "—",
+            t.trade_id[:8],
+            t.underlying,
+            t.expiration or "—",
+            f"[red]{days_past}[/red]",
+            _entry_date(t.entered_at),
+            _fmt(t.credit_received),
+            f"[{tp_style}]{t.tp_status}[/{tp_style}]",
+            t.entry_order_id or "—",
+            t.tp_order_id or "—",
+            t.broker_order_tag or "—",
+        )
+
+    console.print(tbl)
+    console.print(
+        f"[bold yellow]⚠  {len(records)} trade(s) require reconciliation.[/bold yellow]"
+    )
+
+
 # ── enc reset ─────────────────────────────────────────────────────────────────
 
 @app.command(name="reset")

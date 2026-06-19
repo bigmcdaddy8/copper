@@ -128,6 +128,7 @@ def enter(
         entry_order_id=result.order_id,
         entry_filled_price=result.filled_price,
         net_credit=result.net_credit,
+        broker_order_tag=result.trade_tag or None,
         tp_order_id=result.tp_order_id,
         tp_limit_price=result.tp_price,
         tp_status=(
