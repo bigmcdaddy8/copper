@@ -145,7 +145,7 @@ positions)
     if [[ "$FMT" == "table" ]]; then
         echo "$raw" | trd_print_table \
             '["SYMBOL", "QTY", "COST_BASIS", "DATE_ACQUIRED"],
-             (.positions.position // [] |
+             (.positions | if type == "object" then .position // [] else [] end |
               if type == "array" then .[] else . end |
               [.symbol, (.quantity | tostring),
                (.cost_basis | tostring), (.date_acquired // "")])
@@ -171,7 +171,7 @@ history)
     if [[ "$FMT" == "table" ]]; then
         echo "$raw" | trd_print_table \
             '["DATE", "TYPE", "DESCRIPTION", "AMOUNT"],
-             (.history.event // [] |
+             (.history | if type == "object" then .event // [] else [] end |
               if type == "array" then .[] else . end |
               [.date, .type, (.description // ""),
                ((.amount // 0) | tostring)])
@@ -224,7 +224,7 @@ orders)
     if [[ "$FMT" == "table" ]]; then
         echo "$raw" | trd_print_table \
             '["ID", "TYPE", "SYMBOL", "SIDE", "QTY", "STATUS", "PRICE", "TAG"],
-             (.orders.order // [] |
+             (.orders | if type == "object" then .order // [] else [] end |
               if type == "array" then .[] else . end |
               [(.id | tostring), .type, (.symbol // ""), .side,
                (.quantity | tostring), .status,
