@@ -305,6 +305,7 @@ def run_entry(
                 max_entry_attempts=spec.entry.max_entry_attempts,
                 retry_price_decrement=spec.entry.retry_price_decrement,
                 min_credit_received=spec.minimum_net_credit,
+                entry_window_close=window_close,
                 tick=tick,
             )
         except Exception as exc:  # noqa: BLE001

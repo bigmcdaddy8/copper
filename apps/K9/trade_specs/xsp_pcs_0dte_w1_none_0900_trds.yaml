@@ -1,5 +1,5 @@
 schema_version: 2
-notes: XSP 0DTE Put Credit Spread - ~13 delta short put, $1 wing, no TP - let it expire
+notes: XSP 0DTE Put Credit Spread - ~30 delta short put, $1 wing, no TP - let it expire
 enabled: true
 environment: TRD
 underlying: XSP
@@ -25,7 +25,7 @@ trade:
     max_entry_attempts: 5
     retry_price_decrement: 0.02
     entry_price: MIDPOINT
-    min_credit_received: 0.01
+    min_credit_received: 0.05
 
   leg_selection:
     short_put:

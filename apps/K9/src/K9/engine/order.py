@@ -4,6 +4,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 
 from bic.broker import Broker
 from bic.models import (
@@ -176,6 +177,7 @@ def place_with_retries(
     max_entry_attempts: int,
     retry_price_decrement: float,
     min_credit_received: float,
+    entry_window_close: datetime | None = None,
     poll_interval: float = 5.0,
     tick: Callable[[], None] | None = None,
 ) -> OrderOutcome:
@@ -183,6 +185,7 @@ def place_with_retries(
 
     Attempt 1 uses order.limit_price (midpoint from constructor).
     Each retry decrements limit credit by retry_price_decrement until floor.
+    Retries are also abandoned if the entry time window has expired.
     """
     current_limit = float(order.limit_price)
     last_outcome: OrderOutcome | None = None
@@ -220,6 +223,15 @@ def place_with_retries(
                 f"{outcome.reason} Attempts exhausted: {max_entry_attempts}/{max_entry_attempts}."
             )
             return outcome
+
+        if entry_window_close is not None:
+            now_ct = datetime.now(tz=entry_window_close.tzinfo)
+            if now_ct >= entry_window_close:
+                outcome.reason = (
+                    f"{outcome.reason} Entry window closed at "
+                    f"{entry_window_close.strftime('%H:%M')} CT; no further retries."
+                )
+                return outcome
 
         next_limit = round(current_limit - retry_price_decrement, 2)
         if next_limit < min_credit_received:
