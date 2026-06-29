@@ -25,14 +25,14 @@ trade:
     max_entry_attempts: 5
     retry_price_decrement: 0.02
     entry_price: MIDPOINT
-    min_credit_received: 0.05
+    min_credit_received: 0.03
 
   leg_selection:
     short_put:
-      delta_preferred: -0.30
+      delta_preferred: -0.41
       delta_range:
-        min: -0.40
-        max: -0.20
+        min: -0.48
+        max: -0.30
     long_put:
       wing_distance_points: 1.0
 
