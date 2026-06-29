@@ -334,10 +334,15 @@ def close(
 
         occurred_at = now_utc.isoformat()
         qty = trade.quantity or 1
-        credit_received = trade.credit_received or (
-            round((trade.entry_filled_price or 0.0) * 100 * qty, 2)
-            if trade.entry_filled_price is not None
-            else 0.0
+        # credit_received is stored as a negative value (matching entry_filled_price
+        # sign convention where credits are negative).  Take abs() so the debit_paid
+        # formula below works correctly regardless of sign.
+        credit_received = abs(
+            trade.credit_received or (
+                round((trade.entry_filled_price or 0.0) * 100 * qty, 2)
+                if trade.entry_filled_price is not None
+                else 0.0
+            )
         )
         is_stale = _trade_entered_before_today_ct(trade.entered_at, now_ct.date())
         has_open_position = _has_open_position_for_trade(positions, trade.underlying, trade.expiration)
