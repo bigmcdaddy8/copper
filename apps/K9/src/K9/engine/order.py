@@ -3,10 +3,13 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from bic.broker import Broker
+
+_CT = ZoneInfo("America/Chicago")
 from bic.models import (
     Order,
     OrderRequest,
@@ -19,6 +22,18 @@ from bic.models import (
 
 
 @dataclass
+class AttemptRecord:
+    """Per-attempt detail captured during place_with_retries."""
+    attempt: int
+    submitted_at_ct: str        # ISO timestamp, Chicago time, to the second
+    limit_price: float
+    order_id: str
+    outcome: str                # "FILLED" | "TIMED_OUT" | "CANCELED" | "REJECTED" | "EXPIRED"
+    filled_price: float | None
+    reason: str
+
+
+@dataclass
 class OrderOutcome:
     status: str           # "FILLED" | "CANCELED" | "REJECTED" | "EXPIRED"
     order_id: str
@@ -27,6 +42,7 @@ class OrderOutcome:
     rejection_reason: str | None = None   # normalized BIC rejection code when status=="REJECTED"
     timed_out: bool = False
     attempts_used: int = 1
+    attempt_log: list[AttemptRecord] = field(default_factory=list)
 
 
 @dataclass
@@ -189,6 +205,7 @@ def place_with_retries(
     """
     current_limit = float(order.limit_price)
     last_outcome: OrderOutcome | None = None
+    attempt_log: list[AttemptRecord] = []
 
     for attempt in range(1, max(1, max_entry_attempts) + 1):
         attempt_order = OrderRequest(
@@ -202,6 +219,7 @@ def place_with_retries(
             tag=order.tag,
         )
 
+        submitted_at_ct = datetime.now(tz=_CT)
         outcome = place_and_poll(
             broker,
             attempt_order,
@@ -211,6 +229,18 @@ def place_with_retries(
         )
         outcome.attempts_used = attempt
         last_outcome = outcome
+
+        attempt_outcome_label = "TIMED_OUT" if outcome.timed_out else outcome.status
+        attempt_log.append(AttemptRecord(
+            attempt=attempt,
+            submitted_at_ct=submitted_at_ct.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            limit_price=round(current_limit, 2),
+            order_id=outcome.order_id,
+            outcome=attempt_outcome_label,
+            filled_price=outcome.filled_price,
+            reason=outcome.reason,
+        ))
+        outcome.attempt_log = attempt_log
 
         if outcome.status in {"FILLED", "REJECTED", "EXPIRED"}:
             return outcome

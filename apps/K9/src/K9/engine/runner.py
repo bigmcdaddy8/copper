@@ -63,6 +63,7 @@ class RunResult:
     preflight: bool = False
     entry_attempts: int = 0
     errors: list[str] = field(default_factory=list)
+    attempt_log: list = field(default_factory=list)  # list[AttemptRecord] from order.py
 
 
 def _set_error(
@@ -322,6 +323,7 @@ def run_entry(
         result.filled_price = outcome.filled_price
         result.reason = outcome.reason
         result.entry_attempts = outcome.attempts_used
+        result.attempt_log = outcome.attempt_log
         if outcome.status == "REJECTED":
             result.rejection_reason = outcome.rejection_reason
             if result.rejection_reason == "market_closed":

@@ -21,7 +21,7 @@ trade:
   entry_order:
     order_type: LIMIT
     time_in_force: DAY
-    max_fill_wait_time_seconds: 55
+    max_fill_wait_time_seconds: 21
     max_entry_attempts: 5
     retry_price_decrement: 0.02
     entry_price: MIDPOINT

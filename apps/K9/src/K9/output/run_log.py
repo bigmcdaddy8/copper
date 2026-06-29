@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -53,6 +54,7 @@ class RunLog:
             "dry_run":           result.dry_run,
             "preflight":         result.preflight,
             "errors":            result.errors,
+            "entry_attempt_log": [asdict(a) for a in result.attempt_log],
         }
 
     def write(self) -> Path:
