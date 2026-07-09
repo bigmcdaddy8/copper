@@ -546,8 +546,22 @@ class TradierBroker(Broker):
         )
 
     def get_order(self, order_id: str) -> Order:
-        """Return current order status from Tradier."""
-        data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
+        """Return current order status from Tradier.
+
+        Tradier occasionally returns HTTP 400 with "order already in finalized
+        state: filled" on the *first* status poll when an order fills extremely
+        quickly (within milliseconds of submission).  The endpoint returns full
+        data on a subsequent call, so we retry once after a short delay rather
+        than surfacing this as an unhandled exception.
+        """
+        try:
+            data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 400 and "finalized state: filled" in str(exc):
+                time.sleep(1.0)
+                data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
+            else:
+                raise
         o = data.get("order", {})
         return _raw_to_order(o, order_id_fallback=order_id)
 
