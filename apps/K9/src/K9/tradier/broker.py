@@ -87,12 +87,16 @@ class TradierBroker(Broker):
     # --- Adaptive throttle helpers ---
 
     def _update_ratelimit(self, headers: httpx.Headers) -> None:
-        """Parse rate-limit headers from Tradier response and update internal state."""
+        """Parse rate-limit headers from Tradier response and update internal state.
+
+        Tradier occasionally sends empty-string values for these headers (observed
+        2026-07-15); guard against ``int('')`` raising ``ValueError``.
+        """
         available = headers.get("X-Ratelimit-Available")
         expiry = headers.get("X-Ratelimit-Expiry")
-        if available is not None:
+        if available is not None and available.strip():
             self._ratelimit_available = int(available)
-        if expiry is not None:
+        if expiry is not None and expiry.strip():
             self._ratelimit_expiry = int(expiry)
 
     def _throttle(self) -> None:
