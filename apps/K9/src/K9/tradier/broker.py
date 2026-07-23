@@ -553,17 +553,31 @@ class TradierBroker(Broker):
         """Return current order status from Tradier.
 
         Tradier occasionally returns HTTP 400 with "order already in finalized
-        state: filled" on the *first* status poll when an order fills extremely
-        quickly (within milliseconds of submission).  The endpoint returns full
-        data on a subsequent call, so we retry once after a short delay rather
-        than surfacing this as an unhandled exception.
+        state: <status>" when the order transitions at the exact moment K9 polls.
+        Two variants are handled:
+
+        - "finalized state: filled"  — retry once after 1 s; the endpoint returns
+          full data (including fill price) on the subsequent call.
+        - "finalized state: canceled" — return a synthetic canceled Order immediately;
+          no retry is needed because there is no fill price to recover.
         """
         try:
             data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
         except httpx.HTTPStatusError as exc:
-            if exc.response.status_code == 400 and "finalized state: filled" in str(exc):
-                time.sleep(1.0)
-                data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
+            if exc.response.status_code == 400:
+                exc_str = str(exc)
+                if "finalized state: filled" in exc_str:
+                    time.sleep(1.0)
+                    data = self._get(f"/accounts/{self._account_id}/orders/{order_id}")
+                elif "finalized state: canceled" in exc_str:
+                    return Order(
+                        order_id=order_id,
+                        status=ORDER_STATUS_CANCELED,
+                        filled_price=None,
+                        remaining_quantity=0,
+                    )
+                else:
+                    raise
             else:
                 raise
         o = data.get("order", {})
