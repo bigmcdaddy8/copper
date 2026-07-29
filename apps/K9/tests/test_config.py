@@ -497,3 +497,91 @@ trade:
 
     with pytest.raises(ValueError, match="trade.leg_selection.short_put"):
         TradeSpec.from_file(path)
+
+
+def test_v2_max_credit_received_parsed(tmp_path):
+    """max_credit_received in entry_order is parsed into maximum_net_credit."""
+    path = tmp_path / "spec.yaml"
+    path.write_text(
+        """
+enabled: true
+environment: HD
+underlying: XSP
+trade:
+  option_strategy: PCS
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 100
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "08:55"
+    allowed_entry_before: "09:21"
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 21
+    max_entry_attempts: 5
+    retry_price_decrement: 0.02
+    entry_price: MIDPOINT
+    min_credit_received: 0.03
+    max_credit_received: 0.95
+  leg_selection:
+    short_put:
+      delta_preferred: -0.41
+      delta_range:
+        min: -0.48
+        max: -0.30
+    long_put:
+      wing_distance_points: 1
+  exit_order:
+    exit_type: NONE
+""".strip()
+    )
+    spec = TradeSpec.from_file(path)
+    assert spec.maximum_net_credit == 0.95
+    assert spec.minimum_net_credit == 0.03
+
+
+def test_v2_max_credit_received_optional(tmp_path):
+    """max_credit_received is optional; omitting it yields maximum_net_credit=None."""
+    path = tmp_path / "spec.yaml"
+    path.write_text(
+        """
+enabled: true
+environment: HD
+underlying: XSP
+trade:
+  option_strategy: PCS
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 100
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "08:55"
+    allowed_entry_before: "09:21"
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 21
+    max_entry_attempts: 5
+    retry_price_decrement: 0.02
+    entry_price: MIDPOINT
+    min_credit_received: 0.03
+  leg_selection:
+    short_put:
+      delta_preferred: -0.41
+      delta_range:
+        min: -0.48
+        max: -0.30
+    long_put:
+      wing_distance_points: 1
+  exit_order:
+    exit_type: NONE
+""".strip()
+    )
+    spec = TradeSpec.from_file(path)
+    assert spec.maximum_net_credit is None

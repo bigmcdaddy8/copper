@@ -26,6 +26,7 @@ trade:
     retry_price_decrement: 0.02
     entry_price: MIDPOINT
     min_credit_received: 0.03
+    max_credit_received: 0.95  # $1 wide spread; cap at $0.05 below width to avoid erroneous-price rejections
 
   leg_selection:
     short_put:

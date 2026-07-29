@@ -359,3 +359,28 @@ trade:
         if result.outcome == "FILLED":
                 assert result.tp_order_id == ""
                 assert result.tp_price is None
+
+
+def test_run_entry_caps_credit_at_maximum_net_credit(holodeck_broker, tmp_path):
+    """When midpoint credit exceeds maximum_net_credit the order limit price is capped."""
+    spec = _make_spec(tmp_path)
+    # Force a very low cap so any real midpoint will exceed it.
+    spec.maximum_net_credit = 0.01
+    result = run_entry(spec, "cap_test", holodeck_broker, log_dir=tmp_path / "logs")
+    if result.outcome in ("FILLED", "CANCELED"):
+        assert result.net_credit is not None
+        assert result.net_credit <= 0.01
+
+
+def test_run_entry_no_cap_when_maximum_net_credit_is_none(holodeck_broker, tmp_path):
+    """When maximum_net_credit is None, credit is passed through unchanged."""
+    spec = _make_spec(tmp_path)
+    assert spec.maximum_net_credit is None
+    result_uncapped = run_entry(spec, "no_cap", holodeck_broker, log_dir=tmp_path / "logs")
+
+    spec2 = _make_spec(tmp_path)
+    spec2.maximum_net_credit = 9999.0  # absurdly high — should never trigger
+    result_high_cap = run_entry(spec2, "high_cap", holodeck_broker, log_dir=tmp_path / "logs")
+
+    # Both runs should produce the same net_credit (cap had no effect)
+    assert result_uncapped.net_credit == result_high_cap.net_credit

@@ -277,6 +277,12 @@ def run_entry(
         order = build_order(spec, expiration, short_put, long_put, short_call, long_call)
         order.tag = trade_tag
         credit = net_credit(order)
+        # Cap entry price to maximum_net_credit when configured. This prevents
+        # erroneous-price rejections from market centers when IV is extreme
+        # (e.g. a $1-wide spread trading at $1.60 mid is rejected as out-of-range).
+        if spec.maximum_net_credit is not None and credit > spec.maximum_net_credit:
+            order.limit_price = round(spec.maximum_net_credit, 2)
+            credit = order.limit_price
         result.net_credit = credit
         result.quantity = order.quantity
         result.entry_dte = 0

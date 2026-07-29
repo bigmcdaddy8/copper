@@ -78,6 +78,7 @@ class TradeSpec:
     notes: str = ""
     allowed_entry_after: str = "09:25"   # HH:MM CT
     allowed_entry_before: str = "14:30"  # HH:MM CT
+    maximum_net_credit: float | None = None  # cap entry price; None = no cap
 
     # ------------------------------------------------------------------ #
     # Construction                                                         #
@@ -227,6 +228,7 @@ class TradeSpec:
                 "retry_price_decrement",
                 "entry_price",
                 "min_credit_received",
+                "max_credit_received",
             },
             "trade.entry_order",
         )
@@ -296,6 +298,7 @@ class TradeSpec:
             account_minimum=float(data.get("account_minimum", 0.0)),
             max_risk_per_trade=float(entry_constraints["max_risk_dollars"]),
             minimum_net_credit=float(entry_order["min_credit_received"]),
+            maximum_net_credit=float(entry_order["max_credit_received"]) if entry_order.get("max_credit_received") is not None else None,
             # v2 defines spread percent, while current runner expects absolute combo width.
             # Keep permissive default until percent-based liquidity checks are implemented.
             max_combo_bid_ask_width=float(data.get("max_combo_bid_ask_width", 1000.0)),
