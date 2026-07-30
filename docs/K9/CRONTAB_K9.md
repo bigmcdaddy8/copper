@@ -31,4 +31,8 @@ Current offset: CDT = UTC-5 (valid Mar–Nov).
 # Smart shutdown at 10:15 CT = 15:15 UTC weekdays — skips if SSH/VS Code session active, defers to 01:08 AM failsafe
 # DST END: change to -> 15 16 * * 1-5
 15 15 * * 1-5 bash /home/temckee8/Documents/REPOs/copper/scripts/smart_shutdown.sh
+
+# Compress .log files older than 90 days at 07:18 CT = 12:18 UTC (Friday)
+# DST END: change to -> 18 13 * * 5
+18 12 * * 5   bash /home/temckee8/Documents/REPOs/copper/scripts/compress_old_logs.sh
 ```
