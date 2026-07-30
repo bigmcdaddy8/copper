@@ -14,4 +14,4 @@ exec >> "$LOG_FILE" 2>&1
 
 echo "=== $(TZ=America/Chicago date '+%F %T %Z') K9 daily close ==="
 
-uv run K9 close --account TRD --spec-name xsp_pcs_0dte_w1_none_0900_trds
+uv run K9 close --account TRD --spec-name xsp_pcs_0dte_PROD

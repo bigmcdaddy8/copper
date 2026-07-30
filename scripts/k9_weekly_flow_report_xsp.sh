@@ -20,6 +20,6 @@ DATE_FROM="$(TZ=America/Chicago date -d "$TODAY_CT - 6 days" +%F)"
 
 uv run enc report weekly-flow \
   --account TRD \
-  --spec xsp_pcs_0dte_w1_none_0900_trds \
+  --spec xsp_pcs_0dte_PROD \
   --from "$DATE_FROM" \
   --to "$DATE_TO"

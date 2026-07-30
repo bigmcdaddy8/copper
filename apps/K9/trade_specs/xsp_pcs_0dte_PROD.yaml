@@ -1,0 +1,41 @@
+schema_version: 2
+notes: XSP 0DTE Put Credit Spread - ~25 delta short put, $2 wing, no TP - let it expire
+enabled: true
+environment: TRD
+underlying: XSP
+
+trade:
+  option_strategy: PCS
+
+  entry_constraints:
+    allow_multiple_trades: false
+    quantity: 1
+    max_entries_per_day: 1
+    max_risk_dollars: 200.0
+
+  entry_criteria:
+    type: time_window
+    allowed_entry_after: "08:55" # Chicago time
+    allowed_entry_before: "09:21" # Chicago time
+
+  entry_order:
+    order_type: LIMIT
+    time_in_force: DAY
+    max_fill_wait_time_seconds: 21
+    max_entry_attempts: 5
+    retry_price_decrement: 0.03
+    entry_price: MIDPOINT
+    min_credit_received: 0.08
+    max_credit_received: 1.95  # $2 wide spread; cap at $0.05 below width to avoid erroneous-price rejections
+
+  leg_selection:
+    short_put:
+      delta_preferred: -0.25
+      delta_range:
+        min: -0.35
+        max: -0.15
+    long_put:
+      wing_distance_points: 2.0
+
+  exit_order:
+    exit_type: NONE
