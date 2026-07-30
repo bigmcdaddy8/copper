@@ -140,12 +140,8 @@ def main() -> None:
 
     sp = short_put
     lp = long_put
-    print(f"  Short put : strike={sp.strike:.1f}  delta={sp.delta:+.4f}"
-          f"  bid={sp.bid:.2f}  ask={sp.ask:.2f}"
-          f"  mid={round((sp.bid + sp.ask) / 2, 2):.2f}")
-    print(f"  Long  put : strike={lp.strike:.1f}  delta={lp.delta:+.4f}"
-          f"  bid={lp.bid:.2f}  ask={lp.ask:.2f}"
-          f"  mid={round((lp.bid + lp.ask) / 2, 2):.2f}")
+    print(f"  Short put selected: strike={sp.strike:.1f}  delta={sp.delta:+.4f}")
+    print(f"  Long  put selected: strike={lp.strike:.1f}  delta={lp.delta:+.4f}")
 
     # ------------------------------------------------------------------ #
     # 6. Combo pricing (same formula as constructor.build_order)           #
@@ -156,6 +152,10 @@ def main() -> None:
     combo_mid = round((combo_bid + combo_ask) / 2, 2)
     limit_price = round(combo_mid + spec.entry.limit_price_offset, 2)
 
+    print(f"  {'':8s}  {'strike':>8s}  {'delta':>8s}  {'bid':>6s}  {'ask':>6s}  {'mid':>6s}")
+    print(f"  {'Short put':8s}  {sp.strike:>8.1f}  {sp.delta:>+8.4f}  {sp.bid:>6.2f}  {sp.ask:>6.2f}  {round((sp.bid + sp.ask) / 2, 2):>6.2f}")
+    print(f"  {'Long  put':8s}  {lp.strike:>8.1f}  {lp.delta:>+8.4f}  {lp.bid:>6.2f}  {lp.ask:>6.2f}  {round((lp.bid + lp.ask) / 2, 2):>6.2f}")
+    print()
     print(f"  Combo bid   = short_put.bid − long_put.ask  = {sp.bid:.2f} − {lp.ask:.2f} = {combo_bid:.2f}")
     print(f"  Combo ask   = short_put.ask − long_put.bid  = {sp.ask:.2f} − {lp.bid:.2f} = {combo_ask:.2f}")
     print(f"  Combo mid   = (bid + ask) / 2               = {combo_mid:.2f}  ← K9 initial limit price")
