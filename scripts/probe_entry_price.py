@@ -109,7 +109,7 @@ def main() -> None:
         sys.exit(1)
 
     # ------------------------------------------------------------------ #
-    # 4. Option chain                                                      #
+    # 4. Option chain — fetch via broker (K9 path) AND raw (for extras)   #
     # ------------------------------------------------------------------ #
     _hr("OPTION CHAIN FETCH")
     try:
@@ -120,6 +120,22 @@ def main() -> None:
     except Exception as exc:
         print(f"  ERROR fetching option chain: {exc}")
         sys.exit(1)
+
+    # Pull raw chain for extra fields (last, volume, OI, IV) — same endpoint K9 uses
+    try:
+        raw_chain_data = broker._get(
+            "/markets/options/chains",
+            params={"symbol": spec.underlying, "expiration": expiration.isoformat(), "greeks": "true"},
+        )
+        raw_options = (raw_chain_data.get("options") or {}).get("option") or []
+        if isinstance(raw_options, dict):
+            raw_options = [raw_options]
+        raw_puts_by_strike: dict[float, dict] = {
+            float(o["strike"]): o for o in raw_options
+            if isinstance(o, dict) and o.get("option_type") == "put"
+        }
+    except Exception:
+        raw_puts_by_strike = {}
 
     # ------------------------------------------------------------------ #
     # 5. Strike selection (same logic as runner.py)                        #
@@ -144,41 +160,66 @@ def main() -> None:
     print(f"  Long  put selected: strike={lp.strike:.1f}  delta={lp.delta:+.4f}")
 
     # ------------------------------------------------------------------ #
-    # 6. PUT CHAIN TABLE — ATM → OTM (20 strikes)                         #
+    # 6. PUT CHAIN — traditional options chain format, ATM → OTM           #
     # ------------------------------------------------------------------ #
-    _hr("PUT CHAIN  (ATM → OTM, 20 strikes)")
-
     delta_lo = min(spec.short_put_selection.delta_range_min,
                    spec.short_put_selection.delta_range_max)
     delta_hi = max(spec.short_put_selection.delta_range_min,
                    spec.short_put_selection.delta_range_max)
 
-    # Sort puts by strike descending (ATM first), keep those at or below ATM
     atm_puts = sorted(
-        [o for o in chain.options if o.option_type == "PUT"
-         and o.strike <= underlying_last],
+        [o for o in chain.options if o.option_type == "PUT" and o.strike <= underlying_last],
         key=lambda o: o.strike,
         reverse=True,
     )[:20]
 
-    hdr = f"  {'strike':>8}  {'delta':>8}  {'bid':>6}  {'ask':>6}  {'mid':>6}  {'in range':^10}  note"
-    print(hdr)
-    print(f"  {'─'*8}  {'─'*8}  {'─'*6}  {'─'*6}  {'─'*6}  {'─'*10}  {'─'*20}")
+    _hr(
+        f"PUT CHAIN  {spec.underlying}  {expiration.isoformat()}  "
+        f"(ATM → OTM, {len(atm_puts)} strikes)  "
+        f"underlying={underlying_last:.2f}"
+    )
+    print(
+        f"  {'Strike':>8}  {'Last':>6}  {'Bid':>6}  {'Ask':>6}  {'Mid':>6}"
+        f"  {'Delta':>8}  {'IV':>7}  {'Volume':>8}  {'OI':>8}  Notes"
+    )
+    print(
+        f"  {'──────':>8}  {'────':>6}  {'───':>6}  {'───':>6}  {'───':>6}"
+        f"  {'─────':>8}  {'────':>7}  {'──────':>8}  {'──':>8}  ─────────────────────"
+    )
 
     for o in atm_puts:
+        raw = raw_puts_by_strike.get(o.strike, {})
+        last   = raw.get("last")
+        volume = raw.get("volume")
+        oi     = raw.get("open_interest")
+        iv_raw = (raw.get("greeks") or {}).get("mid_iv") or (raw.get("greeks") or {}).get("smv_vol")
+
+        last_s   = f"{float(last):6.2f}"   if last   is not None else f"{'—':>6}"
+        volume_s = f"{int(volume):8,}"     if volume is not None else f"{'—':>8}"
+        oi_s     = f"{int(oi):8,}"         if oi     is not None else f"{'—':>8}"
+        iv_s     = f"{float(iv_raw)*100:6.1f}%" if iv_raw is not None else f"{'—':>7}"
+        mid      = round((o.bid + o.ask) / 2, 2)
+
         in_range = delta_lo <= o.delta <= delta_hi
-        mid = round((o.bid + o.ask) / 2, 2)
-        range_flag = "  ✓ in range" if in_range else ""
         note = ""
         if o.strike == sp.strike:
-            note = "◄ SHORT PUT (selected)"
+            note = " ◄ SHORT (selected)"
         elif o.strike == lp.strike:
-            note = "◄ LONG  PUT (selected)"
-        print(f"  {o.strike:>8.1f}  {o.delta:>+8.4f}  {o.bid:>6.2f}  {o.ask:>6.2f}  {mid:>6.2f}"
-              f"  {range_flag:<10}  {note}")
+            note = " ◄ LONG  (selected)"
+        elif in_range:
+            note = "   in Δ range"
 
-    print(f"\n  Delta range [{delta_lo:+.3f}, {delta_hi:+.3f}]  "
-          f"preferred {spec.short_put_selection.delta_preferred:+.3f}")
+        # Mark the ATM row
+        atm_marker = " ←ATM" if abs(o.strike - underlying_last) < 1.0 else ""
+
+        print(
+            f"  {o.strike:>8.1f}{atm_marker if atm_marker else '  '}"
+            f"  {last_s}  {o.bid:>6.2f}  {o.ask:>6.2f}  {mid:>6.2f}"
+            f"  {o.delta:>+8.4f}  {iv_s}  {volume_s}  {oi_s}  {note}"
+        )
+
+    print(f"\n  Δ range [{delta_lo:+.3f} → {delta_hi:+.3f}]  preferred {spec.short_put_selection.delta_preferred:+.3f}")
+
 
     # ------------------------------------------------------------------ #
     # 7. Combo pricing (same formula as constructor.build_order)           #
