@@ -144,7 +144,44 @@ def main() -> None:
     print(f"  Long  put selected: strike={lp.strike:.1f}  delta={lp.delta:+.4f}")
 
     # ------------------------------------------------------------------ #
-    # 6. Combo pricing (same formula as constructor.build_order)           #
+    # 6. PUT CHAIN TABLE — ATM → OTM (20 strikes)                         #
+    # ------------------------------------------------------------------ #
+    _hr("PUT CHAIN  (ATM → OTM, 20 strikes)")
+
+    delta_lo = min(spec.short_put_selection.delta_range_min,
+                   spec.short_put_selection.delta_range_max)
+    delta_hi = max(spec.short_put_selection.delta_range_min,
+                   spec.short_put_selection.delta_range_max)
+
+    # Sort puts by strike descending (ATM first), keep those at or below ATM
+    atm_puts = sorted(
+        [o for o in chain.options if o.option_type == "PUT"
+         and o.strike <= underlying_last],
+        key=lambda o: o.strike,
+        reverse=True,
+    )[:20]
+
+    hdr = f"  {'strike':>8}  {'delta':>8}  {'bid':>6}  {'ask':>6}  {'mid':>6}  {'in range':^10}  note"
+    print(hdr)
+    print(f"  {'─'*8}  {'─'*8}  {'─'*6}  {'─'*6}  {'─'*6}  {'─'*10}  {'─'*20}")
+
+    for o in atm_puts:
+        in_range = delta_lo <= o.delta <= delta_hi
+        mid = round((o.bid + o.ask) / 2, 2)
+        range_flag = "  ✓ in range" if in_range else ""
+        note = ""
+        if o.strike == sp.strike:
+            note = "◄ SHORT PUT (selected)"
+        elif o.strike == lp.strike:
+            note = "◄ LONG  PUT (selected)"
+        print(f"  {o.strike:>8.1f}  {o.delta:>+8.4f}  {o.bid:>6.2f}  {o.ask:>6.2f}  {mid:>6.2f}"
+              f"  {range_flag:<10}  {note}")
+
+    print(f"\n  Delta range [{delta_lo:+.3f}, {delta_hi:+.3f}]  "
+          f"preferred {spec.short_put_selection.delta_preferred:+.3f}")
+
+    # ------------------------------------------------------------------ #
+    # 7. Combo pricing (same formula as constructor.build_order)           #
     # ------------------------------------------------------------------ #
     _hr("COMBO PRICING  (K9 calculation)")
     combo_bid = round(sp.bid - lp.ask, 2)
@@ -164,7 +201,7 @@ def main() -> None:
         print(f"  Limit price =                                {limit_price:.2f}")
 
     # ------------------------------------------------------------------ #
-    # 7. Entry eligibility verdict                                         #
+    # 8. Entry eligibility verdict                                         #
     # ------------------------------------------------------------------ #
     _hr("ENTRY ELIGIBILITY VERDICT")
     effective_credit = limit_price
