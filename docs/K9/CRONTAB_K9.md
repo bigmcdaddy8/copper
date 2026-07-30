@@ -18,7 +18,8 @@ Current offset: CDT = UTC-5 (valid Mar–Nov).
 
 # K9 — XSP 0DTE PCS entry at 09:00 CT = 14:00 UTC (Mon–Fri)
 # DST END: change to -> 0 15 * * 1-5
-0 14 * * 1-5   bash /home/temckee8/Documents/REPOs/copper/scripts/k9_daily_entry_xsp.sh
+# DISABLED 2026-07-30: entry halted pending Tradier greeks investigation
+# 0 14 * * 1-5   bash /home/temckee8/Documents/REPOs/copper/scripts/k9_daily_entry_xsp.sh
 
 # K9 — XSP morning check at 09:30 CT = 14:30 UTC (Mon–Fri)
 # DST END: change to -> 30 15 * * 1-5
