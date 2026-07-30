@@ -34,6 +34,17 @@ def test_preflight_help_exits_zero():
     assert "trade-spec" in result.stdout
 
 
+def test_tastytrade_diagnostic_help_exits_zero():
+    result = subprocess.run(
+        [sys.executable, "-m", "K9", "tastytrade-diagnostic", "--help"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert "read-only" in result.stdout
+    assert "--underlying" in result.stdout
+
+
 def test_enter_missing_spec_exits_nonzero():
     result = subprocess.run(
         [sys.executable, "-m", "K9", "enter", "--trade-spec", "nonexistent_xyz_abc"],

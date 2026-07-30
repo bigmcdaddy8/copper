@@ -3,7 +3,7 @@ import inspect
 from datetime import date, datetime
 from bic.broker import Broker
 from bic.models import (
-    AccountSnapshot, OHLCVBar, OptionChain, Order, OrderRequest,
+    AccountSnapshot, BalanceSnapshot, OHLCVBar, OptionChain, Order, OrderRequest,
     OrderResponse, Position, Quote,
 )
 
@@ -44,6 +44,9 @@ class StubBroker(Broker):
     ) -> list[OHLCVBar]:
         return []
 
+    def get_historical_balances(self, period: str = "WEEK") -> list[BalanceSnapshot]:
+        return []
+
 
 def test_stub_broker_instantiates():
     broker = StubBroker()
@@ -60,7 +63,7 @@ def test_all_abstract_methods_present():
         "get_current_time", "get_account", "get_positions", "get_open_orders",
         "get_orders",
         "get_underlying_quote", "get_option_chain", "get_ohlcv_bars",
-        "place_order", "cancel_order", "get_order",
+        "place_order", "cancel_order", "get_order", "get_historical_balances",
     }
     abstract_methods = {
         name for name, method in inspect.getmembers(Broker, predicate=inspect.isfunction)

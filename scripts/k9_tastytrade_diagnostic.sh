@@ -9,14 +9,13 @@ source "$REPO_ROOT/scripts/lib/require_ct_time.sh"
 
 TODAY_CT="$(TZ=America/Chicago date +%F)"
 LOG_DIR="$REPO_ROOT/logs/K9"
-LOG_FILE="$LOG_DIR/k9_daily_close_xsp_${TODAY_CT}.log"
+LOG_FILE="$LOG_DIR/k9_tastytrade_diagnostic_${TODAY_CT}.log"
 mkdir -p "$LOG_DIR"
 exec >> "$LOG_FILE" 2>&1
 
-if ! require_ct_time "07:15" "K9 daily close"; then
+if ! require_ct_time "09:45" "Tastytrade diagnostic"; then
 	exit 0
 fi
 
-echo "=== $(TZ=America/Chicago date '+%F %T %Z') K9 daily close ==="
-
-uv run K9 close --account TRD --spec-name xsp_pcs_0dte_PROD
+echo "=== $(TZ=America/Chicago date '+%F %T %Z') Tastytrade diagnostic ==="
+uv run K9 tastytrade-diagnostic

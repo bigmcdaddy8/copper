@@ -1,0 +1,11 @@
+[Unit]
+Description=Copper K9 daily close reconciliation at 07:15 America/Chicago
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 07:15:00 America/Chicago
+AccuracySec=1s
+Persistent=false
+Unit=copper-k9-job@k9_daily_close_xsp.service
+
+[Install]
+WantedBy=timers.target

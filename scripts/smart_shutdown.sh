@@ -10,9 +10,14 @@ VM_NAME="dragon"
 
 REPO_ROOT="/home/temckee8/Documents/REPOs/copper"
 LOG_DIR="$REPO_ROOT/logs/K9"
+source "$REPO_ROOT/scripts/lib/require_ct_time.sh"
 LOG_FILE="$LOG_DIR/smart_shutdown_$(TZ=America/Chicago date +%F).log"
 mkdir -p "$LOG_DIR"
 exec >> "$LOG_FILE" 2>&1
+
+if ! require_ct_time "10:15" "smart shutdown"; then
+    exit 0
+fi
 
 TIMESTAMP="$(TZ=America/Chicago date '+%F %T %Z')"
 

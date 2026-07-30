@@ -87,6 +87,14 @@ def test_validate_rejects_invalid_environment(valid_spec_path):
         spec.validate()
 
 
+@pytest.mark.parametrize("environment", ["tastytrade_certification", "tastytrade_production"])
+def test_validate_accepts_tastytrade_environments(valid_spec_path, environment):
+    spec = TradeSpec.from_file(valid_spec_path)
+    spec.environment = environment
+
+    spec.validate()
+
+
 def test_validate_rejects_multi_contract(valid_spec_path):
     spec = TradeSpec.from_file(valid_spec_path)
     spec.position_size.contracts = 5

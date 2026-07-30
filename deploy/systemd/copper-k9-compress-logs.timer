@@ -1,0 +1,11 @@
+[Unit]
+Description=Copper log compression at 07:18 America/Chicago Friday
+
+[Timer]
+OnCalendar=Fri *-*-* 07:18:00 America/Chicago
+AccuracySec=1s
+Persistent=false
+Unit=copper-k9-job@compress_old_logs.service
+
+[Install]
+WantedBy=timers.target

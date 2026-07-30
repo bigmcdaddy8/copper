@@ -11,6 +11,7 @@ dependencies = [
     "bic",
     "holodeck",
     "captains_log",
+    "websockets>=16.0",
 ]
 
 [project.scripts]

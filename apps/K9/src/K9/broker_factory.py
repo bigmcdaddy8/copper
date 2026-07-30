@@ -16,6 +16,8 @@ def create_broker(spec: TradeSpec) -> Broker:
     - "holodeck"   → HolodeckBroker (local simulation, no API keys required)
     - "sandbox"    → TradierBroker  (sandbox.tradier.com, TRADIER_SANDBOX_API_KEY)
     - "production" → TradierBroker  (api.tradier.com, TRADIER_API_KEY)
+    - "tastytrade_certification" → TastytradeBroker (read-only certification)
+    - "tastytrade_production" → TastytradeBroker (read-only production)
     """
     env = spec.environment
 
@@ -51,6 +53,15 @@ def create_broker(spec: TradeSpec) -> Broker:
         account_id = resolve_account_id(env)
         return TradierBroker(api_key=api_key, account_id=account_id, sandbox=sandbox)
 
+    if env in ("tastytrade_certification", "tastytrade_production"):
+        from dotenv import load_dotenv
+
+        from K9.tastytrade.broker import TastytradeBroker
+        from K9.tastytrade.settings import TastytradeSettings
+
+        load_dotenv()
+        return TastytradeBroker(TastytradeSettings.from_environment(env))
+
     raise ValueError(
-        f"Unknown environment {env!r}. Must be 'holodeck', 'sandbox', or 'production'."
+        f"Unknown environment {env!r}. Must be a supported K9 broker environment."
     )

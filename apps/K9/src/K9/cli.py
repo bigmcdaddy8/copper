@@ -73,6 +73,10 @@ def enter(
         console.print("[yellow]Trade spec is disabled. Exiting.[/yellow]")
         raise typer.Exit(0)
 
+    if spec.environment.startswith("tastytrade_"):
+        console.print("[bold red]Tastytrade trade entry is disabled in the read-only release.[/bold red]")
+        raise typer.Exit(1)
+
     console.print(
         f"[green]Loaded:[/green] {trade_spec}  "
         f"[dim]({spec.environment} · {spec.trade_type} · {spec.underlying})[/dim]"
@@ -262,6 +266,10 @@ def preflight(
         console.print(f"[bold red]Invalid trade spec: {exc}[/bold red]")
         raise typer.Exit(1)
 
+    if spec.environment.startswith("tastytrade_"):
+        console.print("[bold red]Tastytrade preflight is disabled in the read-only release.[/bold red]")
+        raise typer.Exit(1)
+
     try:
         broker = create_broker(spec)
     except (KeyError, FileNotFoundError, ValueError) as exc:
@@ -294,6 +302,48 @@ def preflight(
     console.print(f"[dim]Log: {log_path}[/dim]")
 
     raise typer.Exit(0 if result.outcome == "PREFLIGHT_OK" else 1)
+
+
+@app.command(name="tastytrade-diagnostic")
+def tastytrade_diagnostic(
+    environment: str = typer.Option(
+        "tastytrade_production",
+        "--environment",
+        help="Tastytrade environment: tastytrade_production or tastytrade_certification.",
+    ),
+    underlying: list[str] = typer.Option(
+        ["XSP", "SPX"],
+        "--underlying",
+        help="Underlying to validate. Repeat for multiple values.",
+    ),
+) -> None:
+    """Run bounded, read-only Tastytrade account and market-data checks."""
+    from dotenv import load_dotenv
+
+    from K9.output.tastytrade_diagnostic_log import TastytradeDiagnosticLog
+    from K9.tastytrade.diagnostic import run_diagnostic
+    from K9.tastytrade.settings import TastytradeConfigurationError, TastytradeSettings
+
+    load_dotenv()
+    try:
+        settings = TastytradeSettings.from_environment(environment)
+    except TastytradeConfigurationError as exc:
+        console.print(f"[bold red]Tastytrade configuration failed: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    result = run_diagnostic(settings, underlying)
+    log_dir = Path(os.environ.get("K9_LOG_DIR", "logs/K9"))
+    log_path = TastytradeDiagnosticLog(log_dir).write(result)
+    style = "green" if result.outcome == "OK" else "yellow"
+    if result.outcome == "ERROR":
+        style = "bold red"
+    console.print(f"[{style}]Tastytrade diagnostic: {result.outcome}[/{style}]")
+    for check in result.checks:
+        console.print(f"[dim]{check.name}: {check.duration_ms}ms[/dim]")
+    for error in result.errors:
+        console.print(f"[red]Error: {error}[/red]")
+    console.print(f"[dim]Log: {log_path}[/dim]")
+    raise typer.Exit(0 if result.outcome != "ERROR" else 1)
 
 
 @app.command(name="close")
@@ -521,6 +571,10 @@ def _create_broker_for_account(account: str):
     from K9.tradier_env import resolve_account_id
 
     normalized = account.upper().strip()
+    if normalized in {"TTP", "TTC"}:
+        raise typer.BadParameter(
+            "Tastytrade close reconciliation is disabled in the read-only release."
+        )
     if normalized not in {"TRDS", "TRD"}:
         raise typer.BadParameter("--account must be TRDS or TRD")
 

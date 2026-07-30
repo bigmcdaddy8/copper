@@ -58,6 +58,13 @@ def _make_filled_trade(*, tp_order_id: str = "", tp_limit_price: float | None = 
     )
 
 
+def test_close_rejects_tastytrade_account_in_read_only_release():
+    result = runner.invoke(app, ["close", "--account", "TTP"])
+
+    assert result.exit_code != 0
+    assert "Tastytrade close reconciliation is disabled" in result.output
+
+
 def test_close_dry_run_leaves_trade_unmodified(tmp_path, monkeypatch):
     db_path = tmp_path / "trades.db"
     monkeypatch.setenv("CL_DB_PATH", str(db_path))

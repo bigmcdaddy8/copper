@@ -5,6 +5,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 REPO_ROOT="/home/temckee8/Documents/REPOs/copper"
 cd "$REPO_ROOT"
+source "$REPO_ROOT/scripts/lib/require_ct_time.sh"
 
 SPEC_NAME="xsp_pcs_0dte_PROD"
 ACCOUNT="TRD"
@@ -14,6 +15,10 @@ TRADE_TYPE="PUT_CREDIT_SPREAD"
 TODAY_CT="$(TZ=America/Chicago date +%F)"
 TODAY_YMD_CT="$(TZ=America/Chicago date +%Y%m%d)"
 LOG_DIR="$REPO_ROOT/logs/K9"
+
+if ! require_ct_time "09:30" "K9 morning check"; then
+  exit 0
+fi
 
 FAILED=0
 

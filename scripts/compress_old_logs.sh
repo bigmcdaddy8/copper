@@ -10,11 +10,16 @@ set -euo pipefail
 REPO_ROOT="/home/temckee8/Documents/REPOs/copper"
 LOG_DIR="$REPO_ROOT/logs"
 DAYS=90
+source "$REPO_ROOT/scripts/lib/require_ct_time.sh"
 
 TODAY_CT="$(TZ=America/Chicago date +%F)"
 SELF_LOG="$REPO_ROOT/logs/K9/compress_old_logs_${TODAY_CT}.log"
 mkdir -p "$(dirname "$SELF_LOG")"
 exec >> "$SELF_LOG" 2>&1
+
+if ! require_ct_time "07:18" "compress old logs"; then
+    exit 0
+fi
 
 echo "=== $(TZ=America/Chicago date '+%F %T %Z') compress_old_logs: start ==="
 echo "Scanning: $LOG_DIR  (files older than ${DAYS} days)"

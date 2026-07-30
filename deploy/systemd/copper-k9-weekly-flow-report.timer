@@ -1,0 +1,11 @@
+[Unit]
+Description=Copper K9 weekly flow report at 07:00 America/Chicago Monday
+
+[Timer]
+OnCalendar=Mon *-*-* 07:00:00 America/Chicago
+AccuracySec=1s
+Persistent=false
+Unit=copper-k9-job@k9_weekly_flow_report_xsp.service
+
+[Install]
+WantedBy=timers.target

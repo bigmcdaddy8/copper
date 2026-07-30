@@ -60,7 +60,7 @@ class Constraints:
 @dataclass
 class TradeSpec:
     enabled: bool
-    environment: str                        # "holodeck" | "sandbox" | "production"
+    environment: str                        # holodeck | Tradier | Tastytrade environment
     underlying: str                         # "SPX" | "XSP" | "NDX" | "RUT"
     trade_type: str                         # "IRON_CONDOR" | "PUT_CREDIT_SPREAD" | "CALL_CREDIT_SPREAD"
     wing_size: int
@@ -645,7 +645,9 @@ class TradeSpec:
     _VALID_TRADE_TYPES = frozenset(
         {"IRON_CONDOR", "PUT_CREDIT_SPREAD", "CALL_CREDIT_SPREAD"}
     )
-    _VALID_ENVIRONMENTS = frozenset({"holodeck", "sandbox", "production"})
+    _VALID_ENVIRONMENTS = frozenset(
+        {"holodeck", "sandbox", "production", "tastytrade_certification", "tastytrade_production"}
+    )
 
     def validate(self) -> None:
         """Raise ValueError on any schema violation."""

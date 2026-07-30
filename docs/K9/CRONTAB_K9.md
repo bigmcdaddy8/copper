@@ -1,39 +1,91 @@
-# K9 Cron Jobs
-The following are the crontab entries for 'K9' running on the Azure VM 'dragon'.
-VM is started at 05:45 CT by an Azure Automation runbook (schedule TZ: Central Time US & Canada).
-Smart shutdown runs at 10:15 CT but defers to the 01:08 AM Auto-Shutdown failsafe if a session is active.
+# K9 Scheduling
 
-**NOTE: CRON_TZ is NOT supported by the installed cron version (vixie cron 3.0pl1).
-All times are hardcoded in UTC. DST adjustment required ~Nov 1 (CST=UTC-6, add 1h to all UTC times).**
+K9 jobs run on Azure VM `dragon`, which starts at 05:45 America/Chicago through an Azure Automation schedule. Every scheduled wrapper independently requires its exact America/Chicago wall-clock minute before performing work. This protects against a late manual invocation, an incorrect scheduler configuration, and duplicate UTC fallback entries.
 
-Current offset: CDT = UTC-5 (valid Mar–Nov).
+Do not enable both scheduler options below. The preferred option is systemd because it natively understands the `America/Chicago` timezone and handles daylight saving automatically.
 
+## Preferred: systemd Timers
+
+The checked-in units under [deploy/systemd](../../deploy/systemd) express each schedule in Central Time:
+
+| Timer | Schedule |
+|---|---|
+| `copper-k9-daily-close.timer` | Weekdays 07:15 CT |
+| `copper-k9-morning-check.timer` | Weekdays 09:30 CT |
+| `copper-k9-tastytrade-diagnostic.timer` | Weekdays 09:45 CT |
+| `copper-k9-weekly-flow-report.timer` | Monday 07:00 CT |
+| `copper-k9-smart-shutdown.timer` | Weekdays 10:15 CT |
+| `copper-k9-compress-logs.timer` | Friday 07:18 CT |
+
+The timers use `Persistent=false`. A job missed while the VM is stopped is not replayed after boot, which is required for market-time-sensitive work. The disabled K9 entry job intentionally has no timer.
+
+Install the units on `dragon` with administrative access:
+
+```bash
+cd /home/temckee8/Documents/REPOs/copper
+
+sudo install -m 0644 deploy/systemd/copper-k9-job@.service /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/*.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+
+sudo systemctl enable --now \
+	copper-k9-daily-close.timer \
+	copper-k9-morning-check.timer \
+	copper-k9-tastytrade-diagnostic.timer \
+	copper-k9-weekly-flow-report.timer \
+	copper-k9-smart-shutdown.timer \
+	copper-k9-compress-logs.timer
+
+systemctl list-timers 'copper-k9-*'
 ```
-# K9 crontab — times in UTC. Current offset: CDT = UTC-5.
-# DST ends ~Nov 1: update all times by +1 hour (CST = UTC-6).
 
-# K9 — XSP 0DTE PCS closure reconciliation at 07:15 CT = 12:15 UTC (Mon–Fri)
-# DST END: change to -> 15 13 * * 1-5
-15 12 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_daily_close_xsp.sh
+After that command succeeds and shows every timer as active, remove the replacement cron invocations:
 
-# K9 — XSP 0DTE PCS entry at 09:00 CT = 14:00 UTC (Mon–Fri)
-# DST END: change to -> 0 15 * * 1-5
-# DISABLED 2026-07-30: entry halted pending Tradier greeks investigation
-# 0 14 * * 1-5   bash /home/temckee8/Documents/REPOs/copper/scripts/k9_daily_entry_xsp.sh
-
-# K9 — XSP morning check at 09:30 CT = 14:30 UTC (Mon–Fri)
-# DST END: change to -> 30 15 * * 1-5
-30 14 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_morning_check_xsp.sh >> /home/temckee8/Documents/REPOs/copper/logs/K9/k9_morning_check_xsp_$(TZ=America/Chicago date +\%F).log 2>&1
-
-# K9 — weekly flow report at 07:00 CT = 12:00 UTC (Monday) — runs before the 07:15 close job
-# DST END: change to -> 0 13 * * 1
-0 12 * * 1     bash /home/temckee8/Documents/REPOs/copper/scripts/k9_weekly_flow_report_xsp.sh
-
-# Smart shutdown at 10:15 CT = 15:15 UTC weekdays — skips if SSH/VS Code session active, defers to 01:08 AM failsafe
-# DST END: change to -> 15 16 * * 1-5
-15 15 * * 1-5 bash /home/temckee8/Documents/REPOs/copper/scripts/smart_shutdown.sh
-
-# Compress .log files older than 90 days at 07:18 CT = 12:18 UTC (Friday)
-# DST END: change to -> 18 13 * * 5
-18 12 * * 5   bash /home/temckee8/Documents/REPOs/copper/scripts/compress_old_logs.sh
+```bash
+cd /home/temckee8/Documents/REPOs/copper
+bash scripts/retire_k9_cron_jobs.sh
+crontab -l
 ```
+
+The retirement script refuses to alter crontab unless all replacement timers are enabled and active, and writes a backup under `~/.local/state/copper/cron-backups/`. Verify upcoming runs with `systemctl list-timers` before relying on the timers. `systemd` uses the installed timezone database, so no November or March schedule edit is needed.
+
+## Fallback: DST-Safe UTC Cron
+
+Use this only if systemd timers cannot be installed. Vixie cron 3.0pl1 does not support `CRON_TZ`, so each Central-Time job has both possible UTC mappings. The script guard accepts only the exact expected Central-Time minute; the other invocation exits successfully without working.
+
+```cron
+# K9 cron fallback. Keep every dual UTC entry year-round.
+# Do not use these lines while the systemd timers above are enabled.
+
+# Daily close: 07:15 America/Chicago = 12:15 UTC (CDT) or 13:15 UTC (CST)
+15 12,13 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_daily_close_xsp.sh
+
+# Morning check: 09:30 America/Chicago = 14:30 UTC (CDT) or 15:30 UTC (CST)
+30 14,15 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_morning_check_xsp.sh >> /home/temckee8/Documents/REPOs/copper/logs/K9/k9_morning_check_xsp_$(TZ=America/Chicago date +\%F).log 2>&1
+
+# Tastytrade diagnostic: 09:45 America/Chicago = 14:45 UTC (CDT) or 15:45 UTC (CST)
+# Enable only after three successful manual production diagnostics.
+# 45 14,15 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_tastytrade_diagnostic.sh
+
+# Weekly flow report: Monday 07:00 America/Chicago = 12:00 UTC (CDT) or 13:00 UTC (CST)
+0 12,13 * * 1  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_weekly_flow_report_xsp.sh
+
+# Smart shutdown: 10:15 America/Chicago = 15:15 UTC (CDT) or 16:15 UTC (CST)
+15 15,16 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/smart_shutdown.sh
+
+# Log compression: Friday 07:18 America/Chicago = 12:18 UTC (CDT) or 13:18 UTC (CST)
+18 12,13 * * 5  bash /home/temckee8/Documents/REPOs/copper/scripts/compress_old_logs.sh
+
+# Disabled K9 entry: 09:00 America/Chicago = 14:00 UTC (CDT) or 15:00 UTC (CST)
+# 0 14,15 * * 1-5  bash /home/temckee8/Documents/REPOs/copper/scripts/k9_daily_entry_xsp.sh
+```
+
+## Guard Verification
+
+Run the guard test after changing any schedule wrapper:
+
+```bash
+bash scripts/tests/test_require_ct_time.sh
+```
+
+The test uses a fake `date` command to prove that an exact `09:45 CT` invocation runs, while `10:45 CT` exits without work. It does not alter the VM clock or invoke a broker API.

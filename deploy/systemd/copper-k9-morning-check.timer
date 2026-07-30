@@ -1,0 +1,11 @@
+[Unit]
+Description=Copper K9 morning check at 09:30 America/Chicago
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 09:30:00 America/Chicago
+AccuracySec=1s
+Persistent=false
+Unit=copper-k9-job@k9_morning_check_xsp.service
+
+[Install]
+WantedBy=timers.target

@@ -34,6 +34,8 @@ class OptionContract:
     bid: float
     ask: float
     delta: float
+    broker_symbol: str | None = None
+    streamer_symbol: str | None = None
 
 
 @dataclass

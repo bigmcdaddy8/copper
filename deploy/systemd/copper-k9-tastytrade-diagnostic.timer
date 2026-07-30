@@ -1,0 +1,11 @@
+[Unit]
+Description=Copper Tastytrade diagnostic at 09:45 America/Chicago
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 09:45:00 America/Chicago
+AccuracySec=1s
+Persistent=false
+Unit=copper-k9-job@k9_tastytrade_diagnostic.service
+
+[Install]
+WantedBy=timers.target

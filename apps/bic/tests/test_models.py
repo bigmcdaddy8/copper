@@ -29,6 +29,23 @@ def test_option_contract_put():
     c = OptionContract(5750.0, "PUT", 1.20, 1.30, -0.20)
     assert c.option_type == "PUT"
     assert c.delta == -0.20
+    assert c.broker_symbol is None
+    assert c.streamer_symbol is None
+
+
+def test_option_contract_preserves_broker_and_streamer_symbols():
+    c = OptionContract(
+        5750.0,
+        "PUT",
+        1.20,
+        1.30,
+        -0.20,
+        broker_symbol="XSP   260730P00600000",
+        streamer_symbol=".XSP260730P600",
+    )
+
+    assert c.broker_symbol == "XSP   260730P00600000"
+    assert c.streamer_symbol == ".XSP260730P600"
 
 
 def test_option_chain_defaults_empty():

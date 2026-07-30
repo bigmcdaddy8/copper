@@ -1,0 +1,13 @@
+[Unit]
+Description=Copper K9 scheduled job (%i)
+Wants=network-online.target
+After=network-online.target time-sync.target
+
+[Service]
+Type=oneshot
+User=temckee8
+Group=temckee8
+WorkingDirectory=/home/temckee8/Documents/REPOs/copper
+Environment=HOME=/home/temckee8
+Environment=PATH=/home/temckee8/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/bash /home/temckee8/Documents/REPOs/copper/scripts/run_k9_scheduled_job.sh %i
