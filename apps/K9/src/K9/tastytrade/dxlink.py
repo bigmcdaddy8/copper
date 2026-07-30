@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -30,6 +31,45 @@ _GREEKS_FIELDS = (
     "rho",
     "vega",
 )
+_TRADE_FIELDS = (
+    "eventType",
+    "eventSymbol",
+    "eventTime",
+    "price",
+    "dayVolume",
+    "size",
+)
+_SUMMARY_FIELDS = (
+    "eventType",
+    "eventSymbol",
+    "eventTime",
+    "openInterest",
+    "dayOpenPrice",
+    "dayHighPrice",
+    "dayLowPrice",
+    "prevDayClosePrice",
+)
+
+
+def scout_field_catalog() -> dict[str, object]:
+    """Describe the DXLink event fields requested by the 0DTE put scout."""
+    return {
+        "events": {
+            "Quote": list(_QUOTE_FIELDS),
+            "Greeks": list(_GREEKS_FIELDS),
+            "Trade": list(_TRADE_FIELDS),
+            "Summary": list(_SUMMARY_FIELDS),
+        },
+        "report_columns": {
+            "bid": "Quote.bidPrice",
+            "ask": "Quote.askPrice",
+            "delta": "Greeks.delta",
+            "last_price": "Trade.price",
+            "open_interest": "Summary.openInterest",
+            "volatility": "Greeks.volatility",
+        },
+        "optional_columns": ["last_price", "open_interest"],
+    }
 
 
 class DxLinkError(RuntimeError):
@@ -52,6 +92,8 @@ class DxLinkSnapshot:
     updated_at: datetime | None = None
     bid: float | None = None
     ask: float | None = None
+    last_price: float | None = None
+    open_interest: float | None = None
     delta: float | None = None
     gamma: float | None = None
     theta: float | None = None
@@ -87,7 +129,7 @@ class DxLinkCollector:
         self._socket_factory = socket_factory
 
     def collect(self, symbols: list[str], timeout_seconds: float = 5.0) -> dict[str, DxLinkSnapshot]:
-        """Return complete Quote/Greeks snapshots or raise after a bounded wait."""
+        """Return Quote/Greeks snapshots and any available Trade/Summary values."""
         if not symbols:
             return {}
 
@@ -96,12 +138,30 @@ class DxLinkCollector:
             self._setup(socket, symbols)
             snapshots = {symbol: DxLinkSnapshot(symbol=symbol) for symbol in symbols}
             deadline = time.monotonic() + timeout_seconds
+            optional_data_deadline: float | None = None
             while time.monotonic() < deadline:
-                frame = self._receive(socket, timeout=max(0.01, deadline - time.monotonic()))
+                active_deadline = optional_data_deadline or deadline
+                try:
+                    frame = self._receive(
+                        socket,
+                        timeout=max(0.01, active_deadline - time.monotonic()),
+                    )
+                except DxLinkError:
+                    if all(snapshot.is_complete for snapshot in snapshots.values()):
+                        return snapshots
+                    raise
                 self._apply_frame(frame, snapshots)
-                if all(snapshot.is_complete for snapshot in snapshots.values()):
+                if not all(snapshot.is_complete for snapshot in snapshots.values()):
+                    continue
+                if all(_has_scout_fields(snapshot) for snapshot in snapshots.values()):
+                    return snapshots
+                if optional_data_deadline is None:
+                    optional_data_deadline = min(deadline, time.monotonic() + 0.5)
+                elif time.monotonic() >= optional_data_deadline:
                     return snapshots
             missing = [symbol for symbol, snapshot in snapshots.items() if not snapshot.is_complete]
+            if not missing:
+                return snapshots
             raise DxLinkError(f"DXLink did not return complete Quote/Greeks data for: {missing}")
         finally:
             socket.close()
@@ -144,6 +204,8 @@ class DxLinkCollector:
                 "acceptEventFields": {
                     "Quote": list(_QUOTE_FIELDS),
                     "Greeks": list(_GREEKS_FIELDS),
+                    "Trade": list(_TRADE_FIELDS),
+                    "Summary": list(_SUMMARY_FIELDS),
                 },
             },
         )
@@ -152,7 +214,7 @@ class DxLinkCollector:
         subscriptions = [
             {"type": event_type, "symbol": symbol}
             for symbol in symbols
-            for event_type in ("Quote", "Greeks")
+            for event_type in ("Quote", "Greeks", "Trade", "Summary")
         ]
         self._send(
             socket,
@@ -201,6 +263,10 @@ class DxLinkCollector:
             DxLinkCollector._apply_events(values, _QUOTE_FIELDS, snapshots, event_type)
         elif event_type == "Greeks":
             DxLinkCollector._apply_events(values, _GREEKS_FIELDS, snapshots, event_type)
+        elif event_type == "Trade":
+            DxLinkCollector._apply_events(values, _TRADE_FIELDS, snapshots, event_type)
+        elif event_type == "Summary":
+            DxLinkCollector._apply_events(values, _SUMMARY_FIELDS, snapshots, event_type)
 
     @staticmethod
     def _apply_events(
@@ -221,20 +287,35 @@ class DxLinkCollector:
             if event_type == "Quote":
                 snapshot.bid = _number(event["bidPrice"])
                 snapshot.ask = _number(event["askPrice"])
-            else:
+            elif event_type == "Greeks":
                 snapshot.volatility = _number(event["volatility"])
                 snapshot.delta = _number(event["delta"])
                 snapshot.gamma = _number(event["gamma"])
                 snapshot.theta = _number(event["theta"])
                 snapshot.rho = _number(event["rho"])
                 snapshot.vega = _number(event["vega"])
+            elif event_type == "Trade":
+                snapshot.last_price = _optional_number(event["price"])
+            else:
+                snapshot.open_interest = _optional_number(event["openInterest"])
 
 
 def _number(value: object) -> float:
     try:
-        return float(value)
+        number = float(value)
     except (TypeError, ValueError) as exc:
         raise DxLinkError(f"DXLink event contained a non-numeric value: {value!r}.") from exc
+    if not math.isfinite(number):
+        raise DxLinkError(f"DXLink event contained a non-finite value: {value!r}.")
+    return number
+
+
+def _optional_number(value: object) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
 
 
 def _event_time(value: object) -> datetime:
@@ -242,3 +323,7 @@ def _event_time(value: object) -> datetime:
         return datetime.fromtimestamp(float(value) / 1000.0, tz=timezone.utc)
     except (TypeError, ValueError, OSError) as exc:
         raise DxLinkError(f"DXLink event contained an invalid event time: {value!r}.") from exc
+
+
+def _has_scout_fields(snapshot: DxLinkSnapshot) -> bool:
+    return snapshot.last_price is not None and snapshot.open_interest is not None

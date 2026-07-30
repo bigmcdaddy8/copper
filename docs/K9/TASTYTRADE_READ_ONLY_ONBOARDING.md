@@ -39,6 +39,21 @@ Certification quotes are delayed and it does not provide all production account-
 
 Each run writes a redacted result to `logs/K9/tastytrade_diagnostic_*.json`. It records check outcomes, latency, and counts but omits credentials, account numbers, balances, and manual trading details.
 
+## 0DTE Put Scout
+
+During regular market hours, the diagnostic adds one 0DTE put scout per configured underlying. It selects the closest put strike at or below the underlying price and up to 15 lower strikes, then records a compact option-chain view in the diagnostic JSON.
+
+| Report column | DXLink event field | Notes |
+|---|---|---|
+| `bid` | `Quote.bidPrice` | Current quoted bid. |
+| `ask` | `Quote.askPrice` | Current quoted ask. |
+| `delta` | `Greeks.delta` | Current provider-supplied option delta. |
+| `last_price` | `Trade.price` | Most recent trade price, when a Trade event is published. |
+| `open_interest` | `Summary.openInterest` | Open interest, when a Summary event is published. |
+| `volatility` | `Greeks.volatility` | Provider-supplied option implied volatility. |
+
+The diagnostic also stores the exact requested DXLink event fields in its `dxlink_field_catalog` check. A `null` value in `last_price` or `open_interest` means the bounded DXLink subscription did not publish that optional field; it does not mean zero and does not fail a healthy Quote/Greeks diagnostic.
+
 ## Scheduling
 
 After three successful manual production runs on market days, enable the 09:45 CT weekday entry documented in [CRONTAB_K9.md](CRONTAB_K9.md). The shell wrapper invokes only `K9 tastytrade-diagnostic`; it does not call `enter` or `close`.

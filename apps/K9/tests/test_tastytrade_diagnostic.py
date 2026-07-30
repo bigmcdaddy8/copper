@@ -41,21 +41,24 @@ class FakeClient:
         return [{"symbol": symbols[0], "bid": "1.0", "ask": "1.1", "last": "1.05"}]
 
     def get_nested_option_chain(self, underlying):
+        strikes = []
+        for strike in range(600, 583, -1):
+            strikes.append(
+                {
+                    "strike-price": str(strike),
+                    "call": f"{underlying}   260730C{strike * 1000:08d}",
+                    "call-streamer-symbol": f".{underlying}260730C{strike}",
+                    "put": f"{underlying}   260730P{strike * 1000:08d}",
+                    "put-streamer-symbol": f".{underlying}260730P{strike}",
+                }
+            )
         return [
             {
                 "underlying-symbol": underlying,
                 "expirations": [
                     {
                         "expiration-date": "2026-07-30",
-                        "strikes": [
-                            {
-                                "strike-price": "600",
-                                "call": f"{underlying}   260730C00600000",
-                                "call-streamer-symbol": f".{underlying}260730C600",
-                                "put": f"{underlying}   260730P00600000",
-                                "put-streamer-symbol": f".{underlying}260730P600",
-                            }
-                        ],
+                        "strikes": strikes,
                     }
                 ],
             }
@@ -78,6 +81,8 @@ class FakeCollector:
                 updated_at=now,
                 bid=1.0,
                 ask=1.1,
+                last_price=1.05,
+                open_interest=1000,
                 delta=0.2,
                 gamma=0.01,
                 theta=-0.02,
@@ -114,6 +119,12 @@ def test_market_hours_diagnostic_collects_xsp_and_spx_data(tmp_path):
     assert result.outcome == "OK"
     assert not result.errors
     assert any(check.name == "dxlink_quote_and_greeks" for check in result.checks)
+    scout = next(check for check in result.checks if check.name == "xsp_0dte_put_scout")
+    assert scout.details["returned_strike_count"] == 16
+    assert scout.details["rows"][0]["strike"] == 600.0
+    assert scout.details["rows"][0]["open_interest"] == 1000
+    catalog = next(check for check in result.checks if check.name == "dxlink_field_catalog")
+    assert catalog.details["report_columns"]["volatility"] == "Greeks.volatility"
 
     path = TastytradeDiagnosticLog(tmp_path).write(result)
     payload = json.loads(path.read_text())

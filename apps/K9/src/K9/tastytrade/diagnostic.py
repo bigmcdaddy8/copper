@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from K9.market_calendar import is_regular_session_open_ct
 from K9.tastytrade.client import TastytradeClient
-from K9.tastytrade.dxlink import DxLinkCollector, DxLinkSnapshot
+from K9.tastytrade.dxlink import DxLinkCollector, DxLinkSnapshot, scout_field_catalog
 from K9.tastytrade.settings import TastytradeSettings
 
 _TZ = ZoneInfo("America/Chicago")
@@ -81,12 +81,18 @@ def run_diagnostic(
             _collect_probe(api, checks, underlying.upper(), now_ct.date())
             for underlying in underlyings
         ]
+        checks.append(DiagnosticCheck("dxlink_field_catalog", 0, scout_field_catalog()))
         quote_token = _record(checks, "dxlink_token", api.get_api_quote_token, summarize=lambda _: {})
         token = quote_token.get("token")
         url = quote_token.get("dxlink-url")
         if not isinstance(token, str) or not isinstance(url, str):
             raise ValueError("Tastytrade API quote-token response was incomplete.")
-        symbols = [probe.streamer_symbol for probe in probes]
+        symbols = list(
+            dict.fromkeys(
+                [probe.streamer_symbol for probe in probes]
+                + [contract.streamer_symbol for probe in probes for contract in probe.put_scout]
+            )
+        )
         snapshots = _record(
             checks,
             "dxlink_quote_and_greeks",
@@ -94,6 +100,14 @@ def run_diagnostic(
             summarize=lambda values: {"symbol_count": len(values)},
         )
         _validate_snapshots(snapshots, probes, started)
+        for probe in probes:
+            checks.append(
+                DiagnosticCheck(
+                    f"{probe.underlying.lower()}_0dte_put_scout",
+                    0,
+                    _build_put_scout(probe, snapshots),
+                )
+            )
         checks.append(DiagnosticCheck("market_data_validation", 0, {"underlying_count": len(probes)}))
     except Exception as exc:
         return _result(settings, started, "ERROR", checks, errors=[str(exc)])
@@ -104,6 +118,16 @@ def run_diagnostic(
 @dataclass(frozen=True)
 class _Probe:
     underlying: str
+    broker_symbol: str
+    streamer_symbol: str
+    expiration: date
+    underlying_last: float
+    put_scout: tuple["_PutScoutContract", ...]
+
+
+@dataclass(frozen=True)
+class _PutScoutContract:
+    strike: float
     broker_symbol: str
     streamer_symbol: str
 
@@ -130,7 +154,7 @@ def _collect_probe(
         lambda: api.get_nested_option_chain(underlying),
         summarize=lambda rows: {"chain_count": len(rows)},
     )
-    probe = _select_probe(chains, today, last)
+    probe = _select_probe(chains, today, last, underlying)
     option_quotes = _record(
         checks,
         f"{underlying.lower()}_option_quote",
@@ -143,7 +167,9 @@ def _collect_probe(
     return probe
 
 
-def _select_probe(chains: list[dict], today: date, underlying_last: float) -> _Probe:
+def _select_probe(
+    chains: list[dict], today: date, underlying_last: float, underlying: str
+) -> _Probe:
     candidates: list[tuple[date, float, str, str]] = []
     for chain in chains:
         expirations = chain.get("expirations")
@@ -182,12 +208,76 @@ def _select_probe(chains: list[dict], today: date, underlying_last: float) -> _P
         candidates,
         key=lambda row: (row[0], abs(row[1] - underlying_last), row[2]),
     )
-    del expiration
+    put_scout = _select_0dte_put_scout(chains, today, underlying_last)
     return _Probe(
-        underlying="",
+        underlying=underlying,
         broker_symbol=broker_symbol,
         streamer_symbol=streamer_symbol,
+        expiration=expiration,
+        underlying_last=underlying_last,
+        put_scout=put_scout,
     )
+
+
+def _select_0dte_put_scout(
+    chains: list[dict], today: date, underlying_last: float
+) -> tuple[_PutScoutContract, ...]:
+    contracts: list[_PutScoutContract] = []
+    for chain in chains:
+        expirations = chain.get("expirations")
+        if not isinstance(expirations, list):
+            continue
+        for expiration in expirations:
+            if not isinstance(expiration, dict) or expiration.get("expiration-date") != today.isoformat():
+                continue
+            strikes = expiration.get("strikes")
+            if not isinstance(strikes, list):
+                continue
+            for strike in strikes:
+                if not isinstance(strike, dict):
+                    continue
+                try:
+                    strike_price = float(strike["strike-price"])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                broker_symbol = strike.get("put")
+                streamer_symbol = strike.get("put-streamer-symbol")
+                if isinstance(broker_symbol, str) and isinstance(streamer_symbol, str):
+                    contracts.append(
+                        _PutScoutContract(strike_price, broker_symbol, streamer_symbol)
+                    )
+
+    contracts.sort(key=lambda contract: contract.strike, reverse=True)
+    at_or_below = [contract for contract in contracts if contract.strike <= underlying_last]
+    return tuple(at_or_below[:16])
+
+
+def _build_put_scout(
+    probe: _Probe, snapshots: dict[str, DxLinkSnapshot]
+) -> dict[str, object]:
+    rows: list[dict[str, float | None]] = []
+    for contract in probe.put_scout:
+        snapshot = snapshots.get(contract.streamer_symbol)
+        rows.append(
+            {
+                "strike": contract.strike,
+                "bid": snapshot.bid if snapshot else None,
+                "ask": snapshot.ask if snapshot else None,
+                "delta": snapshot.delta if snapshot else None,
+                "last_price": snapshot.last_price if snapshot else None,
+                "open_interest": snapshot.open_interest if snapshot else None,
+                "volatility": snapshot.volatility if snapshot else None,
+            }
+        )
+    return {
+        "underlying": probe.underlying,
+        "expiration": probe.expiration.isoformat(),
+        "underlying_last": probe.underlying_last,
+        "requested_strike_count": 16,
+        "returned_strike_count": len(rows),
+        "null_means": "DXLink did not publish the optional field during this bounded subscription.",
+        "rows": rows,
+    }
 
 
 def _validate_snapshots(
