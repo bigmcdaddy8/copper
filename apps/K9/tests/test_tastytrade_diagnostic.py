@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from K9.output.tastytrade_diagnostic_log import TastytradeDiagnosticLog
-from K9.tastytrade.diagnostic import run_diagnostic
+from K9.tastytrade.diagnostic import _quote_last, run_diagnostic
 from K9.tastytrade.dxlink import DxLinkSnapshot
 from K9.tastytrade.settings import TastytradeSettings
 
@@ -183,3 +183,7 @@ def test_duplicate_configured_account_is_rejected():
 
     assert result.outcome == "ERROR"
     assert "Configured Tastytrade account" in result.errors[0]
+
+
+def test_quote_last_accepts_index_quote_without_bid_or_ask():
+    assert _quote_last({"last": "773.65", "bid": None, "ask": None}) == 773.65

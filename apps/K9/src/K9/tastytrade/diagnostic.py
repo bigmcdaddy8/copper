@@ -313,10 +313,14 @@ def _balance_summary(balance: dict) -> dict[str, object]:
 
 
 def _quote_last(quote: dict) -> float:
-    bid = _float(quote.get("bid"))
-    ask = _float(quote.get("ask"))
     last = _float_or_none(quote.get("last"))
-    return last if last is not None else (bid + ask) / 2.0
+    if last is not None:
+        return last
+    bid = _float_or_none(quote.get("bid"))
+    ask = _float_or_none(quote.get("ask"))
+    if bid is not None and ask is not None:
+        return (bid + ask) / 2.0
+    raise ValueError("Tastytrade quote was missing numeric last and bid/ask prices.")
 
 
 def _float(value: object) -> float:
