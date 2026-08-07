@@ -39,6 +39,16 @@ Certification quotes are delayed and it does not provide all production account-
 
 Each run writes a redacted result to `logs/K9/tastytrade_diagnostic_*.json`. It records check outcomes, latency, and counts but omits credentials, account numbers, balances, and manual trading details.
 
+## Interactive Option Chain
+
+Use the terminal viewer to inspect one exact expiration. `dte` is a calendar-day offset from the current America/Chicago date, so `--dte 0` requests today's expiration. `--strikes` is the number of strike increments displayed above and below the nearest ATM strike; the default of 13 produces up to 27 rows including ATM. `--refresh-seconds` defaults to 30 and cannot be set below 15.
+
+```bash
+uv run K9 tastytrade-chain SPX --dte 0 --strikes 13 --refresh-seconds 30
+```
+
+The table renders strikes in ascending order and has a horizontal ATM divider immediately below the highest displayed strike at or below the live underlying price. This also places the divider below a strike when the underlying price lands exactly on it. Bid, ask, and last prices turn green when they rose since the prior refresh and red when they fell. It uses only Tastytrade read endpoints and a short-lived DXLink subscription. A nontrading-day DTE or unavailable expiration prints an error and exits.
+
 ## 0DTE Put Scout
 
 During regular market hours, the diagnostic adds one 0DTE put scout per configured underlying. It selects the closest put strike at or below the underlying price and up to 15 lower strikes, then records a compact option-chain view in the diagnostic JSON.

@@ -76,6 +76,10 @@ def test_collects_quote_and_greeks_with_documented_setup_sequence():
     assert snapshots[symbol].last_price == 1.25
     assert snapshots[symbol].open_interest == 1234
     assert snapshots[symbol].delta == -0.2
+    assert snapshots[symbol].quote_updated_at == snapshots[symbol].greeks_updated_at
+    assert snapshots[symbol].trade_updated_at == snapshots[symbol].summary_updated_at
+    assert snapshots[symbol].quote_received_at is not None
+    assert snapshots[symbol].greeks_received_at is not None
     assert snapshots[symbol].is_complete
     assert [message["type"] for message in socket.sent] == [
         "SETUP",
@@ -144,3 +148,68 @@ def test_collect_treats_unavailable_trade_and_summary_fields_as_optional():
     assert snapshots[symbol].is_complete
     assert snapshots[symbol].last_price is None
     assert snapshots[symbol].open_interest is None
+
+
+def test_collect_preserves_fresh_quote_and_greeks_timestamps_when_summary_is_old():
+    symbol = ".XSP260730P600"
+    fresh_time = 1_753_890_000_000
+    old_time = fresh_time - 86_400_000
+    socket = FakeSocket(
+        _setup_frames()
+        + [
+            {
+                "type": "FEED_DATA",
+                "data": ["Quote", ["Quote", symbol, fresh_time, 1.2, 1.3, 10, 12]],
+            },
+            {
+                "type": "FEED_DATA",
+                "data": [
+                    "Greeks",
+                    ["Greeks", symbol, fresh_time, 0.18, -0.2, 0.01, -0.03, -0.01, 0.04],
+                ],
+            },
+            {
+                "type": "FEED_DATA",
+                "data": [
+                    "Summary",
+                    ["Summary", symbol, old_time, 1234, 1.1, 1.5, 0.9, 1.0],
+                ],
+            },
+        ]
+    )
+    collector = DxLinkCollector("wss://dxlink.example", "quote-token", lambda _url: socket)
+
+    snapshot = collector.collect([symbol], timeout_seconds=0.01)[symbol]
+
+    assert snapshot.quote_updated_at is not None
+    assert snapshot.greeks_updated_at == snapshot.quote_updated_at
+    assert snapshot.summary_updated_at is not None
+    assert snapshot.summary_updated_at < snapshot.quote_updated_at
+
+
+def test_collect_treats_zero_event_time_as_unavailable_but_records_receipt_time():
+    symbol = ".XSP260730P600"
+    socket = FakeSocket(
+        _setup_frames()
+        + [
+            {
+                "type": "FEED_DATA",
+                "data": ["Quote", ["Quote", symbol, 0, 1.2, 1.3, 10, 12]],
+            },
+            {
+                "type": "FEED_DATA",
+                "data": [
+                    "Greeks",
+                    ["Greeks", symbol, 0, 0.18, -0.2, 0.01, -0.03, -0.01, 0.04],
+                ],
+            },
+        ]
+    )
+    collector = DxLinkCollector("wss://dxlink.example", "quote-token", lambda _url: socket)
+
+    snapshot = collector.collect([symbol], timeout_seconds=0.01)[symbol]
+
+    assert snapshot.quote_updated_at is None
+    assert snapshot.greeks_updated_at is None
+    assert snapshot.quote_received_at is not None
+    assert snapshot.greeks_received_at is not None

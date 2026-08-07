@@ -78,7 +78,14 @@ class FakeCollector:
         return {
             symbol: DxLinkSnapshot(
                 symbol=symbol,
-                updated_at=now,
+                quote_updated_at=now,
+                greeks_updated_at=now,
+                trade_updated_at=now,
+                summary_updated_at=now,
+                quote_received_at=now,
+                greeks_received_at=now,
+                trade_received_at=now,
+                summary_received_at=now,
                 bid=1.0,
                 ask=1.1,
                 last_price=1.05,
@@ -187,3 +194,46 @@ def test_duplicate_configured_account_is_rejected():
 
 def test_quote_last_accepts_index_quote_without_bid_or_ask():
     assert _quote_last({"last": "773.65", "bid": None, "ask": None}) == 773.65
+
+
+def test_old_summary_does_not_fail_fresh_quote_and_greeks_data():
+    class FreshRequiredOldOptionalCollector:
+        def __init__(self, url, token):
+            del url, token
+
+        def collect(self, symbols):
+            now = datetime.now(tz=timezone.utc)
+            old_summary = now.replace(year=now.year - 1)
+            return {
+                symbol: DxLinkSnapshot(
+                    symbol=symbol,
+                    quote_updated_at=now,
+                    greeks_updated_at=now,
+                    summary_updated_at=old_summary,
+                    quote_received_at=now,
+                    greeks_received_at=now,
+                    summary_received_at=now,
+                    bid=1.0,
+                    ask=1.1,
+                    open_interest=1000,
+                    delta=0.2,
+                    gamma=0.01,
+                    theta=-0.02,
+                    rho=0.01,
+                    vega=0.03,
+                    volatility=0.18,
+                )
+                for symbol in symbols
+            }
+
+    result = run_diagnostic(
+        _settings(),
+        ["XSP"],
+        client=FakeClient(),
+        dxlink_collector_factory=FreshRequiredOldOptionalCollector,
+        now=datetime(2026, 7, 30, 9, 45, tzinfo=ZoneInfo("America/Chicago")),
+    )
+
+    assert result.outcome == "OK"
+    scout = next(check for check in result.checks if check.name == "xsp_0dte_put_scout")
+    assert scout.details["rows"][0]["summary_updated_at"] is not None

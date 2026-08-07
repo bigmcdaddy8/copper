@@ -89,7 +89,14 @@ class DxLinkSnapshot:
     """Latest quote and Greek values observed for one streamer symbol."""
 
     symbol: str
-    updated_at: datetime | None = None
+    quote_updated_at: datetime | None = None
+    greeks_updated_at: datetime | None = None
+    trade_updated_at: datetime | None = None
+    summary_updated_at: datetime | None = None
+    quote_received_at: datetime | None = None
+    greeks_received_at: datetime | None = None
+    trade_received_at: datetime | None = None
+    summary_received_at: datetime | None = None
     bid: float | None = None
     ask: float | None = None
     last_price: float | None = None
@@ -283,11 +290,16 @@ class DxLinkCollector:
             if not isinstance(symbol, str) or symbol not in snapshots:
                 continue
             snapshot = snapshots[symbol]
-            snapshot.updated_at = _event_time(event["eventTime"])
+            event_time = _event_time_or_none(event["eventTime"])
+            received_at = datetime.now(tz=timezone.utc)
             if event_type == "Quote":
+                snapshot.quote_updated_at = event_time
+                snapshot.quote_received_at = received_at
                 snapshot.bid = _number(event["bidPrice"])
                 snapshot.ask = _number(event["askPrice"])
             elif event_type == "Greeks":
+                snapshot.greeks_updated_at = event_time
+                snapshot.greeks_received_at = received_at
                 snapshot.volatility = _number(event["volatility"])
                 snapshot.delta = _number(event["delta"])
                 snapshot.gamma = _number(event["gamma"])
@@ -295,8 +307,12 @@ class DxLinkCollector:
                 snapshot.rho = _number(event["rho"])
                 snapshot.vega = _number(event["vega"])
             elif event_type == "Trade":
+                snapshot.trade_updated_at = event_time
+                snapshot.trade_received_at = received_at
                 snapshot.last_price = _optional_number(event["price"])
             else:
+                snapshot.summary_updated_at = event_time
+                snapshot.summary_received_at = received_at
                 snapshot.open_interest = _optional_number(event["openInterest"])
 
 
@@ -318,10 +334,16 @@ def _optional_number(value: object) -> float | None:
     return number if math.isfinite(number) else None
 
 
-def _event_time(value: object) -> datetime:
+def _event_time_or_none(value: object) -> datetime | None:
     try:
-        return datetime.fromtimestamp(float(value) / 1000.0, tz=timezone.utc)
+        milliseconds = float(value)
     except (TypeError, ValueError, OSError) as exc:
+        raise DxLinkError(f"DXLink event contained an invalid event time: {value!r}.") from exc
+    if milliseconds <= 0:
+        return None
+    try:
+        return datetime.fromtimestamp(milliseconds / 1000.0, tz=timezone.utc)
+    except (ValueError, OSError) as exc:
         raise DxLinkError(f"DXLink event contained an invalid event time: {value!r}.") from exc
 
 

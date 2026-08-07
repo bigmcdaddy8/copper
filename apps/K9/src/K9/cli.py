@@ -346,6 +346,61 @@ def tastytrade_diagnostic(
     raise typer.Exit(0 if result.outcome != "ERROR" else 1)
 
 
+@app.command(name="tastytrade-chain")
+def tastytrade_chain(
+    ticker: str = typer.Argument(..., help="Underlying ticker, such as SPX, XSP, or IBM."),
+    strikes: int = typer.Option(
+        13,
+        "--strikes",
+        min=0,
+        help="Number of strikes above and below the ATM strike to display.",
+    ),
+    dte: int = typer.Option(
+        0,
+        "--dte",
+        min=0,
+        help="Exact calendar-day offset from today for the expiration date.",
+    ),
+    refresh_seconds: int = typer.Option(
+        30,
+        "--refresh-seconds",
+        min=15,
+        help="Seconds between refreshes; 15 seconds is the minimum.",
+    ),
+) -> None:
+    """Display a read-only Tastytrade call/put option chain interactively."""
+    from dotenv import load_dotenv
+
+    from K9.tastytrade.client import TastytradeAPIError
+    from K9.tastytrade.dxlink import DxLinkError
+    from K9.tastytrade.settings import TastytradeConfigurationError, TastytradeSettings
+    from K9.tastytrade.terminal_chain import (
+        run_interactive_chain,
+        validate_chain_parameters,
+    )
+
+    try:
+        normalized_ticker = validate_chain_parameters(ticker, strikes, dte, refresh_seconds)
+    except ValueError as exc:
+        console.print(f"[bold red]Invalid parameter: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    load_dotenv()
+    try:
+        settings = TastytradeSettings.from_environment("tastytrade_production")
+    except TastytradeConfigurationError as exc:
+        console.print(f"[bold red]Tastytrade configuration failed: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    try:
+        run_interactive_chain(settings, normalized_ticker, strikes, dte, refresh_seconds, console)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Tastytrade option-chain viewer stopped.[/dim]")
+    except (DxLinkError, TastytradeAPIError, ValueError) as exc:
+        console.print(f"[bold red]Tastytrade option-chain error: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+
 @app.command(name="close")
 def close(
     account: str = typer.Option("TRDS", "--account", help="Account code: TRDS or TRD."),

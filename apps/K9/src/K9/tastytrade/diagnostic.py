@@ -267,6 +267,14 @@ def _build_put_scout(
                 "last_price": snapshot.last_price if snapshot else None,
                 "open_interest": snapshot.open_interest if snapshot else None,
                 "volatility": snapshot.volatility if snapshot else None,
+                "quote_updated_at": _iso_or_none(snapshot.quote_updated_at) if snapshot else None,
+                "greeks_updated_at": _iso_or_none(snapshot.greeks_updated_at) if snapshot else None,
+                "trade_updated_at": _iso_or_none(snapshot.trade_updated_at) if snapshot else None,
+                "summary_updated_at": _iso_or_none(snapshot.summary_updated_at) if snapshot else None,
+                "quote_received_at": _iso_or_none(snapshot.quote_received_at) if snapshot else None,
+                "greeks_received_at": _iso_or_none(snapshot.greeks_received_at) if snapshot else None,
+                "trade_received_at": _iso_or_none(snapshot.trade_received_at) if snapshot else None,
+                "summary_received_at": _iso_or_none(snapshot.summary_received_at) if snapshot else None,
             }
         )
     return {
@@ -275,6 +283,7 @@ def _build_put_scout(
         "underlying_last": probe.underlying_last,
         "requested_strike_count": 16,
         "returned_strike_count": len(rows),
+        "freshness_basis": "DXLink client receipt time for Quote and Greeks snapshots.",
         "null_means": "DXLink did not publish the optional field during this bounded subscription.",
         "rows": rows,
     }
@@ -291,8 +300,24 @@ def _validate_snapshots(
             raise ValueError(f"DXLink returned an invalid bid/ask for {probe.streamer_symbol!r}.")
         if snapshot.delta is None or not -1.0 <= snapshot.delta <= 1.0:
             raise ValueError(f"DXLink returned an invalid delta for {probe.streamer_symbol!r}.")
-        if snapshot.updated_at is None or (started - snapshot.updated_at).total_seconds() > 60:
-            raise ValueError(f"DXLink returned stale market data for {probe.streamer_symbol!r}.")
+        _require_fresh_event(snapshot.quote_received_at, "Quote", probe.streamer_symbol, started)
+        _require_fresh_event(snapshot.greeks_received_at, "Greeks", probe.streamer_symbol, started)
+
+
+def _require_fresh_event(
+    event_time: datetime | None, event_type: str, symbol: str, started: datetime
+) -> None:
+    if event_time is None:
+        raise ValueError(f"DXLink did not return {event_type} timestamp for {symbol!r}.")
+    age_seconds = (started - event_time).total_seconds()
+    if age_seconds > 60:
+        raise ValueError(
+            f"DXLink returned stale {event_type} data for {symbol!r}: {age_seconds:.1f}s old."
+        )
+
+
+def _iso_or_none(value: datetime | None) -> str | None:
+    return value.isoformat() if value is not None else None
 
 
 def _contains_account(accounts: list[dict], account_number: str) -> bool:
