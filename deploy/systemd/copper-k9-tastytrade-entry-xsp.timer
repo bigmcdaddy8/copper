@@ -1,0 +1,11 @@
+[Unit]
+Description=Copper Tastytrade XSP 0DTE broker dry-run at 08:55 America/Chicago
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 08:55:00 America/Chicago
+AccuracySec=1s
+Persistent=false
+Unit=copper-k9-job@k9_tastytrade_entry_xsp.service
+
+[Install]
+WantedBy=timers.target

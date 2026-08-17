@@ -7,7 +7,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 case "$1" in
-  compress_old_logs|k9_daily_close_xsp|k9_morning_check_xsp|k9_tastytrade_diagnostic|k9_weekly_flow_report_xsp|smart_shutdown)
+  compress_old_logs|k9_daily_close_xsp|k9_morning_check_xsp|k9_tastytrade_diagnostic|k9_tastytrade_entry_xsp|k9_weekly_flow_report_xsp|smart_shutdown)
     ;;
   *)
     echo "Unsupported scheduled job: $1" >&2

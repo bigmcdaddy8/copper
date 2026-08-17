@@ -4,13 +4,19 @@ from datetime import date
 
 import pytest
 
-from bic.models import ORDER_STATUS_FILLED, ORDER_STATUS_OPEN, OrderRequest
-from K9.tastytrade.broker import TastytradeBroker, TradingDisabledError
+from bic.models import ORDER_STATUS_FILLED, ORDER_STATUS_OPEN, OrderLeg, OrderRequest
+from K9.tastytrade.broker import TastytradeBroker
 from K9.tastytrade.dxlink import DxLinkSnapshot
 from K9.tastytrade.settings import TastytradeSettings
 
 
 class FakeClient:
+    def __init__(self):
+        self.dry_run_payload = None
+        self.dry_run_warnings = []
+        self.submitted_order = None
+        self.cancelled_order_id = None
+
     def get_balances(self):
         return {
             "net-liquidating-value": "10000.50",
@@ -58,6 +64,13 @@ class FakeClient:
                                 "call-streamer-symbol": ".XSP260730C600",
                                 "put": "XSP   260730P00600000",
                                 "put-streamer-symbol": ".XSP260730P600",
+                            },
+                            {
+                                "strike-price": "599.0",
+                                "call": "XSP   260730C00599000",
+                                "call-streamer-symbol": ".XSP260730C599",
+                                "put": "XSP   260730P00599000",
+                                "put-streamer-symbol": ".XSP260730P599",
                             }
                         ],
                     }
@@ -70,6 +83,18 @@ class FakeClient:
 
     def get_balance_snapshots(self):
         return [{"snapshot-date": "2026-07-29", "net-liquidating-value": "9999.50"}]
+
+    def submit_order(self, order):
+        self.submitted_order = order
+        return {"order": {"id": 42, "status": "Routed"}}
+
+    def dry_run_order(self, order):
+        self.dry_run_payload = order
+        return {"warnings": self.dry_run_warnings}
+
+    def cancel_order(self, order_id):
+        self.cancelled_order_id = order_id
+        return {"id": order_id, "status": "Cancel Requested"}
 
 
 class FakeCollector:
@@ -127,7 +152,7 @@ def test_read_methods_map_balances_positions_and_orders(broker):
 def test_option_chain_retains_tastytrade_symbols_and_dxlink_greeks(broker):
     chain = broker.get_option_chain("XSP", date(2026, 7, 30))
 
-    assert len(chain.options) == 2
+    assert len(chain.options) == 4
     put = next(contract for contract in chain.options if contract.option_type == "PUT")
     assert put.broker_symbol == "XSP   260730P00600000"
     assert put.streamer_symbol == ".XSP260730P600"
@@ -135,11 +160,80 @@ def test_option_chain_retains_tastytrade_symbols_and_dxlink_greeks(broker):
     assert put.delta == -0.2
 
 
-def test_mutating_methods_are_blocked_before_network_access(broker):
-    with pytest.raises(TradingDisabledError, match="order placement is disabled"):
-        broker.place_order(OrderRequest(symbol="XSP", strategy_type="PUT_CREDIT_SPREAD"))
-    with pytest.raises(TradingDisabledError, match="order cancellation is disabled"):
-        broker.cancel_order("123")
+def test_mutating_methods_submit_a_credit_spread_and_cancel(broker):
+    order = OrderRequest(
+        symbol="XSP",
+        strategy_type="PUT_CREDIT_SPREAD",
+        legs=[
+            OrderLeg("SELL", "PUT", 600.0, date(2026, 7, 30)),
+            OrderLeg("BUY", "PUT", 599.0, date(2026, 7, 30)),
+        ],
+        quantity=1,
+        limit_price=0.05,
+        tag="pilot-001",
+    )
+    response = broker.place_order(order)
+    broker.cancel_order("42")
+
+    assert response.order_id == "42"
+    assert response.status == "ACCEPTED"
+    assert broker._client.dry_run_payload == broker._client.submitted_order
+    assert broker._client.submitted_order == {
+        "time-in-force": "Day",
+        "order-type": "Limit",
+        "price": "0.05",
+        "price-effect": "Credit",
+        "source": "K9:pilot-001",
+        "legs": [
+            {
+                "instrument-type": "Equity Option",
+                "symbol": "XSP   260730P00600000",
+                "quantity": 1,
+                "action": "Sell to Open",
+            },
+            {
+                "instrument-type": "Equity Option",
+                "symbol": "XSP   260730P00599000",
+                "quantity": 1,
+                "action": "Buy to Open",
+            },
+        ],
+    }
+    assert broker._client.cancelled_order_id == "42"
+
+
+def test_dry_run_warning_blocks_order_submission(broker):
+    broker._client.dry_run_warnings = ["insufficient buying power"]
+    order = OrderRequest(
+        symbol="XSP",
+        strategy_type="PUT_CREDIT_SPREAD",
+        legs=[OrderLeg("SELL", "PUT", 600.0, date(2026, 7, 30))],
+        limit_price=0.05,
+    )
+
+    response = broker.place_order(order)
+
+    assert response.status == "REJECTED"
+    assert response.rejection_reason == "dry_run_warning"
+    assert broker._client.submitted_order is None
+
+
+def test_broker_dry_run_never_submits_an_order(broker):
+    order = OrderRequest(
+        symbol="XSP",
+        strategy_type="PUT_CREDIT_SPREAD",
+        legs=[
+            OrderLeg("SELL", "PUT", 600.0, date(2026, 7, 30)),
+            OrderLeg("BUY", "PUT", 599.0, date(2026, 7, 30)),
+        ],
+        limit_price=0.05,
+    )
+
+    response = broker.dry_run_order(order)
+
+    assert response.status == "ACCEPTED"
+    assert broker._client.dry_run_payload is not None
+    assert broker._client.submitted_order is None
 
 
 def test_underlying_quote_and_balance_history_map_read_data(broker):

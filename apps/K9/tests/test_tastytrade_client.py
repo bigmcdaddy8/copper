@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import httpx
 import pytest
 import respx
@@ -132,3 +134,33 @@ def test_chain_quote_and_dxlink_token_methods_parse_data_items(client):
 def test_get_quotes_rejects_unknown_instrument_type(client):
     with pytest.raises(ValueError, match="Unsupported Tastytrade quote instrument type"):
         client.get_quotes("option", ["XSP"])
+
+
+@respx.mock
+def test_order_mutation_methods_use_documented_account_endpoints(client):
+    respx.post("https://api.tastyworks.com/oauth/token").mock(
+        return_value=httpx.Response(200, json={"access_token": "token"})
+    )
+    dry_run_route = respx.post(
+        "https://api.tastyworks.com/accounts/5WT00001/orders/dry-run"
+    ).mock(return_value=httpx.Response(200, json={"data": {"warnings": []}}))
+    submit_route = respx.post("https://api.tastyworks.com/accounts/5WT00001/orders").mock(
+        return_value=httpx.Response(201, json={"data": {"order": {"id": 42}}})
+    )
+    cancel_route = respx.delete("https://api.tastyworks.com/accounts/5WT00001/orders/42").mock(
+        return_value=httpx.Response(200, json={"data": {"id": 42, "status": "Cancel Requested"}})
+    )
+    order = {
+        "time-in-force": "Day",
+        "order-type": "Limit",
+        "price": "0.05",
+        "price-effect": "Credit",
+        "legs": [],
+    }
+
+    assert client.dry_run_order(order) == {"warnings": []}
+    assert client.submit_order(order) == {"order": {"id": 42}}
+    assert client.cancel_order("42") == {"id": 42, "status": "Cancel Requested"}
+    assert json.loads(dry_run_route.calls[0].request.content) == order
+    assert submit_route.calls[0].request.headers["Authorization"] == "Bearer token"
+    assert cancel_route.called

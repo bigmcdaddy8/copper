@@ -92,6 +92,7 @@ def run_entry(
     log_dir: Path | None = None,
     tick: Callable[[], None] | None = None,
     dry_run: bool = False,
+    broker_dry_run: bool = False,
 ) -> RunResult:
     """Execute the K9 entry flow for *spec* using *broker*.
 
@@ -111,7 +112,11 @@ def run_entry(
     Returns:
         RunResult describing the execution outcome.
     """
-    result = RunResult(spec_name=spec_name, environment=spec.environment, dry_run=dry_run)
+    result = RunResult(
+        spec_name=spec_name,
+        environment=spec.environment,
+        dry_run=dry_run or broker_dry_run,
+    )
     _log_dir = log_dir or Path("logs/K9")
 
     try:
@@ -301,6 +306,29 @@ def run_entry(
                 "Dry-run complete: entry validated and order construction succeeded; "
                 "no orders were submitted."
             )
+            return result
+
+        if broker_dry_run:
+            broker_validate = getattr(broker, "dry_run_order", None)
+            if not callable(broker_validate):
+                _set_error(
+                    result,
+                    category=ERR_CONFIG_ERROR,
+                    code="BROKER_DRY_RUN_UNSUPPORTED",
+                    reason="Selected broker does not support an account-aware order dry-run.",
+                )
+                return result
+            response = broker_validate(order)
+            if response.status == "ACCEPTED":
+                result.outcome = "SKIPPED"
+                result.reason = (
+                    "Broker dry-run passed: Tastytrade accepted the proposed order "
+                    "without warnings; no order was submitted."
+                )
+            else:
+                result.outcome = "REJECTED"
+                result.rejection_reason = response.rejection_reason
+                result.reason = response.rejection_text or "Broker dry-run returned warnings."
             return result
 
         # Steps 13–16 — place order and poll

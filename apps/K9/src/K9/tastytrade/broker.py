@@ -1,4 +1,4 @@
-"""Read-only BIC adapter for the Tastytrade Open API."""
+"""BIC adapter for the Tastytrade Open API."""
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -49,12 +49,8 @@ _STATUS_MAP = {
 }
 
 
-class TradingDisabledError(RuntimeError):
-    """Raised before any Tastytrade mutation is attempted in the read-only release."""
-
-
 class TastytradeBroker(Broker):
-    """Map read-only Tastytrade data into the BIC Broker contract."""
+    """Map Tastytrade data and orders into the BIC Broker contract."""
 
     def __init__(
         self,
@@ -148,12 +144,45 @@ class TastytradeBroker(Broker):
         raise NotImplementedError("Tastytrade OHLCV support is not enabled in the read-only release.")
 
     def place_order(self, order: OrderRequest) -> OrderResponse:
-        del order
-        raise TradingDisabledError("Tastytrade order placement is disabled in the read-only release.")
+        dry_run_response = self.dry_run_order(order)
+        if dry_run_response.status != "ACCEPTED":
+            return dry_run_response
+        payload = _order_payload(order, self._client.get_nested_option_chain(order.symbol))
+        response = self._client.submit_order(payload)
+        raw_order = response.get("order")
+        if not isinstance(raw_order, dict):
+            raise ValueError("Tastytrade order response did not contain an order.")
+        raw_status = str(raw_order.get("status") or "")
+        order_id = str(raw_order.get("id") or "")
+        if not order_id:
+            raise ValueError("Tastytrade order response did not contain an order id.")
+        if raw_status.lower() == "rejected":
+            return OrderResponse(
+                order_id=order_id,
+                status="REJECTED",
+                rejection_reason="broker_rejected",
+                rejection_text=str(raw_order.get("reject-reason") or "Order rejected."),
+            )
+        return OrderResponse(order_id=order_id, status="ACCEPTED")
+
+    def dry_run_order(self, order: OrderRequest) -> OrderResponse:
+        """Validate an order with Tastytrade without routing it to a venue."""
+        payload = _order_payload(order, self._client.get_nested_option_chain(order.symbol))
+        dry_run = self._client.dry_run_order(payload)
+        warnings = dry_run.get("warnings")
+        if not isinstance(warnings, list):
+            raise ValueError("Tastytrade order dry-run response did not contain warnings.")
+        if warnings:
+            return OrderResponse(
+                order_id="",
+                status="REJECTED",
+                rejection_reason="dry_run_warning",
+                rejection_text="; ".join(str(warning) for warning in warnings),
+            )
+        return OrderResponse(order_id="", status="ACCEPTED")
 
     def cancel_order(self, order_id: str) -> None:
-        del order_id
-        raise TradingDisabledError("Tastytrade order cancellation is disabled in the read-only release.")
+        self._client.cancel_order(order_id)
 
     def get_order(self, order_id: str) -> Order:
         return _raw_to_order(self._client.get_order(order_id))
@@ -212,6 +241,48 @@ def _chain_contracts(raw_chains: list[dict], expiration: date) -> list[OptionCon
                         )
                     )
     return contracts
+
+
+def _order_payload(order: OrderRequest, raw_chains: list[dict]) -> dict:
+    """Translate a selected K9 multi-leg option order to Tastytrade's order schema."""
+    symbols = {
+        (contract.option_type, contract.strike): contract.broker_symbol
+        for contract in _chain_contracts(raw_chains, order.legs[0].expiration)
+    }
+    is_closing = order.strategy_type.endswith("_TP")
+    legs = []
+    for leg in order.legs:
+        symbol = symbols.get((leg.option_type, leg.strike))
+        if not symbol:
+            raise ValueError(
+                f"Tastytrade option symbol not found for {leg.option_type} {leg.strike} "
+                f"expiring {leg.expiration.isoformat()}."
+            )
+        action = _tastytrade_leg_action(leg.action, is_closing)
+        legs.append(
+            {
+                "instrument-type": "Equity Option",
+                "symbol": symbol,
+                "quantity": order.quantity,
+                "action": action,
+            }
+        )
+    return {
+        "time-in-force": "GTC" if order.duration.lower() == "gtc" else "Day",
+        "order-type": "Limit",
+        "price": f"{order.limit_price:.2f}",
+        "price-effect": "Debit" if is_closing else "Credit",
+        "source": f"K9:{order.tag}" if order.tag else "K9",
+        "legs": legs,
+    }
+
+
+def _tastytrade_leg_action(action: str, is_closing: bool) -> str:
+    if action == "SELL":
+        return "Sell to Close" if is_closing else "Sell to Open"
+    if action == "BUY":
+        return "Buy to Close" if is_closing else "Buy to Open"
+    raise ValueError(f"Unsupported K9 order-leg action: {action!r}")
 
 
 def _with_snapshot(contract: OptionContract, snapshots: dict[str, DxLinkSnapshot]) -> OptionContract:

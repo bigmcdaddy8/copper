@@ -43,6 +43,7 @@ k9_daily_close_xsp.sh|07:15
 k9_daily_entry_xsp.sh|09:00
 k9_morning_check_xsp.sh|09:30
 k9_tastytrade_diagnostic.sh|09:45
+k9_tastytrade_entry_xsp.sh|08:55
 k9_weekly_flow_report_xsp.sh|07:00
 smart_shutdown.sh|10:15
 EOF

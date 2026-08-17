@@ -1,4 +1,4 @@
-"""Read-only HTTP client for the Tastytrade Open API."""
+"""OAuth-authenticated HTTP client for the Tastytrade Open API."""
 from __future__ import annotations
 
 from typing import Any
@@ -99,11 +99,51 @@ class TastytradeClient:
         """Return the short-lived DXLink quote token and endpoint."""
         return self._data(self._get_json("/api-quote-tokens"))
 
+    def dry_run_order(self, order: dict[str, Any]) -> dict[str, Any]:
+        """Validate an order against the account without routing it to a venue."""
+        return self._data(self._post_json(self._account_path("orders/dry-run"), order))
+
+    def submit_order(self, order: dict[str, Any]) -> dict[str, Any]:
+        """Route an order to Tastytrade and return its accepted order payload."""
+        return self._data(self._post_json(self._account_path("orders"), order))
+
+    def cancel_order(self, order_id: str) -> dict[str, Any]:
+        """Request cancellation of a working order."""
+        response = self._delete(self._account_path(f"orders/{order_id}"))
+        if response.status_code == 401:
+            self._access_token = None
+            response = self._delete(self._account_path(f"orders/{order_id}"))
+        self._raise_for_status(response)
+        return self._data(self._json_object(response))
+
     def _get(self, path: str, params: dict[str, str] | None = None) -> httpx.Response:
         return httpx.get(
             f"{self._settings.base_url}{path}",
             headers=self._headers(),
             params=params,
+            timeout=_HTTP_TIMEOUT,
+        )
+
+    def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
+        response = self._post(path, payload)
+        if response.status_code == 401:
+            self._access_token = None
+            response = self._post(path, payload)
+        self._raise_for_status(response)
+        return self._json_object(response)
+
+    def _post(self, path: str, payload: dict[str, Any]) -> httpx.Response:
+        return httpx.post(
+            f"{self._settings.base_url}{path}",
+            headers=self._headers(),
+            json=payload,
+            timeout=_HTTP_TIMEOUT,
+        )
+
+    def _delete(self, path: str) -> httpx.Response:
+        return httpx.delete(
+            f"{self._settings.base_url}{path}",
+            headers=self._headers(),
             timeout=_HTTP_TIMEOUT,
         )
 

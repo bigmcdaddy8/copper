@@ -28,6 +28,8 @@ _ENV_ACCOUNT = {
     "holodeck":   "HD",
     "sandbox":    "TRDS",
     "production": "TRD",
+    "tastytrade_certification": "TTCERT",
+    "tastytrade_production": "TT",
 }
 
 
@@ -40,6 +42,11 @@ def enter(
         False,
         "--dry-run",
         help="Run full selection/validation path without placing any orders.",
+    ),
+    broker_dry_run: bool = typer.Option(
+        False,
+        "--broker-dry-run",
+        help="Validate the selected Tastytrade order with its account-aware dry-run endpoint.",
     ),
     specs_dir: str = typer.Option(
         str(_TRADE_SPECS_DIR),
@@ -73,8 +80,8 @@ def enter(
         console.print("[yellow]Trade spec is disabled. Exiting.[/yellow]")
         raise typer.Exit(0)
 
-    if spec.environment.startswith("tastytrade_"):
-        console.print("[bold red]Tastytrade trade entry is disabled in the read-only release.[/bold red]")
+    if dry_run and broker_dry_run:
+        console.print("[bold red]Use either --dry-run or --broker-dry-run, not both.[/bold red]")
         raise typer.Exit(1)
 
     console.print(
@@ -91,7 +98,14 @@ def enter(
     # Resolve log dir (supports K9_LOG_DIR env override for testing)
     log_dir = Path(os.environ.get("K9_LOG_DIR", "logs/K9"))
 
-    result = run_entry(spec, trade_spec, broker, log_dir=log_dir, dry_run=dry_run)
+    result = run_entry(
+        spec,
+        trade_spec,
+        broker,
+        log_dir=log_dir,
+        dry_run=dry_run,
+        broker_dry_run=broker_dry_run,
+    )
 
     # Write run log
     log = RunLog(spec_name=trade_spec, log_dir=log_dir)
@@ -264,10 +278,6 @@ def preflight(
         spec.validate()
     except (KeyError, ValueError) as exc:
         console.print(f"[bold red]Invalid trade spec: {exc}[/bold red]")
-        raise typer.Exit(1)
-
-    if spec.environment.startswith("tastytrade_"):
-        console.print("[bold red]Tastytrade preflight is disabled in the read-only release.[/bold red]")
         raise typer.Exit(1)
 
     try:
