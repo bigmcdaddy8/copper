@@ -73,3 +73,41 @@ def test_new_acceptance_rejection_and_deferred_policy():
     assert [item.reason for item in result.rejected] == [
         "INVALID_DXLINK_TICK", "INVALID_DXLINK_PRICE", "INVALID_DXLINK_SIZE", "UNEXPECTED_DXLINK_STREAMER_SYMBOL",
     ]
+
+
+def test_deferred_correction_and_cancel_survive_close_reopen_and_audit(tmp_path):
+    events = (_event(10, 1), _event(11, 2, type="CORRECTION"), _event(12, 3, type="CANCEL"))
+    result = normalize_dxlink_time_and_sales(source_records_from_events(events), _DATASET, _INSTRUMENT, _SYMBOL)
+    database = tmp_path / "deferred.db"
+    store = LaboratoryStore(database)
+    store.save_dataset(_DATASET)
+    store.save_trade_observations(result.observations)
+    store.save_dxlink_time_and_sale_provenance(result.provenance)
+    store.save_deferred_dxlink_time_and_sales(result.deferred)
+    store.close()
+
+    reopened = LaboratoryStore(database)
+    trades = reopened.load_trade_observations(_DATASET.dataset_id)
+    deferred = reopened.load_deferred_dxlink_time_and_sales(_DATASET.dataset_id)
+    audit = audit_dataset(reopened, _DATASET.dataset_id)
+
+    assert trades == result.observations
+    assert [event.deferred_event_id for event in deferred] == [
+        event.deferred_event_id for event in result.deferred
+    ]
+    assert [event.dataset_id for event in deferred] == [_DATASET.dataset_id, _DATASET.dataset_id]
+    assert [event.source_order for event in deferred] == [2, 3]
+    assert [event.source_record.source_record_ref for event in deferred] == ["event:2", "event:3"]
+    assert [event.source_record.event_classification for event in deferred] == ["CORRECTION", "CANCEL"]
+    assert [event.source_record.source_index for event in deferred] == [11, 12]
+    assert [event.source_record.source_sequence for event in deferred] == [2, 3]
+    assert [event.source_record.source_trade_id for event in deferred] == [272163, 272163]
+    assert all(event.source_record.event_flags == 0 for event in deferred)
+    assert all(event.source_record.event_time.tzinfo is timezone.utc for event in deferred)
+    assert all(event.source_record.price == Decimal("7684.25") for event in deferred)
+    assert all(event.source_record.size == Decimal("1.0") for event in deferred)
+    assert all(event.source_record.received_at.tzinfo is timezone.utc for event in deferred)
+    assert audit.deferred_timesale_count == 2
+    assert audit.deferred_timesale_counts_by_classification == (("CANCEL", 1), ("CORRECTION", 1))
+    assert calculate_vwap(trades) == Decimal("7684.25")
+    reopened.close()

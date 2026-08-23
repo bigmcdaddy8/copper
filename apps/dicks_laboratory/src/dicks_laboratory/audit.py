@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from dicks_laboratory.models import DatasetIdentity
+from dicks_laboratory.dxlink_timesales import DeferredDxLinkTimeAndSale
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType, summarize_dataset_quality
 from dicks_laboratory.rejections import NormalizationRejection, RejectionSourceKind
 from dicks_laboratory.store import LaboratoryStore
@@ -41,6 +42,21 @@ class RejectionAuditDetail:
 
 
 @dataclass(frozen=True)
+class DeferredTimeAndSaleAuditDetail:
+    deferred_event_id: UUID
+    event_classification: str
+    source_record_ref: str
+    source_time: datetime | None
+    source_index: int | None
+    source_sequence: int | None
+    source_trade_id: int | None
+    price: object
+    size: object
+    valid_tick: object
+    received_at: datetime
+
+
+@dataclass(frozen=True)
 class DatasetAudit:
     """Immutable factual read model; it deliberately contains no fitness verdict."""
 
@@ -61,6 +77,9 @@ class DatasetAudit:
     gaps: tuple[GapAuditDetail, ...]
     lifecycle_evidence: tuple[LifecycleAuditDetail, ...]
     rejections: tuple[RejectionAuditDetail, ...]
+    deferred_timesale_count: int
+    deferred_timesale_counts_by_classification: tuple[tuple[str, int], ...]
+    deferred_timesales: tuple[DeferredTimeAndSaleAuditDetail, ...]
 
 
 def audit_dataset(store: LaboratoryStore, dataset_id: UUID) -> DatasetAudit:
@@ -69,6 +88,7 @@ def audit_dataset(store: LaboratoryStore, dataset_id: UUID) -> DatasetAudit:
     trades = store.load_trade_observations(dataset_id)
     events = store.load_quality_events(dataset_id)
     rejections = store.load_rejections(dataset_id)
+    deferred = store.load_deferred_dxlink_time_and_sales(dataset_id)
     summary = summarize_dataset_quality(events, rejections)
 
     trade_timestamps = tuple(trade.event_timestamp for trade in trades)
@@ -128,6 +148,24 @@ def audit_dataset(store: LaboratoryStore, dataset_id: UUID) -> DatasetAudit:
             )
             for rejection in rejections
         ),
+        deferred_timesale_count=len(deferred),
+        deferred_timesale_counts_by_classification=_count_deferred_by_classification(deferred),
+        deferred_timesales=tuple(
+            DeferredTimeAndSaleAuditDetail(
+                deferred_event_id=event.deferred_event_id,
+                event_classification=event.source_record.event_classification or "UNKNOWN",
+                source_record_ref=event.source_record.source_record_ref,
+                source_time=_source_time(event),
+                source_index=_as_int(event.source_record.source_index),
+                source_sequence=_as_int(event.source_record.source_sequence),
+                source_trade_id=_as_int(event.source_record.source_trade_id),
+                price=event.source_record.price,
+                size=event.source_record.size,
+                valid_tick=event.source_record.valid_tick,
+                received_at=event.source_record.received_at,
+            )
+            for event in deferred
+        ),
     )
 
 
@@ -157,3 +195,22 @@ def _count_lifecycle(
         if event.observed_at is not None:
             counts[event.evidence_type] = counts.get(event.evidence_type, 0) + 1
     return tuple(sorted(counts.items(), key=lambda item: item[0].value))
+
+
+def _count_deferred_by_classification(
+    events: tuple[DeferredDxLinkTimeAndSale, ...],
+) -> tuple[tuple[str, int], ...]:
+    counts: dict[str, int] = {}
+    for event in events:
+        classification = event.source_record.event_classification or "UNKNOWN"
+        counts[classification] = counts.get(classification, 0) + 1
+    return tuple(sorted(counts.items()))
+
+
+def _source_time(event: DeferredDxLinkTimeAndSale) -> datetime | None:
+    value = event.source_record.event_time
+    return value if isinstance(value, datetime) else None
+
+
+def _as_int(value: object) -> int | None:
+    return value if isinstance(value, int) else None

@@ -58,6 +58,11 @@ class AcceptedDxLinkTimeAndSaleNormalization:
 
 @dataclass(frozen=True)
 class DeferredDxLinkTimeAndSale:
+    """A correction/cancel source fact intentionally excluded from canonical trade state."""
+
+    deferred_event_id: UUID
+    dataset_id: UUID
+    source_order: int
     source_record: DxLinkTimeAndSaleSourceRecord
     reason: str
 
@@ -123,7 +128,15 @@ def normalize_dxlink_time_and_sales(
     deferred: list[DeferredDxLinkTimeAndSale] = []
     for source_order, record in enumerate(records, start=1):
         if record.event_classification in {"CORRECTION", "CANCEL"}:
-            deferred.append(DeferredDxLinkTimeAndSale(record, f"DXLINK_{record.event_classification}"))
+            deferred.append(
+                DeferredDxLinkTimeAndSale(
+                    deferred_event_id=uuid5(dataset.dataset_id, f"deferred:{record.source_record_ref}"),
+                    dataset_id=dataset.dataset_id,
+                    source_order=source_order,
+                    source_record=record,
+                    reason=f"DXLINK_{record.event_classification}",
+                )
+            )
             continue
         reason = _rejection_reason(record, expected_streamer_symbol)
         if reason is not None:

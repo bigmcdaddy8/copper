@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from uuid import UUID
 
@@ -18,7 +18,11 @@ from dicks_laboratory.models import (
 )
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType
 from dicks_laboratory.rejections import NormalizationRejection, RejectionSourceKind
-from dicks_laboratory.dxlink_timesales import DxLinkTimeAndSaleProvenance
+from dicks_laboratory.dxlink_timesales import (
+    DeferredDxLinkTimeAndSale,
+    DxLinkTimeAndSaleProvenance,
+    DxLinkTimeAndSaleSourceRecord,
+)
 
 _DDL = """
 PRAGMA foreign_keys = ON;
@@ -95,6 +99,33 @@ CREATE TABLE IF NOT EXISTS observation_source_provenance (
     source_index INTEGER NOT NULL,
     source_sequence INTEGER NOT NULL,
     source_trade_id INTEGER,
+    received_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS deferred_dxlink_timesale_events (
+    deferred_event_id TEXT PRIMARY KEY,
+    dataset_id TEXT NOT NULL REFERENCES datasets(dataset_id),
+    source_order INTEGER NOT NULL,
+    source_record_ref TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    event_symbol TEXT,
+    event_time TEXT,
+    event_classification TEXT NOT NULL,
+    source_index INTEGER NOT NULL,
+    source_sequence INTEGER NOT NULL,
+    source_trade_id INTEGER,
+    event_flags INTEGER,
+    exchange_code TEXT,
+    price TEXT,
+    size TEXT,
+    bid_price TEXT,
+    ask_price TEXT,
+    exchange_sale_conditions TEXT,
+    trade_through_exempt TEXT,
+    aggressor_side TEXT,
+    spread_leg INTEGER,
+    extended_trading_hours INTEGER,
+    valid_tick INTEGER,
     received_at TEXT NOT NULL
 );
 """
@@ -252,6 +283,38 @@ class LaboratoryStore:
             )
         self._connection.commit()
 
+    def save_deferred_dxlink_time_and_sales(
+        self,
+        events: tuple[DeferredDxLinkTimeAndSale, ...],
+    ) -> None:
+        for event in events:
+            record = event.source_record
+            self._connection.execute(
+                """
+                INSERT INTO deferred_dxlink_timesale_events (
+                    deferred_event_id, dataset_id, source_order, source_record_ref, reason,
+                    event_symbol, event_time, event_classification, source_index, source_sequence,
+                    source_trade_id, event_flags, exchange_code, price, size, bid_price, ask_price,
+                    exchange_sale_conditions, trade_through_exempt, aggressor_side, spread_leg,
+                    extended_trading_hours, valid_tick, received_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(event.deferred_event_id), str(event.dataset_id), event.source_order,
+                    record.source_record_ref, event.reason, record.event_symbol,
+                    _timestamp_text(_dxlink_event_time(record.event_time)), record.event_classification,
+                    _int_or_none(record.source_index), _int_or_none(record.source_sequence),
+                    _int_or_none(record.source_trade_id), _int_or_none(record.event_flags),
+                    _string_or_none(record.exchange_code), _decimal_text(record.price), _decimal_text(record.size),
+                    _decimal_text(record.bid_price), _decimal_text(record.ask_price),
+                    _string_or_none(record.exchange_sale_conditions), _string_or_none(record.trade_through_exempt),
+                    _string_or_none(record.aggressor_side), _bool_or_none(record.spread_leg),
+                    _bool_or_none(record.extended_trading_hours), _bool_or_none(record.valid_tick),
+                    _timestamp_text(record.received_at),
+                ),
+            )
+        self._connection.commit()
+
     def load_dataset(self, dataset_id: UUID) -> DatasetIdentity:
         row = self._connection.execute(
             "SELECT * FROM datasets WHERE dataset_id = ?", (str(dataset_id),)
@@ -387,6 +450,50 @@ class LaboratoryStore:
             for row in rows
         )
 
+    def load_deferred_dxlink_time_and_sales(
+        self,
+        dataset_id: UUID,
+    ) -> tuple[DeferredDxLinkTimeAndSale, ...]:
+        rows = self._connection.execute(
+            """
+            SELECT * FROM deferred_dxlink_timesale_events
+            WHERE dataset_id = ?
+            ORDER BY event_time, source_index, deferred_event_id
+            """,
+            (str(dataset_id),),
+        ).fetchall()
+        return tuple(
+            DeferredDxLinkTimeAndSale(
+                deferred_event_id=UUID(row["deferred_event_id"]),
+                dataset_id=UUID(row["dataset_id"]),
+                source_order=row["source_order"],
+                source_record=DxLinkTimeAndSaleSourceRecord(
+                    source_record_ref=row["source_record_ref"],
+                    event_symbol=row["event_symbol"],
+                    event_time=_timestamp_from_text(row["event_time"]),
+                    event_classification=row["event_classification"],
+                    source_index=row["source_index"],
+                    source_sequence=row["source_sequence"],
+                    source_trade_id=row["source_trade_id"],
+                    event_flags=row["event_flags"],
+                    exchange_code=row["exchange_code"],
+                    price=_decimal_from_text(row["price"]),
+                    size=_decimal_from_text(row["size"]),
+                    bid_price=_decimal_from_text(row["bid_price"]),
+                    ask_price=_decimal_from_text(row["ask_price"]),
+                    exchange_sale_conditions=row["exchange_sale_conditions"],
+                    trade_through_exempt=row["trade_through_exempt"],
+                    aggressor_side=row["aggressor_side"],
+                    spread_leg=_bool_from_int(row["spread_leg"]),
+                    extended_trading_hours=_bool_from_int(row["extended_trading_hours"]),
+                    valid_tick=_bool_from_int(row["valid_tick"]),
+                    received_at=_timestamp_from_text(row["received_at"]),
+                ),
+                reason=row["reason"],
+            )
+            for row in rows
+        )
+
 
 def _timestamp_text(timestamp: datetime | None) -> str | None:
     if timestamp is None:
@@ -403,3 +510,44 @@ def _timestamp_from_text(timestamp: str | None) -> datetime | None:
     if value.tzinfo is not timezone.utc:
         raise ValueError("Stored timestamp must use timezone.utc.")
     return value
+
+
+def _dxlink_event_time(value: object) -> datetime | None:
+    try:
+        milliseconds = int(value)
+    except (TypeError, ValueError):
+        return None
+    return datetime.fromtimestamp(milliseconds / 1000, tz=timezone.utc) if milliseconds > 0 else None
+
+
+def _int_or_none(value: object) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _string_or_none(value: object) -> str | None:
+    return value if isinstance(value, str) else None
+
+
+def _decimal_text(value: object) -> str | None:
+    if value is None:
+        return None
+    try:
+        decimal = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return None
+    return str(decimal) if decimal.is_finite() else None
+
+
+def _decimal_from_text(value: str | None) -> Decimal | None:
+    return Decimal(value) if value is not None else None
+
+
+def _bool_or_none(value: object) -> int | None:
+    return int(value) if isinstance(value, bool) else None
+
+
+def _bool_from_int(value: int | None) -> bool | None:
+    return bool(value) if value is not None else None
