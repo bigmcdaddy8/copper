@@ -8,12 +8,19 @@ def test_source_events_preserve_configured_fields_and_add_utc_receipt_time():
         "type": "FEED_DATA",
         "data": [
             "TimeAndSale",
-            ["TimeAndSale", "BTC/USD:CXTALP", 1_777_777_777_000, 65_000.25, 0.01, 42, 1_777_777_777_000],
+            [
+                "TimeAndSale", "BTC/USD:CXTALP", 0, 0, 42, 7, 1_777_777_777_000,
+                "NEW", 12345, "X", 65_000.25, 0.01, 64_999.0, 65_001.0,
+                None, "\u0000", "BUY", False, False, True,
+            ],
         ],
     }
     fields = {
         "TimeAndSale": (
-            "eventType", "eventSymbol", "eventTime", "price", "size", "index", "time"
+            "eventType", "eventSymbol", "eventTime", "eventFlags", "index", "sequence", "time", "type",
+            "tradeId", "exchangeCode", "price", "size", "bidPrice", "askPrice",
+            "exchangeSaleConditions", "tradeThroughExempt", "aggressorSide", "spreadLeg",
+            "extendedTradingHours", "validTick",
         )
     }
 
@@ -24,7 +31,11 @@ def test_source_events_preserve_configured_fields_and_add_utc_receipt_time():
     assert events[0].streamer_symbol == "BTC/USD:CXTALP"
     assert events[0].fields["price"] == 65_000.25
     assert events[0].fields["size"] == 0.01
+    assert events[0].fields["eventFlags"] == 0
     assert events[0].fields["index"] == 42
+    assert events[0].fields["sequence"] == 7
+    assert events[0].fields["type"] == "NEW"
+    assert events[0].fields["tradeId"] == 12345
     assert events[0].received_at.tzinfo is timezone.utc
 
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 
 import typer
@@ -12,6 +13,79 @@ from K9.tastytrade.dxlink import DxLinkSourceCollector
 from K9.tastytrade.settings import TastytradeSettings
 
 app = typer.Typer(add_completion=False)
+
+
+def _number_integrity(events: tuple[object, ...], field: str) -> dict[str, int]:
+    counts = {"finite_positive": 0, "zero": 0, "negative": 0, "non_finite": 0}
+    for event in events:
+        value = event.fields.get(field)
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            counts["non_finite"] += 1
+            continue
+        if not math.isfinite(number):
+            counts["non_finite"] += 1
+        elif number > 0:
+            counts["finite_positive"] += 1
+        elif number == 0:
+            counts["zero"] += 1
+        else:
+            counts["negative"] += 1
+    return counts
+
+
+def _time_and_sale_summary(events: tuple[object, ...]) -> dict[str, object] | None:
+    time_and_sales = tuple(event for event in events if event.event_type == "TimeAndSale")
+    if not time_and_sales:
+        return None
+    classifications: dict[str, int] = {}
+    valid_ticks: dict[str, int] = {}
+    source_times: list[object] = []
+    indexes: list[object] = []
+    for event in time_and_sales:
+        classification = str(event.fields.get("type"))
+        classifications[classification] = classifications.get(classification, 0) + 1
+        valid_tick = str(event.fields.get("validTick"))
+        valid_ticks[valid_tick] = valid_ticks.get(valid_tick, 0) + 1
+        source_times.append(event.fields.get("time"))
+        indexes.append(event.fields.get("index"))
+    return {
+        "classification_counts": dict(sorted(classifications.items())),
+        "valid_tick_counts": dict(sorted(valid_ticks.items())),
+        "price_integrity": _number_integrity(time_and_sales, "price"),
+        "size_integrity": _number_integrity(time_and_sales, "size"),
+        "unique_source_times": len(set(source_times)),
+        "duplicate_source_time_events": len(source_times) - len(set(source_times)),
+        "index_strictly_increasing_in_capture_order": all(
+            isinstance(current, int) and isinstance(previous, int) and current > previous
+            for previous, current in zip(indexes, indexes[1:], strict=False)
+        ),
+    }
+
+
+def _representative_events(events: tuple[object, ...]) -> list[object]:
+    selected = []
+    selected_ids: set[int] = set()
+    for classification in ("NEW", "CORRECTION", "CANCEL"):
+        for event in events:
+            if event.event_type == "TimeAndSale" and event.fields.get("type") == classification:
+                selected.append(event)
+                selected_ids.add(id(event))
+                break
+    for event in events:
+        if event.event_type == "TimeAndSale" and event.fields.get("validTick") is False:
+            if id(event) not in selected_ids:
+                selected.append(event)
+                selected_ids.add(id(event))
+            break
+    for event in events:
+        if id(event) not in selected_ids:
+            selected.append(event)
+            selected_ids.add(id(event))
+        if len(selected) >= 3:
+            break
+    return selected[:4]
 
 
 def _resolve_symbol(client: TastytradeClient, symbol: str, instrument_type: str) -> dict:
@@ -62,6 +136,7 @@ def capture(
         "instrument_type": instrument_type,
         "requested_event_types": requested_types,
         "event_counts": counts,
+        "time_and_sale_summary": _time_and_sale_summary(events),
         "first_received_at": events[0].received_at.isoformat() if events else None,
         "last_received_at": events[-1].received_at.isoformat() if events else None,
         "representative_events": [
@@ -71,7 +146,7 @@ def capture(
                 "received_at": event.received_at.isoformat(),
                 "fields": event.fields,
             }
-            for event in events[:3]
+            for event in _representative_events(events)
         ],
     }
     typer.echo(json.dumps(payload, default=str, indent=2))
