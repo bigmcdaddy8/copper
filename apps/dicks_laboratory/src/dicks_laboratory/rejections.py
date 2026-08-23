@@ -9,6 +9,7 @@ from uuid import UUID
 class RejectionSourceKind(StrEnum):
     HISTORICAL_TRADE = "HISTORICAL_TRADE"
     CAPTURE_LIFECYCLE = "CAPTURE_LIFECYCLE"
+    DXLINK_TIME_AND_SALE = "DXLINK_TIME_AND_SALE"
 
 
 @dataclass(frozen=True)

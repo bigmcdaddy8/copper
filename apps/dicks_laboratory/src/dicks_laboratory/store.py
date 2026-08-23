@@ -18,6 +18,7 @@ from dicks_laboratory.models import (
 )
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType
 from dicks_laboratory.rejections import NormalizationRejection, RejectionSourceKind
+from dicks_laboratory.dxlink_timesales import DxLinkTimeAndSaleProvenance
 
 _DDL = """
 PRAGMA foreign_keys = ON;
@@ -85,6 +86,16 @@ CREATE TABLE IF NOT EXISTS normalization_rejections (
     source_order INTEGER NOT NULL,
     reason TEXT NOT NULL,
     detail TEXT
+);
+
+CREATE TABLE IF NOT EXISTS observation_source_provenance (
+    observation_id TEXT PRIMARY KEY REFERENCES trade_observations(observation_id),
+    source_kind TEXT NOT NULL,
+    source_record_ref TEXT NOT NULL,
+    source_index INTEGER NOT NULL,
+    source_sequence INTEGER NOT NULL,
+    source_trade_id INTEGER,
+    received_at TEXT NOT NULL
 );
 """
 
@@ -217,6 +228,30 @@ class LaboratoryStore:
             )
         self._connection.commit()
 
+    def save_dxlink_time_and_sale_provenance(
+        self,
+        provenance: tuple[DxLinkTimeAndSaleProvenance, ...],
+    ) -> None:
+        for item in provenance:
+            self._connection.execute(
+                """
+                INSERT INTO observation_source_provenance (
+                    observation_id, source_kind, source_record_ref, source_index,
+                    source_sequence, source_trade_id, received_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(item.observation_id),
+                    "DXLINK_TIME_AND_SALE",
+                    item.source_record_ref,
+                    item.source_index,
+                    item.source_sequence,
+                    item.source_trade_id,
+                    _timestamp_text(item.received_at),
+                ),
+            )
+        self._connection.commit()
+
     def load_dataset(self, dataset_id: UUID) -> DatasetIdentity:
         row = self._connection.execute(
             "SELECT * FROM datasets WHERE dataset_id = ?", (str(dataset_id),)
@@ -323,6 +358,31 @@ class LaboratoryStore:
                 source_order=row["source_order"],
                 reason=row["reason"],
                 detail=row["detail"],
+            )
+            for row in rows
+        )
+
+    def load_dxlink_time_and_sale_provenance(
+        self,
+        dataset_id: UUID,
+    ) -> tuple[DxLinkTimeAndSaleProvenance, ...]:
+        rows = self._connection.execute(
+            """
+            SELECT p.* FROM observation_source_provenance AS p
+            JOIN trade_observations AS o ON o.observation_id = p.observation_id
+            WHERE o.dataset_id = ? AND p.source_kind = 'DXLINK_TIME_AND_SALE'
+            ORDER BY o.dataset_sequence
+            """,
+            (str(dataset_id),),
+        ).fetchall()
+        return tuple(
+            DxLinkTimeAndSaleProvenance(
+                observation_id=UUID(row["observation_id"]),
+                source_record_ref=row["source_record_ref"],
+                source_index=row["source_index"],
+                source_sequence=row["source_sequence"],
+                source_trade_id=row["source_trade_id"],
+                received_at=_timestamp_from_text(row["received_at"]),
             )
             for row in rows
         )
