@@ -406,6 +406,9 @@ class DxLinkSourceCollector:
         event_types: tuple[str, ...],
         duration_seconds: float,
         max_events: int,
+        on_event: Callable[[DxLinkSourceEvent], None] | None = None,
+        on_connected: Callable[[], None] | None = None,
+        retain_events: bool = True,
     ) -> tuple[DxLinkSourceEvent, ...]:
         """Return at most *max_events* raw source events within a bounded duration."""
         if duration_seconds <= 0:
@@ -422,10 +425,13 @@ class DxLinkSourceCollector:
                 socket,
                 {event_type: _SOURCE_EVENT_FIELDS[event_type] for event_type in event_types},
             )
+            if on_connected is not None:
+                on_connected()
             deadline = time.monotonic() + duration_seconds
             next_keepalive = time.monotonic() + 20.0
             events: list[DxLinkSourceEvent] = []
-            while len(events) < max_events and time.monotonic() < deadline:
+            event_count = 0
+            while event_count < max_events and time.monotonic() < deadline:
                 timeout = min(max(0.01, deadline - time.monotonic()), max(0.01, next_keepalive - time.monotonic()))
                 try:
                     frame = DxLinkCollector._receive(socket, timeout=timeout)
@@ -435,7 +441,14 @@ class DxLinkSourceCollector:
                     DxLinkCollector._send(socket, {"type": "KEEPALIVE", "channel": 0})
                     next_keepalive = time.monotonic() + 20.0
                     continue
-                events.extend(self._source_events(frame, fields_by_type, streamer_symbol))
+                for event in self._source_events(frame, fields_by_type, streamer_symbol):
+                    event_count += 1
+                    if on_event is not None:
+                        on_event(event)
+                    if retain_events:
+                        events.append(event)
+                    if event_count >= max_events:
+                        break
                 if time.monotonic() >= next_keepalive:
                     DxLinkCollector._send(socket, {"type": "KEEPALIVE", "channel": 0})
                     next_keepalive = time.monotonic() + 20.0

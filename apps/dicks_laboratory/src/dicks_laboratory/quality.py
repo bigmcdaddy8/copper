@@ -10,6 +10,7 @@ from dicks_laboratory.historical_csv import RejectedSourceRecord
 
 
 class DatasetQualityEvidenceType(StrEnum):
+    CAPTURE_STARTED = "CAPTURE_STARTED"
     SOURCE_CONNECTED = "SOURCE_CONNECTED"
     SOURCE_DISCONNECTED = "SOURCE_DISCONNECTED"
     SOURCE_RECONNECTED = "SOURCE_RECONNECTED"

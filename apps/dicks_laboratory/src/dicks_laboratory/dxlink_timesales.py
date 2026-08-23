@@ -83,10 +83,13 @@ class DxLinkTimeAndSaleNormalizationResult:
         return tuple(item.provenance for item in self.accepted)
 
 
-def source_records_from_events(events: tuple[DxLinkSourceEvent, ...]) -> tuple[DxLinkTimeAndSaleSourceRecord, ...]:
+def source_records_from_events(
+    events: tuple[DxLinkSourceEvent, ...],
+    start_source_order: int = 1,
+) -> tuple[DxLinkTimeAndSaleSourceRecord, ...]:
     """Assign bounded-capture-local references without deduplicating source events."""
     records = []
-    for source_order, event in enumerate(events, start=1):
+    for source_order, event in enumerate(events, start=start_source_order):
         if event.event_type != "TimeAndSale":
             continue
         fields = event.fields
@@ -122,12 +125,14 @@ def normalize_dxlink_time_and_sales(
     dataset: DatasetIdentity,
     instrument: InstrumentIdentity,
     expected_streamer_symbol: str,
+    start_source_order: int = 1,
+    start_dataset_sequence: int = 1,
 ) -> DxLinkTimeAndSaleNormalizationResult:
     """Accept only explicit NEW/valid/positive TimeAndSale source events."""
     accepted: list[AcceptedDxLinkTimeAndSaleNormalization] = []
     rejected: list[NormalizationRejection] = []
     deferred: list[DeferredDxLinkTimeAndSale] = []
-    for source_order, record in enumerate(records, start=1):
+    for source_order, record in enumerate(records, start=start_source_order):
         if record.event_classification in {"CORRECTION", "CANCEL"}:
             deferred.append(
                 DeferredDxLinkTimeAndSale(
@@ -161,7 +166,7 @@ def normalize_dxlink_time_and_sales(
         observation = TradeObservation(
             observation_id=uuid5(dataset.dataset_id, f"observation:{record.source_record_ref}"),
             dataset_id=dataset.dataset_id,
-            dataset_sequence=len(accepted) + 1,
+            dataset_sequence=start_dataset_sequence + len(accepted),
             instrument=instrument,
             event_timestamp=event_timestamp,
             price=price,

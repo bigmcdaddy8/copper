@@ -182,6 +182,13 @@ class LaboratoryStore:
         )
         self._connection.commit()
 
+    def update_dataset_capture_ended(self, dataset_id: UUID, capture_ended_at: datetime) -> None:
+        self._connection.execute(
+            "UPDATE datasets SET capture_ended_at = ? WHERE dataset_id = ?",
+            (_timestamp_text(capture_ended_at), str(dataset_id)),
+        )
+        self._connection.commit()
+
     def save_trade_observations(self, trades: tuple[TradeObservation, ...]) -> None:
         for trade in trades:
             self._connection.execute(
