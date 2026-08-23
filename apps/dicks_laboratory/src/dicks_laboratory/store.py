@@ -17,6 +17,7 @@ from dicks_laboratory.models import (
     TradeObservation,
 )
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType
+from dicks_laboratory.rejections import NormalizationRejection, RejectionSourceKind
 
 _DDL = """
 PRAGMA foreign_keys = ON;
@@ -74,6 +75,16 @@ CREATE TABLE IF NOT EXISTS quality_event_links (
     supporting_event_id TEXT NOT NULL REFERENCES dataset_quality_events(event_id),
     link_sequence INTEGER NOT NULL,
     PRIMARY KEY (event_id, link_sequence)
+);
+
+CREATE TABLE IF NOT EXISTS normalization_rejections (
+    rejection_id TEXT PRIMARY KEY,
+    dataset_id TEXT NOT NULL REFERENCES datasets(dataset_id),
+    source_kind TEXT NOT NULL,
+    source_record_ref TEXT NOT NULL,
+    source_order INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    detail TEXT
 );
 """
 
@@ -185,6 +196,27 @@ class LaboratoryStore:
                 )
         self._connection.commit()
 
+    def save_rejections(self, rejections: tuple[NormalizationRejection, ...]) -> None:
+        for rejection in rejections:
+            self._connection.execute(
+                """
+                INSERT INTO normalization_rejections (
+                    rejection_id, dataset_id, source_kind, source_record_ref,
+                    source_order, reason, detail
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(rejection.rejection_id),
+                    str(rejection.dataset_id),
+                    rejection.source_kind.value,
+                    rejection.source_record_ref,
+                    rejection.source_order,
+                    rejection.reason,
+                    rejection.detail,
+                ),
+            )
+        self._connection.commit()
+
     def load_dataset(self, dataset_id: UUID) -> DatasetIdentity:
         row = self._connection.execute(
             "SELECT * FROM datasets WHERE dataset_id = ?", (str(dataset_id),)
@@ -272,6 +304,28 @@ class LaboratoryStore:
                 )
             )
         return tuple(events)
+
+    def load_rejections(self, dataset_id: UUID) -> tuple[NormalizationRejection, ...]:
+        rows = self._connection.execute(
+            """
+            SELECT * FROM normalization_rejections
+            WHERE dataset_id = ?
+            ORDER BY source_order, rejection_id
+            """,
+            (str(dataset_id),),
+        ).fetchall()
+        return tuple(
+            NormalizationRejection(
+                rejection_id=UUID(row["rejection_id"]),
+                dataset_id=UUID(row["dataset_id"]),
+                source_kind=RejectionSourceKind(row["source_kind"]),
+                source_record_ref=row["source_record_ref"],
+                source_order=row["source_order"],
+                reason=row["reason"],
+                detail=row["detail"],
+            )
+            for row in rows
+        )
 
 
 def _timestamp_text(timestamp: datetime | None) -> str | None:
