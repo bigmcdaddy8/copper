@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS observation_source_provenance (
     observation_id TEXT PRIMARY KEY REFERENCES trade_observations(observation_id),
     source_kind TEXT NOT NULL,
     source_record_ref TEXT NOT NULL,
+    source_order INTEGER NOT NULL DEFAULT 0,
     source_index INTEGER NOT NULL,
     source_sequence INTEGER NOT NULL,
     source_trade_id INTEGER,
@@ -139,10 +140,20 @@ class LaboratoryStore:
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
         self._connection.executescript(_DDL)
+        self._ensure_provenance_source_order()
         self._connection.commit()
 
     def close(self) -> None:
         self._connection.close()
+
+    def _ensure_provenance_source_order(self) -> None:
+        columns = {
+            row["name"] for row in self._connection.execute("PRAGMA table_info(observation_source_provenance)")
+        }
+        if "source_order" not in columns:
+            self._connection.execute(
+                "ALTER TABLE observation_source_provenance ADD COLUMN source_order INTEGER NOT NULL DEFAULT 0"
+            )
 
     def save_dataset(self, dataset: DatasetIdentity) -> None:
         self._connection.execute(
@@ -267,14 +278,15 @@ class LaboratoryStore:
             self._connection.execute(
                 """
                 INSERT INTO observation_source_provenance (
-                    observation_id, source_kind, source_record_ref, source_index,
+                    observation_id, source_kind, source_record_ref, source_order, source_index,
                     source_sequence, source_trade_id, received_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     str(item.observation_id),
                     "DXLINK_TIME_AND_SALE",
                     item.source_record_ref,
+                    item.source_order,
                     item.source_index,
                     item.source_sequence,
                     item.source_trade_id,
@@ -442,6 +454,7 @@ class LaboratoryStore:
             DxLinkTimeAndSaleProvenance(
                 observation_id=UUID(row["observation_id"]),
                 source_record_ref=row["source_record_ref"],
+                source_order=row["source_order"],
                 source_index=row["source_index"],
                 source_sequence=row["source_sequence"],
                 source_trade_id=row["source_trade_id"],

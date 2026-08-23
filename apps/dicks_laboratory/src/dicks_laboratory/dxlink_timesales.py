@@ -43,6 +43,7 @@ class DxLinkTimeAndSaleProvenance:
 
     observation_id: UUID
     source_record_ref: str
+    source_order: int
     source_index: int
     source_sequence: int
     source_trade_id: int | None
@@ -169,6 +170,7 @@ def normalize_dxlink_time_and_sales(
         provenance = DxLinkTimeAndSaleProvenance(
             observation_id=observation.observation_id,
             source_record_ref=record.source_record_ref,
+            source_order=source_order,
             source_index=source_index,
             source_sequence=source_sequence,
             source_trade_id=source_trade_id,
