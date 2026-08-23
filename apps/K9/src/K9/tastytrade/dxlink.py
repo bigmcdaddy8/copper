@@ -49,6 +49,28 @@ _SUMMARY_FIELDS = (
     "dayLowPrice",
     "prevDayClosePrice",
 )
+_SOURCE_EVENT_FIELDS: dict[str, tuple[str, ...]] = {
+    "Trade": _TRADE_FIELDS,
+    "Quote": _QUOTE_FIELDS,
+    "TimeAndSale": (
+        "eventType",
+        "eventSymbol",
+        "eventTime",
+        "index",
+        "time",
+        "exchangeCode",
+        "price",
+        "size",
+        "bidPrice",
+        "askPrice",
+        "exchangeSaleConditions",
+        "tradeThroughExempt",
+        "aggressorSide",
+        "spreadLeg",
+        "extendedTradingHours",
+        "validTick",
+    ),
+}
 
 
 def scout_field_catalog() -> dict[str, object]:
@@ -82,6 +104,16 @@ class _Socket(Protocol):
     def recv(self, timeout: float | None = None) -> str: ...
 
     def close(self) -> None: ...
+
+
+@dataclass(frozen=True)
+class DxLinkSourceEvent:
+    """One bounded, source-shaped DXLink event retained for semantic inspection."""
+
+    event_type: str
+    streamer_symbol: str
+    fields: dict[str, object]
+    received_at: datetime
 
 
 @dataclass
@@ -349,3 +381,164 @@ def _event_time_or_none(value: object) -> datetime | None:
 
 def _has_scout_fields(snapshot: DxLinkSnapshot) -> bool:
     return snapshot.last_price is not None and snapshot.open_interest is not None
+
+
+class DxLinkSourceCollector:
+    """Collect bounded raw DXLink events without normalizing them into market facts."""
+
+    def __init__(
+        self,
+        url: str,
+        quote_token: str,
+        socket_factory: Callable[[str], _Socket] = connect,
+    ) -> None:
+        self._url = url
+        self._quote_token = quote_token
+        self._socket_factory = socket_factory
+
+    def collect(
+        self,
+        streamer_symbol: str,
+        event_types: tuple[str, ...],
+        duration_seconds: float,
+        max_events: int,
+    ) -> tuple[DxLinkSourceEvent, ...]:
+        """Return at most *max_events* raw source events within a bounded duration."""
+        if duration_seconds <= 0:
+            raise ValueError("duration_seconds must be positive.")
+        if max_events < 1:
+            raise ValueError("max_events must be positive.")
+        if not event_types:
+            raise ValueError("At least one event type is required.")
+
+        socket = self._socket_factory(self._url)
+        try:
+            self._setup(socket, streamer_symbol, event_types)
+            fields_by_type = self._read_feed_config(
+                socket,
+                {event_type: _SOURCE_EVENT_FIELDS[event_type] for event_type in event_types},
+            )
+            deadline = time.monotonic() + duration_seconds
+            next_keepalive = time.monotonic() + 20.0
+            events: list[DxLinkSourceEvent] = []
+            while len(events) < max_events and time.monotonic() < deadline:
+                timeout = min(max(0.01, deadline - time.monotonic()), max(0.01, next_keepalive - time.monotonic()))
+                try:
+                    frame = DxLinkCollector._receive(socket, timeout=timeout)
+                except DxLinkError as exc:
+                    if "timed out" not in str(exc).lower():
+                        raise
+                    DxLinkCollector._send(socket, {"type": "KEEPALIVE", "channel": 0})
+                    next_keepalive = time.monotonic() + 20.0
+                    continue
+                events.extend(self._source_events(frame, fields_by_type, streamer_symbol))
+                if time.monotonic() >= next_keepalive:
+                    DxLinkCollector._send(socket, {"type": "KEEPALIVE", "channel": 0})
+                    next_keepalive = time.monotonic() + 20.0
+            return tuple(events[:max_events])
+        except DxLinkError as exc:
+            if "timed out" in str(exc).lower():
+                return tuple()
+            raise
+        finally:
+            socket.close()
+
+    def _setup(self, socket: _Socket, streamer_symbol: str, event_types: tuple[str, ...]) -> None:
+        DxLinkCollector._send(
+            socket,
+            {
+                "type": "SETUP",
+                "channel": 0,
+                "version": "0.1-DICKS_LAB/0.1",
+                "keepaliveTimeout": 60,
+                "acceptKeepaliveTimeout": 60,
+            },
+        )
+        DxLinkCollector._expect_type(DxLinkCollector._receive(socket), "SETUP")
+        self._expect_auth_state(DxLinkCollector._receive(socket), "UNAUTHORIZED")
+        DxLinkCollector._send(socket, {"type": "AUTH", "channel": 0, "token": self._quote_token})
+        self._expect_auth_state(DxLinkCollector._receive(socket), "AUTHORIZED")
+        DxLinkCollector._send(
+            socket,
+            {"type": "CHANNEL_REQUEST", "channel": _CHANNEL, "service": "FEED", "parameters": {"contract": "AUTO"}},
+        )
+        DxLinkCollector._expect_type(DxLinkCollector._receive(socket), "CHANNEL_OPENED")
+        fields = {event_type: list(_SOURCE_EVENT_FIELDS[event_type]) for event_type in event_types}
+        DxLinkCollector._send(
+            socket,
+            {
+                "type": "FEED_SETUP",
+                "channel": _CHANNEL,
+                "acceptAggregationPeriod": 0.0,
+                "acceptDataFormat": "COMPACT",
+                "acceptEventFields": fields,
+            },
+        )
+        DxLinkCollector._send(
+            socket,
+            {
+                "type": "FEED_SUBSCRIPTION",
+                "channel": _CHANNEL,
+                "reset": True,
+                "add": [{"type": event_type, "symbol": streamer_symbol} for event_type in event_types],
+            },
+        )
+
+    @staticmethod
+    def _expect_auth_state(frame: dict, expected: str) -> None:
+        DxLinkCollector._expect_type(frame, "AUTH_STATE")
+        if frame.get("state") != expected:
+            raise DxLinkError(
+                f"Expected DXLink authorization state {expected!r}, got {frame.get('state')!r}."
+            )
+
+    @staticmethod
+    def _read_feed_config(
+        socket: _Socket,
+        requested_fields: dict[str, tuple[str, ...]],
+    ) -> dict[str, tuple[str, ...]]:
+        while True:
+            frame = DxLinkCollector._receive(socket)
+            if frame.get("type") == "ERROR":
+                raise DxLinkError(str(frame.get("message") or frame.get("error") or "DXLink error."))
+            if frame.get("type") != "FEED_CONFIG":
+                continue
+            raw_fields = frame.get("eventFields") or frame.get("acceptEventFields")
+            if not isinstance(raw_fields, dict):
+                return requested_fields
+            return {
+                event_type: tuple(fields)
+                for event_type, fields in raw_fields.items()
+                if isinstance(event_type, str) and isinstance(fields, list) and all(isinstance(field, str) for field in fields)
+            }
+
+    @staticmethod
+    def _source_events(
+        frame: dict,
+        fields_by_type: dict[str, tuple[str, ...]],
+        streamer_symbol: str,
+    ) -> list[DxLinkSourceEvent]:
+        if frame.get("type") == "ERROR":
+            raise DxLinkError(str(frame.get("message") or frame.get("error") or "DXLink error."))
+        if frame.get("type") != "FEED_DATA":
+            return []
+        data = frame.get("data")
+        if not isinstance(data, list) or len(data) != 2:
+            raise DxLinkError("DXLink FEED_DATA frame had an unsupported shape.")
+        event_type, values = data
+        fields = fields_by_type.get(event_type) if isinstance(event_type, str) else None
+        if fields is None or not isinstance(values, list) or len(values) % len(fields) != 0:
+            raise DxLinkError("DXLink source event data did not match FEED_CONFIG fields.")
+        result = []
+        for start in range(0, len(values), len(fields)):
+            raw = dict(zip(fields, values[start : start + len(fields)], strict=True))
+            symbol = raw.get("eventSymbol")
+            result.append(
+                DxLinkSourceEvent(
+                    event_type=event_type,
+                    streamer_symbol=symbol if isinstance(symbol, str) else streamer_symbol,
+                    fields=raw,
+                    received_at=datetime.now(tz=timezone.utc),
+                )
+            )
+        return result

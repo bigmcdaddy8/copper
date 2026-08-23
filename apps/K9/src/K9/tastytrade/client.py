@@ -99,6 +99,14 @@ class TastytradeClient:
         """Return the short-lived DXLink quote token and endpoint."""
         return self._data(self._get_json("/api-quote-tokens"))
 
+    def list_cryptocurrencies(self) -> list[dict[str, Any]]:
+        """Return tradable cryptocurrency instruments and their streamer symbols."""
+        return self._items(self._get_json("/instruments/cryptocurrencies"))
+
+    def list_futures(self) -> list[dict[str, Any]]:
+        """Return futures instruments and their streamer symbols."""
+        return self._items(self._get_json("/instruments/futures"))
+
     def dry_run_order(self, order: dict[str, Any]) -> dict[str, Any]:
         """Validate an order against the account without routing it to a venue."""
         return self._data(self._post_json(self._account_path("orders/dry-run"), order))

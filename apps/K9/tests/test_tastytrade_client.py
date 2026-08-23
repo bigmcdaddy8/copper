@@ -137,6 +137,28 @@ def test_get_quotes_rejects_unknown_instrument_type(client):
 
 
 @respx.mock
+def test_instrument_list_methods_return_streamer_symbol_items(client):
+    respx.post("https://api.tastyworks.com/oauth/token").mock(
+        return_value=httpx.Response(200, json={"access_token": "token"})
+    )
+    respx.get("https://api.tastyworks.com/instruments/cryptocurrencies").mock(
+        return_value=httpx.Response(
+            200,
+            json={"data": {"items": [{"symbol": "BTC/USD", "streamer-symbol": "BTC/USD:CXTALP"}]}},
+        )
+    )
+    respx.get("https://api.tastyworks.com/instruments/futures").mock(
+        return_value=httpx.Response(
+            200,
+            json={"data": {"items": [{"symbol": "/ESU6", "streamer-symbol": "/ESU26:XCME"}]}},
+        )
+    )
+
+    assert client.list_cryptocurrencies()[0]["streamer-symbol"] == "BTC/USD:CXTALP"
+    assert client.list_futures()[0]["streamer-symbol"] == "/ESU26:XCME"
+
+
+@respx.mock
 def test_order_mutation_methods_use_documented_account_endpoints(client):
     respx.post("https://api.tastyworks.com/oauth/token").mock(
         return_value=httpx.Response(200, json={"access_token": "token"})
