@@ -10,8 +10,10 @@ from dicks_laboratory.historical_csv import RejectedSourceRecord
 
 
 class DatasetQualityEvidenceType(StrEnum):
+    SOURCE_CONNECTED = "SOURCE_CONNECTED"
     SOURCE_DISCONNECTED = "SOURCE_DISCONNECTED"
     SOURCE_RECONNECTED = "SOURCE_RECONNECTED"
+    CAPTURE_STOPPED = "CAPTURE_STOPPED"
     KNOWN_GAP = "KNOWN_GAP"
     SUSPECTED_GAP = "SUSPECTED_GAP"
 
@@ -27,6 +29,8 @@ class DatasetQualityEvent:
     observed_at: datetime | None = None
     interval_start: datetime | None = None
     interval_end: datetime | None = None
+    source_record_ref: str | None = None
+    supporting_event_ids: tuple[UUID, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.detail.strip():

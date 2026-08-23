@@ -1,0 +1,5 @@
+time,event,reason
+08/21/2026 09:30:00,connected,initial_connection
+08/21/2026 09:42:13,disconnected,connection_lost
+08/21/2026 09:43:02,reconnected,connection_restored
+08/21/2026 10:00:00,stopped,capture_stopped
