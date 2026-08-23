@@ -13,6 +13,7 @@ class InstrumentKind(StrEnum):
 
 
 class DatasetKind(StrEnum):
+    HISTORICAL_IMPORT = "HISTORICAL_IMPORT"
     SYNTHETIC = "SYNTHETIC"
 
 
@@ -55,6 +56,9 @@ class DatasetIdentity:
     dataset_id: UUID
     kind: DatasetKind
     label: str
+    source_locator: str | None = None
+    source_timezone: str | None = None
+    normalizer_version: str | None = None
 
     def __post_init__(self) -> None:
         if not self.label.strip():
