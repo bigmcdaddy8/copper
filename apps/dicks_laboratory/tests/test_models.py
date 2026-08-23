@@ -6,7 +6,7 @@ from uuid import UUID
 import pytest
 
 from dicks_laboratory.fixture import ES_SEP_2026, SYNTHETIC_ES_DATASET
-from dicks_laboratory.models import TradeObservation
+from dicks_laboratory.models import DatasetOrigin, TradeObservation
 
 
 def _trade(**overrides: object) -> TradeObservation:
@@ -25,6 +25,10 @@ def _trade(**overrides: object) -> TradeObservation:
 
 def test_future_identity_has_provider_neutral_canonical_id():
     assert ES_SEP_2026.canonical_id == "FUTURE:CME:ES:2026-09"
+
+
+def test_synthetic_fixture_is_not_marked_as_authentic_source_data():
+    assert SYNTHETIC_ES_DATASET.origin is DatasetOrigin.SYNTHETIC
 
 
 def test_dataset_and_trade_observations_are_immutable():

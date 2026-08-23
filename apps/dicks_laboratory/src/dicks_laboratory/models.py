@@ -17,6 +17,12 @@ class DatasetKind(StrEnum):
     SYNTHETIC = "SYNTHETIC"
 
 
+class DatasetOrigin(StrEnum):
+    AUTHENTIC_SOURCE = "AUTHENTIC_SOURCE"
+    SYNTHETIC = "SYNTHETIC"
+    DERIVED_SYNTHETIC = "DERIVED_SYNTHETIC"
+
+
 class TradeAction(StrEnum):
     NEW = "NEW"
 
@@ -59,10 +65,33 @@ class DatasetIdentity:
     source_locator: str | None = None
     source_timezone: str | None = None
     normalizer_version: str | None = None
+    capture_started_at: datetime | None = None
+    capture_ended_at: datetime | None = None
+    origin: DatasetOrigin = DatasetOrigin.AUTHENTIC_SOURCE
+    parent_dataset_id: UUID | None = None
+    transformation_policy: str | None = None
+    transformation_version: str | None = None
+    random_seed: int | None = None
 
     def __post_init__(self) -> None:
         if not self.label.strip():
             raise ValueError("Dataset label is required.")
+        for timestamp in (self.capture_started_at, self.capture_ended_at):
+            if timestamp is not None and timestamp.tzinfo is not timezone.utc:
+                raise ValueError("Capture timestamps must use timezone.utc.")
+        if (
+            self.capture_started_at is not None
+            and self.capture_ended_at is not None
+            and self.capture_ended_at < self.capture_started_at
+        ):
+            raise ValueError("Capture end must not be before capture start.")
+        if self.origin is DatasetOrigin.DERIVED_SYNTHETIC:
+            if self.parent_dataset_id is None:
+                raise ValueError("Derived synthetic datasets require a parent dataset.")
+            if not self.transformation_policy or not self.transformation_version:
+                raise ValueError("Derived synthetic datasets require transformation metadata.")
+            if self.random_seed is None:
+                raise ValueError("Derived synthetic datasets require a random seed.")
 
 
 @dataclass(frozen=True)

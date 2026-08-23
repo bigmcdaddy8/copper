@@ -16,6 +16,10 @@ _TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
 _NORMALIZER_VERSION = "phase-0d-csv-v1"
 
 
+class _NormalizationError(ValueError):
+    pass
+
+
 @dataclass(frozen=True)
 class HistoricalTradeSourceRecord:
     """One CSV data row before it becomes a canonical market observation."""
@@ -105,11 +109,14 @@ def normalize_historical_trades(
                 dataset_sequence=dataset_sequence,
                 instrument=_instrument_for_alias(record.raw_contract),
                 event_timestamp=_parse_timestamp(record.raw_timestamp, timezone_result),
-                price=Decimal(record.raw_price),
-                size=Decimal(record.raw_quantity),
+                price=_parse_decimal(record.raw_price, "MALFORMED_PRICE"),
+                size=_parse_decimal(record.raw_quantity, "MALFORMED_QUANTITY"),
             )
-        except (InvalidOperation, ValueError) as exc:
+        except _NormalizationError as exc:
             rejected.append(RejectedSourceRecord(record.source_record_ref, str(exc)))
+            continue
+        except ValueError:
+            rejected.append(RejectedSourceRecord(record.source_record_ref, "INVALID_TRADE"))
             continue
         accepted.append(AcceptedTradeNormalization(observation, record.source_record_ref))
     return NormalizationResult(tuple(accepted), tuple(rejected))
@@ -126,10 +133,23 @@ def _source_timezone(source_timezone: str | None) -> ZoneInfo | RejectedSourceRe
 
 def _instrument_for_alias(raw_contract: str):
     if raw_contract != "ESU26":
-        raise ValueError(f"Unsupported source contract alias: {raw_contract!r}")
+        raise _NormalizationError("UNSUPPORTED_SOURCE_CONTRACT")
     return ES_SEP_2026
 
 
 def _parse_timestamp(raw_timestamp: str, source_timezone: ZoneInfo) -> datetime:
-    source_local = datetime.strptime(raw_timestamp, _TIME_FORMAT).replace(tzinfo=source_timezone)
+    try:
+        source_local = datetime.strptime(raw_timestamp, _TIME_FORMAT).replace(tzinfo=source_timezone)
+    except ValueError as exc:
+        raise _NormalizationError("MALFORMED_TIMESTAMP") from exc
     return source_local.astimezone(timezone.utc)
+
+
+def _parse_decimal(raw_value: str, reason: str) -> Decimal:
+    try:
+        value = Decimal(raw_value)
+    except InvalidOperation as exc:
+        raise _NormalizationError(reason) from exc
+    if not value.is_finite():
+        raise _NormalizationError(reason)
+    return value

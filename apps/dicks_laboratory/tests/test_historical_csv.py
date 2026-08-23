@@ -96,3 +96,33 @@ def test_normalized_historical_fixture_preserves_phase_0c_golden_vwap():
     result = normalize_historical_trades(load_historical_trade_csv(_FIXTURE_PATH), _POLICY)
 
     assert calculate_vwap(result.observations) == Decimal("6432.166666666666666666666667")
+
+
+def test_malformed_price_is_rejected_with_stable_reason():
+    record = HistoricalTradeSourceRecord(
+        source_record_ref="row:8",
+        raw_timestamp="08/21/2026 09:47:37",
+        raw_contract="ESU26",
+        raw_price="not-a-decimal",
+        raw_quantity="1",
+    )
+
+    result = normalize_historical_trades((record,), _POLICY)
+
+    assert result.accepted == ()
+    assert result.rejected[0].reason == "MALFORMED_PRICE"
+
+
+def test_unsupported_source_contract_is_rejected_with_stable_reason():
+    record = HistoricalTradeSourceRecord(
+        source_record_ref="row:9",
+        raw_timestamp="08/21/2026 09:47:38",
+        raw_contract="ESZ26",
+        raw_price="6432.25",
+        raw_quantity="1",
+    )
+
+    result = normalize_historical_trades((record,), _POLICY)
+
+    assert result.accepted == ()
+    assert result.rejected[0].reason == "UNSUPPORTED_SOURCE_CONTRACT"

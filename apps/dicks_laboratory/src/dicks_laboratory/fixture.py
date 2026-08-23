@@ -8,6 +8,7 @@ from uuid import UUID
 from dicks_laboratory.models import (
     DatasetIdentity,
     DatasetKind,
+    DatasetOrigin,
     InstrumentIdentity,
     InstrumentKind,
     TradeObservation,
@@ -17,6 +18,7 @@ SYNTHETIC_ES_DATASET = DatasetIdentity(
     dataset_id=UUID("51c7d1e4-3c38-4c16-9e04-e6f7c8a7c001"),
     kind=DatasetKind.SYNTHETIC,
     label="phase-0c-complete-es-vwap",
+    origin=DatasetOrigin.SYNTHETIC,
 )
 
 ES_SEP_2026 = InstrumentIdentity(
