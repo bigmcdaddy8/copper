@@ -41,3 +41,6 @@ logs/
 
 # Runtime data (databases, generated files)
 data/
+
+# Temporary Dick's Laboratory capture/reference artifacts
+apps/dicks_laboratory/docs/tmp/

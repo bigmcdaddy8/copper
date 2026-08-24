@@ -135,16 +135,26 @@ CREATE TABLE IF NOT EXISTS deferred_dxlink_timesale_events (
 class LaboratoryStore:
     """Owns a small SQLite schema and canonical object serialization for Phase 0G."""
 
-    def __init__(self, db_path: Path) -> None:
-        self._connection = sqlite3.connect(db_path)
+    def __init__(self, db_path: Path, read_only: bool = False) -> None:
+        if read_only:
+            if not Path(db_path).is_file():
+                raise FileNotFoundError(f"Database not found: {db_path}")
+            self._connection = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        else:
+            self._connection = sqlite3.connect(db_path)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
-        self._connection.executescript(_DDL)
-        self._ensure_provenance_source_order()
-        self._connection.commit()
+        if not read_only:
+            self._connection.executescript(_DDL)
+            self._ensure_provenance_source_order()
+            self._connection.commit()
 
     def close(self) -> None:
         self._connection.close()
+
+    def list_dataset_ids(self) -> tuple[UUID, ...]:
+        rows = self._connection.execute("SELECT dataset_id FROM datasets ORDER BY dataset_id").fetchall()
+        return tuple(UUID(row["dataset_id"]) for row in rows)
 
     def _ensure_provenance_source_order(self) -> None:
         columns = {
