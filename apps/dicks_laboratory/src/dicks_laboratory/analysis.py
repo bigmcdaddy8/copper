@@ -158,7 +158,7 @@ def _best_effort_trading_date(trades: tuple[TradeObservation, ...], requested: d
 
 
 @dataclass(frozen=True)
-class _ScopedDatasetContext:
+class ScopedDatasetContext:
     """Shared trading-date/anchor/session-scoping glue reused by every analysis service.
 
     Centralizes the one accepted way to resolve a trading date and session-scope
@@ -179,13 +179,13 @@ class _ScopedDatasetContext:
     anomaly_counts_by_reason: tuple[tuple[str, int], ...]
 
 
-def _prepare_scoped_dataset(
+def prepare_scoped_dataset(
     store: LaboratoryStore,
     dataset_id: UUID,
     anchor_kind: AnchorKind,
     trading_date: date | None,
     custom_timestamp: datetime | None,
-) -> _ScopedDatasetContext:
+) -> ScopedDatasetContext:
     try:
         store.load_dataset(dataset_id)
     except KeyError as exc:
@@ -242,7 +242,7 @@ def _prepare_scoped_dataset(
     for anomaly in tape.anomalies:
         anomaly_counts[anomaly.reason] = anomaly_counts.get(anomaly.reason, 0) + 1
 
-    return _ScopedDatasetContext(
+    return ScopedDatasetContext(
         instrument=instrument,
         resolved_trading_date=resolved_trading_date,
         anchor=anchor,
@@ -265,7 +265,7 @@ def analyze_anchored_vwap_dataset(
     custom_timestamp: datetime | None = None,
 ) -> VwapAnalysisResult:
     """Compute one anchored canonical + effective VWAP report from retained trades only."""
-    context = _prepare_scoped_dataset(store, dataset_id, anchor_kind, trading_date, custom_timestamp)
+    context = prepare_scoped_dataset(store, dataset_id, anchor_kind, trading_date, custom_timestamp)
     anchor = context.anchor
 
     canonical_result = _safe_anchored_vwap(
@@ -405,10 +405,10 @@ def analyze_volume_profile_dataset(
     """Combine 0N anchor/coverage selection with 0O Volume-at-Price/POC and 0P Value Area.
 
     Reuses the exact same selected-trade population as `analyze_anchored_vwap_dataset`
-    (via the shared `_prepare_scoped_dataset` context) so VWAP, POC, VAL, and VAH are
+    (via the shared `prepare_scoped_dataset` context) so VWAP, POC, VAL, and VAH are
     always reported over one identical retained-trade set.
     """
-    context = _prepare_scoped_dataset(store, dataset_id, anchor_kind, trading_date, custom_timestamp)
+    context = prepare_scoped_dataset(store, dataset_id, anchor_kind, trading_date, custom_timestamp)
     anchor = context.anchor
 
     selected_effective = select_trades_from_anchor(context.scoped_effective, anchor.anchor_timestamp_utc)
