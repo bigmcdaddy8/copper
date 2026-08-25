@@ -109,6 +109,7 @@ def capture_es_timesales_dataset(
                 store.save_deferred_dxlink_time_and_sales(result.deferred)
             if result.rejected:
                 store.save_rejections(result.rejected)
+                store.save_rejected_dxlink_time_and_sale_source_records(result.rejected_source_records)
 
         collector.collect(
             _ES_STREAMER_SYMBOL,

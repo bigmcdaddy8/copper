@@ -1,6 +1,8 @@
 from datetime import timezone
 
-from K9.tastytrade.dxlink import DxLinkSourceCollector
+import pytest
+
+from K9.tastytrade.dxlink import DxLinkCollector, DxLinkError, DxLinkSourceCollector
 
 
 def test_source_events_preserve_configured_fields_and_add_utc_receipt_time():
@@ -69,3 +71,25 @@ def test_source_collector_keepalive_is_bounded_when_no_events_arrive():
     collector = DxLinkSourceCollector("wss://dxlink.example", "quote-token", lambda _url: socket)
 
     assert collector.collect("BTC/USD:CXTALP", ("Trade",), duration_seconds=0.01, max_events=1) == ()
+
+
+def test_receive_wraps_arbitrary_connection_errors_as_dxlink_error():
+    """A dropped connection (e.g. websockets' ConnectionClosed) must surface as
+    DxLinkError so orchestration-layer reconnect logic can reliably detect it,
+    rather than propagating an arbitrary transport-specific exception."""
+
+    class _ConnectionDropped(Exception):
+        pass
+
+    class Socket:
+        def recv(self, timeout=None):
+            raise _ConnectionDropped("connection closed by peer")
+
+        def send(self, message):
+            pass
+
+        def close(self):
+            pass
+
+    with pytest.raises(DxLinkError, match="connection error"):
+        DxLinkCollector._receive(Socket())

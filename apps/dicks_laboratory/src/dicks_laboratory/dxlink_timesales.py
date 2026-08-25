@@ -39,7 +39,15 @@ class DxLinkTimeAndSaleSourceRecord:
 
 @dataclass(frozen=True)
 class DxLinkTimeAndSaleProvenance:
-    """Durable source provenance for one accepted canonical TimeAndSale trade."""
+    """Durable source provenance for one accepted canonical TimeAndSale trade.
+
+    Phase 0V widens this to full field parity with `DeferredDxLinkTimeAndSale`
+    (0U's identified NEW-side retention gap): every source-shaped field the K9
+    client requests is preserved here too, not only for CORRECTION/CANCEL.
+    Canonical `price`/`size`/`event_timestamp` are deliberately NOT duplicated
+    here -- they already live durably on `TradeObservation`; duplicating them
+    would not add retained evidence, only redundant storage.
+    """
 
     observation_id: UUID
     source_record_ref: str
@@ -48,6 +56,18 @@ class DxLinkTimeAndSaleProvenance:
     source_sequence: int
     source_trade_id: int | None
     received_at: datetime
+    event_symbol: str | None = None
+    event_classification: str | None = None
+    event_flags: int | None = None
+    exchange_code: str | None = None
+    bid_price: Decimal | None = None
+    ask_price: Decimal | None = None
+    exchange_sale_conditions: str | None = None
+    trade_through_exempt: str | None = None
+    aggressor_side: str | None = None
+    spread_leg: bool | None = None
+    extended_trading_hours: bool | None = None
+    valid_tick: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -69,9 +89,25 @@ class DeferredDxLinkTimeAndSale:
 
 
 @dataclass(frozen=True)
+class RejectedDxLinkTimeAndSaleSourceRecord:
+    """Full structured source evidence for a rejected TimeAndSale record (0V).
+
+    Preserved 1:1 alongside its `NormalizationRejection` (same `rejection_id`)
+    so a later reader can independently examine exactly what was rejected and
+    re-evaluate normalization policy against it -- not merely the reason string.
+    """
+
+    rejection_id: UUID
+    dataset_id: UUID
+    source_order: int
+    source_record: DxLinkTimeAndSaleSourceRecord
+
+
+@dataclass(frozen=True)
 class DxLinkTimeAndSaleNormalizationResult:
     accepted: tuple[AcceptedDxLinkTimeAndSaleNormalization, ...]
     rejected: tuple[NormalizationRejection, ...]
+    rejected_source_records: tuple[RejectedDxLinkTimeAndSaleSourceRecord, ...]
     deferred: tuple[DeferredDxLinkTimeAndSale, ...]
 
     @property
@@ -131,6 +167,7 @@ def normalize_dxlink_time_and_sales(
     """Accept only explicit NEW/valid/positive TimeAndSale source events."""
     accepted: list[AcceptedDxLinkTimeAndSaleNormalization] = []
     rejected: list[NormalizationRejection] = []
+    rejected_source_records: list[RejectedDxLinkTimeAndSaleSourceRecord] = []
     deferred: list[DeferredDxLinkTimeAndSale] = []
     for source_order, record in enumerate(records, start=start_source_order):
         if record.event_classification in {"CORRECTION", "CANCEL"}:
@@ -146,14 +183,23 @@ def normalize_dxlink_time_and_sales(
             continue
         reason = _rejection_reason(record, expected_streamer_symbol)
         if reason is not None:
+            rejection_id = uuid5(dataset.dataset_id, f"rejection:{record.source_record_ref}")
             rejected.append(
                 NormalizationRejection(
-                    rejection_id=uuid5(dataset.dataset_id, f"rejection:{record.source_record_ref}"),
+                    rejection_id=rejection_id,
                     dataset_id=dataset.dataset_id,
                     source_kind=RejectionSourceKind.DXLINK_TIME_AND_SALE,
                     source_record_ref=record.source_record_ref,
                     source_order=source_order,
                     reason=reason,
+                )
+            )
+            rejected_source_records.append(
+                RejectedDxLinkTimeAndSaleSourceRecord(
+                    rejection_id=rejection_id,
+                    dataset_id=dataset.dataset_id,
+                    source_order=source_order,
+                    source_record=record,
                 )
             )
             continue
@@ -180,9 +226,23 @@ def normalize_dxlink_time_and_sales(
             source_sequence=source_sequence,
             source_trade_id=source_trade_id,
             received_at=record.received_at,
+            event_symbol=record.event_symbol,
+            event_classification="NEW",
+            event_flags=_optional_int(record.event_flags),
+            exchange_code=_string_or_none(record.exchange_code),
+            bid_price=_lenient_decimal(record.bid_price),
+            ask_price=_lenient_decimal(record.ask_price),
+            exchange_sale_conditions=_string_or_none(record.exchange_sale_conditions),
+            trade_through_exempt=_string_or_none(record.trade_through_exempt),
+            aggressor_side=_string_or_none(record.aggressor_side),
+            spread_leg=_bool_or_none(record.spread_leg),
+            extended_trading_hours=_bool_or_none(record.extended_trading_hours),
+            valid_tick=_bool_or_none(record.valid_tick),
         )
         accepted.append(AcceptedDxLinkTimeAndSaleNormalization(observation, record, provenance))
-    return DxLinkTimeAndSaleNormalizationResult(tuple(accepted), tuple(rejected), tuple(deferred))
+    return DxLinkTimeAndSaleNormalizationResult(
+        tuple(accepted), tuple(rejected), tuple(rejected_source_records), tuple(deferred)
+    )
 
 
 def _rejection_reason(record: DxLinkTimeAndSaleSourceRecord, expected_streamer_symbol: str) -> str | None:
@@ -248,3 +308,25 @@ def _optional_int(value: object) -> int | None:
 
 def _string_or_none(value: object) -> str | None:
     return value if isinstance(value, str) else None
+
+
+def _lenient_decimal(value: object) -> Decimal | None:
+    """Preserve a finite Decimal exactly as supplied, without requiring positivity.
+
+    Unlike `_positive_decimal`, this is used for evidentiary fields (e.g.
+    bid/ask-at-sale) that must be retained as received, not gated as a trade
+    validity requirement. A provider NaN/null/unparseable value becomes None
+    (unavailable) rather than a fabricated number -- never zero, never dropped
+    silently in a way that looks like a real quote.
+    """
+    if value is None:
+        return None
+    try:
+        decimal = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return None
+    return decimal if decimal.is_finite() else None
+
+
+def _bool_or_none(value: object) -> bool | None:
+    return value if isinstance(value, bool) else None

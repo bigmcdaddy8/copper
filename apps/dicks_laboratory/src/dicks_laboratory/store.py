@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from uuid import UUID
 
+from dicks_laboratory.dataset_state import DatasetClosingSummary, DatasetLifecycleState
 from dicks_laboratory.models import (
     DatasetIdentity,
     DatasetKind,
@@ -22,6 +23,7 @@ from dicks_laboratory.dxlink_timesales import (
     DeferredDxLinkTimeAndSale,
     DxLinkTimeAndSaleProvenance,
     DxLinkTimeAndSaleSourceRecord,
+    RejectedDxLinkTimeAndSaleSourceRecord,
 )
 
 _DDL = """
@@ -129,6 +131,46 @@ CREATE TABLE IF NOT EXISTS deferred_dxlink_timesale_events (
     valid_tick INTEGER,
     received_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS rejected_dxlink_timesale_source_records (
+    rejection_id TEXT PRIMARY KEY REFERENCES normalization_rejections(rejection_id),
+    dataset_id TEXT NOT NULL REFERENCES datasets(dataset_id),
+    source_order INTEGER NOT NULL,
+    source_record_ref TEXT NOT NULL,
+    event_symbol TEXT,
+    event_time TEXT,
+    event_classification TEXT,
+    source_index INTEGER,
+    source_sequence INTEGER,
+    source_trade_id INTEGER,
+    event_flags INTEGER,
+    exchange_code TEXT,
+    price TEXT,
+    size TEXT,
+    bid_price TEXT,
+    ask_price TEXT,
+    exchange_sale_conditions TEXT,
+    trade_through_exempt TEXT,
+    aggressor_side TEXT,
+    spread_leg INTEGER,
+    extended_trading_hours INTEGER,
+    valid_tick INTEGER,
+    received_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS dataset_closing_summaries (
+    dataset_id TEXT PRIMARY KEY REFERENCES datasets(dataset_id),
+    accepted_trade_count INTEGER NOT NULL,
+    deferred_event_count INTEGER NOT NULL,
+    rejected_record_count INTEGER NOT NULL,
+    known_gap_count INTEGER NOT NULL,
+    suspected_gap_count INTEGER NOT NULL,
+    first_source_order INTEGER,
+    last_source_order INTEGER,
+    closed_at TEXT NOT NULL,
+    collector_version TEXT,
+    collector_git_commit TEXT
+);
 """
 
 
@@ -146,7 +188,7 @@ class LaboratoryStore:
         self._connection.execute("PRAGMA foreign_keys = ON")
         if not read_only:
             self._connection.executescript(_DDL)
-            self._ensure_provenance_source_order()
+            self._apply_additive_migrations()
             self._connection.commit()
 
     def close(self) -> None:
@@ -156,14 +198,46 @@ class LaboratoryStore:
         rows = self._connection.execute("SELECT dataset_id FROM datasets ORDER BY dataset_id").fetchall()
         return tuple(UUID(row["dataset_id"]) for row in rows)
 
-    def _ensure_provenance_source_order(self) -> None:
-        columns = {
-            row["name"] for row in self._connection.execute("PRAGMA table_info(observation_source_provenance)")
-        }
-        if "source_order" not in columns:
-            self._connection.execute(
-                "ALTER TABLE observation_source_provenance ADD COLUMN source_order INTEGER NOT NULL DEFAULT 0"
-            )
+    def _apply_additive_migrations(self) -> None:
+        """Widen existing tables with nullable/defaulted columns only.
+
+        Never destructive, never applied to a read-only connection (callers
+        opening an old database read-only get exactly the columns that
+        database was created with -- absent optional 0V fields load as None,
+        never fabricated).
+        """
+        self._ensure_columns(
+            "observation_source_provenance",
+            {
+                "source_order": "INTEGER NOT NULL DEFAULT 0",
+                "event_symbol": "TEXT",
+                "event_classification": "TEXT",
+                "event_flags": "INTEGER",
+                "exchange_code": "TEXT",
+                "bid_price": "TEXT",
+                "ask_price": "TEXT",
+                "exchange_sale_conditions": "TEXT",
+                "trade_through_exempt": "TEXT",
+                "aggressor_side": "TEXT",
+                "spread_leg": "INTEGER",
+                "extended_trading_hours": "INTEGER",
+                "valid_tick": "INTEGER",
+            },
+        )
+        self._ensure_columns(
+            "datasets",
+            {
+                "trading_date": "TEXT",
+                "instrument_id": "TEXT",
+                "lifecycle_state": "TEXT",
+            },
+        )
+
+    def _ensure_columns(self, table: str, columns: dict[str, str]) -> None:
+        existing = {row["name"] for row in self._connection.execute(f"PRAGMA table_info({table})")}
+        for name, column_type in columns.items():
+            if name not in existing:
+                self._connection.execute(f"ALTER TABLE {table} ADD COLUMN {name} {column_type}")
 
     def save_dataset(self, dataset: DatasetIdentity) -> None:
         self._connection.execute(
@@ -198,6 +272,148 @@ class LaboratoryStore:
             (_timestamp_text(capture_ended_at), str(dataset_id)),
         )
         self._connection.commit()
+
+    def save_dataset_trading_context(
+        self,
+        dataset_id: UUID,
+        trading_date: date,
+        instrument: InstrumentIdentity,
+    ) -> None:
+        """Persist dataset-level trading_date + exact instrument identity (0V segmentation).
+
+        Recorded even before any trade arrives -- a valid serious dataset may
+        contain zero accepted trades and must still carry its own identity.
+        """
+        self._connection.execute(
+            """
+            INSERT OR IGNORE INTO instruments (
+                canonical_id, kind, exchange, root, expiration_year, expiration_month
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                instrument.canonical_id, instrument.kind.value, instrument.exchange,
+                instrument.root, instrument.expiration_year, instrument.expiration_month,
+            ),
+        )
+        self._connection.execute(
+            "UPDATE datasets SET trading_date = ?, instrument_id = ? WHERE dataset_id = ?",
+            (trading_date.isoformat(), instrument.canonical_id, str(dataset_id)),
+        )
+        self._connection.commit()
+
+    def load_dataset_trading_context(self, dataset_id: UUID) -> tuple[date | None, InstrumentIdentity | None]:
+        """Backward-compatible: an old database predating 0V lacks the
+        `trading_date`/`instrument_id` columns entirely (never migrated in
+        read-only mode). `SELECT d.*` naturally omits columns that don't
+        exist in that file rather than erroring, unlike naming them
+        explicitly -- so this must never reference them by name in SQL.
+        """
+        row = self._connection.execute(
+            "SELECT * FROM datasets WHERE dataset_id = ?", (str(dataset_id),)
+        ).fetchone()
+        if row is None:
+            raise KeyError(f"Dataset not found: {dataset_id}")
+        trading_date_text = _row_get(row, "trading_date")
+        trading_date_value = date.fromisoformat(trading_date_text) if trading_date_text else None
+        instrument_id = _row_get(row, "instrument_id")
+        instrument = None
+        if instrument_id is not None:
+            instrument_row = self._connection.execute(
+                "SELECT * FROM instruments WHERE canonical_id = ?", (instrument_id,)
+            ).fetchone()
+            if instrument_row is not None:
+                instrument = InstrumentIdentity(
+                    kind=InstrumentKind(instrument_row["kind"]),
+                    exchange=instrument_row["exchange"],
+                    root=instrument_row["root"],
+                    expiration_year=instrument_row["expiration_year"],
+                    expiration_month=instrument_row["expiration_month"],
+                )
+        return trading_date_value, instrument
+
+    def set_dataset_lifecycle_state(self, dataset_id: UUID, state: DatasetLifecycleState) -> None:
+        self._connection.execute(
+            "UPDATE datasets SET lifecycle_state = ? WHERE dataset_id = ?",
+            (state.value, str(dataset_id)),
+        )
+        self._connection.commit()
+
+    def load_dataset_lifecycle_state(self, dataset_id: UUID) -> DatasetLifecycleState | None:
+        """None means untracked (legacy pre-0V dataset), never inferred as OPEN/FINALIZED/INTERRUPTED.
+
+        Uses `SELECT *` rather than naming `lifecycle_state` explicitly: an
+        old database predating 0V lacks that column entirely, and naming a
+        nonexistent column in SQL raises `OperationalError` rather than
+        simply omitting it the way `SELECT *` does.
+        """
+        row = self._connection.execute(
+            "SELECT * FROM datasets WHERE dataset_id = ?", (str(dataset_id),)
+        ).fetchone()
+        if row is None:
+            raise KeyError(f"Dataset not found: {dataset_id}")
+        value = _row_get(row, "lifecycle_state")
+        return DatasetLifecycleState(value) if value else None
+
+    def max_source_order_for_dataset(self, dataset_id: UUID) -> int:
+        """Highest durable `source_order` across every disposition for this dataset.
+
+        Used to resume a crashed/restarted collector at `max + 1` -- `source_order`
+        must never reset to 1 mid-dataset (0U §15 requirement).
+        """
+        row = self._connection.execute(
+            """
+            SELECT MAX(value) AS m FROM (
+                SELECT MAX(p.source_order) AS value
+                FROM observation_source_provenance AS p
+                JOIN trade_observations AS o ON o.observation_id = p.observation_id
+                WHERE o.dataset_id = ?
+                UNION ALL
+                SELECT MAX(source_order) FROM deferred_dxlink_timesale_events WHERE dataset_id = ?
+                UNION ALL
+                SELECT MAX(source_order) FROM rejected_dxlink_timesale_source_records WHERE dataset_id = ?
+            )
+            """,
+            (str(dataset_id), str(dataset_id), str(dataset_id)),
+        ).fetchone()
+        return row["m"] if row is not None and row["m"] is not None else 0
+
+    def save_dataset_closing_summary(self, summary: DatasetClosingSummary) -> None:
+        self._connection.execute(
+            """
+            INSERT INTO dataset_closing_summaries (
+                dataset_id, accepted_trade_count, deferred_event_count, rejected_record_count,
+                known_gap_count, suspected_gap_count, first_source_order, last_source_order,
+                closed_at, collector_version, collector_git_commit
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(summary.dataset_id), summary.accepted_trade_count, summary.deferred_event_count,
+                summary.rejected_record_count, summary.known_gap_count, summary.suspected_gap_count,
+                summary.first_source_order, summary.last_source_order, _timestamp_text(summary.closed_at),
+                summary.collector_version, summary.collector_git_commit,
+            ),
+        )
+        self._connection.commit()
+
+    def load_dataset_closing_summary(self, dataset_id: UUID) -> DatasetClosingSummary | None:
+        row = self._connection.execute(
+            "SELECT * FROM dataset_closing_summaries WHERE dataset_id = ?", (str(dataset_id),)
+        ).fetchone()
+        if row is None:
+            return None
+        return DatasetClosingSummary(
+            dataset_id=UUID(row["dataset_id"]),
+            accepted_trade_count=row["accepted_trade_count"],
+            deferred_event_count=row["deferred_event_count"],
+            rejected_record_count=row["rejected_record_count"],
+            known_gap_count=row["known_gap_count"],
+            suspected_gap_count=row["suspected_gap_count"],
+            first_source_order=row["first_source_order"],
+            last_source_order=row["last_source_order"],
+            closed_at=_timestamp_from_text(row["closed_at"]),
+            collector_version=row["collector_version"],
+            collector_git_commit=row["collector_git_commit"],
+        )
 
     def save_trade_observations(self, trades: tuple[TradeObservation, ...]) -> None:
         for trade in trades:
@@ -296,8 +512,11 @@ class LaboratoryStore:
                 """
                 INSERT INTO observation_source_provenance (
                     observation_id, source_kind, source_record_ref, source_order, source_index,
-                    source_sequence, source_trade_id, received_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    source_sequence, source_trade_id, received_at,
+                    event_symbol, event_classification, event_flags, exchange_code,
+                    bid_price, ask_price, exchange_sale_conditions, trade_through_exempt,
+                    aggressor_side, spread_leg, extended_trading_hours, valid_tick
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     str(item.observation_id),
@@ -308,6 +527,18 @@ class LaboratoryStore:
                     item.source_sequence,
                     item.source_trade_id,
                     _timestamp_text(item.received_at),
+                    item.event_symbol,
+                    item.event_classification,
+                    item.event_flags,
+                    item.exchange_code,
+                    _decimal_text(item.bid_price),
+                    _decimal_text(item.ask_price),
+                    item.exchange_sale_conditions,
+                    item.trade_through_exempt,
+                    item.aggressor_side,
+                    _bool_or_none(item.spread_leg),
+                    _bool_or_none(item.extended_trading_hours),
+                    _bool_or_none(item.valid_tick),
                 ),
             )
         self._connection.commit()
@@ -331,6 +562,45 @@ class LaboratoryStore:
                 (
                     str(event.deferred_event_id), str(event.dataset_id), event.source_order,
                     record.source_record_ref, event.reason, record.event_symbol,
+                    _timestamp_text(_dxlink_event_time(record.event_time)), record.event_classification,
+                    _int_or_none(record.source_index), _int_or_none(record.source_sequence),
+                    _int_or_none(record.source_trade_id), _int_or_none(record.event_flags),
+                    _string_or_none(record.exchange_code), _decimal_text(record.price), _decimal_text(record.size),
+                    _decimal_text(record.bid_price), _decimal_text(record.ask_price),
+                    _string_or_none(record.exchange_sale_conditions), _string_or_none(record.trade_through_exempt),
+                    _string_or_none(record.aggressor_side), _bool_or_none(record.spread_leg),
+                    _bool_or_none(record.extended_trading_hours), _bool_or_none(record.valid_tick),
+                    _timestamp_text(record.received_at),
+                ),
+            )
+        self._connection.commit()
+
+    def save_rejected_dxlink_time_and_sale_source_records(
+        self,
+        records: tuple[RejectedDxLinkTimeAndSaleSourceRecord, ...],
+    ) -> None:
+        """Persist full structured source evidence for rejected TimeAndSale records (0V).
+
+        Mirrors `save_deferred_dxlink_time_and_sales`'s field-complete approach:
+        a rejected record's source-shaped evidence must survive so a later
+        reader can independently examine what was rejected and why, not only
+        the reason string already durable in `normalization_rejections`.
+        """
+        for item in records:
+            record = item.source_record
+            self._connection.execute(
+                """
+                INSERT INTO rejected_dxlink_timesale_source_records (
+                    rejection_id, dataset_id, source_order, source_record_ref,
+                    event_symbol, event_time, event_classification, source_index, source_sequence,
+                    source_trade_id, event_flags, exchange_code, price, size, bid_price, ask_price,
+                    exchange_sale_conditions, trade_through_exempt, aggressor_side, spread_leg,
+                    extended_trading_hours, valid_tick, received_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(item.rejection_id), str(item.dataset_id), item.source_order,
+                    record.source_record_ref, record.event_symbol,
                     _timestamp_text(_dxlink_event_time(record.event_time)), record.event_classification,
                     _int_or_none(record.source_index), _int_or_none(record.source_sequence),
                     _int_or_none(record.source_trade_id), _int_or_none(record.event_flags),
@@ -476,6 +746,18 @@ class LaboratoryStore:
                 source_sequence=row["source_sequence"],
                 source_trade_id=row["source_trade_id"],
                 received_at=_timestamp_from_text(row["received_at"]),
+                event_symbol=_row_get(row, "event_symbol"),
+                event_classification=_row_get(row, "event_classification"),
+                event_flags=_row_get(row, "event_flags"),
+                exchange_code=_row_get(row, "exchange_code"),
+                bid_price=_decimal_from_text(_row_get(row, "bid_price")),
+                ask_price=_decimal_from_text(_row_get(row, "ask_price")),
+                exchange_sale_conditions=_row_get(row, "exchange_sale_conditions"),
+                trade_through_exempt=_row_get(row, "trade_through_exempt"),
+                aggressor_side=_row_get(row, "aggressor_side"),
+                spread_leg=_bool_from_int(_row_get(row, "spread_leg")),
+                extended_trading_hours=_bool_from_int(_row_get(row, "extended_trading_hours")),
+                valid_tick=_bool_from_int(_row_get(row, "valid_tick")),
             )
             for row in rows
         )
@@ -523,6 +805,60 @@ class LaboratoryStore:
             )
             for row in rows
         )
+
+    def load_rejected_dxlink_time_and_sale_source_records(
+        self,
+        dataset_id: UUID,
+    ) -> tuple[RejectedDxLinkTimeAndSaleSourceRecord, ...]:
+        rows = self._connection.execute(
+            """
+            SELECT * FROM rejected_dxlink_timesale_source_records
+            WHERE dataset_id = ?
+            ORDER BY source_order, rejection_id
+            """,
+            (str(dataset_id),),
+        ).fetchall()
+        return tuple(
+            RejectedDxLinkTimeAndSaleSourceRecord(
+                rejection_id=UUID(row["rejection_id"]),
+                dataset_id=UUID(row["dataset_id"]),
+                source_order=row["source_order"],
+                source_record=DxLinkTimeAndSaleSourceRecord(
+                    source_record_ref=row["source_record_ref"],
+                    event_symbol=row["event_symbol"],
+                    event_time=_timestamp_from_text(row["event_time"]),
+                    event_classification=row["event_classification"],
+                    source_index=row["source_index"],
+                    source_sequence=row["source_sequence"],
+                    source_trade_id=row["source_trade_id"],
+                    event_flags=row["event_flags"],
+                    exchange_code=row["exchange_code"],
+                    price=_decimal_from_text(row["price"]),
+                    size=_decimal_from_text(row["size"]),
+                    bid_price=_decimal_from_text(row["bid_price"]),
+                    ask_price=_decimal_from_text(row["ask_price"]),
+                    exchange_sale_conditions=row["exchange_sale_conditions"],
+                    trade_through_exempt=row["trade_through_exempt"],
+                    aggressor_side=row["aggressor_side"],
+                    spread_leg=_bool_from_int(row["spread_leg"]),
+                    extended_trading_hours=_bool_from_int(row["extended_trading_hours"]),
+                    valid_tick=_bool_from_int(row["valid_tick"]),
+                    received_at=_timestamp_from_text(row["received_at"]),
+                ),
+            )
+            for row in rows
+        )
+
+
+def _row_get(row: sqlite3.Row, key: str) -> object:
+    """Read an optional column that may not exist in an older (pre-0V) database.
+
+    A read-only connection never runs migrations, so an old file's tables
+    genuinely lack these columns; `sqlite3.Row` raises IndexError/KeyError for
+    an absent key rather than returning None, so this must check membership
+    first. Absent means "not retained at capture time" -- never fabricated.
+    """
+    return row[key] if key in row.keys() else None
 
 
 def _timestamp_text(timestamp: datetime | None) -> str | None:

@@ -274,6 +274,10 @@ class DxLinkCollector:
             message = socket.recv(timeout=timeout)
         except TimeoutError as exc:
             raise DxLinkError("DXLink timed out while waiting for a response.") from exc
+        except DxLinkError:
+            raise
+        except Exception as exc:
+            raise DxLinkError(f"DXLink connection error while receiving: {exc}") from exc
         try:
             frame = json.loads(message)
         except json.JSONDecodeError as exc:
