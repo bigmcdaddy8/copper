@@ -57,11 +57,21 @@ def collect(
     resolved = next((item for item in client.list_futures() if item.get("symbol") == symbol), None)
     if not isinstance(resolved, dict) or resolved.get("streamer-symbol") != _ES_STREAMER_SYMBOL:
         raise typer.BadParameter("Current futures metadata did not resolve /ESU6 to /ESU26:XCME.")
-    token_data = client.get_api_quote_token()
-    token = token_data.get("token")
-    url = token_data.get("dxlink-url")
-    if not isinstance(token, str) or not isinstance(url, str):
-        raise typer.BadParameter("Tastytrade quote-token response was incomplete.")
+
+    def fresh_collector() -> DxLinkSourceCollector:
+        # 0W-2A root cause: a quote token obtained once at startup is only
+        # valid for a bounded lifetime. `get_api_quote_token()` always asks
+        # Tastytrade for a fresh one (re-authenticating the underlying OAuth
+        # access token first if it, too, has expired -- see
+        # `TastytradeClient._get_access_token`), so every genuine reconnect
+        # gets whatever credential it actually needs instead of replaying
+        # whatever was valid hours ago.
+        token_data = client.get_api_quote_token()
+        token = token_data.get("token")
+        url = token_data.get("dxlink-url")
+        if not isinstance(token, str) or not isinstance(url, str):
+            raise typer.BadParameter("Tastytrade quote-token response was incomplete.")
+        return DxLinkSourceCollector(url, token)
 
     spec = InstrumentCaptureSpec(instrument=_ES_INSTRUMENT, streamer_symbol=_ES_STREAMER_SYMBOL)
     reconnect_policy = ReconnectPolicy(
@@ -80,8 +90,8 @@ def collect(
         # FINALIZED); this guard only covers an interrupt during setup above,
         # before any dataset exists to finalize.
         result = run_long_horizon_capture(
-            data_dir, spec, DxLinkSourceCollector(url, token), duration_seconds, max_events,
-            reconnect_policy=reconnect_policy,
+            data_dir, spec, fresh_collector(), duration_seconds, max_events,
+            reconnect_policy=reconnect_policy, refresh_collector=fresh_collector,
         )
     except LongHorizonCaptureError as exc:
         typer.echo(f"Collection error: {exc}", err=True)

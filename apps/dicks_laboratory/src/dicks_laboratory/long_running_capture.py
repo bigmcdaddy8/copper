@@ -260,6 +260,7 @@ def run_long_horizon_capture(
     reconnect_policy: ReconnectPolicy = DEFAULT_RECONNECT_POLICY,
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
     sleeper: Callable[[float], None] = time.sleep,
+    refresh_collector: Callable[[], SourceCollector] | None = None,
 ) -> LongHorizonCaptureResult:
     """Run one supervised, reconnect-capable, bounded collection run.
 
@@ -274,6 +275,15 @@ def run_long_horizon_capture(
     between sessions is waited through (no dataset, no gap evidence); the
     next trading date's session then gets its own fresh `SOURCE_CONNECTED`,
     never a `SOURCE_RECONNECTED` of the prior dataset.
+
+    `refresh_collector`, if given, is called to obtain a brand-new collector
+    (e.g. carrying a freshly re-obtained provider quote token) before every
+    reconnect attempt (0W-2A: `DxLinkSourceCollector` fixes its auth token at
+    construction, so blindly retrying `collect()` on the *same* instance
+    forever resends whatever token was valid at startup -- if that token has
+    since expired, every retry fails identically). When omitted, the original
+    collector instance is reused across retries exactly as before -- pure
+    network hiccups where auth was never the issue still recover the same way.
     """
     collector_version, collector_git_commit = resolve_collector_version()
     overall_deadline = now() + timedelta(seconds=duration_seconds)
@@ -307,6 +317,7 @@ def run_long_horizon_capture(
         result, stop = _run_one_trading_date_session(
             data_dir, spec, trading_date, current_time, segment_deadline, overall_deadline,
             collector, reconnect_policy, max_events, now, sleeper, collector_version, collector_git_commit,
+            refresh_collector,
         )
         last_result = result
         current_time = now()
@@ -331,6 +342,7 @@ def _run_one_trading_date_session(
     sleeper: Callable[[float], None],
     collector_version: str,
     collector_git_commit: str,
+    refresh_collector: Callable[[], SourceCollector] | None = None,
 ) -> tuple[LongHorizonCaptureResult, bool]:
     """Run one dataset's continuous collection, bounded by `segment_deadline`
     (the earlier of this trading date's session close or the overall Human
@@ -442,17 +454,17 @@ def _run_one_trading_date_session(
                     on_event=on_event, on_connected=on_connected, retain_events=False,
                 )
                 break  # remaining time (or max_events) genuinely elapsed: clean stop
-            except DxLinkError:
+            except DxLinkError as exc:
                 disconnect_moment = now()
                 disconnected_at = disconnect_moment
+                reconnect_count += 1
                 store.save_quality_events((
                     DatasetQualityEvent(
                         event_id=uuid5(dataset_id, f"lifecycle:SOURCE_DISCONNECTED:{disconnect_moment.isoformat()}"),
                         dataset_id=dataset_id, evidence_type=DatasetQualityEvidenceType.SOURCE_DISCONNECTED,
-                        detail="source_disconnected", observed_at=disconnect_moment,
+                        detail=_sanitized_disconnect_detail(reconnect_count, exc), observed_at=disconnect_moment,
                     ),
                 ))
-                reconnect_count += 1
                 if reconnect_count > reconnect_policy.max_attempts:
                     target_state = DatasetLifecycleState.INTERRUPTED
                     stop = True
@@ -469,6 +481,12 @@ def _run_one_trading_date_session(
                     # before a successful reconnect. Do not fabricate a reconnect for
                     # this now-closing dataset -- cap the gap at the boundary below.
                     break
+                if refresh_collector is not None:
+                    # Never retry authentication with whatever token was valid at
+                    # startup (0W-2A root cause): a healthy connection is still never
+                    # torn down proactively (0V-A), but a *genuine* reconnect always
+                    # gets whatever fresh provider credential it needs.
+                    collector = refresh_collector()
                 continue
     except KeyboardInterrupt:
         target_state = DatasetLifecycleState.FINALIZED  # deliberate human stop: cleanly closed, not a failure
@@ -496,6 +514,40 @@ def _run_one_trading_date_session(
     if target_state is DatasetLifecycleState.INTERRUPTED or close_moment >= overall_deadline:
         stop = True
     return result, stop
+
+
+_FAILURE_STAGE_MARKERS: tuple[tuple[str, str], ...] = (
+    ("AUTHORIZED", "DXLINK_AUTH"),
+    ("SETUP", "DXLINK_SETUP"),
+    ("CHANNEL_OPENED", "CHANNEL_REQUEST"),
+    ("FEED_CONFIG", "FEED_SETUP"),
+    ("timed out", "SOCKET_RECEIVE"),
+    ("invalid json", "SOCKET_RECEIVE"),
+    ("non-object json", "SOCKET_RECEIVE"),
+    ("connection error while receiving", "SOCKET_RECEIVE"),
+    ("unsupported shape", "FEED_DATA"),
+)
+
+
+def _classify_failure_stage(message: str) -> str:
+    """Best-effort, evidence-only stage classification from a `DxLinkError`
+    message (0W-2A observability requirement). `DxLinkError` messages never
+    include the quote token or any credential -- see `K9/tastytrade/dxlink.py`
+    -- so the raw message text is itself already safe to persist."""
+    lowered = message.lower()
+    for marker, stage in _FAILURE_STAGE_MARKERS:
+        if marker.lower() in lowered:
+            return stage
+    return "OTHER"
+
+
+def _sanitized_disconnect_detail(attempt: int, exc: DxLinkError) -> str:
+    """Safe structured reconnect-failure detail: attempt number, best-effort
+    stage, and the exception's own (secret-free) message -- never the socket,
+    a header, or a token. See `_classify_failure_stage`."""
+    reason = " ".join(str(exc).split())[:200]
+    stage = _classify_failure_stage(reason)
+    return f"source_disconnected; attempt={attempt}; stage={stage}; error={reason}"
 
 
 def _close_known_gap(store: LaboratoryStore, dataset_id: UUID, disconnected_at: datetime, moment: datetime) -> None:

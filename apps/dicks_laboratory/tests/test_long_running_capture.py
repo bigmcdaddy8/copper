@@ -637,3 +637,110 @@ def test_trading_date_rotation_across_real_maintenance_wait(tmp_path):
     assert events_d1.count("SOURCE_RECONNECTED") == 0
     assert events_d1.count("KNOWN_GAP") == 0
     store_d1.close()
+
+
+# 0W-2A root cause: the 0W-2 Attempt 1 collector reused the SAME
+# `DxLinkSourceCollector` (and therefore the same fixed-at-startup quote
+# token) across every reconnect attempt. `refresh_collector`, when supplied,
+# must be used to obtain a genuinely fresh collector before every retry --
+# never a proxy for periodic proactive reconnects (see the healthy-session
+# test below).
+def test_reconnect_obtains_fresh_collector_through_refresh_callable(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    stale = ScriptedFakeCollector(
+        (_Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),), clock=clock,
+    )
+    fresh = ScriptedFakeCollector(
+        (_Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=3), 2),), raises=False),), clock=clock,
+    )
+    refresh_calls: list[bool] = []
+
+    def refresh_collector():
+        refresh_calls.append(True)
+        return fresh
+
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, stale, duration_seconds=60, now=clock.now, sleeper=clock.sleep,
+        refresh_collector=refresh_collector,
+    )
+    assert len(refresh_calls) == 1
+    assert fresh.call_count == 1  # the fresh collector -- not the stale one -- served the reconnect
+    assert stale.call_count == 1  # the stale collector was never retried directly
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert result.accepted_trade_count == 2
+
+    store = LaboratoryStore(result.database_path, read_only=True)
+    events = [e.evidence_type.value for e in store.load_quality_events(result.dataset_id)]
+    assert events.count("SOURCE_RECONNECTED") == 1
+    assert events.count("KNOWN_GAP") == 1
+    store.close()
+
+
+# 0V-A must survive 0W-2A: a healthy connection is still never torn down
+# merely because credentials would theoretically be old by now.
+def test_refresh_collector_not_invoked_when_connection_stays_healthy(tmp_path):
+    start = _SESSION_OPEN + timedelta(minutes=1)
+    clock = _FakeClock(start)
+    collector = ScriptedFakeCollector(
+        (_Segment(events=(_event(start, 1), _event(start + timedelta(hours=1), 2)), raises=False),), clock=clock,
+    )
+
+    def refresh_collector():
+        raise AssertionError("refresh_collector must not be called for a healthy connection")
+
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=7200, now=clock.now, sleeper=clock.sleep,
+        refresh_collector=refresh_collector,
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert result.reconnect_count == 0
+
+
+# Fresh-credential support must not turn a genuine network/provider outage
+# into an endless retry loop -- bounded reconnect exhaustion still applies
+# even when every retry gets a brand-new (but still unreachable) collector.
+def test_reconnect_exhaustion_with_refresh_collector_still_interrupts(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    initial = ScriptedFakeCollector(
+        (_Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),), clock=clock,
+    )
+    refresh_calls: list[bool] = []
+
+    def refresh_collector():
+        refresh_calls.append(True)
+        # Every "fresh" credential still can't reach the provider -- a genuine
+        # outage, not a stale-token problem.
+        return ScriptedFakeCollector((_Segment(events=(), raises=True),), clock=clock)
+
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, initial, duration_seconds=600,
+        reconnect_policy=ReconnectPolicy(backoff_schedule_seconds=(0.01,), max_attempts=2),
+        now=clock.now, sleeper=clock.sleep, refresh_collector=refresh_collector,
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.INTERRUPTED
+    assert len(refresh_calls) == 2  # exhausted after the 3rd disconnect; no refresh call beyond that
+    store = LaboratoryStore(result.database_path, read_only=True)
+    events = [e.evidence_type.value for e in store.load_quality_events(result.dataset_id)]
+    assert events.count("SOURCE_DISCONNECTED") == 3
+    assert "CAPTURE_STOPPED" in events
+    store.close()
+
+
+# 0W-2A observability requirement: safe, structured reconnect-failure
+# evidence (attempt number, best-effort stage, sanitized message) must be
+# durably retained -- Attempt 1's log/journal never captured why any of the
+# five retries failed.
+def test_disconnect_detail_is_sanitized_and_identifies_attempt_and_stage(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    collector = ScriptedFakeCollector((
+        _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),
+        _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=3), 2),), raises=False),
+    ), clock=clock)
+    result = run_long_horizon_capture(tmp_path, _SPEC, collector, duration_seconds=60, now=clock.now, sleeper=clock.sleep)
+    store = LaboratoryStore(result.database_path, read_only=True)
+    events = store.load_quality_events(result.dataset_id)
+    disconnect = next(e for e in events if e.evidence_type.value == "SOURCE_DISCONNECTED")
+    assert "attempt=1" in disconnect.detail
+    assert "stage=" in disconnect.detail
+    assert "simulated disconnect" in disconnect.detail  # the DxLinkError message itself, unmodified
+    store.close()
