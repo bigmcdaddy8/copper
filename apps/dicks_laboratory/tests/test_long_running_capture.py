@@ -1,9 +1,12 @@
+import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from K9.tastytrade.dxlink import DxLinkError, DxLinkSourceEvent
+from dicks_laboratory import long_running_capture as lrc
 from dicks_laboratory.dataset_state import DatasetLifecycleState
+from dicks_laboratory.durable_writer import CaptureBackpressureError, WriterFlushPolicy
 from dicks_laboratory.long_running_capture import (
     InstrumentCaptureSpec,
     LongHorizonCaptureError,
@@ -44,6 +47,8 @@ def _event(ts: datetime, index: int, classification: str = "NEW", price: float =
 class _Segment:
     events: tuple
     raises: bool = False
+    connect_fails: bool = False  # raise BEFORE on_connected -- models a failed reconnect attempt
+    raise_exc: BaseException | None = None  # non-DxLinkError terminal exception to raise instead
 
 
 class ScriptedFakeCollector:
@@ -51,6 +56,12 @@ class ScriptedFakeCollector:
     segment (deliver events, then either return cleanly or raise DxLinkError),
     simulating exactly one connect/subscribe attempt per call -- matching how
     the real `DxLinkSourceCollector.collect()` behaves per invocation.
+
+    `connect_fails=True` raises `DxLinkError` *before* invoking `on_connected`,
+    exactly as the real collector does when a reconnect's connect/auth/subscribe
+    cycle itself fails -- so `consecutive_reconnect_failures` accumulates within
+    one outage episode. A plain `raises=True` (connect succeeded, `on_connected`
+    fired, then the feed dropped) is a *new* episode by design (0W-2B §2).
 
     A clean (non-raising) return advances the shared fake clock by the full
     requested `duration_seconds` -- exactly matching the real collector's
@@ -66,18 +77,20 @@ class ScriptedFakeCollector:
 
     def collect(self, streamer_symbol, event_types, duration_seconds, max_events, on_event=None, on_connected=None, retain_events=True):
         self.call_count += 1
+        segment = self._segments.pop(0) if self._segments else None
+        if segment is not None and segment.connect_fails:
+            raise segment.raise_exc or DxLinkError("simulated connect failure")
         if on_connected is not None:
             on_connected()
-        if not self._segments:
+        if segment is None:
             if self._clock is not None:
                 self._clock.sleep(duration_seconds)
             return ()
-        segment = self._segments.pop(0)
         for event in segment.events:
             if on_event is not None:
                 on_event(event)
         if segment.raises:
-            raise DxLinkError("simulated disconnect")
+            raise segment.raise_exc or DxLinkError("simulated disconnect")
         if self._clock is not None:
             self._clock.sleep(duration_seconds)
         return ()
@@ -148,10 +161,16 @@ def test_clean_reconnect_scenario_produces_known_gap_and_finalized(tmp_path):
     store.close()
 
 
-# 61. Reconnect exhaustion scenario
+# 61. Reconnect exhaustion scenario -- ONE outage episode whose every reconnect
+# attempt fails (connect/auth never succeeds -> on_connected never fires), so
+# `consecutive_reconnect_failures` accumulates past `max_attempts`.
 def test_reconnect_exhaustion_marks_dataset_interrupted(tmp_path):
     clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
-    segments = tuple(_Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True) for _ in range(5))
+    # First segment: connected, delivered a trade, then dropped (episode opens).
+    # Then every reconnect attempt fails to connect at all.
+    segments = (
+        _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),
+    ) + tuple(_Segment(events=(), connect_fails=True) for _ in range(5))
     collector = ScriptedFakeCollector(segments, clock=clock)
     result = run_long_horizon_capture(
         tmp_path, _SPEC, collector, duration_seconds=600,
@@ -161,12 +180,14 @@ def test_reconnect_exhaustion_marks_dataset_interrupted(tmp_path):
     assert result.lifecycle_state is DatasetLifecycleState.INTERRUPTED
     store = LaboratoryStore(result.database_path, read_only=True)
     events = [e.evidence_type.value for e in store.load_quality_events(result.dataset_id)]
-    # Exhaustion means the FINAL attempt after the last permitted reconnect also
-    # failed -- transient successful reconnects before that point are expected
-    # and correctly recorded; what matters is the terminal state is INTERRUPTED,
-    # never silently retried forever, and never marked FINALIZED.
-    assert events.count("SOURCE_DISCONNECTED") > 2  # more disconnects than max_attempts permitted
+    # attempt 1 (episode opens on the drop), attempt 2, then attempt 3 which
+    # exceeds max_attempts=2 -> INTERRUPTED. No successful reconnect ever.
+    assert events.count("SOURCE_DISCONNECTED") == 3
+    assert events.count("SOURCE_RECONNECTED") == 0
     assert "CAPTURE_STOPPED" in events
+    stopped = next(e for e in store.load_quality_events(result.dataset_id) if e.evidence_type.value == "CAPTURE_STOPPED")
+    assert "reconnect_retry_budget_exhausted" in stopped.detail
+    store.close()
     assert result.accepted_trade_count >= 1  # partial evidence preserved
     store.close()
 
@@ -708,9 +729,10 @@ def test_reconnect_exhaustion_with_refresh_collector_still_interrupts(tmp_path):
 
     def refresh_collector():
         refresh_calls.append(True)
-        # Every "fresh" credential still can't reach the provider -- a genuine
-        # outage, not a stale-token problem.
-        return ScriptedFakeCollector((_Segment(events=(), raises=True),), clock=clock)
+        # Every "fresh" credential still can't even connect -- a genuine outage,
+        # not a stale-token problem. connect_fails => on_connected never fires,
+        # so this stays ONE outage episode and the per-episode budget applies.
+        return ScriptedFakeCollector((_Segment(events=(), connect_fails=True),), clock=clock)
 
     result = run_long_horizon_capture(
         tmp_path, _SPEC, initial, duration_seconds=600,
@@ -744,3 +766,312 @@ def test_disconnect_detail_is_sanitized_and_identifies_attempt_and_stage(tmp_pat
     assert "stage=" in disconnect.detail
     assert "simulated disconnect" in disconnect.detail  # the DxLinkError message itself, unmodified
     store.close()
+
+
+# ===================================================================== #
+# Phase 0W-2B -- burst throughput, complete disconnect handling,        #
+# retry-budget semantics, crash-path evidence.                          #
+# ===================================================================== #
+
+
+def _only_db(tmp_path):
+    files = sorted(tmp_path.glob("es_*.sqlite3"))
+    assert len(files) == 1, files
+    return files[0]
+
+
+def _quality_values(db_path):
+    store = LaboratoryStore(db_path, read_only=True)
+    try:
+        ids = store.list_dataset_ids()
+        assert len(ids) == 1
+        return ids[0], [e.evidence_type.value for e in store.load_quality_events(ids[0])], store.load_quality_events(ids[0])
+    finally:
+        store.close()
+
+
+# --- §2 / AE: an extended healthy interval restores the full outage budget --- #
+def test_healthy_interval_resets_reconnect_budget(tmp_path):
+    """Four spread-out disconnect episodes, each with up to `max_attempts`
+    failures, must NOT exhaust a session-wide tally (the Attempt-2 concern).
+    With `max_attempts=2` and 2 failed attempts inside *each* of two episodes
+    separated by a long healthy stretch, the run still FINALIZES."""
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    collector = ScriptedFakeCollector(
+        (
+            # Episode A: connected + 1 trade, then drop; 1 failed reconnect; then back.
+            _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),
+            _Segment(events=(), connect_fails=True),
+            _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=5), 2),), raises=True),
+            # ~long healthy gap here (fake clock) --                    Episode B:
+            _Segment(events=(), connect_fails=True),
+            _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=90), 3),), raises=False),
+        ),
+        clock=clock,
+    )
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=8 * 3600,
+        reconnect_policy=ReconnectPolicy(backoff_schedule_seconds=(0.01,), max_attempts=2),
+        now=clock.now, sleeper=clock.sleep,
+    )
+    # Without the per-episode reset this would be 4 cumulative failures > 2 -> INTERRUPTED.
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert result.accepted_trade_count == 3
+    assert result.reconnect_count == 2
+    assert result.known_gap_count == 2
+    _id, values, events = _quality_values(result.database_path)
+    # Each of the two outage episodes independently got a fresh 2-attempt budget:
+    # both an attempt=1 and an attempt=2 disconnect, and neither episode exhausted.
+    details = sorted(e.detail for e in events if e.evidence_type.value == "SOURCE_DISCONNECTED")
+    assert any("attempt=1; episode=1" in d for d in details)
+    assert any("attempt=2; episode=1" in d for d in details)
+    assert any("attempt=1; episode=2" in d for d in details)
+    assert any("attempt=2; episode=2" in d for d in details)
+    assert len(details) == 4  # never a 5th -- session-wide tally would have exhausted at 3
+
+
+# --- §2 anti-flap: pathological reconnect flapping still terminates --------- #
+def test_connection_flapping_trips_episode_circuit_breaker(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    # Every reconnect "succeeds" then immediately drops -> a new episode each time.
+    collector = ScriptedFakeCollector(
+        tuple(_Segment(events=(), raises=True) for _ in range(20)), clock=clock
+    )
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=3600,
+        reconnect_policy=ReconnectPolicy(
+            backoff_schedule_seconds=(0.001,), max_attempts=5, max_disconnect_episodes=3
+        ),
+        now=clock.now, sleeper=clock.sleep,
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.INTERRUPTED  # it DID terminate; no infinite loop
+    _id, values, events = _quality_values(result.database_path)
+    stopped = next(e for e in events if e.evidence_type.value == "CAPTURE_STOPPED")
+    assert "disconnect_episode_circuit_breaker" in stopped.detail
+    assert "episodes=4" in stopped.detail
+    assert collector.call_count < 20  # stopped well before consuming every scripted flap
+
+
+# --- §28: a send-path DxLinkError enters the same proven reconnect path ----- #
+def test_send_path_disconnect_reconnects_and_continues_source_order(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    send_loss = DxLinkError(
+        "DXLink connection error while sending: sent 1011 (internal error) "
+        "keepalive ping timeout; no close frame received"
+    )
+    collector = ScriptedFakeCollector(
+        (
+            _Segment(
+                events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1), _event(_SESSION_OPEN + timedelta(minutes=2), 2)),
+                raises=True, raise_exc=send_loss,
+            ),
+            _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=3), 3),), raises=False),
+        ),
+        clock=clock,
+    )
+    result = run_long_horizon_capture(tmp_path, _SPEC, collector, duration_seconds=3600, now=clock.now, sleeper=clock.sleep)
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert result.accepted_trade_count == 3
+    assert result.known_gap_count == 1
+    assert result.reconnect_count == 1
+    store = LaboratoryStore(result.database_path, read_only=True)
+    try:
+        prov = store.load_dxlink_time_and_sale_provenance(result.dataset_id)
+        assert [p.source_order for p in prov] == [1, 2, 3]  # continues across the reconnect, never resets
+        disc = next(e for e in store.load_quality_events(result.dataset_id) if e.evidence_type.value == "SOURCE_DISCONNECTED")
+        assert "stage=SOCKET_SEND" in disc.detail
+    finally:
+        store.close()
+
+
+# --- §29: an unexpected exception after dataset open -> truthful INTERRUPTED
+#          WITH closing summary, integrity, and manifest/checksum ----------- #
+def test_terminal_unexpected_exception_finalizes_interrupted_with_manifest(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    collector = ScriptedFakeCollector(
+        (
+            _Segment(
+                events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),),
+                raises=True, raise_exc=RuntimeError("boom after dataset open"),
+            ),
+        ),
+        clock=clock,
+    )
+    with pytest.raises(RuntimeError, match="boom after dataset open"):  # original error preserved
+        run_long_horizon_capture(tmp_path, _SPEC, collector, duration_seconds=3600, now=clock.now, sleeper=clock.sleep)
+
+    db_path = _only_db(tmp_path)
+    dataset_id, values, events = _quality_values(db_path)
+    assert "CAPTURE_STOPPED" in values
+    store = LaboratoryStore(db_path, read_only=True)
+    try:
+        assert store.load_dataset_lifecycle_state(dataset_id) is DatasetLifecycleState.INTERRUPTED
+        assert store.load_dataset_closing_summary(dataset_id) is not None
+        stopped = next(e for e in events if e.evidence_type.value == "CAPTURE_STOPPED")
+        assert "terminal_exception:RuntimeError" in stopped.detail
+        # not a connection loss -> no fabricated SOURCE_DISCONNECTED
+        assert "SOURCE_DISCONNECTED" not in values
+    finally:
+        store.close()
+
+    manifest_path = db_path.with_suffix(db_path.suffix + ".manifest.json")
+    assert manifest_path.exists()
+    manifest = json.loads(manifest_path.read_text())
+    assert manifest["state"] == "INTERRUPTED"
+    assert verify_checksum(db_path, manifest["sha256"])
+    integrity = LaboratoryStore(db_path, read_only=True)
+    try:
+        assert integrity._connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+    finally:
+        integrity.close()
+
+
+# --- §8 / Defect B: a terminal *connection loss* that slipped past
+#     `except DxLinkError` still records SOURCE_DISCONNECTED + KNOWN_GAP ----- #
+def test_terminal_connection_loss_records_disconnect_gap_and_manifest(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    raw_ws_loss = RuntimeError(
+        "ConnectionClosedError: sent 1011 (internal error) keepalive ping timeout; no close frame received"
+    )
+    collector = ScriptedFakeCollector(
+        (
+            _Segment(
+                events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1), _event(_SESSION_OPEN + timedelta(minutes=2), 2)),
+                raises=True, raise_exc=raw_ws_loss,
+            ),
+        ),
+        clock=clock,
+    )
+    with pytest.raises(RuntimeError, match="keepalive ping timeout"):
+        run_long_horizon_capture(tmp_path, _SPEC, collector, duration_seconds=3600, now=clock.now, sleeper=clock.sleep)
+
+    db_path = _only_db(tmp_path)
+    dataset_id, values, events = _quality_values(db_path)
+    assert values.count("SOURCE_DISCONNECTED") == 1
+    assert values.count("KNOWN_GAP") == 1
+    disc = next(e for e in events if e.evidence_type.value == "SOURCE_DISCONNECTED")
+    assert "attempt=terminal" in disc.detail
+    gap = next(e for e in events if e.evidence_type.value == "KNOWN_GAP")
+    assert gap.interval_start is not None and gap.interval_end is not None
+    assert gap.interval_start <= gap.interval_end
+    manifest_path = db_path.with_suffix(db_path.suffix + ".manifest.json")
+    assert manifest_path.exists()
+    assert verify_checksum(db_path, json.loads(manifest_path.read_text())["sha256"])
+
+
+# --- §10: a manifest-write failure must NOT rewrite INTERRUPTED to FINALIZED
+#          nor swallow the original outcome ------------------------------- #
+def test_manifest_write_failure_does_not_rewrite_state(tmp_path, monkeypatch):
+    def _boom(*_a, **_k):
+        raise OSError("read-only filesystem")
+
+    monkeypatch.setattr(lrc, "write_manifest", _boom)
+
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    segments = (
+        _Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),
+    ) + tuple(_Segment(events=(), connect_fails=True) for _ in range(4))
+    collector = ScriptedFakeCollector(segments, clock=clock)
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=3600,
+        reconnect_policy=ReconnectPolicy(backoff_schedule_seconds=(0.01,), max_attempts=2),
+        now=clock.now, sleeper=clock.sleep,
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.INTERRUPTED  # NOT rewritten
+    assert result.manifest_error is not None and "read-only filesystem" in result.manifest_error
+    assert result.checksum_sha256 is None
+    store = LaboratoryStore(result.database_path, read_only=True)
+    try:
+        assert store.load_dataset_closing_summary(result.dataset_id) is not None  # dataset still truthfully closed
+        assert store.load_dataset_lifecycle_state(result.dataset_id) is DatasetLifecycleState.INTERRUPTED
+    finally:
+        store.close()
+    assert not result.database_path.with_suffix(result.database_path.suffix + ".manifest.json").exists()
+
+
+# --- §27: bounded-queue overload -> INTERRUPTED with truthful evidence,
+#          persisted source_order is a contiguous prefix (no silent loss) --- #
+def test_writer_backpressure_overload_interrupts_with_truthful_evidence(tmp_path, monkeypatch):
+    import time as _time
+
+    real_save = LaboratoryStore.save_trade_observations
+
+    def _slow_save(self, trades):
+        _time.sleep(0.15)  # persistence permanently slower than ingestion
+        return real_save(self, trades)
+
+    monkeypatch.setattr(LaboratoryStore, "save_trade_observations", _slow_save)
+
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    many = tuple(_event(_SESSION_OPEN + timedelta(minutes=1, seconds=i * 0.001), i) for i in range(1, 400))
+    collector = ScriptedFakeCollector((_Segment(events=many, raises=False),), clock=clock)
+
+    with pytest.raises(CaptureBackpressureError):
+        run_long_horizon_capture(
+            tmp_path, _SPEC, collector, duration_seconds=3600, now=clock.now, sleeper=clock.sleep,
+            writer_flush_policy=WriterFlushPolicy(
+                max_events=1, queue_maxsize=8, overload_grace_seconds=0.05
+            ),
+        )
+
+    db_path = _only_db(tmp_path)
+    dataset_id, values, events = _quality_values(db_path)
+    store = LaboratoryStore(db_path, read_only=True)
+    try:
+        assert store.load_dataset_lifecycle_state(dataset_id) is DatasetLifecycleState.INTERRUPTED
+        prov = store.load_dxlink_time_and_sale_provenance(dataset_id)
+        orders = [p.source_order for p in prov]
+        assert orders == list(range(1, len(orders) + 1))  # contiguous prefix, no holes, nothing reordered
+        stopped = next(e for e in events if e.evidence_type.value == "CAPTURE_STOPPED")
+        assert "writer_backpressure_overload" in stopped.detail
+        assert "writer_overloaded=true" in stopped.detail
+    finally:
+        store.close()
+
+
+# --- §23: safe per-reconnect auth observability hook fires with attempt # --- #
+def test_reconnect_attempt_hook_fires_per_retry(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    initial = ScriptedFakeCollector(
+        (_Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=1), 1),), raises=True),), clock=clock
+    )
+    hook_calls: list[int] = []
+
+    def refresh_collector():
+        # first refresh -> a still-failing connect; second -> success
+        idx = len(hook_calls)
+        if idx == 1:
+            return ScriptedFakeCollector((_Segment(events=(), connect_fails=True),), clock=clock)
+        return ScriptedFakeCollector(
+            (_Segment(events=(_event(_SESSION_OPEN + timedelta(minutes=4), 2),), raises=False),), clock=clock
+        )
+
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, initial, duration_seconds=3600,
+        reconnect_policy=ReconnectPolicy(backoff_schedule_seconds=(0.01,), max_attempts=5),
+        now=clock.now, sleeper=clock.sleep,
+        refresh_collector=refresh_collector, on_reconnect_attempt=hook_calls.append,
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert hook_calls == [1, 2]  # within-episode attempt numbers, in order
+
+
+# --- §22: operational writer metrics land on the result and in CAPTURE_STOPPED #
+def test_writer_metrics_are_reported(tmp_path):
+    clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))
+    events = tuple(_event(_SESSION_OPEN + timedelta(minutes=1, seconds=i * 0.01), i) for i in range(1, 60))
+    collector = ScriptedFakeCollector((_Segment(events=events, raises=False),), clock=clock)
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=3600, now=clock.now, sleeper=clock.sleep,
+        writer_flush_policy=WriterFlushPolicy(max_events=10, max_interval_seconds=0.02),
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert result.writer_persisted_events == 59
+    assert result.writer_flush_count >= 1
+    assert result.writer_overloaded is False
+    store = LaboratoryStore(result.database_path, read_only=True)
+    try:
+        stopped = next(e for e in store.load_quality_events(result.dataset_id) if e.evidence_type.value == "CAPTURE_STOPPED")
+        assert "writer_flushes=" in stopped.detail and "writer_persisted_events=59" in stopped.detail
+    finally:
+        store.close()

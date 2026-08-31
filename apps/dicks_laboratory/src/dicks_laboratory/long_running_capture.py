@@ -36,15 +36,16 @@ from zoneinfo import ZoneInfo
 
 from K9.tastytrade.dxlink import DxLinkError
 from dicks_laboratory.dataset_state import DatasetClosingSummary, DatasetLifecycleState
-from dicks_laboratory.dxlink_timesales import (
-    RejectedDxLinkTimeAndSaleSourceRecord,
-    normalize_dxlink_time_and_sales,
-    source_records_from_events,
+from dicks_laboratory.durable_writer import (
+    CaptureBackpressureError,
+    CaptureWriterError,
+    DurableWriter,
+    WriterFlushPolicy,
+    WriterMetrics,
 )
 from dicks_laboratory.live_capture import SourceCollector
 from dicks_laboratory.models import DatasetIdentity, DatasetKind, DatasetOrigin, InstrumentIdentity
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType
-from dicks_laboratory.rejections import NormalizationRejection, RejectionSourceKind
 from dicks_laboratory.sessions import (
     ES_GLOBEX,
     FuturesSessionDefinition,
@@ -79,16 +80,37 @@ class InstrumentCaptureSpec:
 
 @dataclass(frozen=True)
 class ReconnectPolicy:
-    """Deterministic bounded backoff. The last schedule entry repeats beyond its index."""
+    """Deterministic bounded backoff plus two independent safety bounds.
+
+    `max_attempts` bounds *consecutive* failed reconnect attempts within ONE
+    outage episode. A successful reconnect (the source genuinely came back and
+    `on_connected` fired) closes that episode and restores the full budget --
+    so a later, unrelated disconnect after a long healthy stretch gets a fresh
+    `max_attempts` tries, never a budget already spent hours earlier (0W-2B
+    §2: this is the retry-semantics defect Attempt 2 exposed, where four
+    disconnects spread across ~90 minutes each incremented one session-wide
+    counter toward exhaustion).
+
+    `max_disconnect_episodes` is the separate anti-flapping circuit breaker:
+    it bounds how many distinct outage episodes one trading-date session may
+    absorb before it is declared INTERRUPTED, so a connection that keeps
+    dropping seconds after every reconnect still terminates (rather than
+    looping forever on a perpetually-reset per-episode budget). It is set
+    generously -- a handful of spread-out real blips in a full session is
+    normal and must not trip it.
+    """
 
     backoff_schedule_seconds: tuple[float, ...] = (1.0, 2.0, 5.0, 10.0, 30.0)
     max_attempts: int = 5
+    max_disconnect_episodes: int = 50
 
     def __post_init__(self) -> None:
         if not self.backoff_schedule_seconds:
             raise ValueError("backoff_schedule_seconds must be non-empty.")
         if self.max_attempts < 1:
             raise ValueError("max_attempts must be positive.")
+        if self.max_disconnect_episodes < 1:
+            raise ValueError("max_disconnect_episodes must be positive.")
 
     def backoff_for_attempt(self, attempt: int) -> float:
         index = min(attempt - 1, len(self.backoff_schedule_seconds) - 1)
@@ -116,6 +138,18 @@ class LongHorizonCaptureResult:
     last_source_order: int | None
     checksum_sha256: str | None
     manifest_path: Path | None
+    # 0W-2B operational (non-canonical) throughput evidence -- "did persistence
+    # keep up?". Defaulted so every existing construction/read path is unchanged.
+    writer_flush_count: int = 0
+    writer_batch_size_max: int = 0
+    writer_queue_depth_max: int = 0
+    writer_max_persist_lag_seconds: float = 0.0
+    writer_persisted_events: int = 0
+    writer_overloaded: bool = False
+    # Set only when the SQLite artifact closed cleanly but its sidecar
+    # manifest/checksum could not be written (0W-2B §10) -- never rewrites
+    # lifecycle_state, never hides a collector failure.
+    manifest_error: str | None = None
 
 
 def resolve_current_trading_date(now: datetime, session_definition: FuturesSessionDefinition = ES_GLOBEX) -> date:
@@ -261,6 +295,8 @@ def run_long_horizon_capture(
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
     sleeper: Callable[[float], None] = time.sleep,
     refresh_collector: Callable[[], SourceCollector] | None = None,
+    on_reconnect_attempt: Callable[[int], None] | None = None,
+    writer_flush_policy: WriterFlushPolicy = WriterFlushPolicy(),
 ) -> LongHorizonCaptureResult:
     """Run one supervised, reconnect-capable, bounded collection run.
 
@@ -317,7 +353,7 @@ def run_long_horizon_capture(
         result, stop = _run_one_trading_date_session(
             data_dir, spec, trading_date, current_time, segment_deadline, overall_deadline,
             collector, reconnect_policy, max_events, now, sleeper, collector_version, collector_git_commit,
-            refresh_collector,
+            refresh_collector, on_reconnect_attempt, writer_flush_policy,
         )
         last_result = result
         current_time = now()
@@ -343,103 +379,89 @@ def _run_one_trading_date_session(
     collector_version: str,
     collector_git_commit: str,
     refresh_collector: Callable[[], SourceCollector] | None = None,
+    on_reconnect_attempt: Callable[[int], None] | None = None,
+    writer_flush_policy: WriterFlushPolicy = WriterFlushPolicy(),
 ) -> tuple[LongHorizonCaptureResult, bool]:
     """Run one dataset's continuous collection, bounded by `segment_deadline`
     (the earlier of this trading date's session close or the overall Human
     deadline). Returns `(result, stop)`; `stop=True` means the caller must
     not continue on to another trading date (deadline reached, INTERRUPTED,
-    or an unexpected error)."""
-    database_path, dataset_id, store, resumed = _open_or_resume_dataset(data_dir, spec, trading_date, start_time)
+    or an unexpected error).
+
+    0W-2B: raw source events are handed to a `DurableWriter` (bounded queue +
+    one dedicated writer thread doing batched SQLite transactions) so the
+    feed-reader thread never blocks on synchronous per-event persistence.
+    `source_order` is still assigned here, on the feed thread, at the canonical
+    ingestion point -- ordering derives from ingestion order, never from writer
+    completion order. Every termination path -- clean stop, session close,
+    retry exhaustion, backpressure overload, unexpected exception -- lands in
+    one common finalization block that always drains the writer, records
+    complete disconnect/gap evidence where knowable, finalizes the dataset,
+    and writes the manifest/checksum sidecar before re-raising any fatal error.
+    """
+    database_path, dataset_id, store, resumed = _open_or_resume_dataset(
+        data_dir, spec, trading_date, start_time, check_same_thread=False
+    )
     source_order_counter = store.max_source_order_for_dataset(dataset_id) + 1
     accepted_count = len(store.load_trade_observations(dataset_id))
     seen_new_source_indices: set[int] = {
         p.source_index for p in store.load_dxlink_time_and_sale_provenance(dataset_id)
     }
 
-    classifications: Counter[str] = Counter()
-    reconnect_count = 0
-    ever_connected = False
-    disconnected_at: datetime | None = None
+    writer = DurableWriter(
+        store,
+        dataset_id,
+        spec.instrument,
+        spec.streamer_symbol,
+        start_dataset_sequence=accepted_count + 1,
+        seen_new_source_indices=seen_new_source_indices,
+        policy=writer_flush_policy,
+    )
+
+    # Two independent bounds (0W-2B §2). `consecutive_reconnect_failures` counts
+    # failed reconnect attempts *within the current outage episode* and is reset
+    # the moment the source genuinely comes back (`on_connected` fires) -- so a
+    # disconnect after a long healthy stretch gets a full fresh budget, never a
+    # session-wide tally spent hours earlier. `disconnect_episode_count` is the
+    # separate anti-flap circuit breaker over the whole trading-date session.
+    consecutive_reconnect_failures = 0
+    disconnect_episode_count = 0
     total_events_seen = 0
+    disconnected_in_loop_at: datetime | None = None
+    last_progress_at: datetime | None = None
 
     def on_connected() -> None:
-        nonlocal ever_connected, disconnected_at
+        nonlocal disconnected_in_loop_at, last_progress_at, consecutive_reconnect_failures
         moment = now()
-        if not ever_connected:
-            ever_connected = True
-            store.save_quality_events((
-                DatasetQualityEvent(
-                    event_id=uuid5(dataset_id, f"lifecycle:SOURCE_CONNECTED:{moment.isoformat()}"),
-                    dataset_id=dataset_id, evidence_type=DatasetQualityEvidenceType.SOURCE_CONNECTED,
-                    detail="source_connected", observed_at=moment,
-                ),
-            ))
-        elif disconnected_at is not None:
-            # Only a genuine prior disconnect makes this a real reconnect.
-            store.save_quality_events((
-                DatasetQualityEvent(
-                    event_id=uuid5(dataset_id, f"lifecycle:SOURCE_RECONNECTED:{moment.isoformat()}"),
-                    dataset_id=dataset_id, evidence_type=DatasetQualityEvidenceType.SOURCE_RECONNECTED,
-                    detail="source_reconnected", observed_at=moment,
-                ),
-            ))
-            _close_known_gap(store, dataset_id, disconnected_at, moment)
-            disconnected_at = None
+        last_progress_at = moment
+        writer.submit_connected(moment)
+        disconnected_in_loop_at = None
+        # The source is back: this outage episode is closed. A later, unrelated
+        # disconnect starts over with the full `max_attempts` budget. (Pathological
+        # connect-then-immediately-drop flapping is bounded separately by
+        # `max_disconnect_episodes`, so this reset cannot spin forever.)
+        consecutive_reconnect_failures = 0
 
     def on_event(event) -> None:
-        nonlocal source_order_counter, accepted_count, total_events_seen
-        total_events_seen += 1
-        record = source_records_from_events((event,), start_source_order=source_order_counter)[0]
-        classifications[record.event_classification or "UNKNOWN"] += 1
-
-        # Duplicate handling across reconnect (0U §35): a provider MAY conceivably
-        # redeliver an already-accepted NEW event after resubscribing. Detect this
-        # conservatively via the same source identity dxFeed itself uses for
-        # correction/cancel correlation (`index`) -- never via timestamp+price+size,
-        # which would risk collapsing legitimately distinct trades. The duplicate's
-        # own evidence is still retained (as a rejection), never silently dropped.
-        if record.event_classification == "NEW":
-            try:
-                candidate_index = int(record.source_index)
-            except (TypeError, ValueError):
-                candidate_index = None
-            if candidate_index is not None and candidate_index in seen_new_source_indices:
-                rejection_id = uuid5(dataset_id, f"duplicate-rejection:{record.source_record_ref}")
-                store.save_rejections((
-                    NormalizationRejection(
-                        rejection_id=rejection_id, dataset_id=dataset_id,
-                        source_kind=RejectionSourceKind.DXLINK_TIME_AND_SALE,
-                        source_record_ref=record.source_record_ref, source_order=source_order_counter,
-                        reason="DUPLICATE_SOURCE_INDEX_ACROSS_RECONNECT",
-                    ),
-                ))
-                store.save_rejected_dxlink_time_and_sale_source_records((
-                    RejectedDxLinkTimeAndSaleSourceRecord(
-                        rejection_id=rejection_id, dataset_id=dataset_id,
-                        source_order=source_order_counter, source_record=record,
-                    ),
-                ))
-                source_order_counter += 1
-                return
-
-        result = normalize_dxlink_time_and_sales(
-            (record,), _dataset_identity_stub(dataset_id), spec.instrument, spec.streamer_symbol,
-            start_source_order=source_order_counter, start_dataset_sequence=accepted_count + 1,
-        )
+        nonlocal source_order_counter, total_events_seen, last_progress_at
+        # Assign the canonical ingestion ordinal, then hand off (O(1)). The
+        # ordinal is only consumed once the writer has accepted the item, so a
+        # backpressure failure leaves `source_order` a clean contiguous prefix.
+        writer.submit_event(source_order_counter, event)
         source_order_counter += 1
-        if result.observations:
-            accepted_count += len(result.observations)
-            store.save_trade_observations(result.observations)
-            store.save_dxlink_time_and_sale_provenance(result.provenance)
-            seen_new_source_indices.update(p.source_index for p in result.provenance)
-        if result.deferred:
-            store.save_deferred_dxlink_time_and_sales(result.deferred)
-        if result.rejected:
-            store.save_rejections(result.rejected)
-            store.save_rejected_dxlink_time_and_sale_source_records(result.rejected_source_records)
+        total_events_seen += 1
+        # "We were still receiving as of this instant" -- on the SAME clock as
+        # `now()`, so a terminal synthetic KNOWN_GAP always has a defensible,
+        # non-negative interval (0W-2B §8). Cheap: one `now()` per event, feed
+        # thread only, no lock, no I/O.
+        last_progress_at = now()
 
     target_state = DatasetLifecycleState.FINALIZED
     stop = False
+    terminal_exc: BaseException | None = None
+    stopped_reason: str | None = None
+
+    writer.start()
     try:
         while True:
             remaining = (segment_deadline - now()).total_seconds()
@@ -456,20 +478,35 @@ def _run_one_trading_date_session(
                 break  # remaining time (or max_events) genuinely elapsed: clean stop
             except DxLinkError as exc:
                 disconnect_moment = now()
-                disconnected_at = disconnect_moment
-                reconnect_count += 1
-                store.save_quality_events((
-                    DatasetQualityEvent(
-                        event_id=uuid5(dataset_id, f"lifecycle:SOURCE_DISCONNECTED:{disconnect_moment.isoformat()}"),
-                        dataset_id=dataset_id, evidence_type=DatasetQualityEvidenceType.SOURCE_DISCONNECTED,
-                        detail=_sanitized_disconnect_detail(reconnect_count, exc), observed_at=disconnect_moment,
+                disconnected_in_loop_at = disconnect_moment
+                if consecutive_reconnect_failures == 0:
+                    disconnect_episode_count += 1  # first failure of a new outage episode
+                consecutive_reconnect_failures += 1
+                writer.submit_disconnected(
+                    consecutive_reconnect_failures,
+                    _sanitized_disconnect_detail(
+                        consecutive_reconnect_failures, disconnect_episode_count, exc
                     ),
-                ))
-                if reconnect_count > reconnect_policy.max_attempts:
+                    disconnect_moment,
+                )
+                if consecutive_reconnect_failures > reconnect_policy.max_attempts:
                     target_state = DatasetLifecycleState.INTERRUPTED
+                    stopped_reason = (
+                        "reconnect_retry_budget_exhausted; "
+                        f"consecutive_failures={consecutive_reconnect_failures}; "
+                        f"episode={disconnect_episode_count}"
+                    )
                     stop = True
                     break
-                backoff = reconnect_policy.backoff_for_attempt(reconnect_count)
+                if disconnect_episode_count > reconnect_policy.max_disconnect_episodes:
+                    target_state = DatasetLifecycleState.INTERRUPTED
+                    stopped_reason = (
+                        "disconnect_episode_circuit_breaker; "
+                        f"episodes={disconnect_episode_count}"
+                    )
+                    stop = True
+                    break
+                backoff = reconnect_policy.backoff_for_attempt(consecutive_reconnect_failures)
                 # Cap the retry wait at this session's own close/deadline: never
                 # extend a disconnect-driven wait into the maintenance interval.
                 retry_at = min(now() + timedelta(seconds=backoff), segment_deadline)
@@ -486,34 +523,143 @@ def _run_one_trading_date_session(
                     # startup (0W-2A root cause): a healthy connection is still never
                     # torn down proactively (0V-A), but a *genuine* reconnect always
                     # gets whatever fresh provider credential it needs.
+                    if on_reconnect_attempt is not None:
+                        on_reconnect_attempt(consecutive_reconnect_failures)
                     collector = refresh_collector()
                 continue
     except KeyboardInterrupt:
         target_state = DatasetLifecycleState.FINALIZED  # deliberate human stop: cleanly closed, not a failure
+        stopped_reason = "keyboard_interrupt_clean_stop"
         stop = True
-    except Exception:
+    except CaptureBackpressureError as exc:
+        # Controlled overload (0W-2B §13/§27): the bounded queue stayed full past
+        # the grace window. No silent drop, no unbounded RAM -- terminate
+        # INTERRUPTED and let the truthful evidence below say completeness is
+        # no longer assured.
         target_state = DatasetLifecycleState.INTERRUPTED
-        close_moment = now()
-        if disconnected_at is not None:
-            _close_known_gap(store, dataset_id, disconnected_at, close_moment)
-        _finalize(store, dataset_id, close_moment, classifications, collector_version, collector_git_commit, target_state)
-        store.close()
-        raise
+        stopped_reason = (
+            f"writer_backpressure_overload; last_assigned_source_order={source_order_counter - 1}"
+        )
+        stop = True
+        terminal_exc = exc
+    except BaseException as exc:  # noqa: BLE001 -- re-raised verbatim after a truthful finalize
+        target_state = DatasetLifecycleState.INTERRUPTED
+        stopped_reason = f"terminal_exception:{type(exc).__name__}"
+        stop = True
+        terminal_exc = exc
 
+    # ------------------------------------------------------------------ #
+    # Common finalization -- EVERY path above lands here (0W-2B §8, §9). #
+    # ------------------------------------------------------------------ #
     close_moment = now()
-    if disconnected_at is not None:
-        # A disconnect never successfully reconnected before this session ended
-        # (session close or deadline reached while down). The unobserved interval
-        # is capped at that boundary as explicit KNOWN_GAP evidence -- never
-        # extended into maintenance, and never papered over with a fake reconnect.
-        _close_known_gap(store, dataset_id, disconnected_at, close_moment)
-    _finalize(store, dataset_id, close_moment, classifications, collector_version, collector_git_commit, target_state)
-    result = _build_result(store, dataset_id, database_path, spec.instrument, trading_date, target_state)
+
+    try:
+        writer_metrics = writer.drain_and_stop()
+    except CaptureWriterError as exc:
+        writer_metrics = writer.metrics
+        target_state = DatasetLifecycleState.INTERRUPTED
+        stop = True
+        if terminal_exc is None:
+            terminal_exc = exc
+            stopped_reason = stopped_reason or f"terminal_exception:{type(exc).__name__}"
+
+    # A disconnect recorded in the reconnect loop that never reconnected before
+    # the session ended (session close / deadline while down).
+    unresolved_disconnect_at = writer.pending_disconnect_at or disconnected_in_loop_at
+
+    # A terminal connection loss that ended the run OUTSIDE the reconnect loop
+    # (a raw exception that slipped past `except DxLinkError`) still owes a
+    # SOURCE_DISCONNECTED + KNOWN_GAP. Best-defensible gap start = last known
+    # progress instant; never a fabricated earlier time (0W-2B §8).
+    if (
+        unresolved_disconnect_at is None
+        and terminal_exc is not None
+        and not isinstance(terminal_exc, (CaptureBackpressureError, CaptureWriterError))
+        and _looks_like_connection_loss(terminal_exc)
+    ):
+        gap_start = min(last_progress_at or close_moment, close_moment)
+        store.save_quality_events((
+            DatasetQualityEvent(
+                event_id=uuid5(dataset_id, f"lifecycle:SOURCE_DISCONNECTED:{gap_start.isoformat()}:terminal"),
+                dataset_id=dataset_id,
+                evidence_type=DatasetQualityEvidenceType.SOURCE_DISCONNECTED,
+                detail=_terminal_disconnect_detail(terminal_exc),
+                observed_at=gap_start,
+            ),
+        ))
+        unresolved_disconnect_at = gap_start
+
+    # Only a strictly-positive interval is a defensible KNOWN_GAP (the quality
+    # model enforces this too). A disconnect at the very close instant -- or with
+    # no observed progress to anchor the start -- gets its SOURCE_DISCONNECTED
+    # recorded above without a zero-width gap fabricated after it.
+    if unresolved_disconnect_at is not None and unresolved_disconnect_at < close_moment:
+        _close_known_gap(store, dataset_id, unresolved_disconnect_at, close_moment)
+
+    stopped_detail = "capture_stopped"
+    if stopped_reason:
+        stopped_detail += f"; reason={stopped_reason}"
+    stopped_detail += f"; {writer_metrics.as_detail_suffix()}"
+
+    _finalize(
+        store, dataset_id, close_moment, writer.classifications,
+        collector_version, collector_git_commit, target_state, stopped_detail=stopped_detail,
+    )
+
+    manifest_error: str | None = None
+    try:
+        result = _build_result(
+            store, dataset_id, database_path, spec.instrument, trading_date, target_state,
+            writer_metrics=writer_metrics,
+        )
+    except Exception as exc:  # noqa: BLE001 -- the sidecar is convenience only (0W-2B §10)
+        manifest_error = f"{type(exc).__name__}: {exc}"
+        result = _build_result(
+            store, dataset_id, database_path, spec.instrument, trading_date, target_state,
+            writer_metrics=writer_metrics, skip_manifest=True, manifest_error=manifest_error,
+        )
+
     store.close()
+
+    if terminal_exc is not None:
+        # Preserve the original failure for process-exit / result semantics --
+        # the dataset is already truthfully INTERRUPTED with complete evidence
+        # and (where possible) a manifest.
+        raise terminal_exc
 
     if target_state is DatasetLifecycleState.INTERRUPTED or close_moment >= overall_deadline:
         stop = True
     return result, stop
+
+
+_CONNECTION_LOSS_MARKERS: tuple[str, ...] = (
+    "connectionclosed",
+    "connection closed",
+    "connection reset",
+    "broken pipe",
+    "keepalive ping timeout",
+    "connection error while receiving",
+    "connection error while sending",
+    "timed out",
+)
+
+
+def _looks_like_connection_loss(exc: BaseException) -> bool:
+    """True when a terminal exception is a lost source connection (so it still
+    owes SOURCE_DISCONNECTED + KNOWN_GAP evidence), not a local defect."""
+    if isinstance(exc, DxLinkError):
+        return True
+    text = f"{type(exc).__name__}: {exc}".lower()
+    return any(marker in text for marker in _CONNECTION_LOSS_MARKERS)
+
+
+def _terminal_disconnect_detail(exc: BaseException) -> str:
+    """Sanitized SOURCE_DISCONNECTED detail for a connection loss that ended the
+    run outside the numbered reconnect attempts (0W-2B §8). Same secret-free
+    shape as `_sanitized_disconnect_detail`, with `attempt=terminal`."""
+    reason = " ".join(str(exc).split())[:200] or type(exc).__name__
+    stage = _classify_failure_stage(reason)
+    return f"source_disconnected; attempt=terminal; stage={stage}; error={reason}"
 
 
 _FAILURE_STAGE_MARKERS: tuple[tuple[str, str], ...] = (
@@ -525,6 +671,8 @@ _FAILURE_STAGE_MARKERS: tuple[tuple[str, str], ...] = (
     ("invalid json", "SOCKET_RECEIVE"),
     ("non-object json", "SOCKET_RECEIVE"),
     ("connection error while receiving", "SOCKET_RECEIVE"),
+    ("connection error while sending", "SOCKET_SEND"),
+    ("keepalive ping timeout", "SOCKET_KEEPALIVE"),
     ("unsupported shape", "FEED_DATA"),
 )
 
@@ -541,13 +689,17 @@ def _classify_failure_stage(message: str) -> str:
     return "OTHER"
 
 
-def _sanitized_disconnect_detail(attempt: int, exc: DxLinkError) -> str:
-    """Safe structured reconnect-failure detail: attempt number, best-effort
-    stage, and the exception's own (secret-free) message -- never the socket,
-    a header, or a token. See `_classify_failure_stage`."""
+def _sanitized_disconnect_detail(attempt: int, episode: int, exc: DxLinkError) -> str:
+    """Safe structured reconnect-failure detail: the within-episode attempt
+    number (resets to 1 for each new outage -- 0W-2B §2), the session-wide
+    outage-episode number, a best-effort stage, and the exception's own
+    (secret-free) message -- never the socket, a header, or a token."""
     reason = " ".join(str(exc).split())[:200]
     stage = _classify_failure_stage(reason)
-    return f"source_disconnected; attempt={attempt}; stage={stage}; error={reason}"
+    return (
+        f"source_disconnected; attempt={attempt}; episode={episode}; "
+        f"stage={stage}; error={reason}"
+    )
 
 
 def _close_known_gap(store: LaboratoryStore, dataset_id: UUID, disconnected_at: datetime, moment: datetime) -> None:
@@ -568,6 +720,7 @@ def _open_or_resume_dataset(
     spec: InstrumentCaptureSpec,
     trading_date: date,
     observed_at: datetime,
+    check_same_thread: bool = True,
 ) -> tuple[Path, UUID, LaboratoryStore, bool]:
     """Resume an existing OPEN dataset for this exact instrument+trading_date, or create one.
 
@@ -593,7 +746,7 @@ def _open_or_resume_dataset(
                     state = probe.load_dataset_lifecycle_state(existing_id)
                     if state is DatasetLifecycleState.OPEN:
                         probe.close()
-                        store = LaboratoryStore(candidate)
+                        store = LaboratoryStore(candidate, check_same_thread=check_same_thread)
                         return candidate, existing_id, store, True
                     probe.close()
                     raise LongHorizonCaptureError(
@@ -620,7 +773,7 @@ def _open_or_resume_dataset(
         capture_started_at=observed_at,
         origin=DatasetOrigin.AUTHENTIC_SOURCE,
     )
-    store = LaboratoryStore(database_path)
+    store = LaboratoryStore(database_path, check_same_thread=check_same_thread)
     store.save_dataset(dataset)
     store.save_dataset_trading_context(dataset_id, trading_date, spec.instrument)
     store.set_dataset_lifecycle_state(dataset_id, DatasetLifecycleState.OPEN)
@@ -647,16 +800,21 @@ def _finalize(
     collector_version: str,
     collector_git_commit: str,
     target_state: DatasetLifecycleState,
+    stopped_detail: str = "capture_stopped",
 ) -> None:
     """Close a dataset intentionally, recording exactly the requested closure
     state -- never silently defaulting to FINALIZED regardless of intent
     (a prior version of this function did exactly that, masking the real
-    lifecycle_state of an INTERRUPTED dataset in the database itself)."""
+    lifecycle_state of an INTERRUPTED dataset in the database itself).
+
+    `stopped_detail` carries the sanitized closure reason plus operational
+    writer metrics (0W-2B §22) so a future soak can answer "did persistence
+    keep up?" from the dataset alone."""
     store.save_quality_events((
         DatasetQualityEvent(
             event_id=uuid5(dataset_id, f"lifecycle:CAPTURE_STOPPED:{closed_at.isoformat()}"),
             dataset_id=dataset_id, evidence_type=DatasetQualityEvidenceType.CAPTURE_STOPPED,
-            detail="capture_stopped", observed_at=closed_at,
+            detail=stopped_detail, observed_at=closed_at,
         ),
     ))
     store.update_dataset_capture_ended(dataset_id, closed_at)
@@ -706,14 +864,23 @@ def _build_result(
     instrument: InstrumentIdentity,
     trading_date: date,
     lifecycle_state: DatasetLifecycleState,
+    writer_metrics: WriterMetrics | None = None,
+    skip_manifest: bool = False,
+    manifest_error: str | None = None,
 ) -> LongHorizonCaptureResult:
     summary = store.load_dataset_closing_summary(dataset_id)
     quality_events = store.load_quality_events(dataset_id)
     reconnect_count = sum(
         1 for event in quality_events if event.evidence_type is DatasetQualityEvidenceType.SOURCE_RECONNECTED
     )
+    metrics = writer_metrics or WriterMetrics()
     checksum, manifest_path = None, None
-    if database_path.exists():
+    # The SHA-256 + manifest sidecar is now written for EVERY cleanly-closed
+    # artifact -- FINALIZED, retry-exhaustion INTERRUPTED, or crash-finalized
+    # INTERRUPTED (0W-2B §9). `skip_manifest` is only ever set on the fallback
+    # path after the sidecar write itself failed (0W-2B §10) -- the dataset
+    # state and the original error are never rewritten to make one appear.
+    if database_path.exists() and not skip_manifest:
         checksum = compute_sha256(database_path)
         manifest_path = write_manifest(database_path, dataset_id, instrument, trading_date, lifecycle_state, checksum, summary)
     return LongHorizonCaptureResult(
@@ -731,6 +898,13 @@ def _build_result(
         last_source_order=summary.last_source_order if summary else None,
         checksum_sha256=checksum,
         manifest_path=manifest_path,
+        writer_flush_count=metrics.flush_count,
+        writer_batch_size_max=metrics.batch_size_max,
+        writer_queue_depth_max=metrics.queue_depth_max,
+        writer_max_persist_lag_seconds=metrics.max_persist_lag_seconds,
+        writer_persisted_events=metrics.persisted_events,
+        writer_overloaded=metrics.overloaded,
+        manifest_error=manifest_error,
     )
 
 

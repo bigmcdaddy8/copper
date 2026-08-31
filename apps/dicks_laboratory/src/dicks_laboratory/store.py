@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
+from typing import Iterator
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from uuid import UUID
@@ -177,15 +179,23 @@ CREATE TABLE IF NOT EXISTS dataset_closing_summaries (
 class LaboratoryStore:
     """Owns a small SQLite schema and canonical object serialization for Phase 0G."""
 
-    def __init__(self, db_path: Path, read_only: bool = False) -> None:
+    def __init__(self, db_path: Path, read_only: bool = False, check_same_thread: bool = True) -> None:
+        # `check_same_thread=False` is used only by the 0W-2B durable-writer path,
+        # where the connection is created on the capture thread, handed to exactly
+        # one dedicated writer thread for the run, then reclaimed by the capture
+        # thread after that writer has joined -- never touched by two threads at
+        # once. It is not a licence for concurrent access.
         if read_only:
             if not Path(db_path).is_file():
                 raise FileNotFoundError(f"Database not found: {db_path}")
-            self._connection = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+            self._connection = sqlite3.connect(
+                f"file:{db_path}?mode=ro", uri=True, check_same_thread=check_same_thread
+            )
         else:
-            self._connection = sqlite3.connect(db_path)
+            self._connection = sqlite3.connect(db_path, check_same_thread=check_same_thread)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
+        self._in_transaction = False
         if not read_only:
             self._connection.executescript(_DDL)
             self._apply_additive_migrations()
@@ -193,6 +203,33 @@ class LaboratoryStore:
 
     def close(self) -> None:
         self._connection.close()
+
+    @contextmanager
+    def transaction(self) -> Iterator[None]:
+        """Batch many `save_*` calls into ONE SQLite transaction/commit.
+
+        While active, the per-call `commit()` inside each `save_*` method is
+        suppressed; a single `commit()` runs on clean exit, and `rollback()` on
+        any exception. Not re-entrant. Introduced for 0W-2B: committing (and
+        fsync-ing) per event on the feed-reader path is what let a real market
+        burst starve the DXLink keepalive in Attempt 2.
+        """
+        if self._in_transaction:
+            raise RuntimeError("LaboratoryStore.transaction() is not re-entrant.")
+        self._in_transaction = True
+        try:
+            yield
+        except BaseException:
+            self._connection.rollback()
+            raise
+        else:
+            self._connection.commit()
+        finally:
+            self._in_transaction = False
+
+    def _maybe_commit(self) -> None:
+        if not self._in_transaction:
+            self._connection.commit()
 
     def list_dataset_ids(self) -> tuple[UUID, ...]:
         rows = self._connection.execute("SELECT dataset_id FROM datasets ORDER BY dataset_id").fetchall()
@@ -264,14 +301,14 @@ class LaboratoryStore:
                 dataset.random_seed,
             ),
         )
-        self._connection.commit()
+        self._maybe_commit()
 
     def update_dataset_capture_ended(self, dataset_id: UUID, capture_ended_at: datetime) -> None:
         self._connection.execute(
             "UPDATE datasets SET capture_ended_at = ? WHERE dataset_id = ?",
             (_timestamp_text(capture_ended_at), str(dataset_id)),
         )
-        self._connection.commit()
+        self._maybe_commit()
 
     def save_dataset_trading_context(
         self,
@@ -299,7 +336,7 @@ class LaboratoryStore:
             "UPDATE datasets SET trading_date = ?, instrument_id = ? WHERE dataset_id = ?",
             (trading_date.isoformat(), instrument.canonical_id, str(dataset_id)),
         )
-        self._connection.commit()
+        self._maybe_commit()
 
     def load_dataset_trading_context(self, dataset_id: UUID) -> tuple[date | None, InstrumentIdentity | None]:
         """Backward-compatible: an old database predating 0V lacks the
@@ -336,7 +373,7 @@ class LaboratoryStore:
             "UPDATE datasets SET lifecycle_state = ? WHERE dataset_id = ?",
             (state.value, str(dataset_id)),
         )
-        self._connection.commit()
+        self._maybe_commit()
 
     def load_dataset_lifecycle_state(self, dataset_id: UUID) -> DatasetLifecycleState | None:
         """None means untracked (legacy pre-0V dataset), never inferred as OPEN/FINALIZED/INTERRUPTED.
@@ -393,7 +430,7 @@ class LaboratoryStore:
                 summary.collector_version, summary.collector_git_commit,
             ),
         )
-        self._connection.commit()
+        self._maybe_commit()
 
     def load_dataset_closing_summary(self, dataset_id: UUID) -> DatasetClosingSummary | None:
         row = self._connection.execute(
@@ -450,7 +487,7 @@ class LaboratoryStore:
                     trade.trade_action.value,
                 ),
             )
-        self._connection.commit()
+        self._maybe_commit()
 
     def save_quality_events(self, events: tuple[DatasetQualityEvent, ...]) -> None:
         for event in events:
@@ -480,7 +517,7 @@ class LaboratoryStore:
                     """,
                     (str(event.event_id), str(supporting_event_id), sequence),
                 )
-        self._connection.commit()
+        self._maybe_commit()
 
     def save_rejections(self, rejections: tuple[NormalizationRejection, ...]) -> None:
         for rejection in rejections:
@@ -501,7 +538,7 @@ class LaboratoryStore:
                     rejection.detail,
                 ),
             )
-        self._connection.commit()
+        self._maybe_commit()
 
     def save_dxlink_time_and_sale_provenance(
         self,
@@ -541,7 +578,7 @@ class LaboratoryStore:
                     _bool_or_none(item.valid_tick),
                 ),
             )
-        self._connection.commit()
+        self._maybe_commit()
 
     def save_deferred_dxlink_time_and_sales(
         self,
@@ -573,7 +610,7 @@ class LaboratoryStore:
                     _timestamp_text(record.received_at),
                 ),
             )
-        self._connection.commit()
+        self._maybe_commit()
 
     def save_rejected_dxlink_time_and_sale_source_records(
         self,
@@ -612,7 +649,7 @@ class LaboratoryStore:
                     _timestamp_text(record.received_at),
                 ),
             )
-        self._connection.commit()
+        self._maybe_commit()
 
     def load_dataset(self, dataset_id: UUID) -> DatasetIdentity:
         row = self._connection.execute(

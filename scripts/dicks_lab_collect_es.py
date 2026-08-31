@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from K9.tastytrade.client import TastytradeClient
 from K9.tastytrade.dxlink import DxLinkSourceCollector
 from K9.tastytrade.settings import TastytradeSettings
+from dicks_laboratory.durable_writer import CaptureBackpressureError, CaptureWriterError
 from dicks_laboratory.long_running_capture import (
     DEFAULT_RECONNECT_POLICY,
     InstrumentCaptureSpec,
@@ -66,12 +67,24 @@ def collect(
         # `TastytradeClient._get_access_token`), so every genuine reconnect
         # gets whatever credential it actually needs instead of replaying
         # whatever was valid hours ago.
+        oauth_before = client.access_token_refresh_count
         token_data = client.get_api_quote_token()
         token = token_data.get("token")
         url = token_data.get("dxlink-url")
         if not isinstance(token, str) or not isinstance(url, str):
             raise typer.BadParameter("Tastytrade quote-token response was incomplete.")
+        # 0W-2B §23: safe runtime evidence of the fresh-credential path -- a
+        # count and a bool, never the token, header, password, or account id.
+        oauth_refreshed = client.access_token_refresh_count > oauth_before
+        typer.echo(
+            f"fresh_collector: quote_token_requested=true fresh_dxlink_collector=true "
+            f"oauth_refreshed={str(oauth_refreshed).lower()}",
+            err=True,
+        )
         return DxLinkSourceCollector(url, token)
+
+    def _log_reconnect_attempt(attempt: int) -> None:
+        typer.echo(f"reconnect: attempt={attempt} refresh_collector_invoked=true", err=True)
 
     spec = InstrumentCaptureSpec(instrument=_ES_INSTRUMENT, streamer_symbol=_ES_STREAMER_SYMBOL)
     reconnect_policy = ReconnectPolicy(
@@ -92,10 +105,17 @@ def collect(
         result = run_long_horizon_capture(
             data_dir, spec, fresh_collector(), duration_seconds, max_events,
             reconnect_policy=reconnect_policy, refresh_collector=fresh_collector,
+            on_reconnect_attempt=_log_reconnect_attempt,
         )
     except LongHorizonCaptureError as exc:
         typer.echo(f"Collection error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
+    except (CaptureBackpressureError, CaptureWriterError) as exc:
+        # The dataset was already truthfully finalized INTERRUPTED with complete
+        # evidence + manifest before this propagated (0W-2B §9). Report and exit
+        # nonzero -- a controlled overload/writer failure, never a silent loss.
+        typer.echo(f"Capture terminated -- persistence could not keep up: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
     except KeyboardInterrupt:
         typer.echo("\nStop requested before any dataset was opened; nothing to finalize.")
         raise typer.Exit(code=0)
@@ -115,6 +135,13 @@ def collect(
         "last_source_order": result.last_source_order,
         "checksum_sha256": result.checksum_sha256,
         "manifest_path": str(result.manifest_path) if result.manifest_path else None,
+        "manifest_error": result.manifest_error,
+        "writer_flush_count": result.writer_flush_count,
+        "writer_batch_size_max": result.writer_batch_size_max,
+        "writer_queue_depth_max": result.writer_queue_depth_max,
+        "writer_max_persist_lag_seconds": round(result.writer_max_persist_lag_seconds, 4),
+        "writer_persisted_events": result.writer_persisted_events,
+        "writer_overloaded": result.writer_overloaded,
     }
     typer.echo(json.dumps(summary, indent=2))
     if result.lifecycle_state.value == "INTERRUPTED":

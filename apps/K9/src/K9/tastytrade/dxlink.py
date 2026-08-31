@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Callable, Protocol
 
+from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
 
 _CHANNEL = 1
@@ -266,7 +267,19 @@ class DxLinkCollector:
 
     @staticmethod
     def _send(socket: _Socket, message: dict) -> None:
-        socket.send(json.dumps(message))
+        # Serialize first: a non-serializable payload is a programming error and
+        # must propagate as-is, never be disguised as a transport disconnect.
+        payload = json.dumps(message)
+        try:
+            socket.send(payload)
+        except (ConnectionClosed, TimeoutError, OSError) as exc:
+            # Symmetry with `_receive` (0W-2B Defect A): a connection lost on a
+            # send -- e.g. a KEEPALIVE frame after the peer closed the socket on
+            # a keepalive-ping timeout -- must surface as `DxLinkError` so the
+            # orchestration-layer reconnect loop detects it, exactly as it does
+            # for a receive-side loss. Only genuine transport exceptions are
+            # translated; TypeError/ValueError and any other error still raise raw.
+            raise DxLinkError(f"DXLink connection error while sending: {exc}") from exc
 
     @staticmethod
     def _receive(socket: _Socket, timeout: float | None = None) -> dict:

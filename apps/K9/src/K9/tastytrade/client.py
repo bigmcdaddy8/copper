@@ -20,6 +20,15 @@ class TastytradeClient:
     def __init__(self, settings: TastytradeSettings) -> None:
         self._settings = settings
         self._access_token: str | None = None
+        self._access_token_refreshes = 0
+
+    @property
+    def access_token_refresh_count(self) -> int:
+        """How many times a fresh OAuth access token has been fetched from
+        Tastytrade this process. Safe operational signal (a count, never the
+        token) so a caller can log whether a given reconnect actually needed
+        an OAuth re-authentication -- see Dick's Laboratory 0W-2B §23."""
+        return self._access_token_refreshes
 
     def _get_json(self, path: str, params: dict[str, str] | None = None) -> dict[str, Any]:
         """Return JSON from a read-only API endpoint, refreshing once after a 401."""
@@ -183,6 +192,7 @@ class TastytradeClient:
         token = payload.get("access_token")
         if not isinstance(token, str) or not token:
             raise TastytradeAPIError("OAuth token response did not include an access_token.")
+        self._access_token_refreshes += 1
         return token
 
     def _account_path(self, suffix: str) -> str:
