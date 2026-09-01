@@ -6,7 +6,9 @@ if [[ "$1" == "-v" || "$1" == "--verbose" ]]; then
   VERBOSE="--verbose"
 fi
 
-ONEDRIVE_MOUNT="/home/temckee8/OneDriveMount"
+#ONEDRIVE_MOUNT="/home/temckee8/OneDriveMount"
+ONEDRIVE_MOUNT="/mnt/c/Users/temck/OneDrive"
+
 LOCAL_DATA_DIR="/home/temckee8/Documents/data/copper/trade_hunter"
 DOWNLOADS_DIR="/DropboxClone/ToddStuff/trading/downloads"
 WORKSHEETS_DIR="/DropboxClone/ToddStuff/trading/worksheets"
@@ -19,11 +21,11 @@ UPLOADS_DIR_FULLPATH="${LOCAL_DATA_DIR}${UPLOADS_DIR}"
 CACHE_DIR_FULLPATH="${LOCAL_DATA_DIR}${CACHE_DIR}"
 LOG_DIR_FULLPATH="${LOCAL_DATA_DIR}${LOG_DIR}"
 
-rclone rc vfs/refresh dir="${DOWNLOADS_DIR}"
-rclone rc vfs/refresh dir="${WORKSHEETS_DIR}"
+#rclone rc vfs/refresh dir="${DOWNLOADS_DIR}"
+#rclone rc vfs/refresh dir="${WORKSHEETS_DIR}"
 
 # Wait a few seconds to ensure rclone has completed the refresh before running the main script
-sleep 8
+#sleep 8
 
 # Resolve most recent input files (sorted by filename, not mtime)
 TT_FILE=$(ls "${DOWNLOADS_DIR_FULLPATH}"/tastytrade_watchlist_m8investments_Russell\ 1000_??????.csv 2>/dev/null | tail -1)
