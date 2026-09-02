@@ -112,6 +112,27 @@ def test_collect_rejects_unauthorized_dxlink_connection():
     assert socket.closed
 
 
+def test_collect_quotes_requires_only_a_quote_snapshot():
+    symbol = ".XSP"
+    socket = FakeSocket(
+        _setup_frames()
+        + [
+            {
+                "type": "FEED_DATA",
+                "data": ["Quote", ["Quote", symbol, 1_753_890_000_000, 600.0, 600.2, 10, 12]],
+            }
+        ]
+    )
+    collector = DxLinkCollector("wss://dxlink.example", "quote-token", lambda _url: socket)
+
+    snapshot = collector.collect_quotes([symbol])[symbol]
+
+    assert snapshot.bid == 600.0
+    assert snapshot.ask == 600.2
+    assert snapshot.quote_received_at is not None
+    assert socket.sent[-1]["add"] == [{"type": "Quote", "symbol": symbol}]
+
+
 def test_collect_treats_unavailable_trade_and_summary_fields_as_optional():
     symbol = ".XSP260730P600"
     socket = FakeSocket(

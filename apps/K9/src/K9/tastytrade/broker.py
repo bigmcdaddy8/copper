@@ -1,7 +1,7 @@
 """BIC adapter for the Tastytrade Open API."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Callable
 from zoneinfo import ZoneInfo
 
@@ -116,11 +116,22 @@ class TastytradeBroker(Broker):
         return orders if statuses is None else [order for order in orders if order.status in statuses]
 
     def get_underlying_quote(self, symbol: str) -> Quote:
-        instrument_type = "index" if symbol.upper() in {"SPX", "XSP"} else "equity"
-        quotes = self._client.get_quotes(instrument_type, [symbol])
-        if not quotes:
-            raise ValueError(f"Tastytrade returned no quote for {symbol!r}.")
-        return _raw_to_quote(quotes[0])
+        quote_token = self._client.get_api_quote_token()
+        token = quote_token.get("token")
+        url = quote_token.get("dxlink-url")
+        if not isinstance(token, str) or not isinstance(url, str):
+            raise ValueError("Tastytrade API quote-token response was incomplete.")
+        streamer_symbol = f".{symbol.upper()}" if symbol.upper() in {"SPX", "XSP"} else symbol.upper()
+        snapshot = self._dxlink_collector_factory(url, token).collect_quotes([streamer_symbol])[streamer_symbol]
+        if snapshot.bid is None or snapshot.ask is None or snapshot.bid > snapshot.ask:
+            raise ValueError(f"DXLink returned an invalid bid/ask for {symbol!r}.")
+        if snapshot.quote_received_at is None:
+            raise ValueError(f"DXLink did not return a Quote receipt timestamp for {symbol!r}.")
+        age_seconds = (datetime.now(tz=timezone.utc) - snapshot.quote_received_at).total_seconds()
+        if age_seconds > 60:
+            raise ValueError(f"DXLink returned stale Quote data for {symbol!r}: {age_seconds:.1f}s old.")
+        last = snapshot.last_price if snapshot.last_price is not None else (snapshot.bid + snapshot.ask) / 2.0
+        return Quote(symbol=symbol.upper(), last=last, bid=snapshot.bid, ask=snapshot.ask)
 
     def get_option_chain(self, symbol: str, expiration: date) -> OptionChain:
         contracts = _chain_contracts(self._client.get_nested_option_chain(symbol), expiration)

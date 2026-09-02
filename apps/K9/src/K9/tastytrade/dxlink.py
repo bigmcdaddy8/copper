@@ -50,6 +50,12 @@ _SUMMARY_FIELDS = (
     "dayLowPrice",
     "prevDayClosePrice",
 )
+_EVENT_FIELDS = {
+    "Quote": _QUOTE_FIELDS,
+    "Greeks": _GREEKS_FIELDS,
+    "Trade": _TRADE_FIELDS,
+    "Summary": _SUMMARY_FIELDS,
+}
 _SOURCE_EVENT_FIELDS: dict[str, tuple[str, ...]] = {
     "Trade": _TRADE_FIELDS,
     "Quote": _QUOTE_FIELDS,
@@ -159,6 +165,14 @@ class DxLinkSnapshot:
         )
 
 
+def _has_quote(snapshot: DxLinkSnapshot) -> bool:
+    return (
+        snapshot.bid is not None
+        and snapshot.ask is not None
+        and snapshot.quote_received_at is not None
+    )
+
+
 class DxLinkCollector:
     """Connect to DXLink and collect one Quote/Greeks snapshot per symbol."""
 
@@ -210,7 +224,39 @@ class DxLinkCollector:
         finally:
             socket.close()
 
-    def _setup(self, socket: _Socket, symbols: list[str]) -> None:
+    def collect_quotes(
+        self, symbols: list[str], timeout_seconds: float = 5.0
+    ) -> dict[str, DxLinkSnapshot]:
+        """Return one fresh bid/ask Quote snapshot per symbol."""
+        if not symbols:
+            return {}
+
+        socket = self._socket_factory(self._url)
+        try:
+            self._setup(socket, symbols, event_types=("Quote",))
+            snapshots = {symbol: DxLinkSnapshot(symbol=symbol) for symbol in symbols}
+            deadline = time.monotonic() + timeout_seconds
+            while time.monotonic() < deadline:
+                try:
+                    frame = self._receive(socket, timeout=max(0.01, deadline - time.monotonic()))
+                except DxLinkError:
+                    if all(_has_quote(snapshot) for snapshot in snapshots.values()):
+                        return snapshots
+                    raise
+                self._apply_frame(frame, snapshots)
+                if all(_has_quote(snapshot) for snapshot in snapshots.values()):
+                    return snapshots
+            missing = [symbol for symbol, snapshot in snapshots.items() if not _has_quote(snapshot)]
+            raise DxLinkError(f"DXLink did not return complete Quote data for: {missing}")
+        finally:
+            socket.close()
+
+    def _setup(
+        self,
+        socket: _Socket,
+        symbols: list[str],
+        event_types: tuple[str, ...] = ("Quote", "Greeks", "Trade", "Summary"),
+    ) -> None:
         self._send(
             socket,
             {
@@ -246,10 +292,7 @@ class DxLinkCollector:
                 "acceptAggregationPeriod": 0.1,
                 "acceptDataFormat": "COMPACT",
                 "acceptEventFields": {
-                    "Quote": list(_QUOTE_FIELDS),
-                    "Greeks": list(_GREEKS_FIELDS),
-                    "Trade": list(_TRADE_FIELDS),
-                    "Summary": list(_SUMMARY_FIELDS),
+                    event_type: list(_EVENT_FIELDS[event_type]) for event_type in event_types
                 },
             },
         )
@@ -258,7 +301,7 @@ class DxLinkCollector:
         subscriptions = [
             {"type": event_type, "symbol": symbol}
             for symbol in symbols
-            for event_type in ("Quote", "Greeks", "Trade", "Summary")
+            for event_type in event_types
         ]
         self._send(
             socket,

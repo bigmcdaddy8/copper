@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 import pytest
 
@@ -116,6 +116,19 @@ class FakeCollector:
                 volatility=0.18,
             )
             for symbol in symbols
+        }
+
+    def collect_quotes(self, symbols):
+        assert symbols == [".XSP"]
+        now = datetime.now(tz=timezone.utc)
+        return {
+            ".XSP": DxLinkSnapshot(
+                symbol=".XSP",
+                bid=600.0,
+                ask=600.2,
+                last_price=600.1,
+                quote_received_at=now,
+            )
         }
 
 
@@ -244,3 +257,13 @@ def test_underlying_quote_and_balance_history_map_read_data(broker):
     assert quote.bid < quote.ask
     assert balances[0].date == "2026-07-29"
     assert balances[0].value == 9999.50
+
+
+def test_underlying_quote_uses_fresh_dxlink_quote_when_rest_quote_is_empty(broker):
+    broker._client.get_quotes = lambda *_args: [{"symbol": "XSP", "bid": None}]
+
+    quote = broker.get_underlying_quote("XSP")
+
+    assert quote.symbol == "XSP"
+    assert quote.last == 600.1
+    assert quote.bid < quote.ask
