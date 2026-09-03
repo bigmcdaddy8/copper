@@ -12,6 +12,7 @@ always-on `weasel` deployment comes after Phase 0W's soak-test validation.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import typer
@@ -34,6 +35,45 @@ app = typer.Typer(add_completion=False)
 _DEFAULT_DATA_DIR = Path("apps/dicks_laboratory/data")
 _ES_INSTRUMENT = InstrumentIdentity(InstrumentKind.FUTURE, "CME", "ES", 2026, 9)
 _ES_STREAMER_SYMBOL = "/ESU26:XCME"
+
+# 0W-2D connect-time quote-token lifetime guard. The tastytrade DXLink quote
+# token lives ~24h (0W-2C measured 86,400s exactly) and an ordinary ES trading
+# date is ~23h 17:00->16:00, so a genuinely fresh token has ~1h of natural
+# margin. We require the token to outlast the intended capture horizon by at
+# least this small buffer; anything less means the token was minted early
+# (e.g. a pre-arm preflight -- the 0W-2 Attempt-3 KNOWN_GAP root cause) and a
+# "full session" launch would be misleading. Not a refresh mechanism, just a
+# launch sanity gate.
+_QUOTE_TOKEN_HORIZON_MARGIN_SECONDS = 900.0
+
+
+def _parse_api_timestamp(value: object) -> datetime | None:
+    """Parse a tastytrade `issued-at` / `expires-at` string to an aware UTC
+    datetime, tolerating both the `+00:00` and `Z` spellings. Returns None for
+    anything unparseable -- observability must never break a capture launch."""
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _quote_token_lifetime(
+    token_data: dict, now: datetime | None = None
+) -> tuple[datetime | None, datetime | None, float | None]:
+    """Return `(issued_at, expires_at, remaining_seconds)` from a quote-token
+    response, using only the non-secret `issued-at` / `expires-at` fields."""
+    issued_at = _parse_api_timestamp(token_data.get("issued-at"))
+    expires_at = _parse_api_timestamp(token_data.get("expires-at"))
+    remaining_seconds = None
+    if expires_at is not None:
+        reference = now or datetime.now(tz=timezone.utc)
+        remaining_seconds = (expires_at - reference).total_seconds()
+    return issued_at, expires_at, remaining_seconds
 
 
 @app.command()
@@ -59,28 +99,49 @@ def collect(
     if not isinstance(resolved, dict) or resolved.get("streamer-symbol") != _ES_STREAMER_SYMBOL:
         raise typer.BadParameter("Current futures metadata did not resolve /ESU6 to /ESU26:XCME.")
 
-    def fresh_collector() -> DxLinkSourceCollector:
+    def fresh_collector(enforce_horizon_seconds: float | None = None) -> DxLinkSourceCollector:
         # 0W-2A root cause: a quote token obtained once at startup is only
-        # valid for a bounded lifetime. `get_api_quote_token()` always asks
-        # Tastytrade for a fresh one (re-authenticating the underlying OAuth
-        # access token first if it, too, has expired -- see
-        # `TastytradeClient._get_access_token`), so every genuine reconnect
-        # gets whatever credential it actually needs instead of replaying
-        # whatever was valid hours ago.
+        # valid for a bounded lifetime. `get_api_quote_token()` asks Tastytrade
+        # for a token (re-authenticating the underlying OAuth access token first
+        # if it, too, has expired -- see `TastytradeClient._get_access_token`),
+        # so every genuine reconnect gets whatever credential it actually needs
+        # instead of replaying whatever was valid hours ago. 0W-2C proved the
+        # provider RE-ISSUES THE SAME token with its original ~24h `expires-at`
+        # while still valid -- so obtaining it early (a pre-arm preflight) burns
+        # its lifetime. The fix is upstream (preflight no longer requests one);
+        # here we record the token's real lifetime and, on the initial launch
+        # only, refuse to open a canonical capture the token cannot outlast.
         oauth_before = client.access_token_refresh_count
         token_data = client.get_api_quote_token()
         token = token_data.get("token")
         url = token_data.get("dxlink-url")
         if not isinstance(token, str) or not isinstance(url, str):
             raise typer.BadParameter("Tastytrade quote-token response was incomplete.")
-        # 0W-2B §23: safe runtime evidence of the fresh-credential path -- a
-        # count and a bool, never the token, header, password, or account id.
+        # 0W-2B §23 / 0W-2D §4: safe runtime evidence only -- counts, bools, and
+        # the non-secret issued-at/expires-at timestamps. Never the token, its
+        # hash, the Authorization header, the refresh token, or the account id.
         oauth_refreshed = client.access_token_refresh_count > oauth_before
+        issued_at, expires_at, remaining_seconds = _quote_token_lifetime(token_data)
+        remaining_text = f"{remaining_seconds:.0f}" if remaining_seconds is not None else "unknown"
         typer.echo(
             f"fresh_collector: quote_token_requested=true fresh_dxlink_collector=true "
-            f"oauth_refreshed={str(oauth_refreshed).lower()}",
+            f"oauth_refreshed={str(oauth_refreshed).lower()} "
+            f"quote_token_issued_at={issued_at.isoformat() if issued_at else 'unknown'} "
+            f"quote_token_expires_at={expires_at.isoformat() if expires_at else 'unknown'} "
+            f"quote_token_remaining_seconds={remaining_text}",
             err=True,
         )
+        if enforce_horizon_seconds is not None and remaining_seconds is not None:
+            required = enforce_horizon_seconds + _QUOTE_TOKEN_HORIZON_MARGIN_SECONDS
+            if remaining_seconds < required:
+                raise typer.BadParameter(
+                    "DXLink quote-token lifetime is insufficient for the intended capture: "
+                    f"{remaining_seconds:.0f}s remaining < {required:.0f}s required "
+                    f"(horizon {enforce_horizon_seconds:.0f}s + margin "
+                    f"{_QUOTE_TOKEN_HORIZON_MARGIN_SECONDS:.0f}s). The token was almost "
+                    "certainly minted early (e.g. a pre-arm preflight); obtain it at "
+                    "collector startup instead. Refusing to open a misleading full-session capture."
+                )
         return DxLinkSourceCollector(url, token)
 
     def _log_reconnect_attempt(attempt: int) -> None:
@@ -102,8 +163,12 @@ def collect(
         # `run_long_horizon_capture` (treated as a deliberate clean stop ->
         # FINALIZED); this guard only covers an interrupt during setup above,
         # before any dataset exists to finalize.
+        # Initial launch enforces the quote-token lifetime guard against the
+        # full capture horizon; reconnects call `fresh_collector()` with no
+        # horizon (a mid-session reconnect on a freshly minted token is normal
+        # and must not abort a running capture).
         result = run_long_horizon_capture(
-            data_dir, spec, fresh_collector(), duration_seconds, max_events,
+            data_dir, spec, fresh_collector(duration_seconds), duration_seconds, max_events,
             reconnect_policy=reconnect_policy, refresh_collector=fresh_collector,
             on_reconnect_attempt=_log_reconnect_attempt,
         )

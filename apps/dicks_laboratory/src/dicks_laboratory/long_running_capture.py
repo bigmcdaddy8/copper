@@ -403,7 +403,7 @@ def _run_one_trading_date_session(
         data_dir, spec, trading_date, start_time, check_same_thread=False
     )
     source_order_counter = store.max_source_order_for_dataset(dataset_id) + 1
-    accepted_count = len(store.load_trade_observations(dataset_id))
+    accepted_count = store.count_trade_observations(dataset_id)
     seen_new_source_indices: set[int] = {
         p.source_index for p in store.load_dxlink_time_and_sale_provenance(dataset_id)
     }
@@ -831,7 +831,7 @@ def _write_closing_summary(
 ) -> None:
     if store.load_dataset_closing_summary(dataset_id) is not None:
         return  # already written once; a closing summary is a frozen snapshot, never rewritten
-    trades = store.load_trade_observations(dataset_id)
+    accepted_trade_count = store.count_trade_observations(dataset_id)
     deferred = store.load_deferred_dxlink_time_and_sales(dataset_id)
     rejections = store.load_rejections(dataset_id)
     quality_events = store.load_quality_events(dataset_id)
@@ -843,7 +843,7 @@ def _write_closing_summary(
     store.save_dataset_closing_summary(
         DatasetClosingSummary(
             dataset_id=dataset_id,
-            accepted_trade_count=len(trades),
+            accepted_trade_count=accepted_trade_count,
             deferred_event_count=len(deferred),
             rejected_record_count=len(rejections),
             known_gap_count=known_gaps,

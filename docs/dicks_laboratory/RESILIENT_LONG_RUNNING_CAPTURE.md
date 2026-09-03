@@ -266,6 +266,39 @@ does (`TastytradeClient` + `.env`) — no new credential-handling code, and
 nothing from this pipeline persists a token, account ID, or auth header
 anywhere in SQLite, the manifest, or logs.
 
+### Pre-arm preflight (0W-2D) — do NOT fetch the quote token early
+
+`scripts/dicks_lab_preflight.py` is the safe pre-arm check. It verifies OAuth /
+REST reachability, the futures endpoint, and that `/ESU6` resolves to
+`/ESU26:XCME` — via a single authenticated `list_futures()` call — and it
+**never calls `get_api_quote_token()`**.
+
+```bash
+uv run python scripts/dicks_lab_preflight.py     # prints booleans; exit 0 = PASS
+```
+
+Rationale: 0W-2C proved the tastytrade `/api-quote-tokens` endpoint re-serves
+the *same* token with its original ~24h `expires-at` while it is still valid.
+Requesting it hours or days ahead of the run (as an old per-attempt preflight
+did) starts that 24h clock early — the 0W-2 Attempt-3 `KNOWN_GAP` root cause,
+where only ~4h of the token's life remained at the 17:00 CT session connect.
+The quote token is obtained **only** at real collector startup, inside
+`dicks_lab_collect_es.py`.
+
+### Connect-time quote-token lifetime guard (0W-2D)
+
+On the initial launch, `dicks_lab_collect_es.py` reads the non-secret
+`issued-at` / `expires-at` from the quote-token response, logs
+`quote_token_issued_at` / `quote_token_expires_at` /
+`quote_token_remaining_seconds` (never the token, its hash, the header, the
+refresh token, or the account id), and refuses to open the canonical capture
+if `remaining < duration + 900s`. An ordinary ES trading date is ~23h and the
+token is ~24h, so a genuinely fresh token clears this by ~1h; a short remaining
+lifetime means the token was minted early and a "full session" launch would be
+misleading. This is a launch sanity gate only — **not** a token-refresh
+mechanism. Mid-session reconnects are exempt (a freshly minted token on a
+reconnect is normal and must not abort a running capture).
+
 ## Real acceptance capture (this phase)
 
 A real 2-minute ES capture was run against the live feed on 2026-08-24

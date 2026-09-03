@@ -673,6 +673,22 @@ class LaboratoryStore:
             random_seed=row["random_seed"],
         )
 
+    def count_trade_observations(self, dataset_id: UUID) -> int:
+        """Return how many accepted trade observations one dataset holds.
+
+        A pure ``SELECT COUNT(*)`` -- O(1) memory -- for the closing-summary /
+        resume paths that need only the tally, never the objects. Materializing
+        every ``TradeObservation`` just to call ``len()`` cost ~1.5 GB / ~22 s
+        on the 0W-2 Attempt-3 full-day dataset (see 0W-2C/0W-2D); this is the
+        counting path. ``load_trade_observations`` stays for callers that
+        genuinely need the observations.
+        """
+        row = self._connection.execute(
+            "SELECT COUNT(*) AS n FROM trade_observations WHERE dataset_id = ?",
+            (str(dataset_id),),
+        ).fetchone()
+        return int(row["n"])
+
     def load_trade_observations(self, dataset_id: UUID) -> tuple[TradeObservation, ...]:
         rows = self._connection.execute(
             """
