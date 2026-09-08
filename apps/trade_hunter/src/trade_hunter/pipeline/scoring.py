@@ -373,6 +373,9 @@ def _resolve_earnings_date(row: pd.Series, run_date: date) -> date:
             pass
         if isinstance(val, _pd.Timestamp):
             return val.date()
+        # datetime is a subclass of date, so check it first and narrow to a date.
+        if isinstance(val, datetime):
+            return val.date()
         if isinstance(val, date):
             return val
         try:

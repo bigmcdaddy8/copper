@@ -286,3 +286,16 @@ def test_resolve_earnings_missing_col_falls_back():
     run = date(2026, 4, 8)
     result = _resolve_earnings_date(pd.Series({}), run)
     assert result == run + __import__("datetime").timedelta(days=70)
+
+
+def test_resolve_earnings_datetime_narrowed_to_date():
+    # A python datetime (subclass of date) must be narrowed so downstream
+    # date arithmetic does not raise "datetime.datetime - datetime.date".
+    from datetime import datetime
+
+    run = date(2026, 4, 8)
+    result = _resolve_earnings_date(
+        _row(upcoming=datetime(2026, 5, 27, 13, 30)), run
+    )
+    assert result == date(2026, 5, 27)
+    assert type(result) is date
