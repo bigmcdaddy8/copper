@@ -2171,8 +2171,9 @@ next 06:08 UTC firing; no interference.
 
 ## AZ2B.M — Current MI / RBAC evidence
 
-MI principal `da55ad8d-820c-4a11-89f3-d1bf3d540816` (redacted in-doc as
-`da55ad8d…`). Role assignments (re-verified 2026-09-09, unchanged from AZ2A):
+MI principal `da55ad8d…` (full object ID held out of this document; recorded
+only in the operator's Azure console). Role assignments (re-verified
+2026-09-09, unchanged from AZ2A):
 
 | Role | Scope | Class |
 |---|---|---|
