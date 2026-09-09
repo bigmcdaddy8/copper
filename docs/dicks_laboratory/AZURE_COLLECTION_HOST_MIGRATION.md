@@ -2452,3 +2452,405 @@ DRAGON DELETED/REBUILT      : NO
 NEW AZURE BILLABLE RESOURCES: NONE
 K9                         : PRESERVED / PAUSED  (7 timers disabled, unit files retained + in Git)
 ```
+
+---
+
+# Phase 0W-AZ2C — Dragon Generation 1 Rebuild & Futures-Host Bootstrap
+
+**Executed 2026-09-09 from `robby`.** Destructive rebuild performed under Human
+authorization + all pre-delete gates. VM object replaced; **old 24.04 OS disk
+retained**. Guest bootstrap done via Azure Run Command (control-plane root) —
+the rebuilt host has no public IP and Tailscale is not yet enrolled, so SSH
+from robby is not yet possible.
+
+```
+0W-AZ2C: BLOCKED — Tailscale enrolment requires a Human-supplied single-use auth key
+         (robby has no key-minting capability; the cloud-repo keys must NOT be reused).
+         Everything else — VM rebuild, Trusted Launch, disks, mount, sshd/journald
+         baseline, Copper clone + uv sync — is COMPLETE. Remaining: Tailscale enrol →
+         robby SSH live PASS → .env restore → final acceptance.
+```
+
+## AZ2C.A — Pre-delete safety gates
+
+| Gate | Result |
+|---|---|
+| G1 `.env` encrypted backup byte-for-byte vs source | **PASS** — `SHA256(dragon:.env)` = `SHA256(gpg -d dragon-env-20260909.env.gpg)` = `eae1c7d1d5ac82fd70ac9bc4bc644b475714b765c14d2eaa1840c0da0d8582ef` (source 1493 B, mode 600). Encrypted artifact `~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg` — 1025 B, mode 600, sha256 `3f352b375759f95c6d343d9cf84cc0ee0cc152e237f54cf1f987c06995589838`, AES-256 symmetric. (Human's 2026-09-09 15:49 run; gpg-agent cache was reloaded afterward.) `.env` contents never printed. |
+| G2 K9-preservation commits on `origin/master` | **PASS** — `0750b9d` + `c09e8ee` ancestors of `origin/master`; local HEAD == origin/master |
+| G3 old dragon checkout has no unique source | **PASS** — `git status --porcelain` empty, `git stash list` empty, HEAD `1c433e3` (published ancestor) |
+| G4 old OS disk exists / identified | **PASS** — `dragon_disk1_bb48fd67c68342b4b4596a45879297f9`, StandardSSD_LRS, Gen2, Linux |
+| G5 old OS disk `deleteOption == Detach` | **PASS** |
+| G6 `dragon-nic` survives VM deletion | **PASS** — VM `networkProfile…deleteOption == null` → default Detach |
+| G7 correct Azure account/subscription | **PASS** — "Pay-as-you-go", `temckee8@outlook.com` |
+| G8 pinned image resolves | **PASS** — `Canonical:ubuntu-26_04-lts:server:26.04.202609020` (V2, x64) |
+| G9 robby + weasel public SSH keys available | **PASS** — captured from Gen-0 `authorized_keys` before deletion (robby `SHA256:2WcJz…we2cg`, weasel `SHA256:0Ono…rEnk`); robyn **DEFERRED** |
+| G10 Human authorization | **PASS** — recorded in the 0W-AZ2C task |
+| dragon PowerState | **deallocated** before delete |
+
+## AZ2C.B — Generation-0 VM deletion
+
+| | |
+|---|---|
+| `az vm deallocate` | 2026-09-09 20:56 UTC, rc 0 → `PowerState/deallocated` |
+| `az vm auto-shutdown --off` | rc 0 — DevTestLab `shutdown-computevm-dragon` **deleted**; `az resource list …DevTestLab/schedules` in RG = `[]`; `az resource show shutdown-computevm-dragon` → ResourceNotFound |
+| `az vm delete -g rg-dev-environment -n dragon --yes` | 20:56:53 → 20:57:26 UTC, rc 0 |
+| VM object | **gone** (`az vm show dragon` → ResourceNotFound) |
+
+## AZ2C.C — Rollback disk state (post-deletion)
+
+`dragon_disk1_bb48fd67c68342b4b4596a45879297f9` — **PRESENT, `diskState:
+Unattached`, StandardSSD_LRS, Gen2, Linux, provisioningState Succeeded** — byte
+unchanged, not touched. `dragon-nic` — PRESENT, `virtualMachine: null`
+(unattached), private IP `10.0.1.4` Dynamic, no public IP. `dragon-vnet` /
+subnet `default` / `dragon-nsg` / automation accounts — all intact. **Rollback
+remains possible.**
+
+## AZ2C.D — DevTestLab shutdown removal
+
+`shutdown-computevm-dragon` (`Microsoft.DevTestLab/schedules`) — **removed** in
+AZ2C.B. Re-verified after the rebuild: `az resource list --resource-type
+Microsoft.DevTestLab/schedules -g rg-dev-environment` → `[]`. **No daily
+06:08 UTC shutdown remains.** The Sunday→Friday Automation schedule is **not**
+created (AZ3).
+
+## AZ2C.E — Data disk creation
+
+`az disk create -g rg-dev-environment -n dragon-data1 --size-gb 256
+--sku StandardSSD_LRS --hyper-v-generation V2` (tags `purpose=dicks_laboratory
+role=futures-data`) — rc 0, `provisioningState Succeeded`, `diskState
+Unattached`, `uniqueId a39bfa99…`, eastus. No filesystem at create.
+
+## AZ2C.F — Generation-1 VM creation
+
+`az vm create -g rg-dev-environment -n dragon` — rc 0, 2026-09-09
+20:58:01→20:59:06 UTC. Args: `--image
+Canonical:ubuntu-26_04-lts:server:26.04.202609020 --size Standard_B2ms
+--nics dragon-nic --security-type TrustedLaunch --enable-secure-boot true
+--enable-vtpm true --os-disk-name dragon-osdisk-gen1 --os-disk-size-gb 64
+--storage-sku os=StandardSSD_LRS --os-disk-delete-option Detach
+--attach-data-disks dragon-data1 --data-disk-caching None
+--admin-username temckee8 --ssh-key-values <robby.pub> <weasel.pub>
+--public-ip-address "" --assign-identity [system] --nic-delete-option Detach`.
+No `--custom-data` (no cloud-init secret). Result: `powerState VM running`,
+`privateIpAddress 10.0.1.4`, `publicIpAddress ""`.
+
+## AZ2C.G — Exact Azure image
+
+`storageProfile.imageReference` = `Canonical / ubuntu-26_04-lts / server /
+26.04.202609020` (`exactVersion 26.04.202609020` — **pinned, not `:latest`**).
+
+## AZ2C.H — Actual guest Ubuntu version
+
+`/etc/os-release`: **`PRETTY_NAME="Ubuntu 26.04.1 LTS"`**, `VERSION="26.04.1
+LTS (Resolute Raccoon)"`, `VERSION_ID="26.04"`, codename `resolute`. Kernel
+**`7.0.0-1012-azure`**, `x86_64`. hostname `dragon`, virt `microsoft`, Machine
+ID `9c109154…` (new). `timedatectl`: tz `Etc/UTC`, **clock synchronized: yes**,
+**NTP service: active**. **Exactly the target point release** — no substitution.
+
+## AZ2C.I — Trusted Launch / Secure Boot / vTPM
+
+Azure: `securityType TrustedLaunch`, `uefiSettings.secureBootEnabled true`,
+`uefiSettings.vTpmEnabled true`. Guest: `mokutil --sb-state` → **"SecureBoot
+enabled"**; **`/dev/tpm0` + `/dev/tpmrm0` present**. Hyper-V generation V2. ✔
+
+## AZ2C.J — New OS disk
+
+`dragon-osdisk-gen1` — StandardSSD_LRS, 64 GiB, `deleteOption Detach`. Guest
+`lsblk`: `sda` 64G → `sda1` 62.9G ext4 `/`, `sda13` 1023M ext4 `/boot`,
+`sda15` 106M vfat `/boot/efi`.
+
+## AZ2C.K — New data disk
+
+`dragon-data1` — StandardSSD_LRS, 256 GiB, LUN 0, host caching **None**. Guest:
+`/dev/disk/azure/scsi1/lun0 → /dev/sdc` (256 G, no partition table — whole-disk
+ext4).
+
+## AZ2C.L — Data mount / filesystem
+
+- `mkfs.ext4` on `/dev/sdc` (**default mount options — no `commit=30`**), label
+  `dicks_lab`, **UUID `890b7de2-a7e1-4650-a7c9-464124698b29`**.
+- `/etc/fstab` (UUID-based): `UUID=890b7de2-… /srv/dicks_laboratory ext4
+  defaults,nofail 0 2`.
+- Mounted: `findmnt` → `/srv/dicks_laboratory ← /dev/sdc ext4 rw,relatime`;
+  `df` → 251 G size, 239 G avail.
+- Subdirs `data/ logs/ forensic/` created, owned `temckee8:temckee8`.
+- **Backing device proven** = `/dev/sdc` = `dragon-data1` (LUN 0) — **not**
+  `sda` (OS), **not** `sdb` (Azure temp).
+- **Fail-closed verified:** with the disk unmounted, the underlying
+  `/srv/dicks_laboratory` directory is `dr-xr-xr-x root:root` (0555) → a write
+  before mount fails; remount succeeds. (The collector unit's
+  `RequiresMountsFor=` / `ConditionPathIsMountPoint=` is added in AZ3.)
+
+## AZ2C.M — Azure temporary disk
+
+`sdb` 16 GiB → `sdb1` ext4 at **`/mnt`** = the Azure **EPHEMERAL** resource
+disk. A `/mnt/README.EPHEMERAL` marker was written ("wiped on every
+deallocate/reallocate; do not place Copper, .env, datasets, logs, forensic
+evidence, or journald here"). Nothing of the Laboratory is on it.
+
+## AZ2C.N — New managed identity / RBAC
+
+New SystemAssigned MI principal `d8aa6899…` (distinct from Gen-0's `da55ad8d…`;
+full ID held out of this doc). **`az role assignment list --assignee
+<new-principal>` → `[]` — NO role assignments.** `az vm create` even warned
+"No access was given yet … because '--scope' was not provided." **Generation-0
+RBAC (RG `Contributor`, VM `Contributor`, `Classic VM Contributor`) is NOT
+restored** — least privilege, as designed. The two Automation-account SPs
+(`6d277e79…`, `563c2651…`) retain `Virtual Machine Contributor` at the
+`dragon` VM scope (name-based ID, survived) — retained for the AZ3 Sunday-start
+Automation; the guest itself has no Azure power.
+
+## AZ2C.O — Boot diagnostics
+
+`az vm boot-diagnostics enable -g rg-dev-environment -n dragon` — **managed
+boot diagnostics enabled** (`diagnosticsProfile.bootDiagnostics.enabled:
+true`).
+
+## AZ2C.P — Generation-1 SSH host fingerprints ("DRAGON GENERATION 1" / 26.04)
+
+| Alg | SHA256 | Gen-0 (now historical) |
+|---|---|---|
+| ED25519 | `3pirEF7Ey1G79JwcP9X8zY/fSuPv2sbSjHHLN66r4Rk` | `Ai0gLE1EfclvMCXsGEND18JvgcMm1g6LuddNI3ocEao` |
+| ECDSA | `JBj1HY2v0nzFboecNyeUzxMaSaw7dIVzVwuNNcy+36Y` | `UIHlwBK/B/6cJRl5VyyU9syNZk3t1576o7pTTwHZ+no` |
+| RSA | `QLisfhNHOLQv+w8LdygUEAHX/QyIhvkYCPn0mFiiDoc` | `GOaHj0YqlEZ7Z4bcH2ZJNHsbKLil3WyfEe6Q6i2QQos` |
+
+Collected via **Azure Run Command** (control-plane, trusted path). They differ
+from Generation 0 as expected. **Not yet installed in any client's
+`known_hosts`** — that happens with the Tailscale/robby-SSH step, only after a
+control-plane match.
+
+## AZ2C.Q — Tailscale fresh enrolment — **BLOCKED (needs Human)**
+
+Tailscale is **not installed** on Gen-1. Enrolment needs a **fresh single-use,
+short-lived, pre-approved** auth key. `robby` has **no** key-minting capability
+(no Tailscale API key / OAuth client / admin session; `tailscale debug prefs`
+→ not logged in for control). The only auth keys that exist are the
+**plaintext reusable `…CNTRL…` keys in the separate `cloud` repo**
+(`main.bicep`, `deploy_weasel.sh`) which the plan **forbids reusing** and which
+must be rotated.
+
+**Human action required** — one of:
+1. In the Tailscale admin console, generate an **ephemeral** *(or single-use,
+   ~1 h expiry, pre-approved, `tag:dragon`)* auth key and give it to Claudine
+   → Claudine enrols via `az vm run-command invoke … "curl -fsSL
+   https://tailscale.com/install.sh | sh && tailscale up --auth-key=<KEY>
+   --ssh=false --hostname=dragon"`, then Human revokes the key; **or**
+2. Human runs that same `az vm run-command` (or SSH-serial) enrolment
+   themselves and reports the resulting `100.x` address + node health.
+
+Also delete the stale Gen-0 `dragon` node from the tailnet admin console.
+
+## AZ2C.R — Robby SSH verification — **BLOCKED (depends on AZ2C.Q)**
+
+No public IP; NSG allows inbound UDP 41641 only → `dragon` is reachable **only
+over the tailnet**, which is not up. `robby → DRAGON GEN1 SSH` cannot be
+tested until Tailscale is enrolled. Procedure once it is:
+1. compare `ssh-keyscan <new-100.x>` to the AZ2C.P ED25519 fingerprint
+   (control-plane value) — must match exactly;
+2. `ssh-keygen -R` the old `dragon`/`100.103.127.127` entries on robby; add the
+   **verified** new key to `known_hosts`;
+3. if the tailnet IP changed, update `~/.ssh/config` `Host dragon HostName`;
+4. `ssh dragon 'true'` with `StrictHostKeyChecking=yes` → expect
+   `ROBBY → DRAGON GEN1 SSH: PASS` (publickey, `id_ed25519`).
+
+## AZ2C.S — SSHD baseline
+
+`/etc/ssh/sshd_config.d/60-dicks.conf`:
+```
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin no
+X11Forwarding no
+KbdInteractiveAuthentication no
+```
+`sshd -t` → OK; `systemctl reload ssh`. Effective (`sshd -T`): `port 22`,
+`passwordauthentication no`, `pubkeyauthentication yes`, `permitrootlogin no`,
+`x11forwarding no`, `kbdinteractiveauthentication no`. No `AllowUsers`, no port
+change. (Recovery path during changes = Azure Run Command, always available.)
+
+## AZ2C.T — Time / NTP / default target
+
+tz `Etc/UTC`, `System clock synchronized: yes`, `NTP service: active`.
+`systemctl set-default multi-user.target` → `systemctl get-default` =
+**`multi-user.target`**. No GUI installed. `systemctl --failed` → empty.
+`sleep.target` / `suspend.target` / `hibernate.target` → all `inactive`.
+
+## AZ2C.U — Journald
+
+`/etc/systemd/journald.conf.d/10-dicks.conf`:
+```
+[Journal]
+Storage=persistent
+SystemMaxUse=2G
+SystemKeepFree=1G
+MaxRetentionSec=1month
+```
+`systemctl restart systemd-journald`; `/var/log/journal` present (8 M). On the
+OS disk (not the data disk), as planned.
+
+## AZ2C.V — Runtime toolchain
+
+| Tool | Version | Source |
+|---|---|---|
+| git | 2.53.0 | apt (`--no-install-recommends`) |
+| curl | 8.18.0 | apt |
+| sqlite3 | 3.46.1 | apt |
+| jq | 1.8.1 | apt |
+| ca-certificates | (current) | apt |
+| WALinuxAgent | 2.15.0.1 | image (verified, not reinstalled) |
+| cloud-init | 26.1-0ubuntu3~26.04.1 | image (`status: done`) |
+| **uv** | **0.12.12** | Astral installer, `~temckee8/.local/bin/uv` (fresh — old `~/.local` **not** copied) |
+| CPython (uv-managed) | **3.13.15** | `uv python install 3.13` + `uv sync` |
+
+`build-essential` **not** installed — `uv sync --frozen` succeeded without a
+compiler. No `gh` on the guest.
+
+## AZ2C.W — GitHub read access
+
+A **dedicated read-only deploy key** was created on `dragon`
+(`~temckee8/.ssh/id_ed25519_ghdeploy`, `SHA256:qwNsG/S7p/FskNZ34xsSuR0jWg6GW/ybeLZZE1qax8Y`,
+comment `dragon-gen1-copper-deploy`) and registered on
+`bigmcdaddy8/copper` via `gh api` (from robby's authenticated `gh`,
+`admin:public_key` scope) as deploy key id **162811278**, `read_only: true`,
+`verified: true`. No PAT embedded; no personal private key copied to Azure.
+The private key exists only on `dragon` (mode 600). Clone uses
+`GIT_SSH_COMMAND="ssh -i …/id_ed25519_ghdeploy -o IdentitiesOnly=yes"`.
+
+## AZ2C.X — Copper clone / commit
+
+`git clone git@github.com:bigmcdaddy8/copper.git
+/home/temckee8/Documents/REPOs/copper` (via the deploy key). State:
+`branch master`, **HEAD `c09e8eeac675d2bfc9386f49c40d0889dfaf773e`**,
+`git status --porcelain` empty, **HEAD == origin/master**. `apps/`: K9, bic,
+captains_log, dicks_laboratory, encyclopedia_galactica, holodeck, trade_hunter,
+tradier_sniffer. `scripts/dicks_lab_collect_es.py` present.
+
+## AZ2C.Y — Dependency sync
+
+`uv sync --frozen` (uv 0.12.12): resolved from `uv.lock`, CPython **3.13.15**,
+`.venv` created, 8 packages installed (`pytest 9.0.2`, `ruff 0.15.9`,
+`coverage 7.13.5`, `pytest-cov 7.1.0`, `pygments`, `pluggy`, `iniconfig`,
+`packaging`). `uv run python --version` → **Python 3.13.15**
+(`.venv/bin/python3`). No collector run.
+
+## AZ2C.Z — `.env` restore verification — **BLOCKED (depends on AZ2C.Q)**
+
+`/home/temckee8/Documents/REPOs/copper/.env` is **not yet restored** — the
+restore flow (`scp` the verified `dragon-env-20260909.env.gpg` from robby →
+`gpg -d` with the Human passphrase → `chmod 600` → verify sha256 ==
+`eae1c7d1d5ac82fd70ac9bc4bc644b475714b765c14d2eaa1840c0da0d8582ef` → `shred`
+the temp copy) needs SSH transport, i.e. the tailnet. The encrypted master
+backup stays on robby through AZ4. No quote-token / DXLink.
+
+## AZ2C.AA — K9 state
+
+Fresh 26.04 OS disk → **no K9 units installed, none running**
+(`systemctl list-unit-files 'copper-k9-*'` → 0). `copper-k9-smart-shutdown`
+not installed / not enabled. Definitions remain in `deploy/systemd/` + the
+`deploy/k9/PRESERVED.md` note. ✔
+
+## AZ2C.AB — Automatic-update state
+
+`unattended-upgrades` enabled + active; `20auto-upgrades` = daily security
+updates. `Unattended-Upgrade::Automatic-Reboot` line **commented → default
+`false` → NO automatic reboot** (verified — AZ2C acceptance requirement met).
+`needrestart` not present on 26.04 minimal server. `apt-daily-upgrade.timer`
+next ~06:32 UTC — full Saturday-maintenance design is **AZ3**, not touched here.
+
+## AZ2C.AC — Multi-client access state
+
+```
+robby  : NOT YET TESTED  (blocked on Tailscale enrolment — AZ2C.Q/R; keys authorized, procedure ready)
+weasel : READY / NOT YET TESTED  (weasel pubkey in authorized_keys; run from weasel after tailnet)
+robyn  : DEFERRED  (not on tailnet, no key)
+```
+
+## AZ2C.AD — DevTestLab final state
+
+`shutdown-computevm-dragon` — **ABSENT** (`az resource list …DevTestLab/schedules`
+in `rg-dev-environment` → `[]`). No daily 06:08 UTC shutdown. Sunday/Friday
+Automation schedule **not** created (AZ3).
+
+## AZ2C.AE — Retained old-OS disk
+
+`dragon_disk1_bb48fd67c68342b4b4596a45879297f9` — **PRESENT, `Unattached`,
+StandardSSD_LRS, 32 GiB, Linux, unchanged.** Not deleted. Rollback =
+`az vm create -n dragon --attach-os-disk dragon_disk1_bb48fd67… --os-type
+Linux --nics dragon-nic --size Standard_B2ms` (would require deleting the Gen-1
+VM first). Retain until AZ4 acceptance.
+
+## AZ2C.AF — Migration document
+
+This 0W-AZ2C section appended. Records Generation 1: exact image, actual
+Ubuntu 26.04.1, new host fingerprints, disk identities + UUID, Trusted Launch
+state, runtime versions, deployed commit `c09e8ee`, `.env` status, rollback
+disk state, and the Tailscale/SSH/`.env` remainder. No secret material (MI
+object IDs and the Tailscale key are held out).
+
+## AZ2C.AG — Repository changes
+
+Documentation only (this section). No Copper source/bootstrap files added —
+the guest bootstrap was performed directly on `dragon`, and its steps are
+recorded here for reproducibility. `git diff --check` clean.
+
+## AZ2C.AH — Final git state
+
+```
+robby: master · HEAD == origin/master · working tree clean
+```
+(hash in handoff)
+
+## AZ2C.AI — AZ2C acceptance
+
+| Bar item | State |
+|---|---|
+| Pinned image used exactly | ✔ `26.04.202609020` |
+| Ubuntu 26.04 LTS guest verified | ✔ `26.04.1 LTS` |
+| Trusted Launch / Secure Boot / vTPM | ✔ / ✔ / ✔ |
+| 64 GiB persistent OS disk | ✔ `dragon-osdisk-gen1` |
+| 256 GiB persistent data disk | ✔ `dragon-data1` |
+| `/srv/dicks_laboratory` mounted correctly | ✔ `/dev/sdc`, UUID fstab, fail-closed verified |
+| Azure ephemeral disk not used | ✔ `/mnt` labeled EPHEMERAL |
+| DevTestLab daily shutdown absent | ✔ |
+| Tailscale healthy | ✗ **not enrolled — BLOCKED (AZ2C.Q)** |
+| no public IP / NSG unchanged | ✔ / ✔ |
+| Gen-1 SSH host keys independently verified | ✔ collected via control-plane (AZ2C.P) |
+| robby SSH PASS | ✗ **BLOCKED (AZ2C.R)** |
+| sshd baseline applied safely | ✔ |
+| multi-user.target | ✔ |
+| persistent/bounded journald | ✔ |
+| Copper fresh clone / HEAD == origin/master | ✔ `c09e8ee` |
+| `uv sync --frozen` PASS / Python 3.13 | ✔ / ✔ `3.13.15` |
+| `.env` restored byte-identical / 600 | ✗ **BLOCKED (AZ2C.Z)** |
+| K9 not installed/running | ✔ |
+| no futures collector running | ✔ |
+| old 24.04 OS disk retained | ✔ `Unattached` |
+
+**3 acceptance items blocked, all on the same root cause** (Tailscale
+enrolment needs a Human-supplied key).
+
+## AZ2C.AJ — Remaining steps to close AZ2C
+
+1. **Human:** provide a fresh single-use/ephemeral Tailscale auth key (or run
+   the enrolment). Delete the stale Gen-0 `dragon` tailnet node.
+2. **Claudine:** `az vm start dragon` → `az vm run-command` Tailscale enrol →
+   record new `100.x` + health → revoke key.
+3. **Claudine:** verify Gen-1 host key vs AZ2C.P → update robby `known_hosts` /
+   `~/.ssh/config` → `ROBBY → DRAGON GEN1 SSH: PASS`.
+4. **Claudine:** `scp` `dragon-env-20260909.env.gpg` → `gpg -d` (Human
+   passphrase) → `chmod 600` → verify sha256 `eae1c7d1…` → `shred` temp.
+5. **Claudine:** final acceptance re-check; `az vm deallocate dragon`.
+6. Then **0W-AZ2C: REBUILD COMPLETE — DRAGON GENERATION 1 READY FOR AZ3**.
+
+---
+
+```
+0W-AZ2C: BLOCKED — Tailscale enrolment requires a Human-supplied single-use auth key.
+         VM rebuild + Trusted Launch + disks + mount + host baseline + Copper deploy: COMPLETE.
+         Blocked acceptance items: Tailscale health, robby SSH PASS, .env restore.
+
+OLD 24.04 OS DISK  : RETAINED (Unattached, unchanged)
+K9                 : PRESERVED / PAUSED (not installed on Gen-1)
+FUTURES COLLECTOR  : NOT STARTED
+NEXT               : Human supplies a Tailscale key → finish AZ2C.AJ steps → 0W-AZ3
+```
