@@ -1971,3 +1971,483 @@ AZURE BILLABLE RESOURCES CREATED: NONE
 DESTRUCTIVE ACTIONS            : NONE
 NEXT                          : HUMAN APPROVAL FOR AZ2B
 ```
+
+---
+
+# Phase 0W-AZ2B — Pre-Rebuild Preservation & K9 Pause
+
+**Last reversible checkpoint before the AZ2C destructive rebuild.** Executed
+2026-09-09 from `robby`. Allowed: brief power-on, preserve host-local state,
+disable K9 scheduling, prepare rollback evidence, commit non-secret artifacts,
+deallocate. **Not done:** any VM/disk/network/Tailscale/RBAC/DevTestLab
+mutation, any Copper redeploy, any collector start.
+
+## AZ2B.A — AZ2A acceptance
+
+```
+0W-AZ2A : ACCEPTED / CLOSED
+```
+
+Accepted architecture: rebuild `dragon` clean on Ubuntu 26.04.1 LTS
+(pinned image), `Standard_B2ms`, 64 GiB OS disk, 256 GiB StandardSSD data disk,
+Trusted Launch + Secure Boot + vTPM; K9 preserved + paused.
+
+## AZ2B.B — Pinned 26.04 image (frozen)
+
+```
+AZ2C PINNED IMAGE: Canonical:ubuntu-26_04-lts:server:26.04.202609020
+```
+
+Re-verified available in `eastus` on 2026-09-09 (`az vm image show` →
+`name 26.04.202609020`, `hyperVGeneration V2`, `architecture x64`). Do **not**
+substitute `:latest` or a newer build before AZ2C without a deliberate PO/Human
+decision. AZ2C may re-check availability immediately before the rebuild; if the
+version is gone or a material issue surfaces → **STOP / REPORT / request
+decision**.
+
+## AZ2B.C — Dragon power-on / SSH
+
+| | |
+|---|---|
+| State at phase start | already `PowerState/running` (up since 2026-09-09 10:46:10 UTC — daily start automation) |
+| `az vm start` | issued anyway; rc 0 (no-op), 16:51:32→16:51:45 UTC |
+| Tailscale | `dragon` online, `100.103.127.127` |
+| **ROBBY → OLD DRAGON SSH** | **PASS** — `publickey` (`id_ed25519` `SHA256:2WcJz…we2cg`), user `temckee8`, host key ED25519 `SHA256:Ai0gLE1EfclvMCXsGEND18JvgcMm1g6LuddNI3ocEao` matched (unchanged); `SSH_OK dragon 2026-09-09T16:52:05Z` |
+
+Only session present during AZ2B was robby's own.
+
+## AZ2B.D — Pre-rebuild host manifest ("DRAGON GENERATION 0", Ubuntu 24.04.4 / K9-era)
+
+| Property | Value |
+|---|---|
+| VM name / size | `dragon` / `Standard_B2ms` (2 vCPU, 8 GiB) |
+| securityType / zones / priority | `Standard` / none / standard (not Spot) |
+| OS image ref | `Canonical:ubuntu-24_04-lts:server:latest` (exactVersion `24.04.202606060`) |
+| Guest OS / kernel | Ubuntu **24.04.4 LTS** (Noble) / `6.17.0-1022-azure` |
+| Machine ID | `fcf2fcde…` (redacted) |
+| VM `timeCreated` | 2026-06-14T04:16:07Z |
+| MI | SystemAssigned, principal `da55ad8d…` (redacted) |
+| NIC | `dragon-nic`, private IP `10.0.1.4` (Dynamic), **no public IP**, NIC-level NSG none |
+| VNet / subnet | `dragon-vnet` 10.0.0.0/16 / `default` 10.0.1.0/24 (NSG `dragon-nsg` at subnet) |
+| NSG `dragon-nsg` | inbound custom: `Allow-Tailscale-Direct` UDP 41641 from `*`; else Azure defaults + `DenyAllInBound` |
+| OS disk | `dragon_disk1_bb48fd67c68342b4b4596a45879297f9`, StandardSSD_LRS, 32 GiB, Gen2, `caching ReadWrite`, `createOption FromImage` |
+| Data disks | none |
+| DevTestLab shutdown | `shutdown-computevm-dragon` — **ENABLED**, daily 06:08 UTC, 30-min email warning |
+| Automation | `automation-dragon` + `automation-k9` accounts, each a Published `Start-Dragon` runbook (no schedules); 2 SPs (`6d277e79…`, `563c2651…`) hold `Virtual Machine Contributor` at the `dragon` VM scope |
+| Tailscale | hostname `dragon`, `100.103.127.127`, node up; peers robby + weasel active, weasel-den offline 85 d; **no `robyn`** |
+| SSH host fingerprints (GEN 0) | ED25519 `SHA256:Ai0gLE1EfclvMCXsGEND18JvgcMm1g6LuddNI3ocEao` · ECDSA `SHA256:UIHlwBK/B/6cJRl5VyyU9syNZk3t1576o7pTTwHZ+no` · RSA `SHA256:GOaHj0YqlEZ7Z4bcH2ZJNHsbKLil3WyfEe6Q6i2QQos` |
+| authorized_keys | robby `SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg` (`mckee8@gmail.com`) · weasel `SHA256:0OnoIpOb4a9jUH6hm7DDOqc3h1E5+y5G3dEXeZHrEnk` (`weasel`) |
+| default target | `graphical.target` |
+| journald | `auto` + `/var/log/journal` present → persistent (~433 MB) |
+
+No secret values captured.
+
+## AZ2B.E — Actual OS-disk `deleteOption` (critical)
+
+`az vm show -g rg-dev-environment -n dragon --query storageProfile.osDisk`:
+
+```
+"deleteOption": "Detach"
+```
+
+**✔ The old OS disk survives VM deletion automatically.** No pre-delete action
+is required to preserve it. (`diskControllerType SCSI`; `dataDisks []`.)
+
+NIC deletion semantics: the VM `networkProfile.networkInterfaces[].deleteOption`
+is `null` (unset) → Azure default for a VM-attached NIC is **Detach** — the
+NIC (and its private IP `10.0.1.4`) survives VM deletion. AZ2C reuses it via
+`az vm create --nics dragon-nic`.
+
+## AZ2B.F — Old OS-disk rollback identification
+
+| Field | Value |
+|---|---|
+| name | `dragon_disk1_bb48fd67c68342b4b4596a45879297f9` |
+| resource ID | `/subscriptions/<SUB>/resourceGroups/rg-dev-environment/providers/Microsoft.Compute/disks/dragon_disk1_bb48fd67c68342b4b4596a45879297f9` |
+| SKU / size | StandardSSD_LRS / 32 GiB |
+| osType / Hyper-V gen | Linux / V2 |
+| state / provisioningState | Attached / Succeeded |
+| timeCreated | 2026-06-14T04:16:09Z |
+| built from | `Canonical:ubuntu-24_04-lts:server:latest` (`24.04.202606060`) |
+
+**Rollback = `az vm create -g rg-dev-environment -n dragon --attach-os-disk
+dragon_disk1_bb48fd67c68342b4b4596a45879297f9 --os-type Linux --nics
+dragon-nic --size Standard_B2ms`** (recreates the 24.04 VM from the retained
+disk). Retain untouched until the 26.04 host passes the full AZ2C/AZ4 gate;
+then Human deletes it. Retention cost ≈ $2.40/mo (E4 32 GiB StandardSSD).
+
+## AZ2B.G — `.env` encrypted backup
+
+**Guaranteed preservation:** `~/Documents/REPOs/copper/.env` (mode `600`, owner
+`temckee8`, 1493 B) remains on the **retained old OS disk** (deleteOption
+`Detach`, AZ2B.E) — it is not lost by the rebuild.
+
+**Second copy (encrypted, on robby) — command prepared, one interactive Human
+run required** (the passphrase must be entered interactively and must never
+reach shell history / a script / an env file / this document):
+
+```bash
+# run on robby via the ! prefix; prompts once for an AES-256 passphrase (Human-held)
+mkdir -p ~/secure/dragon-pre-rebuild && chmod 700 ~/secure ~/secure/dragon-pre-rebuild
+ssh -o BatchMode=yes dragon 'cat ~/Documents/REPOs/copper/.env' \
+  | gpg --symmetric --cipher-algo AES256 --no-symkey-cache \
+        -o ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg
+chmod 600 ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg
+sha256sum ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg
+stat -c '%s bytes  %A  %U:%G' ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg
+```
+
+No plaintext temp file on either host; `.env` is streamed straight into `gpg`.
+Recorded on completion: artifact path `~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg`,
+its SHA-256, size, and the source mode/owner (`600` / `temckee8`).
+**Source `.env` value never printed, never committed.** This is **AZ2C gate
+#1** — not an AZ2B blocker (the retained disk already preserves `.env`).
+
+## AZ2B.H — K9 unit preservation
+
+The K9 systemd units are **already tracked in Git** at `deploy/systemd/`
+(8 files: 7 timers + `copper-k9-job@.service`). On 2026-09-09 the copies
+installed on `dragon` (`/etc/systemd/system/copper-k9-*`) were verified
+**byte-for-byte identical** to the repo copies (SHA-256 of all 8 matched
+exactly). `system-copper\x2dk9\x2djob.slice` is auto-generated — no file.
+
+Added: **`deploy/k9/PRESERVED.md`** — records the pause, the schedule table,
+the restoration procedure, and an explicit warning that
+`copper-k9-smart-shutdown` must **not** be re-enabled while futures collection
+owns the host lifecycle.
+
+**AZ2A's assumption that the K9 units were host-local is corrected: they are
+fully reproducible from Git.**
+
+## AZ2B.I — K9 runtime evidence preservation
+
+| Item | Size | Class | Action |
+|---|---|---|---|
+| `~/…/copper/logs/K9/` (dry-run `xsp_pcs_0dte_*.json` + `smart_shutdown_*.log`) | 2.1 MB | PRESERVE | tar → `robby:~/secure/dragon-pre-rebuild/dragon-k9-logs-20260909.tgz` |
+| `deploy/systemd/copper-k9-*` | — | REPRODUCIBLE (Git) | none |
+| `scripts/{run_k9_scheduled_job,smart_shutdown,k9_*,compress_old_logs}.sh` | — | REPRODUCIBLE (Git) | none |
+| `apps/K9/**` | — | REPRODUCIBLE (Git) | none |
+| systemd auto-slice, `timers.target.wants` symlinks | — | DISCARDABLE (regenerated) | none |
+
+Archive: `dragon-k9-logs-20260909.tgz`, **115 161 bytes**, SHA-256
+`cbac7ef8d86256593380c0a1099cfa3ae12b52986356c3773410f404967c8081` — copied to
+`robby:~/secure/dragon-pre-rebuild/` (mode 600), hash re-verified there (`OK`),
+temp removed from `dragon`. **Not committed to Git** (runtime noise). Nothing
+deleted on `dragon`.
+
+## AZ2B.J — K9 timer pause result
+
+`sudo systemctl disable --now` the seven `copper-k9-*.timer` units. Result:
+
+| Timer | enabled | active |
+|---|---|---|
+| `copper-k9-tastytrade-entry-xsp` | **disabled** | **inactive** |
+| `copper-k9-morning-check` | **disabled** | **inactive** |
+| `copper-k9-tastytrade-diagnostic` | **disabled** | **inactive** |
+| `copper-k9-daily-close` | **disabled** | **inactive** |
+| `copper-k9-weekly-flow-report` | **disabled** | **inactive** |
+| `copper-k9-compress-logs` | **disabled** | **inactive** |
+| `copper-k9-smart-shutdown` | **disabled** | **inactive** |
+
+All 7 `timers.target.wants` symlinks removed. `systemctl list-timers --all` →
+no `copper-k9-*`. No `copper-k9-*` unit active/running. **Unit files remain on
+disk** (`/etc/systemd/system/copper-k9-*`, 8 files) — disabled, not deleted.
+No K9 job was executed for testing.
+
+## AZ2B.K — Smart-shutdown pause result
+
+`copper-k9-smart-shutdown.timer` — **`disabled`, `inactive (dead)`, `Trigger:
+n/a`**. The old host will **not** self-deallocate during AZ2B or afterward.
+(Observed earlier the same day: the K9-era 10:15 CT `smart_shutdown` run had
+*not* deallocated the VM — still up ~1h40m later — independent of this pause.)
+
+## AZ2B.L — DevTestLab shutdown state
+
+`shutdown-computevm-dragon` — **left ENABLED** (06:08 UTC daily). AZ2B is
+non-destructive; this resource is **explicitly removed in AZ2C** before the
+rebuilt host is operational (it would otherwise re-bind to a same-named
+recreated VM — see AZ2A.31). AZ2B preservation work completed ~13 h before the
+next 06:08 UTC firing; no interference.
+
+## AZ2B.M — Current MI / RBAC evidence
+
+MI principal `da55ad8d-820c-4a11-89f3-d1bf3d540816` (redacted in-doc as
+`da55ad8d…`). Role assignments (re-verified 2026-09-09, unchanged from AZ2A):
+
+| Role | Scope | Class |
+|---|---|---|
+| `Virtual Machine Contributor` | VM `dragon` | **K9 SELF-DEALLOCATION LEGACY** (`smart_shutdown.sh`) |
+| `Contributor` | RG `rg-dev-environment` | **OTHER** — broad, K9-era; not needed by a futures host |
+| `Classic Virtual Machine Contributor` | RG | **OTHER** — legacy ASM, vestigial |
+| `Virtual Machine Contributor` (SP `6d277e79…`) | VM `dragon` | **AUTOMATION CONTROL-PLANE** (`automation-*` account) |
+| `Virtual Machine Contributor` (SP `563c2651…`) | VM `dragon` | **AUTOMATION CONTROL-PLANE** (`automation-*` account) |
+
+No RBAC mutated. The rebuilt VM gets a **new** MI principal; none of the above
+is restored to it — least privilege (AZ2A.30).
+
+## AZ2B.N — Tailscale legacy-secret finding
+
+Unchanged from AZ2A: plaintext `tskey-auth-…` in the separate `cloud` repo
+(`main.bicep` **and** `scripts/deploy_weasel.sh`, plus a hardcoded Windows
+password in the latter). **MUST NOT be reused.** No secret value recorded. No
+attempt to preserve `dragon`'s `/var/lib/tailscale/tailscaled.state` — the
+rebuilt host enrols as a **fresh** node with a short-lived key (AZ2A.15).
+
+## AZ2B.O — Robby access state
+
+```
+robby → Azure control plane : PASS  (az authenticated; used throughout)
+robby → OLD dragon SSH      : PASS  (AZ2B.C)
+```
+
+## AZ2B.P — Weasel access state
+
+```
+WEASEL → OLD DRAGON : NOT TESTED
+```
+
+weasel's public key `SHA256:0OnoIpOb4a9jUH6hm7DDOqc3h1E5+y5G3dEXeZHrEnk` is
+already in `dragon`'s `authorized_keys` and the `weasel` tailnet node is
+active, but the check must be run **from weasel** (Claudine runs on robby).
+Not a blocker — robby control-plane + SSH are proven. Human may run the
+client-side check from weasel (block in AZ1.N).
+
+## AZ2B.Q — Robyn access state
+
+```
+ROBYN ACCESS : DEFERRED
+```
+
+`robyn` is not a tailnet member and has no key on `dragon`. If Human can work
+on robyn before AZ2C: (1) enrol robyn in the tailnet; (2)
+`ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_dragon -C "robyn-to-dragon"`;
+(3) keep the private key **only** on robyn; (4) send Claudine the **public**
+key + fingerprint for AZ2C `--ssh-key-values`. Not a blocker to AZ2B.
+Post-rebuild independent access verification from every operating machine
+remains mandatory before unattended collection.
+
+## AZ2B.R — Old SSH host fingerprints (DRAGON GENERATION 0 / 24.04 host)
+
+| Alg | SHA256 | Will change at rebuild? |
+|---|---|---|
+| ED25519 | `Ai0gLE1EfclvMCXsGEND18JvgcMm1g6LuddNI3ocEao` | **yes (intended)** |
+| ECDSA | `UIHlwBK/B/6cJRl5VyyU9syNZk3t1576o7pTTwHZ+no` | **yes (intended)** |
+| RSA | `GOaHj0YqlEZ7Z4bcH2ZJNHsbKLil3WyfEe6Q6i2QQos` | **yes (intended)** |
+
+Recorded as historical only. No private host key preserved. AZ2C generates
+fresh keys and every client's `known_hosts` is updated only after
+control-plane-verified fingerprint match (AZ2A.14).
+
+## AZ2B.S — Dragon repo uniqueness check
+
+`~/Documents/REPOs/copper` on `dragon`:
+
+```
+branch        : master
+HEAD          : 1c433e3c429cebcfb3f6e41fe2298642a97a0ad1
+status        : ## master...origin/master   (clean — no porcelain output)
+stash list    : empty
+untracked (all): none
+```
+
+**No unique uncommitted source exists on `dragon`.** HEAD `1c433e3` is a
+published ancestor (robby/`origin/master` is now `c9683f1…`, i.e. dragon is
+4 commits behind — behind, never ahead). The stale checkout will be discarded
+at rebuild; a fresh clone replaces it (AZ2A.24). Nothing to reconcile.
+
+## AZ2B.T — Preservation files added
+
+| File | Purpose |
+|---|---|
+| `deploy/k9/PRESERVED.md` | K9 pause record + restoration procedure + smart-shutdown warning |
+| `docs/dicks_laboratory/AZURE_COLLECTION_HOST_MIGRATION.md` | this AZ2B section |
+
+The K9 unit files themselves were **already** in `deploy/systemd/` — not
+re-added.
+
+**Out-of-Git preservation** (on `robby`, `~/secure/dragon-pre-rebuild/`,
+mode 600): `dragon-k9-logs-20260909.tgz` (done); `dragon-env-20260909.env.gpg`
+(command prepared — one Human run).
+
+## AZ2B.U — Secret audit
+
+Committed changes grepped: no `tskey-auth-…` values, no OAuth/token/`.env`
+values, no private keys, no full GUIDs (subscription/tenant/principal/machine
+IDs redacted). `deploy/k9/PRESERVED.md` contains only unit metadata, schedules,
+and public restoration steps. Public SSH fingerprints retained (acceptable).
+Encrypted `.env` bundle and K9 log tar are **not** in Git. Safe to commit.
+
+## AZ2B.V — Commit / push
+
+`ops: preserve K9 host scheduling before dragon rebuild` — see handoff for
+hash. `git diff --check` clean; `deploy/k9/PRESERVED.md` is Markdown (no lint).
+
+## AZ2B.W — Final robby git state
+
+```
+master · HEAD == origin/master · working tree clean
+```
+(exact hash in handoff)
+
+## AZ2B.X — Dragon deallocation
+
+`az vm deallocate -g rg-dev-environment -n dragon` after all preservation +
+commit work. Required end state **`PowerState/deallocated`** (not a guest
+shutdown). Exact timestamps in handoff.
+
+## AZ2B.Y — Azure baseline reconciliation (post-deallocation)
+
+| Property | Expected | Observed |
+|---|---|---|
+| VM `dragon` exists | yes | yes |
+| OS disk `dragon_disk1_bb48fd67…` attached | yes | yes |
+| NIC `dragon-nic` / private IP `10.0.1.4` | unchanged | unchanged |
+| NSG `dragon-nsg` | unchanged | unchanged |
+| Public IP | none | none |
+| Data disks | none | none |
+| DevTestLab `shutdown-computevm-dragon` | present, enabled | present, enabled |
+| VM size / securityType | `Standard_B2ms` / `Standard` | unchanged |
+| VM deleted / recreated | no | no |
+
+AZ2B made **no destructive Azure change**. Only guest changes: 7 K9 timers
+disabled (unit files retained). Guest state lives on the OS disk that is itself
+the rebuild rollback.
+
+## AZ2B.Z — Exact AZ2C execution packet (prepared — DO NOT EXECUTE)
+
+```
+# ---- PRE-DELETE SAFETY GATES (all must pass; see AZ2B.AA) ----
+G1  verify sha256 of ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg == recorded
+G2  git ls-remote origin master == local origin/master  AND  K9-preservation commit is on origin/master
+G3  ssh dragon 'git -C ~/Documents/REPOs/copper status --porcelain; git -C … stash list'  == empty
+G4  az disk show -g rg-dev-environment -n dragon_disk1_bb48fd67c68342b4b4596a45879297f9  -> exists, StandardSSD_LRS, 32GiB
+G5  az vm show … storageProfile.osDisk.deleteOption == "Detach"
+G6  az vm show … networkProfile…deleteOption in (null, "Detach")   # NIC survives
+G7  az account show   -> authenticated, expected subscription
+G8  az vm image show --location eastus --urn Canonical:ubuntu-26_04-lts:server:26.04.202609020  -> resolves
+G9  robby.pub + weasel.pub present; robyn.pub present OR explicitly deferred
+G10 Human has approved billable + destructive AZ2C execution (this packet)
+
+# ---- STEP 1 — Azure: stop the K9-era power policy ----
+az vm deallocate -g rg-dev-environment -n dragon                       # ensure deallocated
+az vm auto-shutdown -g rg-dev-environment -n dragon --off              # or: az resource delete … shutdown-computevm-dragon
+#   verify: no Microsoft.DevTestLab/schedules targets dragon
+
+# ---- STEP 2 — Azure: delete the VM object (OS disk + NIC RETAINED via deleteOption=Detach) ----
+az vm delete -g rg-dev-environment -n dragon --yes
+#   verify: az disk show … dragon_disk1_bb48fd67…  -> state "Unattached", still present
+#   verify: az network nic show -g rg-dev-environment -n dragon-nic  -> present, no VM
+
+# ---- STEP 3 — Azure: create the data disk (NEW BILLABLE) ----
+az disk create -g rg-dev-environment -n dragon-data1 \
+  --size-gb 256 --sku StandardSSD_LRS --os-type "" --hyper-v-generation V2
+
+# ---- STEP 4 — Azure: create the rebuilt VM (NEW BILLABLE OS disk; Trusted Launch) ----
+az vm create -g rg-dev-environment -n dragon \
+  --image Canonical:ubuntu-26_04-lts:server:26.04.202609020 \
+  --size Standard_B2ms \
+  --nics dragon-nic \
+  --security-type TrustedLaunch --enable-secure-boot true --enable-vtpm true \
+  --os-disk-name dragon-osdisk-gen1 --os-disk-size-gb 64 --storage-sku StandardSSD_LRS \
+  --os-disk-delete-option Detach \
+  --attach-data-disks dragon-data1 --data-disk-caching None \
+  --admin-username temckee8 \
+  --ssh-key-values <robby.pub> <weasel.pub> [<robyn.pub>] \
+  --custom-data cloud-init-dragon-gen1.yaml \
+  --boot-diagnostics-storage ""            # managed boot diagnostics
+#   cloud-init MUST contain NO secret (no Tailscale key)
+
+# ---- STEP 5 — Tailscale: fresh node ----
+#   generate a 1-hour, single-use, pre-approved, tag:dragon auth key in the TS admin console
+az vm run-command invoke -g rg-dev-environment -n dragon --command-id RunShellScript \
+  --scripts "curl -fsSL https://tailscale.com/install.sh | sh && tailscale up --auth-key=<EPHEMERAL> --ssh=false --hostname=dragon"
+#   revoke the key in the console immediately; record the new 100.x IP
+
+# ---- STEP 6 — SSH host-key verification (control-plane path, before any client trusts) ----
+az vm run-command invoke … --scripts "for k in ed25519 ecdsa rsa; do ssh-keygen -lf /etc/ssh/ssh_host_${k}_key.pub; done"
+#   then on each client: ssh-keygen -R <old>  &&  add verified new key ; update ~/.ssh/config HostName if IP changed
+
+# ---- STEP 7 — guest bootstrap (see AZ2A.22) ----
+#   apt: git curl ca-certificates sqlite3 jq ; uv installer ; uv python install 3.13
+#   sshd drop-in: PasswordAuthentication no / PubkeyAuthentication yes / PermitRootLogin no / X11Forwarding no
+#   systemctl set-default multi-user.target (if not already)
+#   journald drop-in: Storage=persistent, SystemMaxUse=2G, SystemKeepFree=1G, MaxRetentionSec=1month
+#   mkfs.ext4 on the data disk; UUID fstab -> /srv/dicks_laboratory (default opts); mkdir data/ logs/ forensic/
+#   mountpoint left root:root 0555 when unmounted (fail-closed)
+
+# ---- STEP 8 — Copper deploy ----
+git clone git@github.com:bigmcdaddy8/copper.git ~/Documents/REPOs/copper   # via new read-only deploy key
+cd ~/Documents/REPOs/copper && git rev-parse HEAD  # == origin/master ; status --porcelain empty
+uv sync --frozen
+
+# ---- STEP 9 — credential restore ----
+scp ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg dragon:/tmp/
+ssh dragon 'gpg -d /tmp/dragon-env-20260909.env.gpg > ~/Documents/REPOs/copper/.env && chmod 600 ~/…/.env && shred -u /tmp/dragon-env-20260909.env.gpg'
+#   verify restored sha256 == pre-rebuild source sha256 (recorded in the bundle manifest); stat only, never cat
+
+# ---- STEP 10 — validation gate (pre-AZ3) ----
+#   boot ok; SSH (new host keys verified) from robby [+ weasel/robyn]; Tailscale up; uv sync clean;
+#   /srv/dicks_laboratory mounted; .env present 600; systemctl --failed empty; get-default multi-user
+#   THEN Human may authorise deletion of the retained old OS disk dragon_disk1_bb48fd67…
+```
+
+## AZ2B.AA — AZ2C safety gates
+
+`az vm delete dragon` must be blocked unless **all** of:
+
+1. `dragon-env-20260909.env.gpg` sha256 verified == recorded.
+2. K9-preservation commit is on `origin/master`.
+3. old `dragon` repo has no unique uncommitted source (re-checked live).
+4. old OS disk `dragon_disk1_bb48fd67…` identified and present.
+5. `storageProfile.osDisk.deleteOption == "Detach"` (**verified now** — AZ2B.E).
+6. NIC deletion behaviour understood/preserved (**verified now** — default Detach — AZ2B.E).
+7. `az account show` → authenticated, expected subscription.
+8. pinned image `Canonical:ubuntu-26_04-lts:server:26.04.202609020` still resolves.
+9. robby + weasel public keys available; robyn key available or explicitly deferred.
+10. Human has approved billable + destructive AZ2C execution.
+
+**Any gate fails → DO NOT DELETE DRAGON.**
+
+## AZ2B.AB — AZ2C billable resources (no creation in AZ2B)
+
+| Resource | Est. monthly cost (eastus retail, 2026-09-09) |
+|---|---|
+| New 64 GiB StandardSSD_LRS OS disk (E10) | ≈ $9.60 (vs current 32 GiB ≈ $2.40 → **+$7.20/mo**; AZ2A said +$2.40 using an E4→E6 estimate — corrected to E4→E10 here) |
+| New 256 GiB StandardSSD_LRS data disk (E15) | ≈ **$19.20** |
+| Retained old 32 GiB OS disk (rollback window) | ≈ $2.40 (until Human deletes it post-acceptance) |
+| Managed boot diagnostics | negligible |
+| B2ms compute (unchanged SKU) | ≈ $0.0832/hr (~$43/mo at the Sun→Fri schedule) |
+
+**Nothing created in AZ2B.**
+
+## AZ2B.AC — Human approval request
+
+AZ2B completed all reversible preservation without further approval. **AZ2C
+requires explicit Human authorization** for, together:
+
+- **Config / no-cost:** delete the DevTestLab shutdown schedule; fresh Tailscale
+  enrolment (short-lived key); sshd hardening drop-in; `set-default
+  multi-user.target`.
+- **New billable:** 256 GiB data disk (~$19.20/mo); 64 GiB OS disk (~$9.60/mo);
+  transient overlap with the retained 32 GiB old OS disk (~$2.40/mo).
+- **Destructive / rebuild:** `az vm delete dragon` (deletes VM object + its MI
+  principal; OS disk + NIC retained); `az vm create dragon` on the pinned
+  26.04.1 image with Trusted Launch; eventually delete the retained old OS disk
+  after AZ4 acceptance.
+
+Also outstanding for Human (non-blocking, ideally before AZ2C):
+- run the one interactive `.env` encryption command (AZ2B.G) and report the sha256;
+- (optional) verify weasel→dragon SSH from weasel;
+- (optional) enrol robyn in the tailnet + generate robyn's key.
+
+---
+
+```
+0W-AZ2B: PRESERVATION COMPLETE — READY FOR REBUILD APPROVAL
+         (one non-blocking Human step outstanding: interactive .env encryption — AZ2B.G;
+          .env itself is already preserved on the retained old OS disk)
+
+DRAGON DELETED/REBUILT      : NO
+NEW AZURE BILLABLE RESOURCES: NONE
+K9                         : PRESERVED / PAUSED  (7 timers disabled, unit files retained + in Git)
+```
