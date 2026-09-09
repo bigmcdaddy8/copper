@@ -2459,17 +2459,21 @@ K9                         : PRESERVED / PAUSED  (7 timers disabled, unit files 
 
 **Executed 2026-09-09 from `robby`.** Destructive rebuild performed under Human
 authorization + all pre-delete gates. VM object replaced; **old 24.04 OS disk
-retained**. Guest bootstrap done via Azure Run Command (control-plane root) —
-the rebuilt host has no public IP and Tailscale is not yet enrolled, so SSH
-from robby is not yet possible.
+retained**. Guest bootstrap done via Azure Run Command (control-plane root);
+Tailscale later enrolled via persistent browser auth, after which
+administration is ordinary OpenSSH over the tailnet.
 
 ```
-0W-AZ2C: BLOCKED — Tailscale enrolment requires a Human-supplied single-use auth key
-         (robby has no key-minting capability; the cloud-repo keys must NOT be reused).
-         Everything else — VM rebuild, Trusted Launch, disks, mount, sshd/journald
-         baseline, Copper clone + uv sync — is COMPLETE. Remaining: Tailscale enrol →
-         robby SSH live PASS → .env restore → final acceptance.
+0W-AZ2C: REBUILD COMPLETE — DRAGON GENERATION 1 READY FOR AZ3
 ```
+
+**Update (later same day):** the initial BLOCK — Tailscale enrolment — was
+resolved by the Product-Owner-preferred method: a **persistent** (non-ephemeral)
+`tailscale up --hostname=dragon` with **no** `--auth-key` / `--ephemeral` /
+`--ssh`, launched as an independent transient unit via Azure Run Command, which
+emitted a browser login URL that Human authorized in an already-signed-in
+Tailscale session. The node came up healthy; robby SSH, `.env` restore, and all
+acceptance checks then passed.
 
 ## AZ2C.A — Pre-delete safety gates
 
@@ -2614,44 +2618,63 @@ true`).
 | ECDSA | `JBj1HY2v0nzFboecNyeUzxMaSaw7dIVzVwuNNcy+36Y` | `UIHlwBK/B/6cJRl5VyyU9syNZk3t1576o7pTTwHZ+no` |
 | RSA | `QLisfhNHOLQv+w8LdygUEAHX/QyIhvkYCPn0mFiiDoc` | `GOaHj0YqlEZ7Z4bcH2ZJNHsbKLil3WyfEe6Q6i2QQos` |
 
-Collected via **Azure Run Command** (control-plane, trusted path). They differ
-from Generation 0 as expected. **Not yet installed in any client's
-`known_hosts`** — that happens with the Tailscale/robby-SSH step, only after a
-control-plane match.
+Collected via **Azure Run Command** (control-plane, trusted path), then
+re-confirmed by a live `ssh-keyscan` over the tailnet (AZ2C.R) — the two
+match. Differ from Generation 0 as expected. Now installed in robby's
+`known_hosts` for `100.64.112.117,dragon-1` (old `dragon`/`100.103.127.127`
+entries removed).
 
 ## AZ2C.Q — Tailscale fresh enrolment — **BLOCKED (needs Human)**
 
-Tailscale is **not installed** on Gen-1. Enrolment needs a **fresh single-use,
-short-lived, pre-approved** auth key. `robby` has **no** key-minting capability
-(no Tailscale API key / OAuth client / admin session; `tailscale debug prefs`
-→ not logged in for control). The only auth keys that exist are the
-**plaintext reusable `…CNTRL…` keys in the separate `cloud` repo**
-(`main.bicep`, `deploy_weasel.sh`) which the plan **forbids reusing** and which
-must be rotated.
+**Method (Product-Owner-preferred — persistent node, browser auth):** an
+ephemeral node is *inappropriate* for `dragon` (a persistent server whose Azure
+VM intentionally deallocates Fri and returns Sun). Via Azure Run Command:
+`curl -fsSL https://tailscale.com/install.sh | sh` → `systemctl enable --now
+tailscaled` → **`systemd-run --unit=ts-up --service-type=exec /usr/bin/tailscale
+up --hostname=dragon --accept-dns=false --reset`** (a transient unit, so the
+headless auth wait survives the Run Command returning) — **no `--auth-key`, no
+`--ephemeral`, no `--ssh`**. The unit printed
+`https://login.tailscale.com/a/…`; Human opened it in an already-authenticated
+browser and the node registered (the tailnet does not gate new devices).
+`ts-up.service` exited `Result=success` ("Success.").
 
-**Human action required** — one of:
-1. In the Tailscale admin console, generate an **ephemeral** *(or single-use,
-   ~1 h expiry, pre-approved, `tag:dragon`)* auth key and give it to Claudine
-   → Claudine enrols via `az vm run-command invoke … "curl -fsSL
-   https://tailscale.com/install.sh | sh && tailscale up --auth-key=<KEY>
-   --ssh=false --hostname=dragon"`, then Human revokes the key; **or**
-2. Human runs that same `az vm run-command` (or SSH-serial) enrolment
-   themselves and reports the resulting `100.x` address + node health.
+**Result:** stable client **1.102.3**, `tailscaled` **active + enabled**. New
+node — internal hostname `dragon`, **tailnet machine name `dragon-1`** (the
+name `dragon` is still held by the stale Gen-0 machine record), DNSName
+`dragon-1.taildb247e.ts.net`, **IPv4 `100.64.112.117`** (IPv6
+`fd7a:115c:a1e0::9838:7076`), `BackendState Running`, `Online: true`,
+`Health: []` (no warnings), no tags. Ordinary OpenSSH over this transport is
+the admin model; Tailscale SSH is **not** enabled.
 
-Also delete the stale Gen-0 `dragon` node from the tailnet admin console.
+**Device key expiry:** initially **enabled**, deadline `2027-03-08T21:25:44Z`
+(~180 d). Human **disabled key expiry** for `dragon-1` in the admin console →
+re-verified `KeyExpiry: None`. A persistent unattended collection host must not
+carry a silent re-auth deadline — keep expiry disabled for this node (revisit
+only if a tag/ACL model is later adopted).
 
-## AZ2C.R — Robby SSH verification — **BLOCKED (depends on AZ2C.Q)**
+**Stale Gen-0 node:** `dragon` `100.103.127.127`, offline (VM object already
+deleted). **Left in place** until Gen-1 was confirmed healthy + robby SSH
+passed (both now true) — safe to remove now; see AZ2C.AJ.
 
-No public IP; NSG allows inbound UDP 41641 only → `dragon` is reachable **only
-over the tailnet**, which is not up. `robby → DRAGON GEN1 SSH` cannot be
-tested until Tailscale is enrolled. Procedure once it is:
-1. compare `ssh-keyscan <new-100.x>` to the AZ2C.P ED25519 fingerprint
-   (control-plane value) — must match exactly;
-2. `ssh-keygen -R` the old `dragon`/`100.103.127.127` entries on robby; add the
-   **verified** new key to `known_hosts`;
-3. if the tailnet IP changed, update `~/.ssh/config` `Host dragon HostName`;
-4. `ssh dragon 'true'` with `StrictHostKeyChecking=yes` → expect
-   `ROBBY → DRAGON GEN1 SSH: PASS` (publickey, `id_ed25519`).
+## AZ2C.R — Robby SSH verification — **PASS**
+
+```
+ROBBY → DRAGON GEN1 SSH: PASS
+```
+
+1. `ssh-keyscan 100.64.112.117` ED25519 =
+   `SHA256:3pirEF7Ey1G79JwcP9X8zY/fSuPv2sbSjHHLN66r4Rk` — **matches** the
+   control-plane value (AZ2C.P) exactly. **HOST KEY MATCH: PASS.**
+2. robby `~/.ssh/known_hosts` — old `100.103.127.127` / `dragon` entries
+   removed (`ssh-keygen -R`; backup `known_hosts.old`); the just-verified
+   Gen-1 keys added for `100.64.112.117,dragon-1`.
+3. `~/.ssh/config` (backup `config.pre-az2c`): `Host dragon` →
+   `HostName 100.64.112.117`, and `StrictHostKeyChecking` tightened
+   `accept-new` → **`yes`**.
+4. `ssh -o StrictHostKeyChecking=yes dragon` → `SSH_OK host=dragon
+   user=temckee8 kernel=7.0.0-1012-azure os=26.04.1 LTS`; `ssh -v` →
+   `Authenticated to 100.64.112.117 ([100.64.112.117]:22) using "publickey"`
+   (`id_ed25519`).
 
 ## AZ2C.S — SSHD baseline
 
@@ -2733,14 +2756,20 @@ tradier_sniffer. `scripts/dicks_lab_collect_es.py` present.
 `packaging`). `uv run python --version` → **Python 3.13.15**
 (`.venv/bin/python3`). No collector run.
 
-## AZ2C.Z — `.env` restore verification — **BLOCKED (depends on AZ2C.Q)**
+## AZ2C.Z — `.env` restore verification — **PASS**
 
-`/home/temckee8/Documents/REPOs/copper/.env` is **not yet restored** — the
-restore flow (`scp` the verified `dragon-env-20260909.env.gpg` from robby →
-`gpg -d` with the Human passphrase → `chmod 600` → verify sha256 ==
-`eae1c7d1d5ac82fd70ac9bc4bc644b475714b765c14d2eaa1840c0da0d8582ef` → `shred`
-the temp copy) needs SSH transport, i.e. the tailnet. The encrypted master
-backup stays on robby through AZ4. No quote-token / DXLink.
+**RESTORED — verified byte-identical.** Human ran, on robby:
+`gpg --quiet -d ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg | ssh
+dragon 'umask 077; cat > ~/…/copper/.env && chmod 600 …'` — plaintext streamed
+straight into the file over the tailnet SSH tunnel, no temp copy on either
+host. On `dragon`:
+`sha256sum ~/Documents/REPOs/copper/.env` =
+**`eae1c7d1d5ac82fd70ac9bc4bc644b475714b765c14d2eaa1840c0da0d8582ef`** ==
+Generation-0 source. `stat` → `-rw-------` `temckee8:temckee8`, 1493 bytes
+(33 lines, 13 keys — matches the AZ1c.Y inventory). `git check-ignore .env` →
+`.gitignore:34` (ignored — will not be committed). Contents never printed. The
+encrypted master backup stays on robby through AZ4. **No quote-token / DXLink
+requested.**
 
 ## AZ2C.AA — K9 state
 
@@ -2760,9 +2789,10 @@ next ~06:32 UTC — full Saturday-maintenance design is **AZ3**, not touched her
 ## AZ2C.AC — Multi-client access state
 
 ```
-robby  : NOT YET TESTED  (blocked on Tailscale enrolment — AZ2C.Q/R; keys authorized, procedure ready)
-weasel : READY / NOT YET TESTED  (weasel pubkey in authorized_keys; run from weasel after tailnet)
-robyn  : DEFERRED  (not on tailnet, no key)
+robby  : PASS  (live, StrictHostKeyChecking=yes, verified Gen-1 fingerprint, publickey over tailnet — AZ2C.R)
+weasel : READY / NOT YET TESTED  (weasel pubkey in dragon authorized_keys; weasel tailnet node active;
+         the check must be run from weasel — Human)
+robyn  : DEFERRED  (not a tailnet member, no key; to be set up before unattended AZ4/Attempt-4 work)
 ```
 
 ## AZ2C.AD — DevTestLab final state
@@ -2783,9 +2813,9 @@ VM first). Retain until AZ4 acceptance.
 
 This 0W-AZ2C section appended. Records Generation 1: exact image, actual
 Ubuntu 26.04.1, new host fingerprints, disk identities + UUID, Trusted Launch
-state, runtime versions, deployed commit `c09e8ee`, `.env` status, rollback
-disk state, and the Tailscale/SSH/`.env` remainder. No secret material (MI
-object IDs and the Tailscale key are held out).
+state, runtime versions, deployed commit `c09e8ee`, `.env` restore
+verification, Tailscale node identity, and rollback disk state. No secret
+material (MI object IDs held out; no Tailscale key was used — browser auth).
 
 ## AZ2C.AG — Repository changes
 
@@ -2812,45 +2842,48 @@ robby: master · HEAD == origin/master · working tree clean
 | `/srv/dicks_laboratory` mounted correctly | ✔ `/dev/sdc`, UUID fstab, fail-closed verified |
 | Azure ephemeral disk not used | ✔ `/mnt` labeled EPHEMERAL |
 | DevTestLab daily shutdown absent | ✔ |
-| Tailscale healthy | ✗ **not enrolled — BLOCKED (AZ2C.Q)** |
+| Tailscale healthy | ✔ node `dragon-1` `100.64.112.117`, Online, `Health []`, key-expiry disabled |
 | no public IP / NSG unchanged | ✔ / ✔ |
-| Gen-1 SSH host keys independently verified | ✔ collected via control-plane (AZ2C.P) |
-| robby SSH PASS | ✗ **BLOCKED (AZ2C.R)** |
+| Gen-1 SSH host keys independently verified | ✔ control-plane (AZ2C.P) **and** live scan (AZ2C.R) match |
+| robby SSH PASS | ✔ **PASS** (AZ2C.R) |
 | sshd baseline applied safely | ✔ |
 | multi-user.target | ✔ |
 | persistent/bounded journald | ✔ |
 | Copper fresh clone / HEAD == origin/master | ✔ `c09e8ee` |
 | `uv sync --frozen` PASS / Python 3.13 | ✔ / ✔ `3.13.15` |
-| `.env` restored byte-identical / 600 | ✗ **BLOCKED (AZ2C.Z)** |
+| `.env` restored byte-identical / 600 | ✔ **PASS** — sha256 `eae1c7d1…82ef`, `-rw-------` temckee8 |
 | K9 not installed/running | ✔ |
 | no futures collector running | ✔ |
 | old 24.04 OS disk retained | ✔ `Unattached` |
 
-**3 acceptance items blocked, all on the same root cause** (Tailscale
-enrolment needs a Human-supplied key).
+**ALL acceptance items PASS.**
 
-## AZ2C.AJ — Remaining steps to close AZ2C
+## AZ2C.AJ — Cleanup carried forward (does not block AZ2C)
 
-1. **Human:** provide a fresh single-use/ephemeral Tailscale auth key (or run
-   the enrolment). Delete the stale Gen-0 `dragon` tailnet node.
-2. **Claudine:** `az vm start dragon` → `az vm run-command` Tailscale enrol →
-   record new `100.x` + health → revoke key.
-3. **Claudine:** verify Gen-1 host key vs AZ2C.P → update robby `known_hosts` /
-   `~/.ssh/config` → `ROBBY → DRAGON GEN1 SSH: PASS`.
-4. **Claudine:** `scp` `dragon-env-20260909.env.gpg` → `gpg -d` (Human
-   passphrase) → `chmod 600` → verify sha256 `eae1c7d1…` → `shred` temp.
-5. **Claudine:** final acceptance re-check; `az vm deallocate dragon`.
-6. Then **0W-AZ2C: REBUILD COMPLETE — DRAGON GENERATION 1 READY FOR AZ3**.
+1. **Stale Gen-0 tailnet node** `dragon` (`100.103.127.127`, offline, VM object
+   already deleted) — now safe to remove (Gen-1 healthy + robby SSH PASS).
+   Human: admin console → Machines → `dragon` (kernel `6.17.0-1022-azure`,
+   last seen ~3:56 PM CDT) → ⋯ → Remove. **Do not remove the Connected
+   `dragon-1`.**
+2. **Rename `dragon-1` → `dragon`** (optional, cosmetic) — only after step 1;
+   the tailnet IP `100.64.112.117` does not change on rename, so robby's
+   `~/.ssh/config` needs no further edit.
+3. **weasel** — run the client-side SSH check from weasel against
+   `100.64.112.117` and confirm the host fingerprint vs AZ2C.P.
+4. **robyn** — enrol in the tailnet + issue a dedicated keypair; add its
+   public key to `dragon:~/.ssh/authorized_keys` before unattended AZ4 work.
+5. **Deploy key** `dragon-gen1-copper-deploy` (GitHub id 162811278, read-only)
+   — keep; it is the guest's Copper pull mechanism.
+6. Post-AZ4 acceptance: Human deletes the retained old OS disk
+   `dragon_disk1_bb48fd67…`.
 
 ---
 
 ```
-0W-AZ2C: BLOCKED — Tailscale enrolment requires a Human-supplied single-use auth key.
-         VM rebuild + Trusted Launch + disks + mount + host baseline + Copper deploy: COMPLETE.
-         Blocked acceptance items: Tailscale health, robby SSH PASS, .env restore.
+0W-AZ2C: REBUILD COMPLETE — DRAGON GENERATION 1 READY FOR AZ3
 
 OLD 24.04 OS DISK  : RETAINED (Unattached, unchanged)
 K9                 : PRESERVED / PAUSED (not installed on Gen-1)
 FUTURES COLLECTOR  : NOT STARTED
-NEXT               : Human supplies a Tailscale key → finish AZ2C.AJ steps → 0W-AZ3
+NEXT               : 0W-AZ3 — power scheduling (Sun→Fri) + futures systemd supervisor + Saturday maintenance
 ```
