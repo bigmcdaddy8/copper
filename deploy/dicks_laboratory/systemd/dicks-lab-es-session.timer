@@ -1,0 +1,19 @@
+# Fires the daily bounded ES capture at 16:55 America/Chicago on the five
+# ordinary CME trading-date launch evenings (Sun–Thu). No Friday-evening
+# launch. Persistent=false: a host that misses 16:55 (e.g. late boot) does
+# NOT launch the trading-date collector hours later — the miss stays a miss
+# and is visible as operator evidence (0W-2 Attempt-4 lesson).
+
+[Unit]
+Description=Daily Dick's Laboratory ES trading-date capture — Sun–Thu 16:55 America/Chicago
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+
+[Timer]
+OnCalendar=Sun,Mon,Tue,Wed,Thu *-*-* 16:55:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-es-session.service
+
+[Install]
+WantedBy=timers.target

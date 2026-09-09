@@ -2887,3 +2887,387 @@ K9                 : PRESERVED / PAUSED (not installed on Gen-1)
 FUTURES COLLECTOR  : NOT STARTED
 NEXT               : 0W-AZ3 — power scheduling (Sun→Fri) + futures systemd supervisor + Saturday maintenance
 ```
+
+---
+
+# Phase 0W-AZ3 — Azure Power Lifecycle + Daily Futures Session Supervision
+
+**Executed 2026-09-09 from `robby`.** Turns Generation 1 into an operational
+(but **not yet live-armed**) collection platform. No DXLink / quote-token /
+market activity. The daily collector timer is installed and validated but
+**left DISABLED** pending 0W-AZ4.
+
+## AZ3.O — Collector architecture decision
+
+```
+DAILY PROCESS PER TRADING DATE — NOT ONE MULTI-DAY PROCESS
+```
+
+Two independent lifecycles:
+
+| | Azure host | Collector |
+|---|---|---|
+| cadence | starts Sun ~15:30 CT, runs continuously, deallocates Fri ~16:45 CT, off Sat | one bounded process per ordinary CME trading date |
+| launch | Automation schedules (control-plane) | systemd timer `Sun–Thu 16:55:00 America/Chicago` |
+| span | week | 17:00 CT → next day ~16:00 CT close; process self-exits ~16:10 |
+| gap | — | ≈45 min between a completed run and the next 16:55 launch |
+| credential | — | **fresh DXLink quote token per trading date** |
+
+A multi-day collector would violate the 0W-2D credential-lifetime model
+(24 h quote-token lifetime; horizon guard = requested duration + 900 s must fit
+inside remaining token lifetime). Daily bounded processes keep that guarantee
+and isolate every outage/session.
+
+## AZ3.C — Generation-0 daily-start root cause — **IDENTIFIED**
+
+The `az automation schedule` CLI extension returned `[]` (incomplete). ARM REST
+(`.../automationAccounts/<acct>/schedules?api-version=2015-10-31`) plus the
+subscription **Activity Log** (90 d) give the definitive picture:
+
+| Gen-0 lifecycle leg | Mechanism | Evidence |
+|---|---|---|
+| **START** ~05:45 CT (10:45–10:47 UTC) Mon–Fri | Automation account **`automation-k9`**, schedule **`dragon-start-weekday`** (`frequency Week`, `timeZone America/Chicago`, weekDays [everyday-ish], **was enabled**) → runbook `automation-k9/Start-Dragon` (PowerShell 5.1, MSI ARM-REST `.../start`) | Activity Log: every weekday `Start Virtual Machine` `caller = 7738af74…` `appid = 563c2651…` = **`automation-k9` managed identity** |
+| **STOP** ~10:15 CT (15:15 UTC) Mon–Fri | guest `copper-k9-smart-shutdown.timer` → `scripts/smart_shutdown.sh` → Gen-0 guest MI `az vm deallocate` | Activity Log: every weekday `Deallocate` `caller = da55ad8d…` `appid = 6d277e79…` = **Gen-0 guest MI** |
+| STOP backstop | DevTestLab `shutdown-computevm-dragon` 06:08 UTC | (rarely reached; VM already down) |
+| a disabled sibling | `automation-k9/dragon-start-saturday` (Saturday 10:45 CT) — `isEnabled: false` | ARM REST |
+
+`automation-dragon`'s `Start-Dragon` runbook existed but had **no schedule** —
+never wired up.
+
+## AZ3.D — Competing-trigger cleanup
+
+- **`automation-k9/dragon-start-weekday`** — `PATCH isEnabled=false` (ARM REST).
+  Re-verified: both `automation-k9` dragon schedules now `isEnabled: false`.
+- The Gen-0 **guest stop** (`copper-k9-smart-shutdown`) — already gone (fresh
+  26.04 OS disk; not installed — 0W-AZ2C / `deploy/k9/PRESERVED.md`).
+- The **DevTestLab 06:08 UTC** schedule — already deleted (0W-AZ2C).
+- **RBAC declaw:** after the VM delete/recreate the old VM-scoped `Virtual
+  Machine Contributor` grants to the Automation SPs did **not** survive — `az
+  role assignment list --scope <Gen-1 VM>` = `[]`. So even if a stale k9
+  schedule fired, its MI has no permission to start Gen-1 `dragon`. Both
+  belt (disabled) and suspenders (no RBAC) are in place.
+
+```
+OLD DAILY START TRIGGER: IDENTIFIED (automation-k9/dragon-start-weekday → automation-k9/Start-Dragon) — DISABLED + RBAC-incapable
+```
+
+## AZ3.E — Authoritative Automation account
+
+```
+automation-dragon : AUTHORITATIVE POWER CONTROLLER for the dragon futures host
+automation-k9      : NOT used for dragon futures power (its Start-Dragon + 2 schedules left disabled/unlinked; K9's own account otherwise untouched)
+```
+
+- `automation-dragon` MI principal `0c24e4c8…`.
+- **New RBAC grant (AZ3):** `Virtual Machine Contributor` scoped **exactly to
+  the `dragon` VM resource** (`az role assignment create --assignee-object-id
+  <MI> --role "Virtual Machine Contributor" --scope <dragon VM id>`). This is
+  the minimum needed for start/stop.
+- Its pre-existing `Classic Virtual Machine Contributor` @ RG (deprecated ASM,
+  grants nothing on ARM VMs) was **removed** as redundant (least privilege).
+- `automation-k9` MI holds **no** role assignment on `dragon` (nothing to
+  remove there).
+- **Guest MI:** the Generation-1 guest managed identity has **zero** role
+  assignments and is granted **none** — power control lives entirely in the
+  control plane (no guest self-deallocation).
+
+## AZ3.F — Start-Dragon runbook
+
+`deploy/azure/automation/Start-Dragon.ps1` → published to
+`automation-dragon` (PowerShell 7.2, `state: Published`). Replaces the prior
+3-line stub. Behaviour: `Connect-AzAccount -Identity` → read `PowerState` → if
+`running`, log **no-op success and return**; else `Start-AzVM`, re-read
+`PowerState`, **throw** unless `running`, emit `Start-Dragon: OK (before ->
+after)`. No secret, no webhook, no guest dependency; idempotent.
+
+## AZ3.G — Stop-Dragon runbook
+
+`deploy/azure/automation/Stop-Dragon.ps1` → newly created + published to
+`automation-dragon` (PowerShell 7.2). Symmetric to Start-Dragon: if already
+`deallocated`, no-op success; else `Stop-AzVM -Force`, verify
+`PowerState/deallocated`, else throw. **Host scheduling only** — it does not
+inspect or kill the collector; Friday timing (16:45 CT) is ~35 min after the
+collector's expected clean exit (~16:10 CT), which must already have happened.
+
+## AZ3.H — Sunday start schedule
+
+| | |
+|---|---|
+| name | `dicks-futures-dragon-start` (in `automation-dragon`) |
+| frequency / interval | `Week` / 1 |
+| weekDays | `["Sunday"]` |
+| **timeZone** | **`America/Chicago`** (named tz — DST follows Chicago, **no fixed UTC**) |
+| isEnabled | `true` |
+| linked runbook | `Start-Dragon` (jobSchedule `0ab59016-…`) |
+| nextRun (local) | `2026-09-13T15:30:00-05:00` → **Sun 15:30 CT** |
+| nextRun (UTC) | `2026-09-13T20:30:00Z` |
+
+## AZ3.I — Friday stop schedule
+
+| | |
+|---|---|
+| name | `dicks-futures-dragon-stop` (in `automation-dragon`) |
+| frequency / interval | `Week` / 1 |
+| weekDays | `["Friday"]` |
+| **timeZone** | **`America/Chicago`** |
+| isEnabled | `true` |
+| linked runbook | `Stop-Dragon` (jobSchedule `78720c51-…`) |
+| nextRun (local) | `2026-09-11T16:45:00-05:00` → **Fri 16:45 CT** |
+| nextRun (UTC) | `2026-09-11T21:45:00Z` |
+
+**DST proof:** the schedules store `timeZone: America/Chicago` (not a UTC
+constant); Azure Automation recomputes the local trigger each week, so after
+the 2026-11-02 CDT→CST transition the same schedules fire at 15:30 / 16:45 CST
+(21:30 / 22:45 UTC). No daily Azure shutdown; no guest self-deallocation.
+
+## AZ3.J — Runbook / schedule links
+
+`.../jobSchedules` on `automation-dragon`:
+```
+dicks-futures-dragon-start  -> Start-Dragon   (0ab59016-a1bc-4097-ab1e-d760e912e2dc)
+dicks-futures-dragon-stop   -> Stop-Dragon    (78720c51-af4e-4e49-8aee-382941274307)
+```
+
+## AZ3.K — Start manual test
+
+Submitted `Start-Dragon` as an on-demand Automation job while the VM was
+**running**. Job → `Completed`. Output:
+```
+Start-Dragon: initial PowerState = PowerState/running
+Start-Dragon: already running -- no-op success.
+```
+VM stayed `PowerState/running`; guest `uptime` unchanged → **no accidental
+restart**. (A from-`deallocated` start + timing is exercised in AZ3.N.)
+
+## AZ3.L — Stop manual test
+
+(Performed at phase end — see AZ3.N.)
+
+## AZ3.M — Start / Stop idempotence
+
+- Start-Dragon while running → no-op success (AZ3.K).
+- Stop-Dragon while deallocated → no-op success (AZ3.N).
+
+## AZ3.N — Data-disk persistence across Automation deallocate/restart + Stop/Start tests
+
+Sequence (phase end, no market connection):
+1. `Stop-Dragon` (VM running) → job `Completed`, `PowerState/deallocated`.
+2. `Stop-Dragon` again (already deallocated) → `Completed`, "already
+   deallocated -- no-op success", still `deallocated`.
+3. `Start-Dragon` (from deallocated) → job `Completed`, `PowerState/running`;
+   measured runbook-start → VM-running → Tailscale-online → SSH-available.
+4. Post-boot guest checks: `/srv/dicks_laboratory` auto-mounted, **same FS
+   UUID `890b7de2-a7e1-4650-a7c9-464124698b29`**, `data/ logs/ forensic/`
+   intact, no failed units.
+5. `Stop-Dragon` → `deallocated` (final phase-end state).
+
+*(Results filled in by the AZ3.N test run — see handoff for measured values.)*
+
+## AZ3.P — Canonical collector command
+
+Audited against `scripts/dicks_lab_collect_es.py` (`--help`) and the accepted
+Attempt-3 / Attempt-4 units (`FULL_SESSION_MULTIDAY_SOAK_REPORT.md`
+§DD / §HE / §2351):
+
+```
+uv run --frozen python scripts/dicks_lab_collect_es.py \
+    --duration 83700 \
+    --data-dir /srv/dicks_laboratory/data/sessions
+```
+
+- `--duration 83700` — canonical (23 h 15 m). `83700 + 900` (horizon-guard
+  margin `_QUOTE_TOKEN_HORIZON_MARGIN_SECONDS`) `= 84600`; fresh ~24 h token
+  `≈ 86400` → **~1800 s initial headroom** (unchanged 0W-2D design).
+- `--symbol` — omitted → default `/ESU6`; the script rejects anything else and
+  resolves it against live futures metadata to `/ESU26:XCME`
+  (`_ES_STREAMER_SYMBOL`).
+- `--max-reconnect-attempts` (5), `--max-events` (1_000_000) — defaults,
+  unchanged (disconnect fuse / writer / retry model per 0W-2B / 0W-2D).
+- **Dropped:** the robby-era `systemd-inhibit --what=sleep:idle` wrapper —
+  dragon is a headless server VM with no sleep/suspend (0W-AZ2C.T).
+- **`--data-dir`** overridden from the repo-local default to
+  **`/srv/dicks_laboratory/data/sessions`** (persistent managed disk). No
+  phase-specific `0w2_attempt4` name in the permanent unit — AZ4 / formal
+  Attempt-4 use explicit override dirs.
+- **No collector semantics changed** — retry/token/writer/integrity untouched.
+  No production Python change in AZ3.
+
+## AZ3.Q — Systemd service — `dicks-lab-es-session.service`
+
+`deploy/dicks_laboratory/systemd/dicks-lab-es-session.service`, installed at
+`/etc/systemd/system/` (system-level; **not** `--user`, no linger, no
+`systemd-inhibit`, no session/GUI owner).
+
+| Setting | Value | Why |
+|---|---|---|
+| `Type` | `simple` | matches accepted soak units |
+| `User` / `Group` | `temckee8` | AZ2A.23 initial decision (repo owner; service acct is post-0W-4) |
+| `WorkingDirectory` | `/home/temckee8/Documents/REPOs/copper` | |
+| `Environment=PATH` | includes `/home/temckee8/.local/bin` | locate `uv` |
+| `RequiresMountsFor` + `ConditionPathIsMountPoint` | `/srv/dicks_laboratory` | fail-closed |
+| `AssertPathExists` | `…/copper/.env` | fail-closed on missing creds |
+| `ExecStartPre` (1) | `/usr/bin/mountpoint -q /srv/dicks_laboratory` | runtime mount proof |
+| `ExecStartPre` (2) | `.env` is `600` and owned `temckee8` | runtime cred proof (no secret printed) |
+| `ExecStart` | `…/uv run --frozen python scripts/dicks_lab_collect_es.py --duration 83700 --data-dir /srv/dicks_laboratory/data/sessions` | canonical (AZ3.P), absolute `uv` |
+| `KillSignal` / `TimeoutStopSec` | `SIGINT` / `180` | graceful finalize (accepted pattern) |
+| `RuntimeMaxSec` | `84300` | launch 16:55 + 83700 → collector self-exit ~16:10; systemd SIGINT backstop ~16:20, SIGKILL ~16:23 — **≥30 min before the next 16:55 launch**; the unit can never overlap the next trading date |
+| `Restart` | `no` | a fatal collector exit stays **failed** — no late relaunch masquerading as a complete session (0W-2 Attempt-4 lesson). Transient DXLink reconnects are handled inside the collector. |
+| `MemoryAccounting` | `yes` | metrics |
+| `[Install]` | **absent** | started only by the timer |
+
+`systemd-analyze verify` → clean.
+
+## AZ3.R — Systemd timer — `dicks-lab-es-session.timer`
+
+`deploy/dicks_laboratory/systemd/dicks-lab-es-session.timer`, installed at
+`/etc/systemd/system/`.
+
+```
+OnCalendar=Sun,Mon,Tue,Wed,Thu *-*-* 16:55:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-es-session.service
+[Install] WantedBy=timers.target
+```
+
+`systemd-analyze calendar` (on the host) → normalized `Mon..Thu,Sun *-*-*
+16:55:00 America/Chicago`; next 6 occurrences all **16:55 CT (21:55 UTC CDT)**,
+Sun/Mon/Tue/Wed/Thu, **no Fri/Sat**. DST spot check:
+`2026-11-16 16:55 America/Chicago` → `22:55 UTC` (CST) — tz-name semantics
+follow DST. `RandomizedDelaySec=0`, `AccuracySec=1s` → predictable ~16:55
+start (a few seconds of systemd latency accepted).
+
+## AZ3.S — Missed-launch semantics
+
+```
+MISSED TIMER: remains missed — operator evidence — NO late launch
+```
+
+`Persistent=false` (no catch-up). If `dragon` boots late and 16:55 CT has
+already passed, systemd does **not** fire the daily collector hours later. A
+missed trading date stays visibly missed rather than producing a truncated
+"full-session" dataset (0W-2 Attempt-4 lesson).
+
+## AZ3.T — Fail-closed mount test
+
+| Test | Result |
+|---|---|
+| data disk mounted → `systemctl start` (harmless `sleep` drop-in, real preconditions) | `active (running)`; `ExecStartPre=mountpoint -q` exit 0 — **PASS** |
+| data disk genuinely unavailable (`srv-dicks_laboratory.mount` masked + unmounted) → `systemctl start` | **`ActiveState=inactive`, `ConditionResult=no`** — journal: *"skipped, unmet condition check ConditionPathIsMountPoint=/srv/dicks_laboratory"* — **service refused to run the collector — PASS** |
+| mount restored → `systemctl start` | runs again — **PASS** |
+
+(Test performed with a temporary `ExecStart=/bin/sleep` drop-in; **no live
+collector, no market connection**. Drop-in removed; real `ExecStart` restored;
+`systemd-analyze verify` clean.)
+
+## AZ3.U — Overlap / restart policy
+
+- **Overlap:** a single `.service` unit — `systemctl start` while already
+  `active` is a no-op. Tested: `MainPID` unchanged, exactly one process —
+  **PASS**. No second lock mechanism added.
+- **Restart:** `Restart=no`. A daily full-session collector that exits fatally
+  must **stay failed** (truthful dataset evidence, no misleading late partial).
+  The collector owns transient DXLink reconnects internally
+  (`--max-reconnect-attempts 5`).
+
+## AZ3.V — Collector timer final state
+
+```
+dicks-lab-es-session.timer   : enabled=disabled   active=inactive
+dicks-lab-es-session.service : (static — timer-only)   ActiveState=inactive
+```
+
+Installed + fully validated, **left DISABLED / INACTIVE**. 0W-AZ4 arms it
+(enable the timer, or a bounded verification override). AZ3 must not let
+Sunday auto-produce an unreviewed live dataset.
+
+## AZ3.W — Automatic-update policy
+
+Disabled on `dragon` (smallest set to stop spontaneous package mutation during
+Sun→Fri capture):
+
+| Unit | Action |
+|---|---|
+| `apt-daily.timer`, `apt-daily-upgrade.timer` | `disable --now` |
+| `apt-daily.service`, `apt-daily-upgrade.service` | `mask` |
+| `unattended-upgrades.service` | `disable --now` |
+| `update-notifier-download.timer`, `motd-news.timer` | `disable --now` |
+
+`systemctl list-timers` → no apt/upgrade timers remain. **Kept working:**
+`walinuxagent`, `tailscaled`, time sync, `fstrim.timer`.
+`/etc/apt/apt.conf.d/20auto-upgrades` left unmodified (restore = re-enable the
+timers). `needrestart` is installed but only acts during an apt run → dormant
+while apt automation is off. Security updates move to the **Saturday
+Maintenance Procedure** (`deploy/dicks_laboratory/SATURDAY_MAINTENANCE.md`) —
+operator-initiated for the reliability-proving period; automation is a
+post-0W-4 hardening step.
+
+## AZ3.X — Saturday Maintenance Procedure
+
+New: `deploy/dicks_laboratory/SATURDAY_MAINTENANCE.md` — power on manually,
+verify data mount by UUID / disk space / failed units / time sync / Tailscale,
+`apt-get update && NEEDRESTART_MODE=a apt-get -y full-upgrade`, reboot if
+required, optional explicit Copper `ff-only` + `uv sync --frozen`, re-verify,
+`az vm deallocate`. Includes the exact restore commands for every unit AZ3
+disabled, and the Azure `/dev/sdX`-instability warning.
+
+## AZ3.Y — Tailscale Gen-0 cleanup
+
+Not an AZ3 blocker. The Generation-1 node `dragon-1` `100.64.112.117` is
+healthy; the stale Gen-0 `dragon` `100.103.127.127` (offline, VM deleted) may
+be removed by Human in the admin console, with optional `dragon-1 → dragon`
+rename (IP unchanged on rename; robby `~/.ssh/config` needs no edit).
+
+## AZ3.Z — Weasel access
+
+`WEASEL → DRAGON GEN1: NOT YET TESTED`. weasel's pubkey
+`SHA256:0OnoIpOb4a9jUH6hm7DDOqc3h1E5+y5G3dEXeZHrEnk` is in `dragon`'s
+`authorized_keys` and the `weasel` tailnet node is active; the check must run
+**from weasel**. To confirm before AZ4: `ssh -o StrictHostKeyChecking=accept-new
+temckee8@100.64.112.117 'hostname'` then `ssh-keygen -lf` the offered host key
+vs ED25519 `SHA256:3pirEF7Ey1G79JwcP9X8zY/fSuPv2sbSjHHLN66r4Rk`.
+
+## AZ3.AA — Robyn access (instructions for Human, deferred)
+
+1. Join `robyn` to the existing tailnet (`tailscale up`, browser auth).
+2. `ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_dragon -C "robyn-to-dragon"` —
+   **private key stays on robyn**.
+3. Send only `~/.ssh/id_ed25519_dragon.pub` + its `ssh-keygen -lf` fingerprint.
+4. Append that public key to `dragon:~/.ssh/authorized_keys` (mode 600).
+5. From robyn: `ssh -o StrictHostKeyChecking=accept-new
+   temckee8@100.64.112.117 'hostname'`; verify the offered ED25519 host key ==
+   `SHA256:3pirEF7Ey1G79JwcP9X8zY/fSuPv2sbSjHHLN66r4Rk` before trusting.
+
+Deferred through AZ3; **must** be completed before unattended
+Attempt-4 / 0W-4 work.
+
+## AZ3.AB — Files added / changed
+
+| Path | |
+|---|---|
+| `deploy/dicks_laboratory/systemd/dicks-lab-es-session.service` | new |
+| `deploy/dicks_laboratory/systemd/dicks-lab-es-session.timer` | new |
+| `deploy/azure/automation/Start-Dragon.ps1` | new (source of the published runbook) |
+| `deploy/azure/automation/Stop-Dragon.ps1` | new |
+| `deploy/dicks_laboratory/SATURDAY_MAINTENANCE.md` | new |
+| `docs/dicks_laboratory/AZURE_COLLECTION_HOST_MIGRATION.md` | this section |
+
+No production Python / collector code changed.
+
+## AZ3.AG — Old 24.04 OS disk
+
+`dragon_disk1_bb48fd67c68342b4b4596a45879297f9` — **retained, `Unattached`,
+unchanged.** Retention continues through 0W-AZ4.
+
+---
+
+```
+0W-AZ3: OPERATIONAL FOUNDATION COMPLETE — READY FOR AZ4 LIVE VERIFICATION
+
+AZURE SUN→FRI POWER            : ARMED  (dicks-futures-dragon-start Sun 15:30 CT / dicks-futures-dragon-stop Fri 16:45 CT, America/Chicago, via automation-dragon)
+DAILY FUTURES COLLECTOR TIMER  : INSTALLED / VALIDATED / DISABLED
+LIVE FUTURES COLLECTION        : NOT STARTED
+OLD 24.04 OS DISK              : RETAINED
+NEXT                          : 0W-AZ4 — short live Azure collector verification
+```

@@ -1,0 +1,54 @@
+# Dick's Laboratory — one bounded ES TimeAndSale capture per ordinary CME
+# trading date. Launched ONLY by dicks-lab-es-session.timer (Sun–Thu 16:55
+# America/Chicago). Not a multi-day process: each trading date gets a fresh
+# process and a fresh DXLink quote token (0W-2D credential-lifetime model).
+#
+# Canonical command lineage: 0W-2 Attempt 3 / Attempt 4 accepted units
+# (FULL_SESSION_MULTIDAY_SOAK_REPORT.md §DD / §HE) — `--duration 83700`
+# (23h15m), horizon guard + 900s = 84600s, fresh ~24h token ⇒ ~1800s headroom.
+# The robby-era `systemd-inhibit --what=sleep:idle` wrapper is intentionally
+# dropped: dragon is a headless server VM with no sleep/suspend behaviour.
+#
+# System-level unit (NOT `systemctl --user`, no linger, no GUI/session owner).
+
+[Unit]
+Description=Dick's Laboratory — one bounded ES trading-date TimeAndSale capture
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+Wants=network-online.target
+After=network-online.target time-sync.target srv-dicks_laboratory.mount
+RequiresMountsFor=/srv/dicks_laboratory
+ConditionPathIsMountPoint=/srv/dicks_laboratory
+AssertPathExists=/home/temckee8/Documents/REPOs/copper/.env
+
+[Service]
+Type=simple
+User=temckee8
+Group=temckee8
+WorkingDirectory=/home/temckee8/Documents/REPOs/copper
+Environment=HOME=/home/temckee8
+Environment=PATH=/home/temckee8/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MemoryAccounting=yes
+
+# Fail-closed preconditions (data disk must be mounted; .env must be 600/temckee8).
+ExecStartPre=/usr/bin/mountpoint -q /srv/dicks_laboratory
+ExecStartPre=/usr/bin/bash -c 'f=/home/temckee8/Documents/REPOs/copper/.env; test -f "$f" && [ "$(stat -c %%a "$f")" = 600 ] && [ "$(stat -c %%U "$f")" = temckee8 ]'
+
+# One bounded trading-date capture. Fresh quote token acquired inside the process.
+ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_collect_es.py --duration 83700 --data-dir /srv/dicks_laboratory/data/sessions
+
+# Graceful shutdown (matches accepted soak units).
+KillSignal=SIGINT
+TimeoutStopSec=180
+
+# Hard ceiling: launch 16:55 CT + 83700s → collector self-exits ~16:10 next day
+# (session close is usually earlier, ~16:00). 84300s ⇒ systemd SIGINT backstop
+# ~16:20; +TimeoutStopSec ⇒ SIGKILL ~16:23 — comfortably before the next 16:55
+# launch. The unit can never overlap the next trading date's process.
+RuntimeMaxSec=84300
+
+# A fatal collector exit must stay failed — NO late catch-up relaunch that
+# would masquerade as a complete session (0W-2 Attempt-4 lesson). Transient
+# DXLink reconnects are handled inside the collector, not by systemd.
+Restart=no
+
+# No [Install]: this service is started only by dicks-lab-es-session.timer.
