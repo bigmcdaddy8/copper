@@ -3041,27 +3041,44 @@ restart**. (A from-`deallocated` start + timing is exercised in AZ3.N.)
 
 ## AZ3.L — Stop manual test
 
-(Performed at phase end — see AZ3.N.)
+`Stop-Dragon` submitted as an on-demand job while the VM was **running** →
+output `Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)`; VM
+reached `PowerState/deallocated`. **PASS.**
 
 ## AZ3.M — Start / Stop idempotence
 
-- Start-Dragon while running → no-op success (AZ3.K).
-- Stop-Dragon while deallocated → no-op success (AZ3.N).
+- **Start-Dragon while running** → job `Completed`, "already running -- no-op
+  success"; VM unchanged, guest `uptime` unchanged (no restart). **PASS.**
+- **Stop-Dragon while deallocated** → job `Completed`, "already deallocated --
+  no-op success"; VM stays `deallocated`. **PASS.**
 
-## AZ3.N — Data-disk persistence across Automation deallocate/restart + Stop/Start tests
+## AZ3.N — Data-disk persistence across Automation deallocate/restart
 
-Sequence (phase end, no market connection):
-1. `Stop-Dragon` (VM running) → job `Completed`, `PowerState/deallocated`.
-2. `Stop-Dragon` again (already deallocated) → `Completed`, "already
-   deallocated -- no-op success", still `deallocated`.
-3. `Start-Dragon` (from deallocated) → job `Completed`, `PowerState/running`;
-   measured runbook-start → VM-running → Tailscale-online → SSH-available.
-4. Post-boot guest checks: `/srv/dicks_laboratory` auto-mounted, **same FS
-   UUID `890b7de2-a7e1-4650-a7c9-464124698b29`**, `data/ logs/ forensic/`
-   intact, no failed units.
-5. `Stop-Dragon` → `deallocated` (final phase-end state).
+Full sequence executed at phase end (no market connection):
 
-*(Results filled in by the AZ3.N test run — see handoff for measured values.)*
+| Step | Result |
+|---|---|
+| `Stop-Dragon` (VM running) | `running -> deallocated` — **PASS** |
+| `Stop-Dragon` again | "already deallocated -- no-op success" — **PASS** (idempotent) |
+| `Start-Dragon` (from deallocated) | `deallocated -> running` — **PASS** |
+| timing: job submit → `PowerState/running` | **≈ 2 min 16 s** (22:15:17Z → 22:17:33Z) |
+| timing: job submit → SSH available over tailnet | **≈ 2 min 21 s** (SSH_UP 22:17:38Z) — the persistent Tailscale node reconnects within seconds of boot |
+| post-restart: `/srv/dicks_laboratory` auto-mounted | **yes** — `findmnt` → ext4, **UUID `890b7de2-a7e1-4650-a7c9-464124698b29`** (unchanged), 250.9 G |
+| post-restart: `data/ logs/ forensic/ data/sessions/` | intact, owned `temckee8`; write+delete probe as `temckee8` OK |
+| post-restart: `systemctl --failed` | none |
+| post-restart: collector timer | still `disabled` / `inactive` |
+| post-restart: apt automation | still `disabled` / masked (survives reboot) |
+| post-restart: time sync / Tailscale | `synchronized: yes`, `NTP: active`; node `100.64.112.117` online |
+| `Stop-Dragon` (final) | `running -> deallocated` — **PASS** (phase-end state) |
+
+The UUID-based fstab entry made the data disk reattach correctly despite the
+Azure `/dev/sdX` letter shuffling between boots (data disk seen as `/dev/sdc`
+at rebuild, `/dev/sda` here). **Persistent-disk behaviour across Azure
+deallocate/reallocate: PROVEN.**
+
+*(This margin comfortably fits the schedule: the Sunday `Start` fires 15:30 CT,
+~85 min before the collector timer's 16:55 CT launch and ~90 min before the
+17:00 CT open.)*
 
 ## AZ3.P — Canonical collector command
 
@@ -3212,12 +3229,13 @@ required, optional explicit Copper `ff-only` + `uv sync --frozen`, re-verify,
 `az vm deallocate`. Includes the exact restore commands for every unit AZ3
 disabled, and the Azure `/dev/sdX`-instability warning.
 
-## AZ3.Y — Tailscale Gen-0 cleanup
+## AZ3.Y — Tailscale Gen-0 cleanup — **DONE (by Human)**
 
-Not an AZ3 blocker. The Generation-1 node `dragon-1` `100.64.112.117` is
-healthy; the stale Gen-0 `dragon` `100.103.127.127` (offline, VM deleted) may
-be removed by Human in the admin console, with optional `dragon-1 → dragon`
-rename (IP unchanged on rename; robby `~/.ssh/config` needs no edit).
+Human removed the stale Gen-0 `dragon` node and the Generation-1 node is now
+the sole `dragon` at **`100.64.112.117`** (rename did not change the IP; robby
+`~/.ssh/config` `Host dragon` still resolves correctly and SSH is unaffected —
+re-verified during the AZ3.N power-cycle). `100.103.127.127` no longer appears
+in the tailnet.
 
 ## AZ3.Z — Weasel access
 
