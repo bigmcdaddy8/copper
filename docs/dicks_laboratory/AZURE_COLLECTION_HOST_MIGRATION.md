@@ -1592,7 +1592,7 @@ sudo apt-get install -y --no-install-recommends git curl ca-certificates sqlite3
 curl -LsSf https://astral.sh/uv/install.sh | sh          # -> ~/.local/bin/uv
 uv python install 3.13                                    # Copper's canonical Python line
 # project deps
-cd ~/Documents/REPOs/copper && uv sync --frozen           # uv.lock is authoritative
+cd ~/Documents/REPOs/copper && uv sync --frozen --all-packages   # --all-packages required: the workspace root is empty; deps live in apps/*
 ```
 
 - **Python:** whatever `copper/pyproject.toml` / `.python-version` pins
@@ -1690,7 +1690,7 @@ Proposed: a **Saturday** control-plane job (or a first-boot Sunday pre-open
 step) that, on a *separate* short boot:
 
 - `apt-get update && apt-get -y full-upgrade`; reboot if `/var/run/reboot-required`;
-- optional Copper redeploy (`git fetch` + fast-forward + `uv sync --frozen`) —
+- optional Copper redeploy (`git fetch` + fast-forward + `uv sync --frozen --all-packages`) —
   explicit, logged, never during a session;
 - host validation (disk free, data mount, `uv sync` clean, credential presence);
 - deallocate again until the Sunday start.
@@ -2379,7 +2379,7 @@ az vm run-command invoke … --scripts "for k in ed25519 ecdsa rsa; do ssh-keyge
 # ---- STEP 8 — Copper deploy ----
 git clone git@github.com:bigmcdaddy8/copper.git ~/Documents/REPOs/copper   # via new read-only deploy key
 cd ~/Documents/REPOs/copper && git rev-parse HEAD  # == origin/master ; status --porcelain empty
-uv sync --frozen
+uv sync --frozen --all-packages
 
 # ---- STEP 9 — credential restore ----
 scp ~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg dragon:/tmp/
@@ -3225,7 +3225,7 @@ post-0W-4 hardening step.
 New: `deploy/dicks_laboratory/SATURDAY_MAINTENANCE.md` — power on manually,
 verify data mount by UUID / disk space / failed units / time sync / Tailscale,
 `apt-get update && NEEDRESTART_MODE=a apt-get -y full-upgrade`, reboot if
-required, optional explicit Copper `ff-only` + `uv sync --frozen`, re-verify,
+required, optional explicit Copper `ff-only` + `uv sync --frozen --all-packages`, re-verify,
 `az vm deallocate`. Includes the exact restore commands for every unit AZ3
 disabled, and the Azure `/dev/sdX`-instability warning.
 
@@ -3288,4 +3288,283 @@ DAILY FUTURES COLLECTOR TIMER  : INSTALLED / VALIDATED / DISABLED
 LIVE FUTURES COLLECTION        : NOT STARTED
 OLD 24.04 OS DISK              : RETAINED
 NEXT                          : 0W-AZ4 — short live Azure collector verification
+```
+
+---
+
+# Phase 0W-AZ4 — Short Live Azure Collector Verification
+
+**SHORT LIVE AZURE VERIFICATION — NOT A FULL-SESSION PROOF.** First authorized
+live futures/DXLink activity on `dragon` Generation 1. 2-hour bounded run of
+the real production `systemd` service (temporary `/run`-only override), on a
+partial window of CME trading date **2026-09-10**. Executed 2026-09-09
+22:38–00:38 UTC from `robby`.
+
+## AZ4.A — AZ3 acceptance
+`0W-AZ3: ACCEPTED / CLOSED`. Foundation as recorded in the AZ3 section.
+
+## AZ4.B — Dragon start / host health
+`automation-dragon/Start-Dragon` (on-demand job) → `deallocated → running`,
+job `Completed`. Submit `22:34:22Z` → SSH over tailnet `22:36:45Z` ≈ **2 min
+23 s**. Guest: Ubuntu 26.04.1, kernel `7.0.0-1012-azure`; `/srv/dicks_laboratory`
+auto-mounted (ext4, **UUID `890b7de2-a7e1-4650-a7c9-464124698b29`**, 239 G
+free); `systemctl --failed` none; clock synchronized / NTP active; Tailscale
+node `100.64.112.117` online; collector timer `disabled/inactive`.
+
+## AZ4.C — Repo / commit
+robby + dragon both `master` @ **`f8ef3401bfbbe27e9b3a76d66a8ed05953d977ad`**
+== `origin/master`, working trees clean. This is the AZ4 collector commit
+(also recorded in the dataset's `collector_git_commit`).
+
+## AZ4.D — Production unit integrity
+`/etc/systemd/system/dicks-lab-es-session.{service,timer}` verified
+byte-identical to `deploy/dicks_laboratory/systemd/` **before** and **after**
+the run:
+- service `sha256 b48f39db2a74fc9635e64f87d970e9d76dc20d937bb4da58bb7add2794ffbe08`
+- timer `sha256 eebe8a9ce01ed7afe602aea6b044d56704f7ca1cd0e284dd64b8ff3a02cb60e5`
+
+## AZ4.E — Safe preflight
+`uv run --frozen python scripts/dicks_lab_preflight.py` →
+`rest_reachable=true`, `futures_endpoint_usable=true count=539`,
+`symbol_/ESU6_resolves=true`,
+`streamer_symbol_matches_/ESU26:XCME=true`, **`quote_token_requested=false`**,
+`PREFLIGHT_RESULT=PASS` (exit 0). No DXLink quote token requested.
+
+**Deployment gap found + fixed (not a code defect):** the first preflight
+attempt failed `ModuleNotFoundError: No module named 'typer'` — the AZ2C/AZ3
+`uv sync --frozen` had installed only the **empty workspace root** + dev group,
+not the workspace members (`apps/K9`, `apps/dicks_laboratory`, …) whose
+dependencies (`typer`, `python-dotenv`, `websockets`, …) the collector needs.
+Corrected with **`uv sync --frozen --all-packages`** (66 packages); preflight
+then passed. The deploy docs (`SATURDAY_MAINTENANCE.md`, AZ2A/AZ2C/AZ3 bootstrap
+steps) now specify `--all-packages`. No collector source changed; the tracked
+`ExecStart` (`uv run --frozen …`) is unchanged and correct once the venv is
+synced.
+
+## AZ4.F — AZ4 runtime override
+`/run/systemd/system/dicks-lab-es-session.service.d/az4-override.conf`
+(RUNTIME ONLY — `/run`, not `/etc`, cleared by reboot / `systemctl revert`):
+```
+[Service]
+ExecStart=
+ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_collect_es.py --duration 7200 --data-dir /srv/dicks_laboratory/data/az4_live_verification
+RuntimeMaxSec=7800
+```
+Every other production property **inherited unchanged**: `User=temckee8`,
+`WorkingDirectory`, `RequiresMountsFor`, `ConditionPathIsMountPoint`,
+`ExecStartPre` mount/`.env` checks, `KillSignal=SIGINT`, `TimeoutStopSec=180`,
+`Restart=no`, `MemoryAccounting=yes`. `systemd-analyze verify` clean;
+effective `RuntimeMaxUSec=2h 10min`, `KillSignal=2`, `Restart=no`. Tracked
+`/etc` unit byte-unchanged (sha256 as AZ4.D). *(An initial override had a
+non-parseable empty `RuntimeMaxSec=` reset line — scalar directives can't be
+reset that way; corrected to a single `RuntimeMaxSec=7800`.)*
+
+## AZ4.G — Live collector start
+`sudo systemctl start dicks-lab-es-session.service` — first authorized live
+execution. `ActiveState=active`, `SubState=running`,
+`ExecMainStartTimestamp = 2026-09-09 22:38:49 UTC` (17:38:49 CDT). Process
+tree: `uv run` supervisor (pid 2299) → **one** `.venv/bin/python3
+scripts/dicks_lab_collect_es.py --duration 7200 --data-dir …/az4_live_verification`
+(pid 2303), cwd `/home/temckee8/Documents/REPOs/copper`, `User=temckee8`.
+Exactly one collector process.
+
+## AZ4.H — Quote-token evidence
+From the collector's own safe observability line:
+```
+fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=false
+quote_token_issued_at=2026-09-09T13:55:01.439Z  quote_token_expires_at=2026-09-10T13:55:01.439Z
+quote_token_remaining_seconds=54971
+```
+- **Requested by the live collector at its own startup** — the preflight had
+  logged `quote_token_requested=false` and does not touch the token endpoint,
+  so it was **not inherited from preflight**.
+- `remaining ≈ 54,971 s (~15.3 h)`; required horizon = `7200 + 900 = 8100 s`
+  → **~46,871 s margin**. The token API returned the Tastytrade account's
+  current standing 24 h token (issued earlier the same day) — the documented
+  0W-2C account-level lifetime behaviour; for a 2 h run the guard passes with
+  vast headroom. Token value never printed.
+
+## AZ4.I — DXLink connection
+Quality events: **CAPTURE_STARTED** `2026-09-09T22:38:50.523Z` →
+**SOURCE_CONNECTED** `2026-09-09T22:38:51.667Z` (~1.1 s to connect) → first
+retained trade `dataset_sequence 1`, `event_timestamp
+2026-09-09T22:38:58.292Z`, `received_at 2026-09-09T22:38:58.307Z`, `source_order
+1`.
+
+## AZ4.J — Dataset identity
+| | |
+|---|---|
+| `dataset_id` | `f6553efa-30e3-4410-b49d-b659a36b9048` |
+| label | `long-horizon-es-2026-09-10` |
+| instrument | `FUTURE:CME:ES:2026-09` |
+| requested symbol / resolved streamer | `/ESU6` → `/ESU26:XCME` |
+| `trading_date` | `2026-09-10` |
+| `collector_git_commit` | `f8ef3401bfbbe27e9b3a76d66a8ed05953d977ad` |
+| `normalizer_version` | `phase-0v-serious-collection-v1` |
+| database | `/srv/dicks_laboratory/data/az4_live_verification/es_20260910_f6553efa.sqlite3` |
+| `capture_started_at` / `capture_ended_at` | `2026-09-09T22:38:50.523Z` / `2026-09-10T00:38:50.858Z` |
+
+## AZ4.K — Capture window
+`17:38:50 CT → 19:38:50 CT` = **2 h 0 m 0.3 s**. CME Globex reopened
+17:00 CT — the run **began ~38 min after the session anchor**, so this is a
+**PARTIAL-WINDOW** capture of trading date 2026-09-10, **not full-session
+coverage** (17:00 CT→16:00 CT). Not evaluated for completeness.
+
+## AZ4.L — Event counts
+accepted **10,914** · deferred **0** · rejected **0** · known_gap **0** ·
+suspected_gap **0** · reconnect **0**. `event_classification`: 10,914 × `NEW`.
+`aggressor_side`: BUY 5,675 / SELL 5,239. Hourly (UTC): 22 → 541, 23 → 3,284,
+00 → 7,089.
+
+## AZ4.M — Lifecycle / quality events
+| event | timestamp |
+|---|---|
+| CAPTURE_STARTED | `2026-09-09T22:38:50.523562Z` |
+| SOURCE_CONNECTED | `2026-09-09T22:38:51.666853Z` |
+| CAPTURE_STOPPED | `2026-09-10T00:38:50.858831Z` (detail: `writer_flushes=2592; writer_batch_max=73; writer_queue_depth_max=47; writer_max_persist_lag_s=0.322; writer_persisted_events=10914; writer_overloaded=false`) |
+
+**No SOURCE_DISCONNECTED, no SOURCE_RECONNECTED, no KNOWN_GAP, no
+SUSPECTED_GAP.** `lifecycle_state = FINALIZED`.
+
+## AZ4.N — Source-order accounting
+- `trade_observations` 10,914 = `observation_source_provenance` 10,914 =
+  `writer_persisted_events` 10,914.
+- `source_order` min 1, max 10,914, **distinct 10,914**;
+  `(10914 − 1 + 1) − 10914 − 0 rejections = 0` **unexplained ordinals**.
+- **duplicate accepted `source_order` = 0.**
+- `dataset_sequence` 1..10,914, distinct 10,914 → **`seq_holes = 0`
+  (contiguous)**.
+- first accepted: seq 1 / ev `22:38:58.292Z` / so 1 / ra `22:38:58.307Z`.
+- last accepted: seq 10,914 / ev `00:38:48.811Z` / so 10,914 / ra
+  `00:38:48.826Z`.
+
+## AZ4.O — SQLite integrity
+Read-only on the FINALIZED DB: `PRAGMA quick_check` = **ok**,
+`PRAGMA integrity_check` = **ok**, `journal_mode` = **delete**. No
+`-wal`/`-shm`/`-journal` sidecars. Final size **5,427,200 bytes**.
+
+## AZ4.P — Manifest / checksum
+Manifest present (438 B, `state FINALIZED`, `collector_git_commit f8ef340`,
+`checksum_scope "file integrity only; not a market-data completeness claim"`).
+**Independent verification:**
+`sha256(es_20260910_f6553efa.sqlite3)` =
+`b5cf4fa530f957660878f7007402e47be781ced8a736f40eff4f52d4c61fa6b4`
+= manifest `sha256` = the collector's closing-summary checksum → **PASS**.
+`dataset_closing_summaries` (accepted 10914 / deferred 0 / rejected 0 /
+known_gap 0 / suspected_gap 0 / first_so 1 / last_so 10914) **exactly matches**
+the direct SQL `COUNT(*)/MIN/MAX` — the 0W-2D `COUNT(*)` path; no
+full-dataset materialisation into Python.
+
+## AZ4.Q — Writer metrics
+`writer_persisted_events` 10,914 · `writer_flush_count` 2,592 ·
+`writer_batch_size_max` 73 · **`writer_queue_depth_max` 47** (≪ the ~50,000
+robby watermark) · **`writer_max_persist_lag_seconds` 0.322** (sub-second) ·
+**`writer_overloaded` false**.
+
+## AZ4.R — Process / memory metrics (5-min sampler, full run)
+- service `MemoryCurrent` 41 → 49 MB, `MemoryPeak` **51.1 MB**; collector
+  python RSS 50 → 53 MB — flat, **no leak** (rise tracks DB growth).
+- `TasksCurrent` 6 throughout.
+- total CPU **14.479 s over 2 h 1.5 s wall** ≈ **0.19 % average CPU**;
+  guest loadavg 0.09–0.45.
+- host memory: ~250–760 MB used of 7.88 GB; data-disk usage 5.2 MB.
+
+## AZ4.S — Azure CPU-credit / disk / network metrics (Azure Monitor, full window)
+| metric | min | mean | max |
+|---|---|---|---|
+| Percentage CPU | 1.15 % | **1.55 %** | 3.99 % |
+| CPU Credits Remaining | 63 | 95.6 | **129 (rising ~+66 over the run)** |
+| CPU Credits Consumed / 15 min | 0.022 | 0.028 | 0.051 |
+| Data Disk IOPS Consumed % | 0 | 0.73 % | 2.13 % |
+| OS Disk IOPS Consumed % | 0 | ~0 | 0.13 % |
+| Available Memory | 7.12 GB | 7.56 GB | 7.63 GB |
+| Network In / Out (per 15 min) | — | ~1 MB / ~0.18 MB | 8.4 MB / 0.31 MB |
+
+**`Standard_B2ms` shows no meaningful capacity concern** — CPU ~1.5 % average,
+B-series credits **accruing not draining**, disk ~1 %, ~90 % memory free.
+Heavily over-provisioned for the collector workload. No resize.
+
+## AZ4.T — Gap / reconnect result
+```
+KNOWN_GAP = 0    SUSPECTED_GAP = 0    DISCONNECT = 0    RECONNECT = 0
+```
+Clean baseline. `HOST/RUNTIME FUNCTION: PASS` **and** `AZ4 DATA COMPLETENESS
+(partial window): PASS` (zero gaps within the captured interval).
+
+## AZ4.U — Persistent-disk verification
+`findmnt -T <db>` → `/dev/sda /srv/dicks_laboratory ext4 UUID
+890b7de2-a7e1-4650-a7c9-464124698b29` = **`dragon-data1`**. Nothing written to
+the Copper repo (`apps/dicks_laboratory/data` clean), OS disk, `/mnt`, or
+`/tmp` (beyond ordinary process temp). Production `…/data/sessions/` remained
+**empty** — no production run occurred.
+
+## AZ4.V — VWAP / volume-profile smoke (read-only, `--anchor session-open`)
+| tool | result | runtime |
+|---|---|---|
+| `dicks_lab_analyze_vwap.py` | 10,914 trades, 0 corrections/cancels, **VWAP 7651.80** | <1 s |
+| `dicks_lab_analyze_volume_profile.py` | **POC 7653.50**, **VAL 7651.00**, **VAH 7656.00**, value-area 71.3 % (target 70 %), 21 levels; "NEW-only differs from effective tape: no" | 2 s |
+| `dicks_lab_analyze_developing_profile.py` | terminal cumulative: 10,914 trades / 12,317 vol / VWAP 7651.80 / POC 7653.50 / VAL 7651.00 / VAH 7656.00 | 1 s |
+
+Terminal static vs developing profile **agree** (same POC/VAL/VAH/VWAP). All
+correctly labelled "developing … not a completed full-session profile". Stored
+data is usable.
+
+## AZ4.W — Service exit / finalization
+`--duration 7200` expired normally (no manual SIGINT). Collector exited →
+writer drained → dataset FINALIZED → CAPTURE_STOPPED written →
+manifest/checksum produced → `Deactivated successfully` →
+`Result=success`, `ExecMainStatus=0`. Journal:
+`Consumed 14.479s CPU time over 2h 1.495s wall clock time, 51.1M memory peak`.
+
+## AZ4.X — Runtime-override removal
+`sudo systemctl revert dicks-lab-es-session.service` → removed
+`/run/systemd/system/dicks-lab-es-session.service.d/az4-override.conf` + its
+directory; `daemon-reload`. No drop-in remains in `/run` or `/etc`.
+
+## AZ4.Y — Production service restoration
+`systemctl cat` / `systemctl show` confirm the canonical config is back:
+`ExecStart=… --duration 83700 --data-dir /srv/dicks_laboratory/data/sessions`,
+`RuntimeMaxSec=84300` (`RuntimeMaxUSec=23h 25min`), `TimeoutStopSec=180`,
+`KillSignal=SIGINT`, `Restart=no`. Tracked units byte-identical to Git
+(sha256 as AZ4.D). `/tmp/az4_sampler.*` removed; the AZ4 dataset dir is kept
+as persistent verification evidence.
+
+## AZ4.Z — Collector timer final state
+```
+dicks-lab-es-session.timer   : enabled=disabled   active=inactive
+dicks-lab-es-session.service : static (timer-only) · inactive · Result=success
+```
+Not in `systemctl list-timers`. **No automatic collector launch is armed.**
+(Not enabled despite the AZ4 pass — daily arming is a separate authorised
+step.)
+
+## AZ4.AA — Weasel / robyn state
+```
+weasel : READY / NOT TESTED   (pubkey authorized on dragon; check must run from weasel)
+robyn  : DEFERRED             (not a tailnet member; no key)
+```
+**Pre-Attempt-4 Human prerequisite:** resolve the desired redundant
+administration paths (weasel verification + robyn tailnet/key/authorize)
+before formal unattended 0W-2 Attempt 4.
+
+## AZ4.AB — Old OS disk
+`dragon_disk1_bb48fd67c68342b4b4596a45879297f9` — **retained, `Unattached`,
+unchanged.** Retention policy updated: **retain through formal 0W-2 Attempt 4**
+(not deleted immediately after AZ4).
+
+## AZ4.AC — Azure weekly schedule
+`dicks-futures-dragon-start` (Sun 15:30 CT) and `dicks-futures-dragon-stop`
+(Fri 16:45 CT) **remain armed / enabled** — not disabled. A manually
+deallocated `dragon` simply stays off until the next scheduled Sunday start or
+an explicit manual start.
+
+## AZ4.AD — AZ4 decision
+
+```
+0W-AZ4: PASS / CLOSED — DRAGON LIVE COLLECTOR VERIFIED
+
+FULL TRADING-DATE PROOF : NOT YET PERFORMED
+DAILY COLLECTOR TIMER   : DISABLED
+OLD 24.04 OS DISK       : RETAINED
+NEXT                    : PREPARE 0W-2 ATTEMPT 4 ON DRAGON
 ```

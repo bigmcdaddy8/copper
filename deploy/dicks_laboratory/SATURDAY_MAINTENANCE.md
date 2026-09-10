@@ -46,7 +46,7 @@ cd ~/Documents/REPOs/copper
 GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_ghdeploy -o IdentitiesOnly=yes" git fetch origin
 git merge --ff-only origin/master        # fast-forward only; abort if it would merge
 git rev-parse HEAD                        # record this commit
-~/.local/bin/uv sync --frozen
+~/.local/bin/uv sync --frozen --all-packages   # --all-packages installs every workspace member (K9, dicks_laboratory, …); plain `uv sync` only does the empty root project
 
 # 6. Re-verify, then power back off
 systemctl --failed

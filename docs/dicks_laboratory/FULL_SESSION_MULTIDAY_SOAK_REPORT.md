@@ -3384,3 +3384,47 @@ checkpoint.
 | Runtime evidence | **PRESERVED** (gitignored, on `robby`) |
 | Repository checkpoint | fast-forwarded to `9f7cff5`; doc + 0W-5 script committed and pushed — see 0W-H1F handoff for the hash |
 | NEXT | Azure host inventory / migration (separate phase; not started here) |
+
+---
+
+# 0W-AZ — Azure Migration (dragon) — pointer
+
+The Azure host inventory, clean Ubuntu-26.04.1 rebuild, power scheduling and
+daily-collector unit design live in
+**`docs/dicks_laboratory/AZURE_COLLECTION_HOST_MIGRATION.md`** (phases
+0W-AZ1 … 0W-AZ4). Summary of the first live Azure run:
+
+## LA. 0W-AZ4 — SHORT LIVE AZURE VERIFICATION (NOT a full-session proof)
+
+**2026-09-09 22:38–00:38 UTC**, `dragon` Generation 1 (Ubuntu 26.04.1,
+Trusted Launch, `Standard_B2ms`, 256 GiB StandardSSD data disk at
+`/srv/dicks_laboratory`), collector commit
+`f8ef3401bfbbe27e9b3a76d66a8ed05953d977ad`. The **real production**
+`dicks-lab-es-session.service` was exercised via a temporary `/run`-only
+override (`--duration 7200`, `--data-dir …/az4_live_verification`); the tracked
+unit was byte-unchanged and restored afterward.
+
+- **Partial window** of CME trading date **2026-09-10** — began ~38 min after
+  the 17:00 CT reopen; **not** 17:00→16:00 coverage.
+- Dataset `f6553efa…` → **FINALIZED**. accepted **10,914** · rejected 0 ·
+  deferred 0 · **KNOWN_GAP 0 · SUSPECTED_GAP 0** · reconnect 0 · disconnect 0.
+- `dataset_sequence` 1..10,914 contiguous; `source_order` 1..10,914, zero
+  unexplained ordinals, zero duplicate accepted ordinals.
+- SQLite `quick_check` / `integrity_check` **ok**; manifest + checksum
+  independently verified (`b5cf4fa5…`); closing summary == direct SQL counts.
+- Writer: `queue_depth_max` 47, `max_persist_lag` 0.322 s, **`writer_overloaded`
+  false**.
+- Resources: ~0.19 % avg CPU (14.5 s over 2 h), ~51 MB peak service memory,
+  B-series CPU credits **accrued** (~+66); `Standard_B2ms` — **no capacity
+  concern**.
+- VWAP / volume-profile / developing-profile smoke all compute and agree
+  (VWAP 7651.80; POC 7653.50 / VAL 7651.00 / VAH 7656.00).
+- Deployment fix (not a code defect): dragon's `uv sync` must be
+  `uv sync --frozen --all-packages` (the workspace root is empty; deps live in
+  `apps/*`).
+
+```
+0W-AZ4: PASS / CLOSED — DRAGON LIVE COLLECTOR VERIFIED
+Daily collector timer: DISABLED.  Old 24.04 OS disk: RETAINED (through Attempt 4).
+NEXT: prepare 0W-2 Attempt 4 on dragon (formal full trading-date proof).
+```
