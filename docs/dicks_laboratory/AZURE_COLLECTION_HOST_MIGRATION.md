@@ -3568,3 +3568,51 @@ DAILY COLLECTOR TIMER   : DISABLED
 OLD 24.04 OS DISK       : RETAINED
 NEXT                    : PREPARE 0W-2 ATTEMPT 4 ON DRAGON
 ```
+
+## AZ5 — 0W-2 ATTEMPT 4 (formal full-session proof) — summary
+
+Full evidentiary write-up lives in
+`docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md` §LB (this is the
+canonical Attempt-4 record; this section is a pointer + Azure-specific
+detail).
+
+Pinned commit `f27a04373d4fb3aea5ce732455cf24cfb008bd5e`, `uv sync --frozen
+--all-packages`. The real, unmodified production timer
+(`dicks-lab-es-session.timer`) launched the real, unmodified production
+service automatically at 16:55:00 CT Thu 2026-09-10 — no manual rescue.
+
+**Result: `0W-2 ATTEMPT 4 (AZURE): FAIL — PARTIAL-COVERAGE / NON-CLEAN
+EXIT`.** The collector ran as one continuous, unattended process for 21h41m,
+correctly capturing the trading date's open at 17:00:01 CT with 999,996
+contiguous, checksum-verified trades and zero gaps/reconnects — but hit the
+CLI's un-overridden default `--max-events=1,000,000` cap at 14:36:11 CT Fri
+(~84 min before the true 16:00 CT close), cleanly self-finalized that
+dataset, then — because `--duration 83700` had not yet elapsed — the same
+process attempted a further dataset-open, hit its own "already FINALIZED"
+guard, and exited `status=2` (`Result=exit-code`), not `Result=success`.
+
+**Deployment/config defect identified (not applied in this phase, pending
+Human authorization):** the production unit's `ExecStart` must pass an
+`--max-events` well above one session's realistic event volume (observed
+≥1,000,000 for ES on this trading date), and the collector should exit
+cleanly (0/success) rather than attempt a second dataset-open when it
+finishes early relative to `--duration`.
+
+Post-run host state (all reconfirmed): timer `disabled`/`inactive`; tracked
+unit files byte-identical to repo (`.service` sha256 `b48f39db…`, `.timer`
+sha256 `eebe8a9c…`); old 24.04 disk
+`dragon_disk1_bb48fd67c68342b4b4596a45879297f9` retained/unattached; weekly
+Automation schedules `dicks-futures-dragon-start`/`-stop` enabled. Evidence
+(`es_20260911_3716af9f.sqlite3`, its manifest, `att4_samples.csv`, full
+`systemctl`/journal capture) copied off `dragon` to `robby:~/secure/att4/`
+with independent sha256 verification before the scheduled 16:45 CT
+`Stop-Dragon`, which was left to fire naturally (not manually deallocated) to
+also prove the production Friday shutdown path.
+
+```
+0W-2 ATTEMPT 4 (AZURE): FAIL — PARTIAL-COVERAGE / NON-CLEAN EXIT
+FULL TRADING-DATE COVERAGE: FAIL (~14:36–16:00 CT missing)
+PRODUCTION TIMER LAUNCH: PASS
+DATA INTEGRITY (captured window): PASS
+0W-2: OPEN.  0W-4: BLOCKED pending corrected Attempt 5.
+```

@@ -3428,3 +3428,171 @@ unit was byte-unchanged and restored afterward.
 Daily collector timer: DISABLED.  Old 24.04 OS disk: RETAINED (through Attempt 4).
 NEXT: prepare 0W-2 Attempt 4 on dragon (formal full trading-date proof).
 ```
+
+## LB. 0W-2 ATTEMPT 4 — FORMAL FULL-SESSION PROOF ON DRAGON (AZURE)
+
+Trading date **2026-09-11** (session open Thu 2026-09-10 17:00 CT → close Fri
+2026-09-11 16:00 CT). Pinned commit
+`f27a04373d4fb3aea5ce732455cf24cfb008bd5e` (per the Human's binding
+correction — no auto-fast-forward; verified via launch `CMDLINE`, dragon
+`git rev-parse HEAD`, the dataset's `collector_git_commit`, and the manifest —
+all four agree). `uv sync --frozen --all-packages`.
+
+**This is the AZURE run. It is a separate attempt from, and must not be
+confused with, ROBBY ATTEMPT 4 (§JV): "0W-2 ATTEMPT 4: MISSED — NEVER
+LAUNCHED DUE HOST OUTAGE."** Robby's attempt never launched at all. This
+attempt launched, ran unattended for ~21h41m, and did produce a large,
+internally-consistent, checksum-verified dataset — but did **not** cleanly
+complete, for reasons documented below.
+
+### Launch (binding requirement: production timer must perform the launch)
+
+`dicks-lab-es-session.timer` (real, unmodified, tracked unit — sha256
+`eebe8a9c…` — byte-identical before and after the run) fired **automatically**
+at `Thu 2026-09-10 21:55:00 UTC` (16:55:00 CT), confirmed live
+(`TIMER LastTrigger`/`Result=success`, service `ActiveState=active` observed
+at 16:55:02 CT, `MainPID=5063`). No manual rescue was needed or used. Timer
+was disabled 8 s later without disturbing the running collector
+(`MainPID` unchanged 5063→5063). **PRODUCTION SCHEDULING: PASS.**
+
+Safe preflight (16:42:17 CT, before arming) confirmed
+`quote_token_requested=false`, REST/futures/streamer-symbol resolution all
+`true` — no token was spent by the preflight.
+
+### What happened
+
+- Session-anchor / dataset identity: `trading_date=2026-09-11` (correct).
+  First retained trade `2026-09-10T22:00:01.300000+00:00` = **17:00:01.300
+  CT** — clean open coverage.
+- The service ran as **one continuous process** the entire time (`MainPID`
+  5063/5066 unchanged across every check; `journalctl --list-boots` shows
+  exactly one boot; exactly one `Starting`/`Started` pair for the unit) — no
+  crash, no reconnect-driven restart, no host reboot.
+- At `2026-09-11T19:36:11.163899Z` (**14:36:11 CT Fri**) the collector
+  **cleanly self-finalized** the dataset: `dataset_quality_events` shows the
+  expected lifecycle — `CAPTURE_STARTED` → `SOURCE_CONNECTED` →
+  `CAPTURE_STOPPED` (detail: `writer_flushes=108501,
+  writer_batch_max=250, writer_queue_depth_max=6175,
+  writer_max_persist_lag_s=23.707, writer_persisted_events=1000000,
+  writer_overloaded=false`). `lifecycle_state=FINALIZED`. A valid manifest
+  (`sha256=007fd66f…`) was written and independently verified to match the
+  on-disk file, both on `dragon` and on the copy preserved to `robby`.
+- **Root cause of the early stop: the production systemd unit's `ExecStart`
+  never overrides the collector CLI's default `--max-events 1,000,000`, and
+  a full ES trading date evidently produces more than 1,000,000 raw
+  TimeAndSale events.** `writer_persisted_events=1000000` in the
+  `CAPTURE_STOPPED` detail and `total events processed = 1,000,000` in the
+  closing summary confirm the cap — not the 16:00 CT session close and not
+  the `--duration 83700` ceiling — is what ended the capture, roughly **84
+  minutes before the true CME 16:00 CT close** (14:36 CT vs. 16:00 CT).
+- Because `--duration 83700` had **not** yet elapsed, the same still-running
+  process (Restart=no; no restart occurred or was performed — correct, per
+  the Human's binding instruction) continued executing after its own
+  finalize and made a further dataset-open attempt, which hit its own
+  idempotency guard: `Collection error: A dataset for FUTURE:CME:ES:2026-09
+  on 2026-09-11 already exists at
+  /srv/dicks_laboratory/data/sessions/es_20260911_3716af9f.sqlite3 in state
+  FINALIZED. Refusing to overwrite or duplicate it.` The process then exited
+  `status=2/INVALIDARGUMENT` at `2026-09-11T19:36:16Z` (14:36:16 CT).
+- **Final systemd state:** `ActiveState=failed`, `SubState=failed`,
+  `Result=exit-code`, `ExecMainStatus=2` — **not** `Result=success`.
+
+### Data quality within the captured window (clean)
+
+- `datasets`: `lifecycle_state=FINALIZED`,
+  `capture_started_at=2026-09-10T22:00:00.000314Z`,
+  `capture_ended_at=2026-09-11T19:36:11.163899Z`.
+- `dataset_closing_summaries`: accepted **999,996** · rejected **4** ·
+  deferred **0** · known_gap **0** · suspected_gap **0** ·
+  `first_source_order=1` · `last_source_order=1,000,000` ·
+  `collector_git_commit=f27a04373d4fb3aea5ce732455cf24cfb008bd5e`.
+- `trade_observations.dataset_sequence`: 1..999,996, count = distinct =
+  999,996 — **fully contiguous, zero duplicates, zero unexplained holes.**
+- `observation_source_provenance.source_order`: 1..1,000,000, count = distinct
+  = 999,996 (the 4-ordinal deficit reconciles exactly with the 4 rejected
+  records).
+- `PRAGMA quick_check` / `integrity_check`: **ok** / **ok**.
+- File size 501,538,816 B; sha256 `007fd66fe63d0ee1a6bc07a8edbc3e2f3b3f23edabfc764a75244dea6e07bc19`
+  — matches the manifest and matches independently on both `dragon` and the
+  `robby`-preserved copy.
+- No `SOURCE_DISCONNECTED`, no reconnects, no known/suspected gaps recorded
+  anywhere in the captured window.
+
+**Everything captured is truthful and internally consistent — the defect is
+coverage, not data integrity.** The dataset does **not** cover the full
+trading date: the last ~84 minutes of the session (~14:36–16:00 CT) are
+**missing**, and the service's own final exit does not meet the
+`Result=success` bar.
+
+### Resource / capacity (not the cause)
+
+Azure Monitor, full run window (2026-09-10 21:26Z → 2026-09-11 21:27Z):
+`Percentage CPU` avg ~1%, max 18.53%; `CPU Credits Remaining` never
+approached zero (climbed from ~77 to ~888 — B2ms **accrued** credit, never
+throttled); `Available Memory Bytes` steady ~7.5 GB of 8 GB; `Data Disk IOPS
+Consumed %` briefly peaked 89% (non-sustained), disk 238 GiB free of 251 GiB
+(1% used). **B2ms CPU CAPACITY: PASS. DISK CAPACITY: PASS.** The early stop
+is a software cap/rotation defect, not a resource-starvation symptom.
+
+### Evidence preservation
+
+Copied off `dragon` to `robby:~/secure/att4/` before the scheduled 16:45 CT
+Azure Stop-Dragon, with independent sha256 verification (matches the
+on-dragon file and the manifest):
+`es_20260911_3716af9f.sqlite3`, `es_20260911_3716af9f.sqlite3.manifest.json`,
+`att4_samples.csv` (5-min on-host resource sampler), and a captured text
+snapshot of the final `systemctl show` / full unit journal / disk & git
+state (`att4_final_evidence.txt`).
+
+### Post-run host state
+
+- `dicks-lab-es-session.timer`: `disabled` / `inactive` (unchanged from the
+  post-launch disarm — reconfirmed, not re-enabled).
+- Tracked unit files unchanged (`.service` sha256 `b48f39db…`, `.timer`
+  sha256 `eebe8a9c…`) — byte-identical to the production copies committed in
+  the repo.
+- Old 24.04 rollback disk `dragon_disk1_bb48fd67c68342b4b4596a45879297f9`:
+  **retained, unattached, unchanged.**
+- Azure weekly Automation schedules `dicks-futures-dragon-start` /
+  `dicks-futures-dragon-stop`: confirmed **enabled**, next-run times intact.
+- Per instruction, `dragon` was **not** manually deallocated; the scheduled
+  16:45 CT `dicks-futures-dragon-stop` Automation run was left to fire
+  naturally to also prove the production Friday shutdown path (verification
+  pending, tracked separately).
+
+### 0W-2 ATTEMPT 4 (AZURE) — decision
+
+```
+0W-2 ATTEMPT 4 (AZURE): FAIL — PARTIAL-COVERAGE / NON-CLEAN EXIT
+
+Root cause: production systemd unit does not override the collector CLI's
+default --max-events=1,000,000; a full ES trading date exceeds that cap.
+The collector cleanly self-finalized at 14:36:11 CT (valid manifest+checksum,
+0 gaps within the captured window) but this was ~84 minutes before the true
+16:00 CT session close. Because --duration had not elapsed, the still-running
+process then hit its own "dataset already FINALIZED" guard and exited
+status=2 (Result=exit-code), not Result=success.
+
+ROBBY ATTEMPT 4:  MISSED — NEVER LAUNCHED DUE HOST OUTAGE  (§JV)
+AZURE ATTEMPT 4:  FAIL — PARTIAL COVERAGE, NON-CLEAN SERVICE EXIT  (this §)
+
+PRODUCTION TIMER LAUNCH: PASS (automatic, real timer, no manual rescue)
+FULL TRADING-DATE COVERAGE: FAIL (~14:36–16:00 CT missing, ~84 min)
+SERVICE FINAL RESULT: FAIL (Result=exit-code, not success)
+DATA INTEGRITY WITHIN CAPTURED WINDOW: PASS (checksum, contiguity, 0 gaps)
+HOST/RESOURCE CAPACITY: PASS (not the cause)
+
+0W-2: OPEN — Attempt 4 did not achieve a full clean pass; do not close.
+0W-4: BLOCKED pending a corrected Attempt 5 (fix --max-events on the
+      production unit, then re-attempt under a new Attempt identity).
+
+NEXT: Human review of this defect finding. Per instruction, no quiet
+fix-and-rerun under the Attempt-4 identity was performed — evidence
+preserved and reported first. Recommended fix (for Human authorization,
+not applied in this phase): pass an explicit --max-events far above one
+session's expected event volume (or 0/None if the CLI supports "unbounded
+within duration") in dicks-lab-es-session.service's ExecStart, and add
+explicit handling so a duration-bounded run that finishes its data before
+`--duration` elapses exits 0/success (idle-wait or clean early exit) rather
+than attempting a second dataset open and hitting the FINALIZED guard.
+```
