@@ -150,6 +150,13 @@ class LongHorizonCaptureResult:
     # manifest/checksum could not be written (0W-2B §10) -- never rewrites
     # lifecycle_state, never hides a collector failure.
     manifest_error: str | None = None
+    # 0W-2E: the same sanitized reason recorded in this segment's own
+    # CAPTURE_STOPPED evidence (e.g. "max_events_safety_fuse_reached; ..."),
+    # surfaced on the result so a caller (the CLI) can classify a FINALIZED-
+    # but-partial run (safety fuse tripped before the requested horizon) as a
+    # non-success without re-parsing dataset evidence. `None` for an ordinary
+    # duration-expiry / session-close clean stop.
+    stopped_reason: str | None = None
 
 
 def resolve_current_trading_date(now: datetime, session_definition: FuturesSessionDefinition = ES_GLOBEX) -> date:
@@ -460,6 +467,13 @@ def _run_one_trading_date_session(
     stop = False
     terminal_exc: BaseException | None = None
     stopped_reason: str | None = None
+    # 0W-2E (Attempt-4 root cause): `max_events` is a safety fuse, not a
+    # session-close signal. If it trips strictly before `segment_deadline`,
+    # the outer `run_long_horizon_capture` loop must NOT treat this as "this
+    # trading date's session ended on schedule" and try to rotate to another
+    # dataset for the SAME still-open trading date -- that is exactly what
+    # produced Attempt 4's "already exists ... FINALIZED" fatal exit.
+    max_events_fuse_triggered = False
 
     writer.start()
     try:
@@ -470,11 +484,23 @@ def _run_one_trading_date_session(
             try:
                 # ONE continuous connection for up to the full remaining span of
                 # this trading date's session -- never sliced merely to poll the
-                # clock. `collect()` only returns early via a genuine DxLinkError.
+                # clock. `collect()` only returns early via a genuine DxLinkError
+                # (or its own max_events budget, checked explicitly below).
                 collector.collect(
                     spec.streamer_symbol, ("TimeAndSale",), remaining, max(1, max_events - total_events_seen),
                     on_event=on_event, on_connected=on_connected, retain_events=False,
                 )
+                if total_events_seen >= max_events:
+                    # The event-count safety fuse -- not the clock -- is what
+                    # ended this call. Finalize this dataset truthfully and
+                    # terminate the overall process; never continue on to
+                    # attempt another dataset-open for this same trading date.
+                    max_events_fuse_triggered = True
+                    stopped_reason = (
+                        f"max_events_safety_fuse_reached; max_events={max_events}; "
+                        f"total_events_seen={total_events_seen}"
+                    )
+                    stop = True
                 break  # remaining time (or max_events) genuinely elapsed: clean stop
             except DxLinkError as exc:
                 disconnect_moment = now()
@@ -596,6 +622,13 @@ def _run_one_trading_date_session(
     if unresolved_disconnect_at is not None and unresolved_disconnect_at < close_moment:
         _close_known_gap(store, dataset_id, unresolved_disconnect_at, close_moment)
 
+    # 0W-2E: a max-events safety-fuse trip strictly before this trading
+    # date's own close/deadline leaves a genuine, known-boundaries tail of
+    # the session uncaptured. Record it with the same KNOWN_GAP evidence the
+    # reconnect path already uses -- FINALIZED must never look like COMPLETE.
+    if max_events_fuse_triggered and close_moment < segment_deadline:
+        _close_known_gap(store, dataset_id, close_moment, segment_deadline)
+
     stopped_detail = "capture_stopped"
     if stopped_reason:
         stopped_detail += f"; reason={stopped_reason}"
@@ -610,13 +643,14 @@ def _run_one_trading_date_session(
     try:
         result = _build_result(
             store, dataset_id, database_path, spec.instrument, trading_date, target_state,
-            writer_metrics=writer_metrics,
+            writer_metrics=writer_metrics, stopped_reason=stopped_reason,
         )
     except Exception as exc:  # noqa: BLE001 -- the sidecar is convenience only (0W-2B §10)
         manifest_error = f"{type(exc).__name__}: {exc}"
         result = _build_result(
             store, dataset_id, database_path, spec.instrument, trading_date, target_state,
             writer_metrics=writer_metrics, skip_manifest=True, manifest_error=manifest_error,
+            stopped_reason=stopped_reason,
         )
 
     store.close()
@@ -867,6 +901,7 @@ def _build_result(
     writer_metrics: WriterMetrics | None = None,
     skip_manifest: bool = False,
     manifest_error: str | None = None,
+    stopped_reason: str | None = None,
 ) -> LongHorizonCaptureResult:
     summary = store.load_dataset_closing_summary(dataset_id)
     quality_events = store.load_quality_events(dataset_id)
@@ -905,6 +940,7 @@ def _build_result(
         writer_persisted_events=metrics.persisted_events,
         writer_overloaded=metrics.overloaded,
         manifest_error=manifest_error,
+        stopped_reason=stopped_reason,
     )
 
 

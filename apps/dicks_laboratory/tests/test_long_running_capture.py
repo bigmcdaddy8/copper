@@ -1056,6 +1056,100 @@ def test_reconnect_attempt_hook_fires_per_retry(tmp_path):
     assert hook_calls == [1, 2]  # within-episode attempt numbers, in order
 
 
+# ===================================================================== #
+# Phase 0W-2E -- max-events safety-fuse termination correction            #
+# (0W-2 Attempt 4 root cause: the fuse tripping before the session's own  #
+# close/deadline was being treated as an ordinary "session ended on       #
+# schedule" clean stop, so the outer rotation loop tried to open ANOTHER  #
+# dataset for the same still-open trading date and crashed into the      #
+# already-FINALIZED guard.)                                              #
+# ===================================================================== #
+
+
+class _MaxEventsFakeCollector:
+    """Delivers up to `max_events` of its scripted events per call and
+    returns almost immediately -- NOT after the full requested duration --
+    simulating the real collector's behavior when its own event-count
+    budget parameter, not the clock, is what ended `collect()`."""
+
+    def __init__(self, events: tuple, clock: "_FakeClock", advance_seconds: float = 1.0):
+        self._events = list(events)
+        self._clock = clock
+        self._advance_seconds = advance_seconds
+        self.call_count = 0
+
+    def collect(self, streamer_symbol, event_types, duration_seconds, max_events, on_event=None, on_connected=None, retain_events=True):
+        self.call_count += 1
+        if on_connected is not None:
+            on_connected()
+        for event in self._events[:max_events]:
+            on_event(event)
+        self._clock.sleep(self._advance_seconds)  # a little time, not the full remaining span
+        return ()
+
+
+# A. Max-events reached early: exactly one dataset, cleanly finalized, a
+# truthful non-success stop reason, a durable KNOWN_GAP for the lost tail,
+# and no second dataset-open / no second CAPTURE_STARTED attempted.
+def test_max_events_fuse_finalizes_truthfully_without_second_dataset(tmp_path):
+    start = _SESSION_OPEN + timedelta(minutes=1)
+    clock = _FakeClock(start)
+    events = tuple(_event(start + timedelta(seconds=i), i) for i in range(1, 11))
+    collector = _MaxEventsFakeCollector(events, clock)
+
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=7200, max_events=3,
+        now=clock.now, sleeper=clock.sleep,
+    )
+
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED  # dataset evidence: cleanly finalized
+    assert result.accepted_trade_count == 3
+    assert result.stopped_reason is not None
+    assert result.stopped_reason.startswith("max_events_safety_fuse_reached")
+    assert collector.call_count == 1  # no second dataset-open attempted -> no second collect() call
+
+    candidates = list(tmp_path.glob("es_20260824_*.sqlite3"))
+    assert len(candidates) == 1  # exactly one dataset created for this trading date
+
+    store = LaboratoryStore(result.database_path, read_only=True)
+    try:
+        events_out = store.load_quality_events(result.dataset_id)
+        values = [e.evidence_type.value for e in events_out]
+        assert values.count("CAPTURE_STARTED") == 1  # no second CAPTURE_STARTED
+        assert "KNOWN_GAP" in values  # the lost tail coverage is durably recorded
+        gap = next(e for e in events_out if e.evidence_type.value == "KNOWN_GAP")
+        assert gap.interval_start is not None and gap.interval_end is not None
+        assert gap.interval_end > gap.interval_start
+        stopped = next(e for e in events_out if e.evidence_type.value == "CAPTURE_STOPPED")
+        assert "max_events_safety_fuse_reached" in stopped.detail
+    finally:
+        store.close()
+
+
+# B. Duration/session-close completes first (max_events never approached):
+# normal success, one dataset, clean finalization, no fuse, no regression.
+def test_duration_completes_before_max_events_no_fuse_no_regression(tmp_path):
+    start = _SESSION_OPEN + timedelta(minutes=1)
+    clock = _FakeClock(start)
+    collector = ScriptedFakeCollector(
+        (_Segment(events=(_event(start, 1), _event(start + timedelta(minutes=1), 2)), raises=False),),
+        clock=clock,
+    )
+    result = run_long_horizon_capture(
+        tmp_path, _SPEC, collector, duration_seconds=60, max_events=5_000_000,
+        now=clock.now, sleeper=clock.sleep,
+    )
+    assert result.lifecycle_state is DatasetLifecycleState.FINALIZED
+    assert result.accepted_trade_count == 2
+    assert result.stopped_reason is None
+    store = LaboratoryStore(result.database_path, read_only=True)
+    try:
+        values = [e.evidence_type.value for e in store.load_quality_events(result.dataset_id)]
+        assert "KNOWN_GAP" not in values
+    finally:
+        store.close()
+
+
 # --- §22: operational writer metrics land on the result and in CAPTURE_STOPPED #
 def test_writer_metrics_are_reported(tmp_path):
     clock = _FakeClock(_SESSION_OPEN + timedelta(minutes=1))

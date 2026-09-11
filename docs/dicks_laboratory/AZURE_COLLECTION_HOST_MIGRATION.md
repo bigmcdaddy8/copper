@@ -3616,3 +3616,26 @@ PRODUCTION TIMER LAUNCH: PASS
 DATA INTEGRITY (captured window): PASS
 0W-2: OPEN.  0W-4: BLOCKED pending corrected Attempt 5.
 ```
+
+## AZ6 — 0W-2E — Production Event-Cap & Terminal-Stop Correction
+
+Full write-up: `FULL_SESSION_MULTIDAY_SOAK_REPORT.md` §LC (canonical). This
+is a code/config/test-only corrective phase, no live market run. Root cause:
+the production unit never overrode the collector's default
+`--max-events=1,000,000`, and the outer control-flow loop treated a
+max-events fuse trip identically to a genuine session-close, causing it to
+attempt a second dataset-open on the same still-open trading date.
+
+Fixed in `long_running_capture.py` (explicit fuse detection, `stop=True`,
+durable `stopped_reason` + `KNOWN_GAP` for the lost tail, no second dataset)
+and `dicks_lab_collect_es.py` (exit code 3 for a fuse-triggered stop).
+Production unit now pins `--max-events 5000000` explicitly. New
+`test_production_unit_config.py` deploy-validation check. Full repository
+suite: 1,188 passed. Deployed to `dragon`, verified, timer left
+disabled/inactive, host deallocated again afterward.
+
+```
+0W-2E: PASS / READY FOR PO REVIEW
+0W-2: OPEN.  ATTEMPT 5: NOT STARTED.
+DAILY COLLECTOR TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
+```

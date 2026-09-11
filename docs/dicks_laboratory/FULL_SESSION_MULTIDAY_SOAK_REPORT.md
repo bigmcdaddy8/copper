@@ -3596,3 +3596,128 @@ explicit handling so a duration-bounded run that finishes its data before
 `--duration` elapses exits 0/success (idle-wait or clean early exit) rather
 than attempting a second dataset open and hitting the FINALIZED guard.
 ```
+
+## LC. 0W-2E — Production Event-Cap & Terminal-Stop Correction
+
+Accepted: **0W-2 ATTEMPT 4 (AZURE): FAIL — PARTIAL COVERAGE / NON-CLEAN
+EXIT.** 0W-2 is **OPEN**; 0W-4 **BLOCKED**. Attempt 4 is NOT rerun and its
+evidence (`~/secure/att4/` on robby, `dragon`'s own copies, manifest,
+checksums, journals, this report's §LB/§AZ5, commit `b7f073c`) is retained
+unmodified as permanent experiment history.
+
+**Exact control-flow audit.** `run_long_horizon_capture`'s outer loop
+computes, per trading date, `segment_deadline = min(overall_deadline,
+session_close)` and calls `_run_one_trading_date_session`, which returns
+`(result, stop)`. The inner reconnect loop's clean-return branch (comment:
+`"remaining time (or max_events) genuinely elapsed: clean stop"`) treated
+*both* stop causes identically — but only a time-exhausted return means
+"this trading date's session ended on schedule"; a `max_events`-exhausted
+return can happen with real session time still remaining. Because that
+branch never set `stop=True`, and `_run_one_trading_date_session` returns
+`target_state=FINALIZED` unconditionally on that path, the outer loop's
+check (`if stop or current_time >= overall_deadline: return result`) took
+the else branch — "wait through maintenance, continue to the next trading
+date" — even though the market was still open. `resolve_current_trading_date`
+then resolved the **same** `trading_date=2026-09-11` again (session hadn't
+closed), `_open_or_resume_dataset` found the just-FINALIZED dataset for that
+exact instrument+date, and raised `LongHorizonCaptureError("... already
+exists ... FINALIZED. Refusing to overwrite or duplicate it.")` — uncaught
+outside `resolve_current_trading_date`, propagating to the CLI's
+`except LongHorizonCaptureError: raise typer.Exit(code=2)`. This exactly
+reproduces Attempt 4's `Result=exit-code`/`ExecMainStatus=2` failure.
+
+**999,996 vs 1,000,000 accounting (fully explained, not assumed).**
+`total_events_seen` (the counter `max_events` bounds) increments once per
+*raw source event* handed to `on_event`, before accept/reject/defer
+classification — not once per accepted trade. Attempt 4's closing summary:
+`accepted_trade_count=999,996`, `rejected_record_count=4`,
+`deferred_event_count=0`, `last_source_order=1,000,000`. **999,996 + 4 + 0 =
+1,000,000, exactly matching the fuse.** The four "missing" accepted trades
+are the four durably rejected records (already present and explained in the
+Attempt-4 `normalization_rejections` table); nothing is unaccounted for.
+
+**Fix (implemented, `apps/dicks_laboratory/src/dicks_laboratory/
+long_running_capture.py`):**
+- After each `collector.collect()` call returns without a `DxLinkError`,
+  explicitly check `total_events_seen >= max_events`. If true, the safety
+  fuse — not the clock — ended the call: set `stop=True` and a durable
+  `stopped_reason="max_events_safety_fuse_reached; max_events=...;
+  total_events_seen=..."`, so the outer loop returns immediately instead of
+  attempting another trading-date rotation. **No second dataset. No second
+  `CAPTURE_STARTED`. No duplicate-open attempt.**
+- The dataset itself still finalizes truthfully and cleanly
+  (`lifecycle_state=FINALIZED`, writer drained, manifest/checksum written) —
+  a fuse trip is not a crash and must not be reported as one.
+- The lost tail of the session (`[close_moment, segment_deadline)`) is now
+  recorded as a `KNOWN_GAP` using the **existing** gap-evidence machinery
+  (`_close_known_gap`, already used by the reconnect path) — no new
+  lifecycle schema invented, per instruction. `FINALIZED != COMPLETE` is now
+  externally visible in the dataset's own quality evidence.
+- `LongHorizonCaptureResult` gained a `stopped_reason: str | None = None`
+  field (default-safe; every existing construction/read path unaffected)
+  threaded through `_build_result`, so the CLI can classify a fuse-triggered
+  stop without re-parsing dataset internals.
+- `scripts/dicks_lab_collect_es.py`: when `stopped_reason` starts with
+  `"max_events_safety_fuse_reached"`, the process now exits **code 3**
+  (distinct from success=0 and genuine `INTERRUPTED`=1) — "dataset evidence
+  cleanly finalized; overall process explicitly non-success" per the
+  required semantics. Duration-expiry / session-close completion is
+  completely unaffected (`stopped_reason=None`, exit 0, as before).
+
+**Production `--max-events` decision:** `5,000,000` (~5x Attempt 4's
+observed ~1,000,000-event trading date), pinned explicitly on the tracked
+unit — never left to the CLI default again. Dataset size scales at
+~501.5 bytes/event (measured: 501,538,816 bytes ÷ 1,000,000 events from
+Attempt 4); 5,000,000 events ⇒ **~2.5 GiB worst case**, trivial against the
+256 GiB persistent data disk (238 GiB free, 1% used at Attempt-4 end). The
+writer handled 1,000,000 events with `queue_depth_max=6,175`,
+`max_persist_lag_s=23.7`, `writer_overloaded=false` — no backpressure margin
+concern at 5x. **VM/disk are not resized** (not required; not authorized in
+this phase).
+
+**Production unit changes
+(`deploy/dicks_laboratory/systemd/dicks-lab-es-session.service`):**
+`ExecStart` now reads `... --duration 83700 --max-events 5000000
+--data-dir /srv/dicks_laboratory/data/sessions` (was missing `--max-events`
+entirely). `Restart=no` unchanged. A new deploy-validation test
+(`apps/dicks_laboratory/tests/test_production_unit_config.py`) reads the
+tracked unit file directly and fails if `--max-events 5000000`,
+`--duration 83700`, `--data-dir ...`, or `Restart=no` is ever silently
+dropped.
+
+**Regression tests added** (`test_long_running_capture.py`):
+`test_max_events_fuse_finalizes_truthfully_without_second_dataset` (fuse
+trips early → exactly one dataset, `FINALIZED`, truthful
+`stopped_reason`, durable `KNOWN_GAP`, exactly one `collect()` call — no
+second dataset-open) and
+`test_duration_completes_before_max_events_no_fuse_no_regression` (ordinary
+completion with `max_events=5,000,000` far above event volume →
+`stopped_reason=None`, no `KNOWN_GAP`, unchanged behavior). Pre-existing
+session-close / maintenance-rotation / reconnect suites (`test_session_
+close_is_a_clean_stop_not_a_disconnect`,
+`test_maintenance_wait_produces_no_gap_and_fresh_connect_at_reopen`,
+`test_trading_date_rotation_finalizes_old_dataset_and_opens_new_one`,
+`test_trading_date_rotation_across_real_maintenance_wait`, and the full
+reconnect/backpressure/checksum suite) all re-verified unaffected — the new
+branch is guarded strictly behind `total_events_seen >= max_events`, which
+none of those scenarios approach.
+
+**Test results:** targeted (42) → Lab suite (331) → K9 suite (199) → full
+repository suite (**1,188 passed, 0 failed**). `ruff check` on every file
+touched this phase: **all checks passed** (13 pre-existing errors elsewhere
+in the repo, in unrelated untouched scripts, are unchanged). `git diff
+--check`: clean. Secret audit: clean.
+
+**Dragon deployment validation:** `dragon` was started explicitly
+(Start-Dragon runbook) *after* the scheduled Friday 16:45 CT Stop-Dragon had
+already fired naturally (confirmed `PowerState/deallocated` beforehand),
+fast-forwarded cleanly to this phase's commit, `uv sync --frozen
+--all-packages` re-verified clean, and the updated unit deployed and
+verified. The collector timer was **not armed**; it was left/confirmed
+`disabled`/`inactive`. Dragon was then explicitly deallocated again — not
+left running for development (development occurred on `robby`).
+
+**0W-2E decision: PASS / READY FOR PO REVIEW.** 0W-2 remains **OPEN**;
+Attempt 5 is **NOT STARTED** in this phase (not authorized here); the daily
+collector timer is **DISABLED**; the old 24.04 rollback disk
+(`dragon_disk1_bb48fd67c68342b4b4596a45879297f9`) remains **RETAINED**.

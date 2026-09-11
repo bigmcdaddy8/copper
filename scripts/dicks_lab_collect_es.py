@@ -46,6 +46,11 @@ _ES_STREAMER_SYMBOL = "/ESU26:XCME"
 # launch sanity gate.
 _QUOTE_TOKEN_HORIZON_MARGIN_SECONDS = 900.0
 
+# 0W-2E: mirrors the exact prefix `long_running_capture._run_one_trading_date_
+# session` writes into `LongHorizonCaptureResult.stopped_reason` when the
+# --max-events safety fuse (not the clock) ended the capture early.
+_MAX_EVENTS_FUSE_REASON_PREFIX = "max_events_safety_fuse_reached"
+
 
 def _parse_api_timestamp(value: object) -> datetime | None:
     """Parse a tastytrade `issued-at` / `expires-at` string to an aware UTC
@@ -207,10 +212,25 @@ def collect(
         "writer_max_persist_lag_seconds": round(result.writer_max_persist_lag_seconds, 4),
         "writer_persisted_events": result.writer_persisted_events,
         "writer_overloaded": result.writer_overloaded,
+        "stopped_reason": result.stopped_reason,
     }
     typer.echo(json.dumps(summary, indent=2))
     if result.lifecycle_state.value == "INTERRUPTED":
         raise typer.Exit(code=1)
+    # 0W-2E (Attempt-4 root cause): the dataset itself is truthfully and
+    # cleanly FINALIZED, but a max-events safety-fuse trip before the
+    # requested capture horizon means coverage is PARTIAL, not a completed
+    # session. FINALIZED != COMPLETE must be externally visible -- a
+    # non-success process exit, distinct from both ordinary success (0) and
+    # a genuine INTERRUPTED dataset (1).
+    if result.stopped_reason is not None and result.stopped_reason.startswith(_MAX_EVENTS_FUSE_REASON_PREFIX):
+        typer.echo(
+            "Capture stopped by the --max-events safety fuse before the requested "
+            "capture horizon completed. Dataset evidence is cleanly finalized, but "
+            "coverage is PARTIAL -- treat this run as a non-success.",
+            err=True,
+        )
+        raise typer.Exit(code=3)
 
 
 def _parse_duration(value: str) -> float:
