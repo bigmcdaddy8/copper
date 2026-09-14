@@ -3687,3 +3687,25 @@ phase. No code changed; no Python suite run for ceremony. `git diff
 0W-2: OPEN.  ATTEMPT 5: FAILED / CLOSED AS FAILED.  ATTEMPT 6: NOT STARTED.
 RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
 ```
+
+## AZ8 — 0W-2 ATTEMPT 6 — ARMED (pre-run)
+
+Full write-up: `FULL_SESSION_MULTIDAY_SOAK_REPORT.md` §LE (canonical). 0W-2F
+accepted PASS/CLOSED. `dragon` fast-forwarded `7ce180e..c8fcfa6` via its
+dedicated read-only deploy key, `uv sync --frozen --all-packages` clean;
+production + gate units reverified byte-identical with all required flags
+intact; recurring collector timer reconfirmed disabled. Installed and armed
+`dicks-lab-attempt6-preflight.timer`/`dicks-lab-attempt6.timer` (next
+elapse 2026-09-14 21:42:00Z / 21:55:00Z exactly). Created one-time Azure
+Automation schedules `dicks-attempt6-dragon-start`
+(2026-09-14T15:30:00-05:00 → `Start-Dragon`) and `dicks-attempt6-dragon-stop`
+(2026-09-15T16:45:00-05:00 → `Stop-Dragon`) via the `jobSchedules` REST API,
+same `automation-dragon` identity as the accepted weekly schedules, which
+remain untouched. `dragon` deallocated again after verification. No robby
+background process of any kind. Attempt-6 result (PASS/FAIL) will be
+recorded in a follow-up entry after the Tuesday stop fires — not before.
+
+```
+0W-2 ATTEMPT 6: ARMED, AWAITING AUTONOMOUS EXECUTION
+0W-2: OPEN.  RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
+```

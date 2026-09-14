@@ -3873,3 +3873,84 @@ clean on both new units. `git diff --check`: clean. Secret audit: clean
 0W-2: OPEN.  ATTEMPT 5: FAILED / CLOSED AS FAILED.  ATTEMPT 6: NOT STARTED.
 RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
 ```
+
+## LE. 0W-2 ATTEMPT 6 — ARMED (autonomous full trading-date proof, pre-run)
+
+0W-2F accepted **PASS / ACCEPTED / CLOSED**. This section records the
+Attempt-6 **arming phase** only — the run itself has not happened yet
+(armed 2026-09-13 evening; Monday preflight/launch and Tuesday completion
+are still ahead). A separate entry will record the actual result after the
+Tuesday one-time Azure stop fires.
+
+**Baseline pinned.** `robby` was already `HEAD=c8fcfa6e46380b08ffe481866e
+96ce2f1cb94b71`, clean, `== origin/master`. `dragon` was previously at the
+historical `7ce180e` (acceptable evidence for 0W-2F, not for Attempt 6):
+started, fetched via its dedicated read-only deploy key
+(`GIT_SSH_COMMAND=... -i ~/.ssh/id_ed25519_ghdeploy`), fast-forwarded
+`7ce180e..c8fcfa6` (exactly the one expected commit, 4 files), `uv sync
+--frozen --all-packages` re-verified clean (63 packages). No baseline
+drift: `origin/master` had not advanced beyond `c8fcfa6`.
+
+**Production/gate integrity reverified post-fast-forward.**
+`dicks-lab-es-session.service`/`.timer`,
+`dicks-lab-preflight-gate.service`, `dicks-lab-launch-gate.service`:
+byte-identical repo↔dragon. Collector `ExecStart` confirmed
+`--duration 83700 --max-events 5000000 --data-dir /srv/dicks_laboratory/
+data/sessions`; `RuntimeMaxSec=84300`, `Restart=no`, `KillSignal=SIGINT`,
+`TimeoutStopSec=180` all present, unmodified. Recurring
+`dicks-lab-es-session.timer`: `disabled`/`inactive`.
+
+**Attempt-6 one-date systemd timers installed and armed.**
+`dicks-lab-attempt6-preflight.timer` (`OnCalendar=2026-09-14 16:42:00
+America/Chicago` → `dicks-lab-preflight-gate.service`) and
+`dicks-lab-attempt6.timer` (`OnCalendar=2026-09-14 16:55:00
+America/Chicago` → `dicks-lab-launch-gate.service`), both `Persistent=
+false`, both `systemctl enable --now`'d (symlinked into
+`timers.target.wants`, so they re-arm on every boot including the
+Azure-triggered one). `systemd-analyze verify`: clean. `systemd-analyze
+calendar` / `systemctl list-timers --all` confirm next-elapse
+**2026-09-14 21:42:00 UTC** and **21:55:00 UTC** exactly — matching the
+required 16:42/16:55 CT.
+
+**One-time Azure Automation schedules created**, mirroring the accepted
+weekly `dicks-futures-dragon-start`/`-stop` shape (same `automation-dragon`
+managed identity, same `Start-Dragon`/`Stop-Dragon` runbooks) but as
+single-fire `OneTime` schedules, linked via `jobSchedules` (Azure REST API
+`2022-08-08`, the `az automation` CLI extension has no job-schedule
+subcommand):
+- `dicks-attempt6-dragon-start` → `Start-Dragon`, next run
+  **2026-09-14T15:30:00-05:00**.
+- `dicks-attempt6-dragon-stop` → `Stop-Dragon`, next run
+  **2026-09-15T16:45:00-05:00**.
+
+The pre-existing weekly `dicks-futures-dragon-start`/`-stop` schedules and
+their job-schedule links were reconfirmed untouched (still exactly 2 weekly
++ now 2 one-time = 4 schedules, 4 job-schedule links total).
+
+**Arm-then-deallocate.** `dragon` was started (already running from the
+0W-2F work), all of the above verified in place, then explicitly
+deallocated again (`az vm deallocate`, confirmed
+`instanceView.statuses → PowerState/deallocated`). Final pre-run state:
+
+```
+dragon: DEALLOCATED
+Monday one-time Azure start (dicks-attempt6-dragon-start): ARMED
+Attempt-6 preflight timer (dicks-lab-attempt6-preflight.timer): ARMED
+Attempt-6 launch timer (dicks-lab-attempt6.timer): ARMED
+Tuesday one-time Azure stop (dicks-attempt6-dragon-stop): ARMED
+Recurring production collector timer: DISABLED
+```
+
+**No background orchestrator.** Nothing was created on `robby` for this
+attempt — no sleep loop, background Bash task, `nohup`, `tmux`/`screen`,
+SSH keepalive, or `robby` systemd timer/cron. The full chain from here is
+Azure Automation → `dragon` → systemd, exactly as required; this Claude
+session ending (or `robby` being powered off) has no effect on Attempt 6's
+execution. Attempt-6 completion (or failure) evidence will be gathered and
+recorded in a follow-up entry once the Tuesday stop has fired and the
+dataset/journal evidence can be pulled — not fabricated ahead of the run.
+
+```
+0W-2 ATTEMPT 6: ARMED, AWAITING AUTONOMOUS EXECUTION
+0W-2: OPEN.  RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
+```
