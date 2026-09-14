@@ -3639,3 +3639,51 @@ disabled/inactive, host deallocated again afterward.
 0W-2: OPEN.  ATTEMPT 5: NOT STARTED.
 DAILY COLLECTOR TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
 ```
+
+## AZ7 — 0W-2 ATTEMPT 5 (FAIL) and 0W-2F — Autonomous Launch-Gate Correction
+
+Full write-up: `FULL_SESSION_MULTIDAY_SOAK_REPORT.md` §LD (canonical).
+Azure start was schedule-triggered (`automation-dragon` managed identity,
+confirmed via the activity log/Graph); both Attempt-5 one-date timers fired
+on schedule (16:42/16:55 CT) and the safe preflight logic itself **passed**
+every check. Root cause: `dicks-lab-attempt5-preflight.service`'s
+`ExecStartPost` ran a bare `touch /run/dicks-lab-attempt5-preflight-ok` as
+unprivileged `User=temckee8` against root-owned `/run` → `Permission
+denied` → service marked failed → marker never created →
+`dicks-lab-attempt5-launch.service`'s `ConditionPathExists` correctly
+evaluated false → the real, untouched production collector never started.
+Fail-closed semantics worked exactly as designed; the marker just never
+got written. No dataset, no collector process, no manual rescue — a clean,
+fully-explained miss.
+
+Fix: two newly-tracked, reusable gate services
+(`deploy/dicks_laboratory/systemd/dicks-lab-preflight-gate.service`,
+`dicks-lab-launch-gate.service`) create the marker via
+`RuntimeDirectory=dicks-lab-launch-gate` + `RuntimeDirectoryPreserve=yes`
+instead of a bare `/run` write — `man systemd.exec` confirms
+`RuntimeDirectoryPreserve=yes` is required because a `Type=oneshot` unit is
+"stopped" (triggering default removal) the instant `ExecStart` finishes,
+before the launch-gate timer checks the marker minutes later. `/run`
+tmpfs confirmed via `findmnt`, guaranteeing boot-ephemeral cleanup
+independent of that setting. Harmless `zz-test-*` orchestration units
+(never tracked, fully removed) proved both the successful-preflight path
+(marker survives past oneshot exit, harmless stand-in target launches) and
+the failed-preflight path (marker absent, launch-gate skipped, stand-in
+target never launches) without touching DXLink or the real collector.
+`systemd-analyze verify`: clean. Corrected gate services deployed to
+`dragon`, sha256-verified byte-identical to the repo copies, confirmed
+`static`/inert (no timer references them). The four expired Attempt-5 unit
+files were disabled/stopped/removed from `dragon` after evidence capture;
+production `dicks-lab-es-session.timer`/`.service` reconfirmed untouched
+(`disabled`/`inactive`, byte-identical, `HEAD=7ce180e2` on both repo and
+`dragon`). Attempt-6 one-date timers (targeting Mon 2026-09-14 16:42/16:55
+CT → trading_date 2026-09-15, per `SESSION_AND_ANCHOR_MODEL.md`) are
+proposed in §LD but **not installed** — arming is deferred to a future
+phase. No code changed; no Python suite run for ceremony. `git diff
+--check`/secret audit: clean.
+
+```
+0W-2F: PASS / READY FOR PO REVIEW
+0W-2: OPEN.  ATTEMPT 5: FAILED / CLOSED AS FAILED.  ATTEMPT 6: NOT STARTED.
+RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
+```

@@ -3721,3 +3721,155 @@ left running for development (development occurred on `robby`).
 Attempt 5 is **NOT STARTED** in this phase (not authorized here); the daily
 collector timer is **DISABLED**; the old 24.04 rollback disk
 (`dragon_disk1_bb48fd67c68342b4b4596a45879297f9`) remains **RETAINED**.
+
+## LD. 0W-2 ATTEMPT 5 (FAIL) and 0W-2F — Autonomous Launch-Gate Correction
+
+**Accepted: 0W-2 ATTEMPT 5 (AZURE): FAIL — AUTONOMOUS LAUNCH GATE DID NOT
+OPEN.** Azure's `automation-dragon` scheduled start fired correctly (start
+action 20:31:15→20:32:11 UTC 2026-09-13, caller resolved via Graph to the
+Automation Account's own managed identity — schedule-triggered, not
+manual); the `dicks-lab-attempt5-preflight.timer` fired on schedule at
+16:42 CT and the preflight logic itself **passed** every check
+(`rest_reachable=true`, `futures_endpoint_usable=true count=576`,
+`symbol_/ESU6_resolves=true`,
+`streamer_symbol_matches_/ESU26:XCME=true`, `quote_token_requested=false`,
+`PREFLIGHT_RESULT=PASS`). The one-date launch timer also fired correctly at
+16:55 CT. **No dataset was ever created; zero collector processes ran; no
+late manual rescue was attempted** — the 2026-09-14 trading-date window is
+a clean, fully-explained miss, preserved as evidence rather than rewritten
+as a partial success.
+
+**Root cause (narrow, not broadened).**
+`dicks-lab-attempt5-preflight.service` ran as `User=temckee8`, and its
+`ExecStartPost` was a bare `touch /run/dicks-lab-attempt5-preflight-ok`.
+`/run` is `root:root 0755` — an unprivileged user cannot create a file
+directly in its root. `touch` exited 1 (`Permission denied`), which
+systemd treats as a control-process failure, marking the whole service
+`failed` even though the preceding `ExecStart` (the actual preflight logic)
+had already exited 0/PASS. The marker was therefore never created.
+`dicks-lab-attempt5-launch.service`'s `ConditionPathExists=/run/dicks-lab-
+attempt5-preflight-ok` correctly evaluated false 13 minutes later, systemd
+logged the activation as "skipped, unmet condition check" (not a failure),
+and the real, untouched `dicks-lab-es-session.service` was never started.
+**The fail-closed design worked exactly as intended** — it just never got
+armed, because the arming step used the wrong `/run` write pattern.
+
+**0W-2F correction — marker via `RuntimeDirectory=`, not a bare `/run`
+write.** `deploy/dicks_laboratory/systemd/dicks-lab-preflight-gate.service`
+and `dicks-lab-launch-gate.service` (both newly tracked, replacing the
+untracked, per-attempt `dicks-lab-attempt5-preflight.service` /
+`dicks-lab-attempt5-launch.service` pattern) declare
+`RuntimeDirectory=dicks-lab-launch-gate`, `RuntimeDirectoryMode=0750`, and
+**`RuntimeDirectoryPreserve=yes`**. systemd pre-creates
+`/run/dicks-lab-launch-gate/` owned by `temckee8:temckee8` before
+`ExecStartPre` runs, so the unprivileged user can write the marker at
+`/run/dicks-lab-launch-gate/preflight-ok`. `RuntimeDirectoryPreserve=yes`
+is not cosmetic: `man systemd.exec` confirms that with the default (`no`),
+systemd removes `RuntimeDirectory=` contents the moment the unit is
+"stopped" — and a `Type=oneshot` unit with no `RemainAfterExit=` is
+considered stopped the instant `ExecStart`(+`Post`) finish, i.e.
+immediately, long before the launch-gate timer checks the marker minutes
+later. Without `RuntimeDirectoryPreserve=yes` the corrected design would
+have silently reproduced the same failure through a different mechanism.
+The launch-gate service is otherwise unchanged in behavior from Attempt 5:
+`ConditionPathExists=/run/dicks-lab-launch-gate/preflight-ok`, and on
+success it does nothing but
+`systemctl start --no-block dicks-lab-es-session.service` — no collector
+logic duplicated, no polling loop.
+
+**Boot-ephemeral proof.** `findmnt /run` on `dragon` confirms `/run` is a
+`tmpfs` mount; per `man systemd.exec`, "since the runtime directory `/run/`
+is a mount point of tmpfs, ... directories specified in `RuntimeDirectory=`
+are removed when the system is rebooted" — independent of
+`RuntimeDirectoryPreserve=`. Combined with the existing
+`ExecStartPre=/usr/bin/rm -f .../preflight-ok` (removes any stale marker
+before each preflight run, unchanged from the Attempt-5 design), the
+invariant holds: fresh boot → absent; successful preflight → present;
+failed preflight → absent; reboot → absent again. No live reboot was
+required to prove this — the tmpfs mount evidence and the documented
+kernel/systemd contract are sufficient, per instruction.
+
+**Deterministic orchestration test (harmless, no DXLink, no live
+collector).** Temporary `zz-test-*` units installed directly on `dragon`
+(never tracked, fully removed after the test) exercised the exact
+`RuntimeDirectory`/`ConditionPathExists` mechanics against a harmless
+stand-in target instead of `dicks-lab-es-session.service`:
+- **Case A (successful preflight):** `ExecStart=/bin/true` → marker
+  created → confirmed present *after* the oneshot preflight unit returned
+  to `inactive/dead` (proving `RuntimeDirectoryPreserve=yes` survives the
+  exact failure window from Attempt 5) → launch-gate's condition passed →
+  harmless target service actually started (journal + a touched sentinel
+  file both confirmed).
+- **Case B (failed preflight):** `ExecStart=/bin/false` → `ExecStartPost`
+  correctly skipped (systemd does not run `ExecStartPost=` after a failed
+  `ExecStart=`) → marker absent → launch-gate logged "skipped, unmet
+  condition check" → harmless target never started (no journal entry, no
+  sentinel file).
+- **Case C:** covered by the boot-ephemeral proof above.
+
+`systemd-analyze verify` passed clean on both new unit files before
+deployment. The two corrected gate services were deployed to `dragon`
+(sha256-verified byte-identical to the repo copies) but are **inert**:
+`systemctl list-unit-files` shows both `static` (no `[Install]`, no timer
+references them yet) — they cannot fire until a one-date Attempt-6 timer is
+created and armed, which this phase explicitly does not do.
+
+**Attempt-5 unit retirement.** The four untracked, per-attempt units
+(`dicks-lab-attempt5-preflight.timer`, `dicks-lab-attempt5-preflight.
+service`, `dicks-lab-attempt5.timer`, `dicks-lab-attempt5-launch.service`)
+were disabled, stopped, and removed from `dragon` after their evidence was
+fully captured (this section, plus the raw `systemctl`/`journalctl`
+transcript reviewed live). `systemctl list-unit-files`/`list-units --all`
+confirm no trace remains. The production
+`dicks-lab-es-session.timer`/`.service` were reconfirmed untouched
+throughout (`disabled`/`inactive`, byte-identical to
+`deploy/dicks_laboratory/systemd/`, `HEAD=7ce180e2fd77575909aa07c7537d5
+1ac82fb2da1` on both the repo and `dragon`'s checkout).
+
+**Attempt 6 — prepared, not started.** Per the Laboratory's own
+`SESSION_AND_ANCHOR_MODEL.md` (`CME_EQUITY_INDEX_GLOBEX`: Sunday 5pm→Friday
+4pm CT, Sunday evening assigned to the *following* trading date), the next
+ordinary Sun–Thu launch-evening opportunity is **Mon 2026-09-14 17:00 CT**
+session open → trading_date **2026-09-15**. Proposed (not deployed)
+one-date timers, mirroring the Attempt-5 timer shape but pointing at the
+new generic gate services:
+
+```ini
+# dicks-lab-attempt6-preflight.timer (proposed, NOT installed)
+[Timer]
+OnCalendar=2026-09-14 16:42:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-preflight-gate.service
+
+# dicks-lab-attempt6.timer (proposed, NOT installed)
+[Timer]
+OnCalendar=2026-09-14 16:55:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-launch-gate.service
+```
+
+`systemd-analyze calendar` confirms both expressions normalize to
+Mon 2026-09-14 16:42/16:55 CDT (21:42/21:55 UTC) as intended. Arming these
+is explicitly deferred to a future phase that evaluates the session
+opportunity immediately before scheduling, per instruction.
+
+**No Robby dependency.** The corrected chain is unchanged in shape:
+Azure → `dragon` → systemd (`RuntimeDirectory`-backed oneshot gate services
++ `OnCalendar` timers). No wait loop, background Claude/Codex process, SSH
+session, `tmux`/`screen`, or `robby` cron is required or was used.
+
+**Test results:** this is a systemd-unit/doc-only corrective phase — no
+Python production code changed, so no Python regression suite was run
+(per instruction, not run merely for ceremony). `systemd-analyze verify`:
+clean on both new units. `git diff --check`: clean. Secret audit: clean
+(no credentials in any changed file).
+
+```
+0W-2F: PASS / READY FOR PO REVIEW
+0W-2: OPEN.  ATTEMPT 5: FAILED / CLOSED AS FAILED.  ATTEMPT 6: NOT STARTED.
+RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
+```

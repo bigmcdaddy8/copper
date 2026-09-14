@@ -1,0 +1,21 @@
+# Fail-closed launcher only -- contains NO collector logic and is NOT a copy
+# of dicks-lab-es-session.service. It does exactly one thing: if (and only
+# if) dicks-lab-preflight-gate.service's marker exists, start the REAL,
+# untouched, tracked production service via a plain `systemctl start`. If
+# the marker is absent (preflight never ran, failed, or its marker could not
+# be created), the Condition below fails, systemd marks this activation
+# "skipped" (not failed), and the collector never launches -- fail-closed,
+# no polling loop, no redesign of the collector. (0W-2 Attempt-5 design,
+# unchanged in behavior by the 0W-2F marker-path correction.)
+#
+# Triggered only by a one-date OnCalendar timer created per attempt (never
+# WantedBy=, no [Install] here).
+
+[Unit]
+Description=Dick's Laboratory — fail-closed launcher for dicks-lab-es-session.service
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+ConditionPathExists=/run/dicks-lab-launch-gate/preflight-ok
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl start --no-block dicks-lab-es-session.service

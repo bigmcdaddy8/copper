@@ -1,0 +1,43 @@
+# Safe credential/instrument preflight gate for Dick's Laboratory bounded ES
+# capture launches. Runs the existing accepted `dicks_lab_preflight.py`
+# (0W-2D) -- REST/OAuth reachability, futures endpoint, /ESU6 -> /ESU26:XCME
+# resolution -- WITHOUT requesting a DXLink quote token. On success only,
+# creates a boot-ephemeral marker that dicks-lab-launch-gate.service requires
+# before starting the real, untouched production dicks-lab-es-session.service.
+#
+# 0W-2F: the marker MUST be created via RuntimeDirectory=, never a bare
+# `touch /run/...`. /run is root:root 0755 and this service intentionally
+# runs unprivileged (User=temckee8); a direct write to /run's root fails with
+# Permission denied -- the 0W-2 Attempt-5 root cause. RuntimeDirectory= makes
+# systemd pre-create /run/dicks-lab-launch-gate owned by User=/Group= before
+# ExecStartPre runs, so temckee8 can write into it. RuntimeDirectoryPreserve=
+# yes is required because a Type=oneshot service (no RemainAfterExit) is
+# considered "stopped" the instant ExecStart(+Post) finish -- without
+# RuntimeDirectoryPreserve=yes, systemd deletes the directory's contents at
+# that exact point, before dicks-lab-launch-gate.service ever gets to check
+# it minutes later. The marker still never survives a reboot: /run is tmpfs,
+# always empty at boot, independent of RuntimeDirectoryPreserve=.
+#
+# Triggered only by a one-date OnCalendar timer created per attempt (never
+# WantedBy=, no [Install] here).
+
+[Unit]
+Description=Dick's Laboratory — safe preflight gate (no quote-token fetch)
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+After=network-online.target time-sync.target
+Wants=network-online.target
+AssertPathExists=/home/temckee8/Documents/REPOs/copper/.env
+
+[Service]
+Type=oneshot
+User=temckee8
+Group=temckee8
+WorkingDirectory=/home/temckee8/Documents/REPOs/copper
+Environment=HOME=/home/temckee8
+Environment=PATH=/home/temckee8/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RuntimeDirectory=dicks-lab-launch-gate
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+ExecStartPre=/usr/bin/rm -f /run/dicks-lab-launch-gate/preflight-ok
+ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_preflight.py
+ExecStartPost=/usr/bin/touch /run/dicks-lab-launch-gate/preflight-ok
