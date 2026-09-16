@@ -3751,3 +3751,51 @@ RECURRING PRODUCTION TIMER: DISABLED.
 OLD 24.04 OS DISK: RETAINED PENDING PO/HUMAN RETIREMENT DECISION.
 DRAGON: DEALLOCATED.
 ```
+
+## AZ10 — GEN0 24.04 ROLLBACK DISK RETIREMENT (0W-4A)
+
+Gen1 completed a gap-free autonomous full-trading-date proof (0W-2 Attempt 6,
+§AZ9) and is now the accepted operational baseline. The Product Owner
+decided (2026-09-15) that `dragon_disk1_bb48fd67c68342b4b4596a45879297f9`
+(the pre-rebuild Ubuntu 24.04 Gen0 OS disk, retained since the Gen1 migration
+as a rollback path) is no longer the preferred recovery path and is **SAFE
+TO RETIRE**.
+
+**Pre-deletion gate (all verified live, 2026-09-15):**
+
+- `az disk show` — resource group `rg-dev-environment`, `diskState:
+  Unattached`, SKU `StandardSSD_LRS`, size 32 GiB, `managedBy` absent (not
+  attached to `dragon` or any other VM).
+- `dragon`'s current `storageProfile` (`az vm show`) references only
+  `dragon-osdisk-gen1` (OS) and `dragon-data1` (data) — no reference to the
+  Gen0 disk anywhere in the live Gen1 configuration.
+- Recovery sources confirmed present and independent of the Gen0 disk:
+  `origin/master` reachable (`4fa90d0`), Gen1 OS disk and `dragon-data1`
+  intact, tracked systemd units (`deploy/dicks_laboratory/systemd/`) and
+  tracked Azure runbooks (`deploy/azure/automation/Start-Dragon.ps1`,
+  `Stop-Dragon.ps1`) present in the repo, this migration document present,
+  the current `.env` present and correctly permissioned on Gen1
+  (`/home/temckee8/Documents/REPOs/copper/.env`, confirmed via the
+  collector unit's own `AssertPathExists`/`stat` precondition — contents not
+  read), and an encrypted historical `.env` backup from the Gen0→Gen1
+  rebuild present on `robby`
+  (`~/secure/dragon-pre-rebuild/dragon-env-20260909.env.gpg`, existence
+  only checked, contents not read).
+
+**Deletion:** `az disk delete --ids .../dragon_disk1_bb48fd67c68342b4b4596a45879297f9 --yes`.
+
+**Post-deletion verification:** `az disk show` on the deleted resource now
+returns `(NotFound)`; `az disk list -g rg-dev-environment` shows only
+`dragon-osdisk-gen1` and `dragon-data1` remaining; `dragon`'s VM object,
+`dragon-nic`, and both weekly Azure Automation schedules
+(`dicks-futures-dragon-start` Sunday 15:30 CT, `dicks-futures-dragon-stop`
+Friday 16:45 CT) all remain intact and unmodified. `dragon` was booted
+briefly, read-only, solely to confirm the `.env` backup/current-file
+evidence above (no collector, no preflight, no quote token), then returned
+to `PowerState/deallocated`.
+
+```
+GEN0 24.04 ROLLBACK DISK: RETIRED / DELETED AFTER 0W-2 ACCEPTANCE
+Reason: Gen1 completed a gap-free autonomous full-trading-date proof and is
+now the accepted operational baseline.
+```
