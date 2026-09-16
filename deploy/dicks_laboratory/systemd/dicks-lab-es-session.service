@@ -18,6 +18,15 @@
 # ~5x that observed cap, still bounded, and verified against writer/disk
 # capacity in §AZ5/§LB — do not rely on the Python default here.
 #
+# 0W-4B: `--symbol` is now passed explicitly rather than relying on the
+# collector's Python default (`dicks_laboratory.production_symbol
+# .PINNED_ES_SYMBOL`), so the production epoch's pinned ES contract is
+# visible directly in this tracked unit, not hidden in a script default.
+# Changing it for a new soak/production epoch requires editing this line
+# AND the constant it must agree with (see `production_symbol.py`) --
+# `test_production_unit_config.py::test_production_unit_pins_explicit_symbol_matching_config`
+# fails the build if they ever drift.
+#
 # System-level unit (NOT `systemctl --user`, no linger, no GUI/session owner).
 
 [Unit]
@@ -43,7 +52,7 @@ ExecStartPre=/usr/bin/mountpoint -q /srv/dicks_laboratory
 ExecStartPre=/usr/bin/bash -c 'f=/home/temckee8/Documents/REPOs/copper/.env; test -f "$f" && [ "$(stat -c %%a "$f")" = 600 ] && [ "$(stat -c %%U "$f")" = temckee8 ]'
 
 # One bounded trading-date capture. Fresh quote token acquired inside the process.
-ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_collect_es.py --duration 83700 --max-events 5000000 --data-dir /srv/dicks_laboratory/data/sessions
+ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_collect_es.py --symbol /ESZ6 --duration 83700 --max-events 5000000 --data-dir /srv/dicks_laboratory/data/sessions
 
 # Graceful shutdown (matches accepted soak units).
 KillSignal=SIGINT

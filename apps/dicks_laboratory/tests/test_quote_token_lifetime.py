@@ -71,7 +71,15 @@ def _wire(monkeypatch, expires_at: datetime):
             pass
 
         def list_futures(self):
-            return [{"symbol": "/ESU6", "streamer-symbol": "/ESU26:XCME"}]
+            return [
+                {
+                    "symbol": "/ESZ6",
+                    "streamer-symbol": "/ESZ26:XCME",
+                    "product-code": "ES",
+                    "is-tradeable": True,
+                    "expiration-date": "2026-12-18",
+                }
+            ]
 
         def get_api_quote_token(self):
             return {

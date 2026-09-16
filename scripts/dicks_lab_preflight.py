@@ -16,11 +16,15 @@ from dotenv import load_dotenv
 
 from K9.tastytrade.client import TastytradeClient
 from K9.tastytrade.settings import TastytradeSettings
+from dicks_laboratory.es_contract import expected_streamer_symbol
 from dicks_laboratory.preflight import run_credential_preflight
+from dicks_laboratory.production_symbol import PINNED_ES_SYMBOL
 
 app = typer.Typer(add_completion=False)
-_SYMBOL = "/ESU6"
-_EXPECTED_STREAMER = "/ESU26:XCME"
+# 0W-4B: single source of truth shared with dicks_lab_collect_es.py, so
+# preflight and the collector can never validate different contracts.
+_SYMBOL = PINNED_ES_SYMBOL
+_EXPECTED_STREAMER = expected_streamer_symbol(_SYMBOL)
 
 
 @app.command()

@@ -42,6 +42,15 @@ def test_production_unit_pins_expected_duration_and_data_dir():
     assert "scripts/dicks_lab_collect_es.py" in line
 
 
+def test_production_unit_pins_explicit_symbol_matching_config():
+    # 0W-4B: the unit must state the pinned contract explicitly, and it must
+    # agree with the single source of truth in production_symbol.py -- never
+    # drift onto different contracts silently.
+    from dicks_laboratory.production_symbol import PINNED_ES_SYMBOL
+
+    assert f"--symbol {PINNED_ES_SYMBOL}" in _exec_start_line()
+
+
 def test_production_unit_never_auto_restarts_a_fatal_exit():
     # 0W-2 Attempt-4 lesson: a fatal collector exit must stay failed -- no
     # late catch-up relaunch that would masquerade as a complete session.

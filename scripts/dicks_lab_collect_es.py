@@ -22,6 +22,7 @@ from K9.tastytrade.client import TastytradeClient
 from K9.tastytrade.dxlink import DxLinkSourceCollector
 from K9.tastytrade.settings import TastytradeSettings
 from dicks_laboratory.durable_writer import CaptureBackpressureError, CaptureWriterError
+from dicks_laboratory.es_contract import EsContractResolutionError, resolve_es_contract
 from dicks_laboratory.long_running_capture import (
     DEFAULT_RECONNECT_POLICY,
     InstrumentCaptureSpec,
@@ -29,12 +30,10 @@ from dicks_laboratory.long_running_capture import (
     ReconnectPolicy,
     run_long_horizon_capture,
 )
-from dicks_laboratory.models import InstrumentIdentity, InstrumentKind
+from dicks_laboratory.production_symbol import PINNED_ES_SYMBOL
 
 app = typer.Typer(add_completion=False)
 _DEFAULT_DATA_DIR = Path("apps/dicks_laboratory/data")
-_ES_INSTRUMENT = InstrumentIdentity(InstrumentKind.FUTURE, "CME", "ES", 2026, 9)
-_ES_STREAMER_SYMBOL = "/ESU26:XCME"
 
 # 0W-2D connect-time quote-token lifetime guard. The tastytrade DXLink quote
 # token lives ~24h (0W-2C measured 86,400s exactly) and an ordinary ES trading
@@ -83,7 +82,9 @@ def _quote_token_lifetime(
 
 @app.command()
 def collect(
-    symbol: str = typer.Option("/ESU6", help="Verified Tastytrade futures display contract."),
+    symbol: str = typer.Option(
+        PINNED_ES_SYMBOL, help="ES quarterly contract to collect (e.g. /ESZ6). Verified against live futures metadata at startup."
+    ),
     duration: str = typer.Option(
         "3m", help="Bounded session duration, e.g. '3m', '90s', '2h'. Always bounded -- not unbounded/always-on yet."
     ),
@@ -94,15 +95,16 @@ def collect(
     max_events: int = typer.Option(1_000_000, min=1),
 ) -> None:
     """Run one bounded, reconnect-capable, serious ES TimeAndSale collection session."""
-    if symbol != "/ESU6":
-        raise typer.BadParameter("This command supports only the verified /ESU6 display contract.")
     duration_seconds = _parse_duration(duration)
 
     load_dotenv()
     client = TastytradeClient(TastytradeSettings.from_environment("tastytrade_production"))
-    resolved = next((item for item in client.list_futures() if item.get("symbol") == symbol), None)
-    if not isinstance(resolved, dict) or resolved.get("streamer-symbol") != _ES_STREAMER_SYMBOL:
-        raise typer.BadParameter("Current futures metadata did not resolve /ESU6 to /ESU26:XCME.")
+    try:
+        contract = resolve_es_contract(client, symbol)
+    except EsContractResolutionError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    es_instrument = contract.instrument
+    es_streamer_symbol = contract.streamer_symbol
 
     def fresh_collector(enforce_horizon_seconds: float | None = None) -> DxLinkSourceCollector:
         # 0W-2A root cause: a quote token obtained once at startup is only
@@ -152,14 +154,14 @@ def collect(
     def _log_reconnect_attempt(attempt: int) -> None:
         typer.echo(f"reconnect: attempt={attempt} refresh_collector_invoked=true", err=True)
 
-    spec = InstrumentCaptureSpec(instrument=_ES_INSTRUMENT, streamer_symbol=_ES_STREAMER_SYMBOL)
+    spec = InstrumentCaptureSpec(instrument=es_instrument, streamer_symbol=es_streamer_symbol)
     reconnect_policy = ReconnectPolicy(
         backoff_schedule_seconds=DEFAULT_RECONNECT_POLICY.backoff_schedule_seconds,
         max_attempts=max_reconnect_attempts,
     )
 
     typer.echo(f"Dataset directory: {data_dir}")
-    typer.echo(f"Instrument: {_ES_INSTRUMENT.canonical_id}  Streamer symbol: {_ES_STREAMER_SYMBOL}")
+    typer.echo(f"Instrument: {es_instrument.canonical_id}  Streamer symbol: {es_streamer_symbol}")
     typer.echo(f"Bounded duration: {duration} ({duration_seconds:.0f}s)  Max reconnect attempts: {max_reconnect_attempts}")
     typer.echo("Connecting...")
 
