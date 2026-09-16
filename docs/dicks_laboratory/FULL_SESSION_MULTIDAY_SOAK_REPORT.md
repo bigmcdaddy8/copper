@@ -3954,3 +3954,144 @@ dataset/journal evidence can be pulled — not fabricated ahead of the run.
 0W-2 ATTEMPT 6: ARMED, AWAITING AUTONOMOUS EXECUTION
 0W-2: OPEN.  RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
 ```
+
+## LF. 0W-2 ATTEMPT 6 — RESULT (post-run audit, 2026-09-15)
+
+**Runtime identity.** `dragon` HEAD at audit time: `c8fcfa6e46380b08ffe481866
+e96ce2f1cb94b71`, working tree clean, matching the pinned Attempt-6 baseline
+exactly (distinct from the later documentation-only commit `8e12399`, which
+was never fast-forwarded to `dragon` and is not part of the runtime chain).
+The dataset's own manifest and closing summary independently record
+`collector_git_commit = c8fcfa6e46380b08ffe481866e96ce2f1cb94b71`, corroborating
+provenance from the artifact itself rather than only from `git log`.
+
+**Autonomous chain, fully confirmed from evidence, no robby/Claude/SSH
+dependency.** Azure Automation `automation-dragon` (system-assigned managed
+identity `0c24e4c8-b561-49d2-9b48-3e0f47ed2649`) ran `Start-Dragon` per the
+`dicks-attempt6-dragon-start` one-time schedule ahead of the Monday reopen (VM
+already running/idle by preflight time — schedule confirmed present and
+enabled pre-run). `dicks-lab-attempt6-preflight.timer` fired
+2026-09-14T21:42:00Z, invoked `dicks-lab-preflight-gate.service`
+(`PREFLIGHT_RESULT=PASS`, no quote-token fetch). `dicks-lab-attempt6.timer`
+fired 2026-09-14T21:55:00Z, invoked `dicks-lab-launch-gate.service`, which
+started the real `dicks-lab-es-session.service` (single `Starting`/`Started`
+pair for the whole boot — `NRestarts=0`).
+
+**Dataset identity.** `dataset_id b07e92d4-fcdd-4731-a670-f2acbdeba7f0` at
+`/srv/dicks_laboratory/data/sessions/es_20260915_b07e92d4.sqlite3`,
+`FUTURE:CME:ES:2026-09` (`/ESU26:XCME`), `trading_date 2026-09-15`, state
+`FINALIZED`, 100,663,296 bytes. Only this one dataset file exists for the
+trading date — no second dataset-open.
+
+**Boundary coverage.** `CAPTURE_STARTED` 2026-09-14T22:00:00.000228Z (exactly
+17:00:00.000 CT). `SOURCE_CONNECTED` 2026-09-14T22:00:01.382839Z (+1.38 s);
+first retained trade 22:00:01.551Z. This connect-handshake delay matches the
+range already accepted as normal in Attempts 3/5 (0.6 s–1.475 s observed
+there, all accepted PASS) and the analytics tool's own
+`DATASET_BEGINS_AFTER_ANCHOR` flag reports it honestly as an
+unobserved-pre-capture interval rather than silently absorbing it — there is
+no `KNOWN_GAP`/`SUSPECTED_GAP` row for it and no distinct evidence of lost
+prints, only of a startup handshake before the exchange's own first print.
+**SESSION-OPEN COVERAGE: PASS.** Close boundary: `CAPTURE_STOPPED`
+2026-09-15T21:00:00.386624Z (16:00:00.39 CT), last retained trade
+20:59:59.429Z — clean coverage through the ordinary 16:00 CT close.
+
+**Event-cap boundary — NOT EXERCISED.** `source_order` MIN=1, MAX=202,474
+(`observation_source_provenance`, 202,474 distinct values, no holes, no
+duplicates). Accepted/rejected/deferred all reconcile exactly
+(202,474 / 0 / 0). **The session's real trade volume never approached the old
+1,000,000-event default, let alone the new 5,000,000 safety fuse.** This
+means Attempt 6 — whose explicitly stated primary purpose was proving the
+collector crosses 1,000,000 source-ordered events without a false
+finalization — did not actually exercise that code path under real market
+data. Nothing failed; the correction was simply never triggered. This is a
+gap in the *proof*, not a defect in the *collector*.
+
+**Lifecycle events.** `CAPTURE_STARTED=1`, `SOURCE_CONNECTED=1`,
+`CAPTURE_STOPPED=1`, `DISCONNECTED=0`, `RECONNECTED=0`, `KNOWN_GAP=0`,
+`SUSPECTED_GAP=0`.
+
+**Dataset sequence.** MIN=1, MAX=202,474, distinct=202,474, accepted_count
+202,474 — contiguous, no holes, no duplicates. `source_order != dataset_sequence`
+as designed (both happen to top out at the same value here only because
+zero rejections/deferrals occurred).
+
+**SQLite integrity.** `PRAGMA quick_check` / `PRAGMA integrity_check`: `ok`.
+`journal_mode=delete`, no `-wal`/`-shm` sidecars. Manifest `sha256` matches an
+independent `sha256sum` of the file exactly
+(`7c969950e2df9616dbd2897f80200336a9ab5bd2046bb55294237eaaa9cf50da`); the
+in-DB `dataset_closing_summaries` row agrees exactly with direct SQL
+`COUNT`/`MIN`/`MAX` over `trade_observations` and
+`observation_source_provenance`. The 0W-2D `SELECT COUNT(*)` finalization
+path (`store.py:679-687`) remains in place; no full-dataset Python
+materialization was introduced.
+
+**Writer metrics.** `writer_flush_count=53979`, `writer_batch_size_max=250`,
+`writer_queue_depth_max=1286`, `writer_max_persist_lag_seconds=4.4956`,
+`writer_persisted_events=202474`, `writer_overloaded=false`.
+
+**Host capacity (Azure Monitor, full 23h+ window).** `Percentage CPU`: mean
+~1.1-1.6%, max **5.69%** (during the 08:00-11:00 CT busy band, comfortably
+low) — never remotely close to B2ms baseline stress. `CPU Credits Remaining`
+rose from 110.83 to 913.13 over the run (consumption 0.02-0.07 credits/hr vs.
+~12/hr accrual) — the VM banked credits the entire session.
+`MemoryPeak=170.9M` for the whole 23h15m run, no finalization-time spike — no
+recurrence of the old finalization-memory defect. **Standard_B2ms: PASS.**
+Data disk: 238 GiB free of 251 GiB (582M used) after this run — **256 GiB
+StandardSSD: PASS**, thousands of similar-sized sessions of headroom remain.
+
+**Completed-session analytics.** `dicks_lab_analyze_vwap.py` and
+`dicks_lab_analyze_volume_profile.py` (session-open anchor): VWAP
+`7595.120927199293001333374678`, POC `7590.25`, VAL `7581.25`, VAH
+`7598.50`, value area 70.32%. `dicks_lab_analyze_developing_profile.py`
+(15m, full session): terminal snapshot at 16:00 matches the static values
+exactly (cross-path consistency invariant holds at full scale). Runtimes:
+~20s (VWAP), ~21s (volume profile), ~37s (developing-profile timeline).
+
+**Autonomous Tuesday stop.** `dicks-attempt6-dragon-stop` schedule
+(`OneTime`, `startTime 2026-09-15T16:45:00-05:00`) produced Automation job
+`d52cd3de-ff77-49c9-af97-d9941b15c70a`, runbook `Stop-Dragon`, started
+2026-09-15T21:45:53Z, completed 21:46:56Z, `status=Completed`. Activity-log
+`Microsoft.Compute/virtualMachines/deallocate/action` at 21:46:14-21:46:26Z,
+caller `0c24e4c8-b561-49d2-9b48-3e0f47ed2649` = `automation-dragon`'s own
+system-assigned managed identity. `dragon` was `PowerState/deallocated`
+before this audit restarted it. No robby/Claude-CLI/SSH session was required
+at any point in the chain.
+
+**Cleanup.** `dicks-lab-attempt6-preflight.timer` and `dicks-lab-attempt6.timer`
+disabled and removed from `dragon`; `dicks-attempt6-dragon-start`/`-stop`
+Azure schedules deleted. `dicks-lab-preflight-gate.service`,
+`dicks-lab-launch-gate.service`, and the recurring (disabled)
+`dicks-lab-es-session.timer` retained untouched.
+
+**Verdict.** Every autonomy, coverage, integrity, capacity, and cleanup bar
+in §27 is met. **Historical 1,000,000-event boundary: NOT NATURALLY
+RE-EXERCISED IN ATTEMPT 6** — real ES daily trade-print volume on
+2026-09-15 topped out at `source_order` 202,474, an order of magnitude
+below even the old 1,000,000 default, so that specific code path was not
+hit by real production volume this run.
+
+**Product Owner acceptance (2026-09-15).** The 1,000,000-event value was
+the trigger for the *old* production safety-fuse defect, not a required
+market-data volume for 0W-2 closure. That defect and its correction
+(max-events early termination, single dataset, writer drain, truthful
+abnormal stop, no second dataset-open, no accidental rotation) were already
+proven deterministically in 0W-2E (§LC), and production now runs with
+`--max-events 5000000`. Attempt 6's accepted purpose for 0W-2 closure is
+proving the *corrected* production configuration completes one full
+autonomous ordinary trading date, gap-free, with no robby/Claude/SSH
+dependency — which it did. The Product Owner therefore accepts Attempt 6
+as the decisive full-session proof and does not require a future attempt to
+re-exercise an obsolete defect threshold merely to close this phase.
+
+```
+0W-2 ATTEMPT 6: PASS — COMPLETE GAP-FREE AUTONOMOUS TRADING-DATE PROOF ON
+DRAGON
+Historical 1,000,000-event boundary: NOT NATURALLY RE-EXERCISED IN ATTEMPT 6
+(source_order max 202,474; already covered by deterministic 0W-2E regression,
+not retained as a separate closure requirement)
+0W-2: ACCEPTED / CLOSED.  0W-4: READY TO PLAN.
+RECURRING PRODUCTION TIMER: DISABLED.
+OLD 24.04 OS DISK: RETAINED PENDING PO/HUMAN RETIREMENT DECISION.
+DRAGON: DEALLOCATED.
+```

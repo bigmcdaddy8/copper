@@ -3709,3 +3709,45 @@ recorded in a follow-up entry after the Tuesday stop fires — not before.
 0W-2 ATTEMPT 6: ARMED, AWAITING AUTONOMOUS EXECUTION
 0W-2: OPEN.  RECURRING PRODUCTION TIMER: DISABLED.  OLD 24.04 OS DISK: RETAINED.
 ```
+
+## AZ9 — 0W-2 ATTEMPT 6 — RESULT (post-run audit)
+
+Full write-up: `FULL_SESSION_MULTIDAY_SOAK_REPORT.md` §LF (canonical). The
+autonomous chain executed exactly as armed: Automation-driven Monday start,
+16:42/16:55 CT preflight and launch gates, a single clean
+`dicks-lab-es-session.service` run (`c8fcfa6e46380b08ffe481866e96ce2f1cb94b71`,
+`NRestarts=0`), gap-free `CAPTURE_STARTED`→`CAPTURE_STOPPED` coverage of the
+full 2026-09-14 17:00 CT → 2026-09-15 16:00 CT trading date
+(`KNOWN_GAP=0`, `SUSPECTED_GAP=0`), a `FINALIZED` dataset
+(`b07e92d4-fcdd-4731-a670-f2acbdeba7f0`, 202,474 accepted trades) whose
+manifest/checksum/closing-summary all agree exactly with independent SQL and
+`sha256sum`, and an autonomous Tuesday 16:45 CT `Stop-Dragon` job
+(`d52cd3de-ff77-49c9-af97-d9941b15c70a`) run by `automation-dragon`'s own
+managed identity — no robby/Claude/SSH dependency anywhere in the chain.
+Host capacity (CPU, memory, credits, disk) was comfortable throughout.
+
+**Historical 1,000,000-event boundary: NOT NATURALLY RE-EXERCISED IN
+ATTEMPT 6.** Real trade volume on 2026-09-15 topped out at `source_order`
+202,474 — the session never crossed the old 1,000,000-event default. The
+Product Owner accepted (2026-09-15) that this is not a closure blocker: the
+1,000,000 value was the trigger for the old safety-fuse defect, not a
+required market-data volume, and that defect/correction was already proven
+deterministically by 0W-2E; production now runs with `--max-events
+5000000`. Attempt-6 timers
+(`dicks-lab-attempt6-preflight.timer`/`dicks-lab-attempt6.timer`) and the
+one-time Azure schedules (`dicks-attempt6-dragon-start`/`-stop`) were removed
+after evidence capture; `dicks-lab-preflight-gate.service`/
+`dicks-lab-launch-gate.service` and the disabled recurring collector timer
+were left in place. `dragon` returned to `PowerState/deallocated`.
+
+```
+0W-2 ATTEMPT 6: PASS — COMPLETE GAP-FREE AUTONOMOUS TRADING-DATE PROOF ON
+DRAGON
+Historical 1,000,000-event boundary: NOT NATURALLY RE-EXERCISED IN ATTEMPT 6
+(source_order max 202,474; already covered by deterministic 0W-2E regression,
+not retained as a separate closure requirement)
+0W-2: ACCEPTED / CLOSED.  0W-4: READY TO PLAN.
+RECURRING PRODUCTION TIMER: DISABLED.
+OLD 24.04 OS DISK: RETAINED PENDING PO/HUMAN RETIREMENT DECISION.
+DRAGON: DEALLOCATED.
+```
