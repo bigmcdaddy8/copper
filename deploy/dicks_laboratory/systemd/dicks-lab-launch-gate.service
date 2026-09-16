@@ -8,14 +8,21 @@
 # no polling loop, no redesign of the collector. (0W-2 Attempt-5 design,
 # unchanged in behavior by the 0W-2F marker-path correction.)
 #
-# Triggered only by a one-date OnCalendar timer created per attempt (never
-# WantedBy=, no [Install] here).
+# 0W-4A: triggered by the recurring dicks-lab-launch-gate.timer
+# (Sun,Mon,Tue,Wed,Thu 16:55 America/Chicago, immediately after the 16:42
+# preflight). ExecCondition= (not ConditionPathExists=) so the check keeps
+# the original fail-closed "skipped, not failed" semantics while actually
+# validating the marker's payload equals *today's* America/Chicago date, via
+# dicks_lab_gate_marker.sh check. A marker left over from an earlier trading
+# date (or any date-content mismatch) fails the condition exactly like a
+# missing marker -- no late catch-up launch, no stale cross-day
+# authorization, regardless of how long dragon has been up.
 
 [Unit]
 Description=Dick's Laboratory — fail-closed launcher for dicks-lab-es-session.service
 Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
-ConditionPathExists=/run/dicks-lab-launch-gate/preflight-ok
 
 [Service]
 Type=oneshot
+ExecCondition=/home/temckee8/Documents/REPOs/copper/deploy/dicks_laboratory/scripts/dicks_lab_gate_marker.sh check /run/dicks-lab-launch-gate/preflight-ok
 ExecStart=/usr/bin/systemctl start --no-block dicks-lab-es-session.service

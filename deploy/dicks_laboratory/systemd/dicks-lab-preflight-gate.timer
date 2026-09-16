@@ -1,0 +1,23 @@
+# 0W-4A: recurring trigger for dicks-lab-preflight-gate.service, one run per
+# ordinary CME trading-date launch evening (Sun-Thu), 13 minutes ahead of the
+# 16:55 launch-gate/collector window -- same 13-minute margin proven safe in
+# 0W-2 Attempt 6's one-date preflight (16:42 -> 16:55). Persistent=false:
+# same 0W-2 Attempt-4 lesson as dicks-lab-es-session.timer -- a missed
+# preflight window must stay a visible miss, not a late catch-up run.
+#
+# NOT enabled as part of 0W-4A. 0W-4A is a design/readiness phase; arming
+# (systemctl enable --now) requires separate PO/Human authorization.
+
+[Unit]
+Description=Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+
+[Timer]
+OnCalendar=Sun,Mon,Tue,Wed,Thu *-*-* 16:42:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-preflight-gate.service
+
+[Install]
+WantedBy=timers.target
