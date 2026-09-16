@@ -3799,3 +3799,89 @@ GEN0 24.04 ROLLBACK DISK: RETIRED / DELETED AFTER 0W-2 ACCEPTANCE
 Reason: Gen1 completed a gap-free autonomous full-trading-date proof and is
 now the accepted operational baseline.
 ```
+
+## AZ11 — 0W-4B — ES Contract Roll Readiness (design/audit phase, no soak armed)
+
+**Why the September contract cannot carry into 0W-4.** CME's published
+equity-index calendar puts the September 2026 ES roll at 2026-09-14 and
+expiration at 2026-09-18. The proposed 0W-4 soak week begins 2026-09-20 —
+after both dates. Verified directly against live Tastytrade futures metadata
+(`client.list_futures()`, the same safe REST call preflight already uses —
+no DXLink, no quote token): `/ESU6` now reports `active-month: false`,
+`expiration-date: 2026-09-18`; `/ESZ6` reports `active-month: true`,
+`is-tradeable: true`, `streamer-symbol: /ESZ26:XCME`,
+`expiration-date: 2026-12-18`, `tick-size: 0.25`, product-code `ES`. The
+next contract after that (`/ESH7`, March 2027) is flagged
+`next-active-month: true`, confirming December 2026 is correctly the current
+lead contract with no expiration/roll inside the proposed Sep 21–25 trading
+window.
+
+**Historical `/ESU6` record is not erased.** Every Attempt 1–6 dataset
+retains its `FUTURE:CME:ES:2026-09` / `/ESU26:XCME` identity unchanged;
+nothing about this contract-selection change reinterprets or migrates past
+data. Production simply stops *defaulting* to that contract.
+
+**Dependency audit.** `/ESU6` / `/ESU26:XCME` / `FUTURE:CME:ES:2026-09`
+appeared in exactly two production locations: `scripts/dicks_lab_collect_es.py`
+(CLI default + hard-coded `if symbol != "/ESU6"` rejection + module-level
+`_ES_INSTRUMENT`/`_ES_STREAMER_SYMBOL` constants) and
+`scripts/dicks_lab_preflight.py` (`_SYMBOL`/`_EXPECTED_STREAMER` module
+constants) — the only two places a production contract choice was made.
+Everything else that mentioned the string was either a test fixture (safe,
+contract-independent behavior under test) or historical narrative in these
+docs. `apps/dicks_laboratory/src/dicks_laboratory/sessions.py` (trading-date
+classification), `vwap.py`, `volume_profile.py`, `audit.py`, `models.py`
+(`InstrumentIdentity.canonical_id`), and `long_running_capture.py` were
+audited and confirmed to already be fully instrument-identity-driven with
+zero September-specific coupling — no changes needed there.
+
+**Contract-selection policy: explicit pinned contract per epoch, no
+auto-roll.** Added `dicks_laboratory/production_symbol.py`
+(`PINNED_ES_SYMBOL = "/ESZ6"`) as the single tracked source of truth, and
+`dicks_laboratory/es_contract.py` (`resolve_es_contract`) which generalizes
+the old literal-string check into: ES-root + recognized CME quarterly month
+code (H/M/U/Z) + single-digit year syntax, then authoritative verification
+against live futures metadata (product-code `ES`, `is-tradeable`, and an
+exact streamer-symbol match) — rejecting non-ES products, unresolved
+symbols, untradeable/delisted contracts, and streamer mismatches. Both
+`dicks_lab_collect_es.py` and `dicks_lab_preflight.py` now import
+`PINNED_ES_SYMBOL` from this one module instead of each carrying its own
+literal, and the tracked production unit
+(`deploy/dicks_laboratory/systemd/dicks-lab-es-session.service`) now passes
+`--symbol /ESZ6` explicitly in `ExecStart` rather than relying on the
+collector's Python default — a regression test
+(`test_production_unit_pins_explicit_symbol_matching_config`) fails the
+build if the unit and the constant ever disagree. This is a one-soak, one-
+pinned-contract policy, deliberately not an automatic roll engine — a
+future formal roll policy is out of scope for 0W-4.
+
+**Tests.** New `apps/dicks_laboratory/tests/test_es_contract.py` (13 tests)
+covers: valid Dec-2026 contract accepted with correct instrument/streamer
+mapping; the historical Sep-2026 contract still independently resolves on
+its own metadata; non-ES symbols and ES-labeled-but-wrong-product-code rows
+rejected; unresolved/malformed/untradeable symbols rejected; streamer-symbol
+mismatches rejected; preflight/collector/unit configuration agreement; and
+correct new-contract dataset-provenance identity
+(`FUTURE:CME:ES:2026-12`, `/ESZ26:XCME`). `test_quote_token_lifetime.py`'s
+fake futures fixture was updated from `/ESU6` to `/ESZ6` metadata to match
+the new pinned default. Full results: targeted contract tests 29/29
+(`test_es_contract.py` + `test_preflight.py` + `test_quote_token_lifetime.py`
++ `test_production_unit_config.py`), 0W-4A gate regression tests
+(`test_gate_marker.py`) 9/9, `apps/dicks_laboratory` suite 353/353, `apps/K9`
+suite 199/199, full repository suite 1210/1210 (up from the pre-0W-4B
+1197), `ruff check` clean, `git diff --check` clean, secret-pattern scan
+clean.
+
+**No live collection.** All verification used `list_futures()` REST
+metadata only — no DXLink connection, no quote token fetch, at any point in
+this phase. The recurring preflight/launch/collector timers were not
+enabled; no soak was armed or started.
+
+```
+0W-4B: PASS — ES CONTRACT ROLL READY / MULTI-DAY SOAK READY TO ARM
+0W-2: ACCEPTED / CLOSED.  0W-4: NOT STARTED.
+RECURRING PREFLIGHT TIMER: DISABLED.  RECURRING LAUNCH TIMER: DISABLED.
+RECURRING PRODUCTION COLLECTOR TIMER: DISABLED.
+GEN0 24.04 DISK: RETIRED / DELETED.
+DRAGON: DEALLOCATED.
+```
