@@ -31,19 +31,20 @@ from dicks_laboratory.long_running_capture import (
     run_long_horizon_capture,
 )
 from dicks_laboratory.production_symbol import PINNED_ES_SYMBOL
+from dicks_laboratory.quote_token_lifecycle import (
+    QUOTE_TOKEN_HORIZON_MARGIN_SECONDS,
+    QuoteTokenGrant,
+    QuoteTokenHorizonError,
+    QuoteTokenLifecycle,
+)
 
 app = typer.Typer(add_completion=False)
 _DEFAULT_DATA_DIR = Path("apps/dicks_laboratory/data")
 
-# 0W-2D connect-time quote-token lifetime guard. The tastytrade DXLink quote
-# token lives ~24h (0W-2C measured 86,400s exactly) and an ordinary ES trading
-# date is ~23h 17:00->16:00, so a genuinely fresh token has ~1h of natural
-# margin. We require the token to outlast the intended capture horizon by at
-# least this small buffer; anything less means the token was minted early
-# (e.g. a pre-arm preflight -- the 0W-2 Attempt-3 KNOWN_GAP root cause) and a
-# "full session" launch would be misleading. Not a refresh mechanism, just a
-# launch sanity gate.
-_QUOTE_TOKEN_HORIZON_MARGIN_SECONDS = 900.0
+# 0W-2D connect-time quote-token lifetime guard (horizon + margin) now lives in
+# `dicks_laboratory.quote_token_lifecycle` together with the 0W-4D reconnect
+# token-reuse policy; the 900s margin is unchanged.
+_QUOTE_TOKEN_HORIZON_MARGIN_SECONDS = QUOTE_TOKEN_HORIZON_MARGIN_SECONDS
 
 # 0W-2E: mirrors the exact prefix `long_running_capture._run_one_trading_date_
 # session` writes into `LongHorizonCaptureResult.stopped_reason` when the
@@ -106,18 +107,15 @@ def collect(
     es_instrument = contract.instrument
     es_streamer_symbol = contract.streamer_symbol
 
-    def fresh_collector(enforce_horizon_seconds: float | None = None) -> DxLinkSourceCollector:
-        # 0W-2A root cause: a quote token obtained once at startup is only
-        # valid for a bounded lifetime. `get_api_quote_token()` asks Tastytrade
-        # for a token (re-authenticating the underlying OAuth access token first
-        # if it, too, has expired -- see `TastytradeClient._get_access_token`),
-        # so every genuine reconnect gets whatever credential it actually needs
-        # instead of replaying whatever was valid hours ago. 0W-2C proved the
-        # provider RE-ISSUES THE SAME token with its original ~24h `expires-at`
-        # while still valid -- so obtaining it early (a pre-arm preflight) burns
-        # its lifetime. The fix is upstream (preflight no longer requests one);
-        # here we record the token's real lifetime and, on the initial launch
-        # only, refuse to open a canonical capture the token cannot outlast.
+    def fetch_grant() -> QuoteTokenGrant:
+        # `get_api_quote_token()` re-authenticates the underlying OAuth access
+        # token first if it has expired (`TastytradeClient._get_access_token`).
+        # 0W-2C: the provider RE-ISSUES a still-valid standing token with its
+        # original ~24h `expires-at`, so WHEN a token is requested decides the
+        # next launch's horizon. 0W-4D: this is therefore called only at launch
+        # (plus a bounded near-expiry re-request) and on a reconnect whose
+        # existing token genuinely cannot cover the rest of the run -- never
+        # merely because a socket closed. See `QuoteTokenLifecycle`.
         oauth_before = client.access_token_refresh_count
         token_data = client.get_api_quote_token()
         token = token_data.get("token")
@@ -138,18 +136,15 @@ def collect(
             f"quote_token_remaining_seconds={remaining_text}",
             err=True,
         )
-        if enforce_horizon_seconds is not None and remaining_seconds is not None:
-            required = enforce_horizon_seconds + _QUOTE_TOKEN_HORIZON_MARGIN_SECONDS
-            if remaining_seconds < required:
-                raise typer.BadParameter(
-                    "DXLink quote-token lifetime is insufficient for the intended capture: "
-                    f"{remaining_seconds:.0f}s remaining < {required:.0f}s required "
-                    f"(horizon {enforce_horizon_seconds:.0f}s + margin "
-                    f"{_QUOTE_TOKEN_HORIZON_MARGIN_SECONDS:.0f}s). The token was almost "
-                    "certainly minted early (e.g. a pre-arm preflight); obtain it at "
-                    "collector startup instead. Refusing to open a misleading full-session capture."
-                )
-        return DxLinkSourceCollector(url, token)
+        return QuoteTokenGrant(dxlink_url=url, token=token, issued_at=issued_at, expires_at=expires_at)
+
+    token_lifecycle = QuoteTokenLifecycle(fetch_grant, log=lambda message: typer.echo(message, err=True))
+    def refresh_collector() -> DxLinkSourceCollector:
+        # A transport reconnect: `collect()` performs a full connect/auth/
+        # subscribe cycle per call, so reusing a still-sufficient token is a
+        # genuine reconnect -- it just does not renew credentials needlessly.
+        grant = token_lifecycle.grant_for_reconnect()
+        return DxLinkSourceCollector(grant.dxlink_url, grant.token)
 
     def _log_reconnect_attempt(attempt: int) -> None:
         typer.echo(f"reconnect: attempt={attempt} refresh_collector_invoked=true", err=True)
@@ -169,14 +164,16 @@ def collect(
         # A Ctrl+C during the collection loop itself is handled inside
         # `run_long_horizon_capture` (treated as a deliberate clean stop ->
         # FINALIZED); this guard only covers an interrupt during setup above,
-        # before any dataset exists to finalize.
-        # Initial launch enforces the quote-token lifetime guard against the
-        # full capture horizon; reconnects call `fresh_collector()` with no
-        # horizon (a mid-session reconnect on a freshly minted token is normal
-        # and must not abort a running capture).
+        # before any dataset exists to finalize (incl. the bounded near-expiry
+        # launch-token wait).
+        try:
+            launch_grant = token_lifecycle.acquire_for_launch(duration_seconds)
+        except QuoteTokenHorizonError as exc:
+            raise typer.BadParameter(str(exc)) from exc
         result = run_long_horizon_capture(
-            data_dir, spec, fresh_collector(duration_seconds), duration_seconds, max_events,
-            reconnect_policy=reconnect_policy, refresh_collector=fresh_collector,
+            data_dir, spec, DxLinkSourceCollector(launch_grant.dxlink_url, launch_grant.token),
+            duration_seconds, max_events,
+            reconnect_policy=reconnect_policy, refresh_collector=refresh_collector,
             on_reconnect_attempt=_log_reconnect_attempt,
         )
     except LongHorizonCaptureError as exc:

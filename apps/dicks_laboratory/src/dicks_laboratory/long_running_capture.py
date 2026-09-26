@@ -319,14 +319,15 @@ def run_long_horizon_capture(
     next trading date's session then gets its own fresh `SOURCE_CONNECTED`,
     never a `SOURCE_RECONNECTED` of the prior dataset.
 
-    `refresh_collector`, if given, is called to obtain a brand-new collector
-    (e.g. carrying a freshly re-obtained provider quote token) before every
+    `refresh_collector`, if given, is called to obtain the collector for every
     reconnect attempt (0W-2A: `DxLinkSourceCollector` fixes its auth token at
     construction, so blindly retrying `collect()` on the *same* instance
     forever resends whatever token was valid at startup -- if that token has
-    since expired, every retry fails identically). When omitted, the original
-    collector instance is reused across retries exactly as before -- pure
-    network hiccups where auth was never the issue still recover the same way.
+    since expired, every retry fails identically). The callback decides what
+    credential that collector carries; the production CLI reuses a token that
+    still covers the remaining run and requests a new one only when it cannot
+    (0W-4D, `quote_token_lifecycle.QuoteTokenLifecycle`). When omitted, the
+    original collector instance is reused across retries exactly as before.
     """
     collector_version, collector_git_commit = resolve_collector_version()
     overall_deadline = now() + timedelta(seconds=duration_seconds)

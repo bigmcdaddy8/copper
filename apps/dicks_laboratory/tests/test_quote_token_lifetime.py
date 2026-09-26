@@ -116,3 +116,84 @@ def test_guard_allows_fresh_full_lifetime_token(monkeypatch):
     result = CliRunner().invoke(_mod.app, ["--duration", "23h"])
     assert isinstance(result.exception, _Stop)  # guard passed, capture entered
     assert len(calls) == 1
+
+
+# --- 0W-4D: CLI wiring of the reconnect / near-expiry token lifecycle ------
+
+
+def _wire_sequence(monkeypatch, remaining_seconds: list[float]):
+    """Fake client whose successive quote-token requests expire
+    `remaining_seconds[i]` from the moment of the i-th request."""
+    captured: dict = {}
+    sleeps: list[float] = []
+
+    class _FakeClient:
+        access_token_refresh_count = 0
+        quote_token_requests = 0
+
+        def __init__(self, *_a, **_k):
+            captured["client"] = self
+
+        def list_futures(self):
+            return [{
+                "symbol": "/ESZ6", "streamer-symbol": "/ESZ26:XCME", "product-code": "ES",
+                "is-tradeable": True, "expiration-date": "2026-12-18",
+            }]
+
+        def get_api_quote_token(self):
+            index = self.quote_token_requests
+            self.quote_token_requests += 1
+            expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=remaining_seconds[index])
+            return {
+                "token": f"REDACTED-token-{index}",
+                "dxlink-url": "wss://example.invalid/dxlink",
+                "issued-at": (expires_at - timedelta(hours=24)).isoformat(),
+                "expires-at": expires_at.isoformat(),
+            }
+
+    def _fake_run(*args, **kwargs):
+        captured["args"], captured["kwargs"] = args, kwargs
+        raise _Stop()
+
+    from dicks_laboratory import quote_token_lifecycle
+
+    monkeypatch.setattr(_mod, "load_dotenv", lambda *a, **k: None)
+    monkeypatch.setattr(_mod.TastytradeSettings, "from_environment", classmethod(lambda cls, _e: object()))
+    monkeypatch.setattr(_mod, "TastytradeClient", _FakeClient)
+    monkeypatch.setattr(_mod, "run_long_horizon_capture", _fake_run)
+    monkeypatch.setattr(quote_token_lifecycle.time, "sleep", sleeps.append)
+    return captured, sleeps
+
+
+def test_cli_reconnect_reuses_launch_token_without_any_api_call(monkeypatch):
+    captured, sleeps = _wire_sequence(monkeypatch, [25 * 3600])
+    result = CliRunner().invoke(_mod.app, ["--duration", "23h"])
+    assert isinstance(result.exception, _Stop)
+    client = captured["client"]
+    launch_collector = captured["args"][2]
+    for _ in range(3):
+        reconnect_collector = captured["kwargs"]["refresh_collector"]()
+        assert reconnect_collector._quote_token == launch_collector._quote_token == "REDACTED-token-0"
+    assert client.quote_token_requests == 1  # no OAuth / quote-token request merely for reconnect
+    assert client.access_token_refresh_count == 0
+    assert sleeps == []
+
+
+def test_cli_imminently_expiring_launch_token_waits_boundedly_and_rerequests(monkeypatch):
+    captured, sleeps = _wire_sequence(monkeypatch, [0.3, 25 * 3600])
+    result = CliRunner().invoke(_mod.app, ["--duration", "83700"])
+    assert isinstance(result.exception, _Stop)
+    assert captured["client"].quote_token_requests == 2
+    assert len(sleeps) == 1 and sleeps[0] < 3
+    assert captured["args"][2]._quote_token == "REDACTED-token-1"
+    assert "imminent_expiry=true" in result.output
+
+
+def test_cli_actual_day2_shaped_token_is_refused_without_waiting(monkeypatch):
+    captured, sleeps = _wire_sequence(monkeypatch, [18_011])
+    result = CliRunner().invoke(_mod.app, ["--duration", "83700"])
+    assert result.exit_code == 2
+    assert "84600s required" in result.output
+    assert "args" not in captured  # never reached the capture
+    assert captured["client"].quote_token_requests == 1
+    assert sleeps == []
