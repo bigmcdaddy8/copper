@@ -3885,3 +3885,19 @@ RECURRING PRODUCTION COLLECTOR TIMER: DISABLED.
 GEN0 24.04 DISK: RETIRED / DELETED.
 DRAGON: DEALLOCATED.
 ```
+
+## AZ12 — 0W-4 Attempt 1 result and 0W-4D automation pause
+
+0W-4 Attempt 1 (canonical write-up: `FULL_SESSION_MULTIDAY_SOAK_REPORT.md`
+§MC–MF; evidence `evidence/0W-4_attempt1/`): Azure Sunday start (job
+`ca99579a…`) and Friday stop (job `123d0e04…`) both fired autonomously via
+the automation-dragon managed identity; one continuous guest boot all week.
+Host/scheduling PASS; data completeness FAIL (09-21 server-1012 KNOWN_GAP;
+09-22 no dataset — reconnect-minted quote token failed the next launch's
+horizon guard).
+
+0W-4D: `dicks-futures-dragon-start` / `-stop` **disabled** 2026-09-26T03:04:25Z
+(runbook links kept, re-enable is a single PATCH); guest recurring gate timers
+disabled. `dragon` git deploy-key path repaired (`~/.ssh/config` →
+`id_ed25519_ghdeploy`, `IdentitiesOnly`, strict host-key checking; read-only
+key unchanged).

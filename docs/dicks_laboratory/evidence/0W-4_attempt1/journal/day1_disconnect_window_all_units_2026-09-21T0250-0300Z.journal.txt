@@ -1,0 +1,5 @@
+2026-09-21T02:50:15.863393+00:00 dragon systemd[1]: Starting sysstat-collect.service - system activity accounting tool...
+2026-09-21T02:50:15.895336+00:00 dragon systemd[1]: sysstat-collect.service: Deactivated successfully.
+2026-09-21T02:50:15.895783+00:00 dragon systemd[1]: Finished sysstat-collect.service - system activity accounting tool.
+2026-09-21T02:55:12.948729+00:00 dragon uv[1904]: reconnect: attempt=1 refresh_collector_invoked=true
+2026-09-21T02:55:13.334735+00:00 dragon uv[1904]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=true quote_token_issued_at=2026-09-21T02:55:13.309000+00:00 quote_token_expires_at=2026-09-22T02:55:13.309000+00:00 quote_token_remaining_seconds=86400

@@ -4095,3 +4095,280 @@ RECURRING PRODUCTION TIMER: DISABLED.
 OLD 24.04 OS DISK: RETAINED PENDING PO/HUMAN RETIREMENT DECISION.
 DRAGON: DEALLOCATED.
 ```
+
+---
+
+# 0W-4 — Multi-Day Unattended Weekly Soak (5 trading days, `dragon`)
+
+**Status: ATTEMPT 1 COMPLETE — FAIL (DATA COMPLETENESS / DAILY ROTATION).
+0W-4 remains OPEN.** Sections MA/MB below were written mid-soak (read-only
+warm-fuzzy checks; no code/config changes mid-soak). The final audit,
+Product Owner classification and root-cause chain are in MC-ME; the
+corrective phase is 0W-4D (MF).
+
+## MA. 0W-4 Day 1 — 2026-09-21
+
+**Dataset identity.** `dataset_id 64d684c9-c22b-4a87-8224-a2a9f7b17e40` at
+`/srv/dicks_laboratory/data/sessions/es_20260921_64d684c9.sqlite3`,
+`FUTURE:CME:ES:2026-12` (`/ESZ26:XCME`), `trading_date 2026-09-21`, state
+`FINALIZED`, 422 MB. Collector git commit
+`21e41f631eb678e92f5957952b968b9d93556c3b` — matches the accepted 0W-4
+runtime baseline.
+
+**Service completion.** `dicks-lab-es-session.service`: `ActiveState=inactive`,
+`SubState=dead`, `Result=success`, `ExecMainStatus=0`, `NRestarts=0`. Two
+distinct instants (corrected in 0W-4D; an earlier draft conflated them):
+**2026-09-21T21:00:00.172703Z (16:00:00.17 CT) = `CAPTURE_STOPPED` /
+manifest `closed_at`** -- the session-close finalization of the dataset; and
+**2026-09-21T21:10:02.155Z (16:10:02 CT) = production service deactivation**
+("Deactivated successfully"; 23h 15min 1.232s wall clock = the 83,700s
+`--duration` bound, after which the process exits -- by design it waits out
+the post-close interval rather than exiting at 16:00).
+
+**Boundary coverage.** `CAPTURE_STARTED` 2026-09-20T22:00:00.000305Z (Sunday
+17:00:00 CT reopen); `SOURCE_CONNECTED` +1.19 s; first retained trade
+2026-09-20T22:00:01.251Z (17:00:01.25 CDT). `CAPTURE_STOPPED`
+2026-09-21T21:00:00.172703Z (16:00:00.17 CT); last retained trade
+2026-09-21T20:59:59.867Z (15:59:59.87 CDT). **Opening-session coverage:
+PASS. Coverage through 16:00 CT close: PASS.**
+
+**Lifecycle / gap health.** `CAPTURE_STARTED=1`, `SOURCE_CONNECTED=1`,
+`SOURCE_DISCONNECTED=1`, `SOURCE_RECONNECTED=1`, `KNOWN_GAP=1`,
+`SUSPECTED_GAP=0`, `CAPTURE_STOPPED=1`.
+
+**Disconnect/reconnect evidence (preserved verbatim for final-audit
+causality determination — not yet adjudicated):**
+
+```
+SOURCE_DISCONNECTED 2026-09-21T02:55:11.948328Z
+  detail: source_disconnected; attempt=1; episode=1; stage=SOCKET_RECEIVE;
+  error=DXLink connection error while receiving: received 1012 (service
+  restart) Service Restart; then sent 1012 (service restart) Service Restart
+SOURCE_RECONNECTED  2026-09-21T02:55:13.502084Z
+KNOWN_GAP interval: 2026-09-21T02:55:11.948328Z -> 2026-09-21T02:55:13.502084Z
+  (1.554 s); detail: disconnect_to_reconnect_interval; no automatic recovery
+  assumed
+reconnect sequence: attempt=1 refresh_collector_invoked=true (02:55:12Z) ->
+  fresh_collector: oauth_refreshed=true quote_token_issued_at=2026-09-21T02:55:13.309Z
+  quote_token_expires_at=2026-09-22T02:55:13.309Z (02:55:13Z)
+prior quote token: issued 2026-09-20T21:55:01.976Z, expires 2026-09-21T21:55:01.976Z
+  (disconnect occurred ~5h into a 24h-valid token, well before expiry)
+```
+
+**Important — causality NOT asserted.** The 1012 ("service restart") close
+code is server-sent (source-side), observed on the `SOCKET_RECEIVE` path.
+`oauth_refreshed=true` / `refresh_collector_invoked=true` describe the
+**recovery** action taken during reconnect, not a demonstrated **cause** of
+the disconnect — the prior token still had ~19 hours of validity remaining
+when the disconnect occurred, which argues against a token-expiry-driven
+disconnect but does not itself establish the true root cause. Per Product
+Owner instruction, causality is to be determined from this preserved
+evidence after the full 5-day soak, not inferred mid-run. `forensic/` and
+`logs/` directories on `dragon` are empty for this dataset — no
+supplementary artifacts beyond the DB and journal exist.
+
+**Event counts / accounting.** accepted=883,642, rejected=1, deferred=0.
+`source_order` MIN=1 MAX=883,643 (contiguous, 883,642 accepted + 1 rejected
+= 883,643, fully reconciled). `dataset_sequence` MIN=1 MAX=883,642
+(contiguous, matches accepted count exactly). `lifecycle_state=FINALIZED`.
+
+**Writer health (Day-1 baseline, retained for Day 2-5 comparison).**
+`writer_persisted_events=883,643`, `writer_flush_count=95,205`,
+`writer_batch_size_max=250`, `writer_queue_depth_max=16,432`,
+`writer_max_persist_lag_seconds=66.8195`, `writer_overloaded=false`.
+
+**Host capacity.** `dragon` PowerState `VM running` (Azure), uptime 1d 43m
+(consistent with the Sunday autonomous Azure start), `systemctl --failed`: 0
+units, NTP synchronized, `/srv/dicks_laboratory` mounted on UUID
+`890b7de2-a7e1-4650-a7c9-464124698b29`. Mem 602 MiB used / 7.7 GiB total.
+CPU Credits Remaining (Azure Monitor, Standard_B2ms): ~883. Data disk: 1004M
+used / 238G free of 251G. **Host capacity comfortable: YES.**
+
+**Day-2 automation readiness (confirmed armed, not touched).**
+`dicks-lab-preflight-gate.timer`: enabled, waiting, next trigger
+2026-09-21 21:42:00 UTC (16:42 CT). `dicks-lab-launch-gate.timer`: enabled,
+waiting, next trigger 2026-09-21 21:55:00 UTC (16:55 CT).
+`dicks-lab-es-session.timer`: static (as designed). Prior-day authorization
+marker `/run/dicks-lab-launch-gate/preflight-ok` present, payload
+`2026-09-20` (correctly stale relative to 2026-09-21 CT; cannot authorize
+today's launch until today's 16:42 preflight refreshes it) — inspected only,
+not modified.
+
+## MB. 0W-4 Day 1 — Product Owner Classification
+
+**PASS/FAIL is split by category, not collapsed into one verdict, because
+the accepted 0W-4 daily-completeness bar requires `KNOWN_GAP=0` and
+`SUSPECTED_GAP=0`:**
+
+```
+TRADING DATE 2026-09-21
+
+HOST / PROCESS ENDURANCE:
+PASS
+
+SCHEDULING / FINALIZATION / ACCOUNTING:
+PASS
+
+DATA COMPLETENESS:
+FAIL — KNOWN_GAP=1
+
+0W-4 WEEKLY SOAK:
+CONTINUE
+```
+
+An earlier same-day assistant summary characterized Day 1 as
+"HEALTHY / COMPLETE" and attributed the disconnect to "a scheduled
+OAuth/quote-token refresh." Both are superseded by this entry: Day 1's
+`KNOWN_GAP=1` fails the daily completeness bar outright, and the
+OAuth/token activity is recovery-path evidence, not an established cause.
+No code, configuration, or Azure schedule was changed as a result of either
+the original check or this correction. The soak continues unmodified into
+Day 2 (2026-09-22) exactly as armed.
+
+**Expected remaining trading dates:** 2026-09-22, 2026-09-23, 2026-09-24,
+2026-09-25.
+
+## MC. 0W-4 Attempt 1 — Final Audit Chronology (2026-09-20 → 2026-09-25)
+
+Full evidence (tables + timestamped raw excerpts, no secrets):
+`docs/dicks_laboratory/evidence/0W-4_attempt1/`.
+
+| When (CT) | Event |
+|---|---|
+| Sun 09-20 15:30 | `dicks-futures-dragon-start` → Start-Dragon job `ca99579a…` (automation-dragon MI); guest boot 15:31:51 — the only boot of the week |
+| Sun 16:42 / 16:55 | preflight PASS (`quote_token_requested=false`); launch gate → collector PID 1904; fresh token issued 16:55:01.976, 86,400s left |
+| Sun 17:00 | Day 1 (2026-09-21) capture starts; connected +1.19s |
+| **Sun 21:55:11.948** | **server-sent WebSocket 1012 "Service Restart"** → `SOURCE_DISCONNECTED`; reconnect +1.000s; `oauth_refreshed=true` and a **new quote token issued 21:55:13.309 (expires Mon 21:55:13.309)** at +1.361s; `SOURCE_RECONNECTED` +1.554s; `KNOWN_GAP` 1.554s |
+| Mon 16:00 / 16:10:02 | Day 1 `CAPTURE_STOPPED` (dataset finalized) / service deactivated (duration bound) |
+| **Mon 16:55:01.93** | Day-2 launch receives a token with `issued_at` 02:55:13.311Z (≈2 ms from the reconnect token), **18,011s left < 84,600s required → horizon guard refuses, exit 2; no 2026-09-22 dataset** |
+| Tue–Thu 16:42/16:55 | preflight + launch ×3; fresh 86,400s tokens; datasets 2026-09-23/24/25 complete, 0 disconnects |
+| Fri 09-25 16:00 / 16:10 | Day 5 finalized / service exited |
+| Fri 16:45:03 | `dicks-futures-dragon-stop` → Stop-Dragon job `123d0e04…`; deallocate 16:46:07–16:46:26 |
+
+## MD. 0W-4 Attempt 1 — Product Owner Classification
+
+```
+0W-4 ATTEMPT 1:            FAIL — DATA COMPLETENESS / DAILY ROTATION
+HOST ENDURANCE:            PASS   (one continuous boot; 0 unexpected reboots/deallocations)
+AUTONOMOUS SCHEDULING:     PASS   (Azure Sunday start, preflight ×5, launch ×5, Azure Friday stop)
+DAILY ROTATION:            FAIL — 4/5 datasets
+RESOURCE CAPACITY:         WATCH  (B2ms PASS; 256 GiB StandardSSD WATCH)
+DATA COMPLETENESS:         FAIL
+WORKSTATION INDEPENDENCE:  PASS
+
+2026-09-21: KNOWN_GAP=1 (server 1012, 1.554s)
+2026-09-22: NO DATASET — quote-token horizon guard refused startup
+2026-09-23 / 2026-09-24 / 2026-09-25: complete (gap-free, exactly accounted)
+
+REAL-MARKET >1,000,000 EVENT PROOF: PASS
+  (source_order max 1,091,415 / 1,304,779 / 1,208,527 on 09-23/24/25 —
+  the historical 1,000,000-event production-cap defect was crossed naturally
+  on three real trading dates without stopping the collector; 0W-2 stays closed)
+
+0W-4: OPEN.
+```
+
+Per-day: 09-21 host/scheduling/finalization PASS, completeness FAIL;
+09-22 process FAIL (host fine), scheduling PASS, finalization FAIL (no
+dataset), completeness FAIL; 09-23/24/25 PASS in every category.
+
+Writer maxima across the week: `queue_depth_max` 21,352, `max_persist_lag`
+86.4s, `writer_overloaded=false`, exact accounting at up to 1,304,779 source
+events. The brief 100% StandardSSD IOPS bursts (~15:01–15:03 CT daily,
+following the 15:00 CT cash-close print burst) deserve later study but did
+not cause the completeness failure. **Backlog:** StandardSSD burst IOPS vs
+writer persist lag; 19 `INVALID_DXLINK_TICK` late prints and 2 deferred
+orphan `DXLINK_CANCEL`s (09-23) — source-semantics questions, durably
+accounted, not investigated in 0W-4D.
+
+## ME. 0W-4 Attempt 1 — Root-Cause Chain
+
+**Disconnect cause.** At 2026-09-21T02:55:11.948Z (Sun 21:55:11.948 CT) the
+DXLink server initiated a WebSocket close with code **1012 Service Restart**
+(received on the `SOCKET_RECEIVE` path; the client echoed the close). There
+is no evidence of quote-token expiry, OAuth expiry, host network failure,
+kernel failure, Tailscale failure or resource exhaustion: the journal holds
+only a sysstat run between 02:50:15Z and the reconnect, and the quote token
+in use still had **18h59m50s** remaining. **OAuth / quote-token refresh did
+NOT cause the 1012 disconnect** — the OAuth refresh and new token happened
+1.0–1.4s *after* it, as recovery. The provider-side reason for the 1012 is
+unknown; it did not recur at the same wall-clock time or token age on Days
+3–5.
+
+**Recovery-path defect.** The reconnect path (`refresh_collector_invoked=true`)
+rebuilt the collector through `get_api_quote_token()`, refreshing OAuth and
+requesting a quote token; the provider issued a new token (02:55:13.309Z →
+2026-09-22T02:55:13.309Z). The Day-1 process did not need it — its original
+token already outlived the process. The replacement moved the standing
+token's expiry ~5h later.
+
+**Day-2 failure.** At the Mon 16:55 CT launch the provider returned a token
+whose `issued_at` matched the reconnect-minted token within ~2 ms, with
+18,011s remaining vs 84,600s required. The startup horizon guard refused to
+launch. **HORIZON GUARD: PASS — correct fail-closed behaviour; it is not the
+defect.** The 1.554s Day-1 `KNOWN_GAP` remains historically correct.
+
+## MF. 0W-4D — Reconnect Token-Lifecycle Correction
+
+**Automation paused first.** Azure `dicks-futures-dragon-start` (prior:
+enabled, next 2026-09-27T15:30-05:00) and `dicks-futures-dragon-stop` (prior:
+enabled, next 2026-10-02T16:45-05:00) set `isEnabled=false` at
+2026-09-26T03:04:25Z (runbook links retained). On `dragon`,
+`dicks-lab-preflight-gate.timer` and `dicks-lab-launch-gate.timer` (prior:
+enabled/active) → `disabled`/`inactive` at 2026-09-26T03:17Z;
+`dicks-lab-es-session.timer` static/inactive. No autonomous collection path
+armed; nothing runs on Sunday 2026-09-27.
+
+**Audit.** `run_long_horizon_capture` calls `refresh_collector()` before
+every reconnect attempt; the CLI bound it to `fresh_collector()`, which always
+called `client.get_api_quote_token()` (OAuth re-auth if needed + quote-token
+request). Transport reconnection and credential renewal were conflated. Since
+`DxLinkSourceCollector.collect()` opens a new socket and re-authorizes with
+its stored token on every call, reusing the credential is a genuine
+reconnect.
+
+**Implemented (commit `cd5b6596ef6bca45dd9df0b7f1334f2910581dd5`).** New
+`dicks_laboratory.quote_token_lifecycle.QuoteTokenLifecycle` owns the
+process's token; the CLI's `refresh_collector` calls `grant_for_reconnect()`:
+
+- *Reconnect:* reuse the existing token iff `remaining ≥ (run_deadline − now)
+  + 900s` — the same invariant as the launch guard, so a guard-passing launch
+  token is always reused. Otherwise (expiry unknown, or genuinely expired e.g.
+  after a clock step) request a fresh token — the 0W-2A path, justified
+  because an expired token can never re-authorize — logged as
+  `quote_token_reused=false reason=existing_token_cannot_cover_remaining_run`.
+  Every decision is logged (`reconnect_credentials: …`), metadata only.
+- *Launch:* guard unchanged (**83,700 + 900 = 84,600s**). If the token handed
+  out expires within **30s** (a standing token at the daily expiry boundary),
+  wait until expiry + **2s**, re-request, re-evaluate; at most **3**
+  re-requests (worst case ≈36s + request latency → started before ~16:56 CT,
+  ~4 min before the 17:00 open; observed boundary offsets were −0.172s…
+  +0.069s, launch jitter <0.1s). A token with more than 30s but less than
+  the horizon (e.g. the actual Day-2 18,011s) is refused immediately — no
+  wait, no partial capture.
+
+**Tests.** `test_quote_token_lifecycle.py` (17): server 1012 at 5h with 19h
+token → same credential reused, no quote-token/OAuth request,
+DISCONNECTED/KNOWN_GAP/RECONNECTED recorded; 5 reconnects → one token;
+unknown/expired token → truthful fresh request; fresh launch; imminent-expiry
+launch (0.044/0.172/3/30s) → bounded wait + re-request; provider lag; never-
+sufficient → fail-closed within the bound; actual Day-2 18,011s → immediate
+refusal; 84,600s boundary; retry budget/INTERRUPTED unchanged; Attempt-1
+reproduction (reconnect request mints → Day-2 refusal) and corrected
+Day1→Day2 path (Day-1 1012 reuses tok-1 → Day-2 launch 44 ms before its
+expiry waits boundedly → fresh token → 2026-09-22 dataset FINALIZED). The
+provider is modelled from evidence only (re-issue while valid; mint after
+expiry; mint on a mid-session request as observed 2026-09-21). Mutation
+check: disabling reuse fails the reconnect and Day1→Day2 tests; disabling
+the near-expiry wait fails the startup tests. `test_quote_token_lifetime.py`
++3 CLI-wiring tests. Suites: targeted 26, long-running capture 38,
+gate/unit/preflight 20, contract 12, Lab 373, K9 199, **full repository
+1,230 passed, 0 failed**; ruff clean on touched files (13 pre-existing
+errors in untouched scripts).
+
+**Dragon deploy key.** Existing `~/.ssh/id_ed25519_ghdeploy` matched GitHub
+deploy key "dragon-gen1-copper-deploy (0W-AZ2C)" (`read_only=true`); only
+`~/.ssh/config` was missing. Added (0600) `Host github.com` → that key,
+`IdentitiesOnly yes`, `StrictHostKeyChecking yes` (known_hosts matches
+GitHub's published fingerprints). `git fetch --dry-run` OK; push refused (no
+write access). Key not rotated.

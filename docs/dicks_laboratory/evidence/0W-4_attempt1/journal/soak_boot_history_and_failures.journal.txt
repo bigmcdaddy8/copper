@@ -1,0 +1,51 @@
+IDX BOOT ID                          FIRST ENTRY                 LAST ENTRY
+-18 0c1236b60c684172ab210d48685b1ea0 Wed 2026-09-09 20:58:49 UTC Wed 2026-09-09 21:07:32 UTC
+-17 3f96a5f129c740c189350ef824660f17 Wed 2026-09-09 21:20:46 UTC Wed 2026-09-09 21:43:48 UTC
+-16 7bc401ab7fe44f43a6528a9b3b2bbf63 Wed 2026-09-09 21:55:05 UTC Wed 2026-09-09 22:13:03 UTC
+-15 d1b7a059f3a7453ba06894262a136f80 Wed 2026-09-09 22:16:37 UTC Wed 2026-09-09 22:19:00 UTC
+-14 42e2f5ec5bb94d1fb902b2e9dd675262 Wed 2026-09-09 22:22:47 UTC Wed 2026-09-09 22:25:01 UTC
+-13 42985f783f634d72bf54878fa5e0e217 Wed 2026-09-09 22:35:40 UTC Thu 2026-09-10 00:48:20 UTC
+-12 01cd4c21bf034cbcb1e45429166408b4 Thu 2026-09-10 21:26:11 UTC Fri 2026-09-11 21:45:58 UTC
+-11 246ad67dea6e4a92a96f33ceba78de3b Fri 2026-09-11 21:48:18 UTC Fri 2026-09-11 21:54:34 UTC
+-10 0cb3c098a8ff44019f49a1bfc4d4c3b5 Fri 2026-09-11 22:04:50 UTC Fri 2026-09-11 22:07:25 UTC
+ -9 eb46471dbd314afb863c14de397a92c3 Fri 2026-09-11 22:59:50 UTC Fri 2026-09-11 23:01:27 UTC
+ -8 eaa54fd348a944769b5c7f66135c10ed Sun 2026-09-13 20:31:43 UTC Mon 2026-09-14 03:33:42 UTC
+ -7 26adb034c6e44a4296400850d2a41a3f Mon 2026-09-14 20:31:28 UTC Tue 2026-09-15 21:46:18 UTC
+ -6 4a09fec1b130420d9666cc87bc79d451 Wed 2026-09-16 01:13:27 UTC Wed 2026-09-16 01:22:55 UTC
+ -5 3aad92747dac4223a9c17975d7a02d20 Wed 2026-09-16 01:57:05 UTC Wed 2026-09-16 01:58:55 UTC
+ -4 453d7c4253cc4ff295912e9a5c9f9ad5 Wed 2026-09-16 02:27:47 UTC Wed 2026-09-16 02:39:12 UTC
+ -3 b12d85a38d564de9843481fffcc18237 Wed 2026-09-16 02:51:34 UTC Wed 2026-09-16 03:03:52 UTC
+ -2 6d561348d8684c6fb54488534770848d Sun 2026-09-20 20:31:51 UTC Fri 2026-09-25 21:46:12 UTC
+ -1 27bbd10243b04a799ccfb855de1ca13f Fri 2026-09-25 22:16:21 UTC Fri 2026-09-25 23:07:28 UTC
+  0 12a7f0caec5c46daa60f5485e3d089a5 Sat 2026-09-26 03:16:49 UTC Sat 2026-09-26 03:18:10 UTC
+
+# soak boot = 6d561348d8684c6fb54488534770848d (Sun 2026-09-20 20:31:51Z .. Fri 2026-09-25 21:46:12Z)
+# kernel warnings/errors during soak boot:
+2026-09-20T20:31:51+00:00 dragon kernel: PCI: System does not support PCI
+2026-09-20T20:31:51+00:00 dragon kernel: cpufreq: CPU0: Fast frequency switching not enabled
+2026-09-20T20:31:51+00:00 dragon kernel: cpufreq: CPU1: Fast frequency switching not enabled
+2026-09-20T20:31:55+00:00 dragon kernel: workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 4 times, consider switching to WQ_UNBOUND
+2026-09-20T20:31:55+00:00 dragon kernel: workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+2026-09-20T20:31:56+00:00 dragon kernel: workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 7 times, consider switching to WQ_UNBOUND
+2026-09-20T20:31:58+00:00 dragon kernel: /dev/sr0: Can't lookup blockdev
+2026-09-20T20:32:03+00:00 dragon kernel: kauditd_printk_skb: 169 callbacks suppressed
+2026-09-20T21:01:01+00:00 dragon kernel: hv_storvsc f8b3781a-1e82-4818-a1c3-63d806ec15bb: tag#86 cmd 0xa1 status: scsi 0x2 srb 0x86 host 0xc0000001
+2026-09-20T21:01:01+00:00 dragon kernel: hv_storvsc f8b3781a-1e82-4818-a1c3-63d806ec15bb: tag#71 cmd 0xa1 status: scsi 0x2 srb 0x86 host 0xc0000001
+2026-09-20T21:01:01+00:00 dragon kernel: hv_storvsc f8b3781b-1e82-4818-a1c3-63d806ec15bb: tag#312 cmd 0xa1 status: scsi 0x2 srb 0x86 host 0xc0000001
+2026-09-23T19:26:26+00:00 dragon kernel: hrtimer: interrupt took 2474795 ns
+2026-09-25T21:46:10+00:00 dragon kernel: workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 11 times, consider switching to WQ_UNBOUND
+
+# daemon-reload/reexec during soak boot (boot-time only expected):
+2026-09-20T20:31:57+00:00 dragon apparmor.systemd[503]: Reloading AppArmor profiles
+2026-09-20T20:32:01+00:00 dragon systemd[1]: Reloading...
+2026-09-20T20:32:02+00:00 dragon systemd[1]: Reloading finished in 418 ms.
+
+# failed units during soak boot:
+2026-09-21T21:55:02+00:00 dragon systemd[1]: dicks-lab-es-session.service: Failed with result 'exit-code'.
+
+# shutdown sequence tail:
+2026-09-25T21:46:11+00:00 dragon systemd-shutdown[1]: Syncing filesystems and block devices.
+2026-09-25T21:46:12+00:00 dragon systemd-shutdown[1]: Sending SIGTERM to remaining processes...
+2026-09-25T21:46:12+00:00 dragon systemd-udevd[203]: Failed to remove file descriptor "config-serialization" from the store, ignoring: Connection refused
+2026-09-25T21:46:12+00:00 dragon systemd-journald[143]: Received SIGTERM from PID 1 (systemd-shutdow).
+2026-09-25T21:46:12+00:00 dragon systemd-journald[143]: Journal stopped

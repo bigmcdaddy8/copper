@@ -1,0 +1,225 @@
+######## es_20260921_64d684c9
+Retained dataset:
+  First trade: 2026-09-20 17:00:01.251 America/Chicago
+  Last trade:  2026-09-21 15:59:59.867 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.251s
+  Session end (Chicago): 2026-09-21 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 883,642
+  Volume: 1289683.0
+  VWAP:   7803.271613063055029801897055
+
+Effective tape:
+  Trades:              883,642
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7803.271613063055029801897055
+
+Label:
+  Captured-data developing session-open anchored VWAP
+vwap_elapsed=105.94s
+  Low:  7713.75
+  High: 7847.25
+  Occupied levels: 535
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7835.75
+  Volume: 13898.0
+  Prints: 7949
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.14498911748080729915801015%
+  VAL: 7787.00
+  VAH: 7847.00
+  Included levels: 241
+
+Top 3 Volume Levels (ranked by volume desc, then price asc):
+  7835.75   13898.0   (7949 prints)
+  7835.50   13552.0   (7698 prints)
+  7836.00   12601.0   (7253 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+vp_elapsed=109.24s
+######## es_20260923_b2856c52
+  First trade: 2026-09-22 17:00:01.850 America/Chicago
+  Last trade:  2026-09-23 15:59:59.991 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.850s
+  Session end (Chicago): 2026-09-23 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,091,399
+  Volume: 1484525.0
+  VWAP:   7787.515559185598086930162847
+
+Effective tape:
+  Trades:              1,091,399
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7787.515559185598086930162847
+  Reconstruction anomalies: 2 (('TARGET_SOURCE_EVENT_NOT_FOUND', 2),)
+
+Label:
+  Captured-data developing session-open anchored VWAP
+vwap_elapsed=130.22s
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7771.25
+  Volume: 18733.0
+  Prints: 11895
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.47048719287314124046412152%
+  VAL: 7762.75
+  VAH: 7792.50
+  Included levels: 120
+
+Top 3 Volume Levels (ranked by volume desc, then price asc):
+  7771.25   18733.0   (11895 prints)
+  7771.50   18208.0   (11502 prints)
+  7771.00   17790.0   (10721 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Reconstruction anomalies:
+  2 (('TARGET_SOURCE_EVENT_NOT_FOUND', 2),)
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+vp_elapsed=136.67s
+######## es_20260924_31c92a57
+Retained dataset:
+  First trade: 2026-09-23 17:00:01.563 America/Chicago
+  Last trade:  2026-09-24 15:59:59.204 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.563s
+  Session end (Chicago): 2026-09-24 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,304,777
+  Volume: 1686194.0
+  VWAP:   7753.520068865148375572443029
+
+Effective tape:
+  Trades:              1,304,777
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7753.520068865148375572443029
+
+Label:
+  Captured-data developing session-open anchored VWAP
+vwap_elapsed=153.66s
+  Low:  7707.25
+  High: 7783.50
+  Occupied levels: 306
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7770.00
+  Volume: 19361.0
+  Prints: 13133
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.33538252419353882174886164%
+  VAL: 7741.00
+  VAH: 7780.75
+  Included levels: 160
+
+Top 3 Volume Levels (ranked by volume desc, then price asc):
+  7770.00   19361.0   (13133 prints)
+  7768.50   17399.0   (13024 prints)
+  7769.00   17034.0   (12907 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+vp_elapsed=162.67s
+######## es_20260925_c690ff8e
+Retained dataset:
+  First trade: 2026-09-24 17:00:01.224 America/Chicago
+  Last trade:  2026-09-25 15:59:59.002 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.224s
+  Session end (Chicago): 2026-09-25 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,208,525
+  Volume: 1566271.0
+  VWAP:   7788.068172270315928724977989
+
+Effective tape:
+  Trades:              1,208,525
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7788.068172270315928724977989
+
+Label:
+  Captured-data developing session-open anchored VWAP
+vwap_elapsed=143.44s
+  Low:  7748.50
+  High: 7814.75
+  Occupied levels: 266
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7803.50
+  Volume: 21826.0
+  Prints: 12840
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.44681284400975310147477671%
+  VAL: 7777.75
+  VAH: 7811.50
+  Included levels: 136
+
+Top 3 Volume Levels (ranked by volume desc, then price asc):
+  7803.50   21826.0   (12840 prints)
+  7803.25   20655.0   (12403 prints)
+  7803.00   19487.0   (12977 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+vp_elapsed=151.55s
+0

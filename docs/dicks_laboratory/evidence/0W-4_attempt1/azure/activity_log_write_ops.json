@@ -1,0 +1,86 @@
+{
+ "query": "az monitor activity-log list -g rg-dev-environment 2026-09-19T00:00Z..2026-09-25T23:59Z (non-read ops)",
+ "events": [
+  {
+   "eventTimestamp": "2026-09-20T20:31:17.4936284Z",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "claims_appid": "faadc4ab-a2b1-4d9b-a893-1c1187a3e431",
+   "resource": "dragon",
+   "correlationId": "e857f65d-03d5-44be-a547-6642bf6a1a74"
+  },
+  {
+   "eventTimestamp": "2026-09-20T20:31:18.8061365Z",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "claims_appid": "faadc4ab-a2b1-4d9b-a893-1c1187a3e431",
+   "resource": "dragon",
+   "correlationId": "e857f65d-03d5-44be-a547-6642bf6a1a74"
+  },
+  {
+   "eventTimestamp": "2026-09-20T20:31:22.161Z",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "claims_appid": null,
+   "resource": "DRAGON",
+   "correlationId": "acc9e6b1-bcfd-4a1a-adad-aa9b7b15ee3b"
+  },
+  {
+   "eventTimestamp": "2026-09-20T20:31:22.724Z",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "claims_appid": null,
+   "resource": "DRAGON",
+   "correlationId": "7495aa30-36bd-4fde-8ea0-63ae1e99af3c"
+  },
+  {
+   "eventTimestamp": "2026-09-20T20:31:38.238Z",
+   "operation": "Microsoft.Resourcehealth/healthevent/Resolved/action",
+   "status": "Resolved",
+   "caller": null,
+   "claims_appid": null,
+   "resource": "DRAGON",
+   "correlationId": "7495aa30-36bd-4fde-8ea0-63ae1e99af3c"
+  },
+  {
+   "eventTimestamp": "2026-09-20T20:32:25.1350103Z",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "claims_appid": "faadc4ab-a2b1-4d9b-a893-1c1187a3e431",
+   "resource": "dragon",
+   "correlationId": "e857f65d-03d5-44be-a547-6642bf6a1a74"
+  },
+  {
+   "eventTimestamp": "2026-09-25T21:46:07.6892739Z",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "claims_appid": "faadc4ab-a2b1-4d9b-a893-1c1187a3e431",
+   "resource": "dragon",
+   "correlationId": "db80a5b5-8d30-4be2-80d8-52698f5414ea"
+  },
+  {
+   "eventTimestamp": "2026-09-25T21:46:07.8142751Z",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "claims_appid": "faadc4ab-a2b1-4d9b-a893-1c1187a3e431",
+   "resource": "dragon",
+   "correlationId": "db80a5b5-8d30-4be2-80d8-52698f5414ea"
+  },
+  {
+   "eventTimestamp": "2026-09-25T21:46:26.6961661Z",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "claims_appid": "faadc4ab-a2b1-4d9b-a893-1c1187a3e431",
+   "resource": "dragon",
+   "correlationId": "db80a5b5-8d30-4be2-80d8-52698f5414ea"
+  }
+ ]
+}

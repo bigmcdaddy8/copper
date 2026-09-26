@@ -1,0 +1,22 @@
+{
+ "captured_at": "2026-09-25T22:12Z",
+ "note": "Resource Health availability statuses within the soak window; the 21:46:08Z 'Unplanned' entry coincides with the Stop-Dragon deallocate/action Started 21:46:07.69Z and had no root-cause attribution yet at capture time",
+ "statuses": [
+  {
+   "occuredTime": "2026-09-25T21:46:08Z",
+   "availabilityState": "Unavailable",
+   "reasonType": "Unplanned",
+   "reasonChronicity": "Persistent",
+   "summary": "Your virtual machine is unavailable at the moment. Please check back in a few minutes for any updates we find on the source of the unavailability of this VM. No additional action is required from you at this time.",
+   "rootCauseAttributionTime": null
+  },
+  {
+   "occuredTime": "2026-09-20T20:31:38Z",
+   "availabilityState": "Available",
+   "reasonType": "",
+   "reasonChronicity": "Persistent",
+   "summary": "There aren't any known Azure platform problems affecting this virtual machine.",
+   "rootCauseAttributionTime": null
+  }
+ ]
+}

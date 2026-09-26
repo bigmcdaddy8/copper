@@ -1,0 +1,152 @@
+2026-09-20T21:55:00.922006+00:00 dragon systemd[1]: Starting dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture...
+2026-09-20T21:55:00.964109+00:00 dragon systemd[1]: Started dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture.
+2026-09-20T21:55:01.879699+00:00 dragon uv[1904]: Dataset directory: /srv/dicks_laboratory/data/sessions
+2026-09-20T21:55:01.879699+00:00 dragon uv[1904]: Instrument: FUTURE:CME:ES:2026-12  Streamer symbol: /ESZ26:XCME
+2026-09-20T21:55:01.879699+00:00 dragon uv[1904]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-20T21:55:01.879699+00:00 dragon uv[1904]: Connecting...
+2026-09-20T21:55:02.015448+00:00 dragon uv[1904]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=false quote_token_issued_at=2026-09-20T21:55:01.976000+00:00 quote_token_expires_at=2026-09-21T21:55:01.976000+00:00 quote_token_remaining_seconds=86400
+2026-09-21T02:55:12.948729+00:00 dragon uv[1904]: reconnect: attempt=1 refresh_collector_invoked=true
+2026-09-21T02:55:13.334735+00:00 dragon uv[1904]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=true quote_token_issued_at=2026-09-21T02:55:13.309000+00:00 quote_token_expires_at=2026-09-22T02:55:13.309000+00:00 quote_token_remaining_seconds=86400
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]: {
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "dataset_id": "64d684c9-c22b-4a87-8224-a2a9f7b17e40",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "database_path": "/srv/dicks_laboratory/data/sessions/es_20260921_64d684c9.sqlite3",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "instrument": "FUTURE:CME:ES:2026-12",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "trading_date": "2026-09-21",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "state": "FINALIZED",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "accepted_trade_count": 883642,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "deferred_event_count": 0,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "rejected_record_count": 1,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "known_gap_count": 1,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "reconnect_count": 1,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "first_source_order": 1,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "last_source_order": 883643,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "checksum_sha256": "2e5968897f49dc4042ebae34d65ca624b3b0efe32dc6ac88cfc2f527d35b216f",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "manifest_path": "/srv/dicks_laboratory/data/sessions/es_20260921_64d684c9.sqlite3.manifest.json",
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "manifest_error": null,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "writer_flush_count": 95205,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "writer_batch_size_max": 250,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "writer_queue_depth_max": 16432,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "writer_max_persist_lag_seconds": 66.8195,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "writer_persisted_events": 883643,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "writer_overloaded": false,
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]:   "stopped_reason": null
+2026-09-21T21:10:02.087028+00:00 dragon uv[1904]: }
+2026-09-21T21:10:02.154644+00:00 dragon systemd[1]: dicks-lab-es-session.service: Deactivated successfully.
+2026-09-21T21:10:02.154989+00:00 dragon systemd[1]: dicks-lab-es-session.service: Consumed 7min 25.424s CPU time over 23h 15min 1.232s wall clock time, 585M memory peak.
+2026-09-21T21:55:00.919550+00:00 dragon systemd[1]: Starting dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture...
+2026-09-21T21:55:00.956469+00:00 dragon systemd[1]: Started dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture.
+2026-09-21T21:55:01.783239+00:00 dragon uv[9814]: Dataset directory: /srv/dicks_laboratory/data/sessions
+2026-09-21T21:55:01.783239+00:00 dragon uv[9814]: Instrument: FUTURE:CME:ES:2026-12  Streamer symbol: /ESZ26:XCME
+2026-09-21T21:55:01.783239+00:00 dragon uv[9814]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-21T21:55:01.803564+00:00 dragon uv[9814]: Connecting...
+2026-09-21T21:55:01.931924+00:00 dragon uv[9814]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=false quote_token_issued_at=2026-09-21T02:55:13.311000+00:00 quote_token_expires_at=2026-09-22T02:55:13.311000+00:00 quote_token_remaining_seconds=18011
+2026-09-21T21:55:02.095315+00:00 dragon uv[9814]: Usage: dicks_lab_collect_es.py [OPTIONS]
+2026-09-21T21:55:02.095767+00:00 dragon uv[9814]: Try 'dicks_lab_collect_es.py --help' for help.
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: ╭─ Error ──────────────────────────────────────────────────────────────────────╮
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: │ Invalid value: DXLink quote-token lifetime is insufficient for the intended  │
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: │ capture: 18011s remaining < 84600s required (horizon 83700s + margin 900s).  │
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: │ The token was almost certainly minted early (e.g. a pre-arm preflight);      │
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: │ obtain it at collector startup instead. Refusing to open a misleading        │
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: │ full-session capture.                                                        │
+2026-09-21T21:55:02.096758+00:00 dragon uv[9814]: ╰──────────────────────────────────────────────────────────────────────────────╯
+2026-09-21T21:55:02.165962+00:00 dragon systemd[1]: dicks-lab-es-session.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+2026-09-21T21:55:02.166558+00:00 dragon systemd[1]: dicks-lab-es-session.service: Failed with result 'exit-code'.
+2026-09-22T21:55:00.910596+00:00 dragon systemd[1]: Starting dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture...
+2026-09-22T21:55:00.953508+00:00 dragon systemd[1]: Started dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture.
+2026-09-22T21:55:01.896165+00:00 dragon uv[16213]: Dataset directory: /srv/dicks_laboratory/data/sessions
+2026-09-22T21:55:01.896165+00:00 dragon uv[16213]: Instrument: FUTURE:CME:ES:2026-12  Streamer symbol: /ESZ26:XCME
+2026-09-22T21:55:01.921140+00:00 dragon uv[16213]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-22T21:55:01.921140+00:00 dragon uv[16213]: Connecting...
+2026-09-22T21:55:02.050177+00:00 dragon uv[16213]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=false quote_token_issued_at=2026-09-22T21:55:01.984000+00:00 quote_token_expires_at=2026-09-23T21:55:01.984000+00:00 quote_token_remaining_seconds=86400
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]: {
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "dataset_id": "b2856c52-17a5-43f4-941c-aa311e8558e9",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "database_path": "/srv/dicks_laboratory/data/sessions/es_20260923_b2856c52.sqlite3",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "instrument": "FUTURE:CME:ES:2026-12",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "trading_date": "2026-09-23",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "state": "FINALIZED",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "accepted_trade_count": 1091399,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "deferred_event_count": 2,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "rejected_record_count": 14,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "known_gap_count": 0,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "reconnect_count": 0,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "first_source_order": 1,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "last_source_order": 1091415,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "checksum_sha256": "64ad1f3a5ea2583a5981c051902d2030c3a258410e0a5b52aeccd9e1798252a6",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "manifest_path": "/srv/dicks_laboratory/data/sessions/es_20260923_b2856c52.sqlite3.manifest.json",
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "manifest_error": null,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "writer_flush_count": 100842,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "writer_batch_size_max": 250,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "writer_queue_depth_max": 21352,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "writer_max_persist_lag_seconds": 86.3873,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "writer_persisted_events": 1091415,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "writer_overloaded": false,
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]:   "stopped_reason": null
+2026-09-23T21:10:02.053701+00:00 dragon uv[16213]: }
+2026-09-23T21:10:02.122982+00:00 dragon systemd[1]: dicks-lab-es-session.service: Deactivated successfully.
+2026-09-23T21:10:02.123319+00:00 dragon systemd[1]: dicks-lab-es-session.service: Consumed 8min 22.783s CPU time over 23h 15min 1.212s wall clock time, 696.4M memory peak.
+2026-09-23T21:55:00.912364+00:00 dragon systemd[1]: Starting dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture...
+2026-09-23T21:55:00.951310+00:00 dragon systemd[1]: Started dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture.
+2026-09-23T21:55:01.708358+00:00 dragon uv[22955]: Dataset directory: /srv/dicks_laboratory/data/sessions
+2026-09-23T21:55:01.708358+00:00 dragon uv[22955]: Instrument: FUTURE:CME:ES:2026-12  Streamer symbol: /ESZ26:XCME
+2026-09-23T21:55:01.708358+00:00 dragon uv[22955]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-23T21:55:01.708358+00:00 dragon uv[22955]: Connecting...
+2026-09-23T21:55:02.300065+00:00 dragon uv[22955]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=false quote_token_issued_at=2026-09-23T21:55:01.812000+00:00 quote_token_expires_at=2026-09-24T21:55:01.812000+00:00 quote_token_remaining_seconds=86400
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]: {
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "dataset_id": "31c92a57-242c-4b25-a983-0086c811ed9a",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "database_path": "/srv/dicks_laboratory/data/sessions/es_20260924_31c92a57.sqlite3",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "instrument": "FUTURE:CME:ES:2026-12",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "trading_date": "2026-09-24",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "state": "FINALIZED",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "accepted_trade_count": 1304777,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "deferred_event_count": 0,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "rejected_record_count": 2,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "known_gap_count": 0,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "reconnect_count": 0,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "first_source_order": 1,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "last_source_order": 1304779,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "checksum_sha256": "c8a3524bbb7f4635f87f45dbe2418aff17f3b0f7f65808cd806b3d9dba7c0106",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "manifest_path": "/srv/dicks_laboratory/data/sessions/es_20260924_31c92a57.sqlite3.manifest.json",
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "manifest_error": null,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "writer_flush_count": 136664,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "writer_batch_size_max": 250,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "writer_queue_depth_max": 11330,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "writer_max_persist_lag_seconds": 45.3505,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "writer_persisted_events": 1304779,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "writer_overloaded": false,
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]:   "stopped_reason": null
+2026-09-24T21:10:02.303704+00:00 dragon uv[22955]: }
+2026-09-24T21:10:02.389418+00:00 dragon systemd[1]: dicks-lab-es-session.service: Deactivated successfully.
+2026-09-24T21:10:02.390117+00:00 dragon systemd[1]: dicks-lab-es-session.service: Consumed 10min 19.938s CPU time over 23h 15min 1.477s wall clock time, 832.5M memory peak.
+2026-09-24T21:55:00.919177+00:00 dragon systemd[1]: Starting dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture...
+2026-09-24T21:55:00.963269+00:00 dragon systemd[1]: Started dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture.
+2026-09-24T21:55:01.788551+00:00 dragon uv[29362]: Dataset directory: /srv/dicks_laboratory/data/sessions
+2026-09-24T21:55:01.788551+00:00 dragon uv[29362]: Instrument: FUTURE:CME:ES:2026-12  Streamer symbol: /ESZ26:XCME
+2026-09-24T21:55:01.788551+00:00 dragon uv[29362]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-24T21:55:01.788551+00:00 dragon uv[29362]: Connecting...
+2026-09-24T21:55:01.970832+00:00 dragon uv[29362]: fresh_collector: quote_token_requested=true fresh_dxlink_collector=true oauth_refreshed=false quote_token_issued_at=2026-09-24T21:55:01.881000+00:00 quote_token_expires_at=2026-09-25T21:55:01.881000+00:00 quote_token_remaining_seconds=86400
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]: {
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "dataset_id": "c690ff8e-28ac-4d7b-9107-e896987a6520",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "database_path": "/srv/dicks_laboratory/data/sessions/es_20260925_c690ff8e.sqlite3",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "instrument": "FUTURE:CME:ES:2026-12",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "trading_date": "2026-09-25",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "state": "FINALIZED",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "accepted_trade_count": 1208525,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "deferred_event_count": 0,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "rejected_record_count": 2,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "known_gap_count": 0,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "reconnect_count": 0,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "first_source_order": 1,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "last_source_order": 1208527,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "checksum_sha256": "a57cc42d10f2eb36b55556bf21ea5fc700f0eb75a69f2dac38c85b005ffcadf5",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "manifest_path": "/srv/dicks_laboratory/data/sessions/es_20260925_c690ff8e.sqlite3.manifest.json",
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "manifest_error": null,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "writer_flush_count": 118231,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "writer_batch_size_max": 250,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "writer_queue_depth_max": 11170,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "writer_max_persist_lag_seconds": 45.1224,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "writer_persisted_events": 1208527,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "writer_overloaded": false,
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]:   "stopped_reason": null
+2026-09-25T21:10:01.974703+00:00 dragon uv[29362]: }
+2026-09-25T21:10:02.049135+00:00 dragon systemd[1]: dicks-lab-es-session.service: Deactivated successfully.
+2026-09-25T21:10:02.049500+00:00 dragon systemd[1]: dicks-lab-es-session.service: Consumed 9min 32.329s CPU time over 23h 15min 1.130s wall clock time, 748M memory peak.

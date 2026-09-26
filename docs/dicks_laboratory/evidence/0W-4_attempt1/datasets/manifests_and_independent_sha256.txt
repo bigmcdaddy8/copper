@@ -1,0 +1,61 @@
+== es_20260921_64d684c9.sqlite3.manifest.json
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-21T21:00:00.172703+00:00",
+  "collector_git_commit": "21e41f631eb678e92f5957952b968b9d93556c3b",
+  "dataset_id": "64d684c9-c22b-4a87-8224-a2a9f7b17e40",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "2e5968897f49dc4042ebae34d65ca624b3b0efe32dc6ac88cfc2f527d35b216f",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-21"
+}
+== es_20260923_b2856c52.sqlite3.manifest.json
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-23T21:00:00.366740+00:00",
+  "collector_git_commit": "21e41f631eb678e92f5957952b968b9d93556c3b",
+  "dataset_id": "b2856c52-17a5-43f4-941c-aa311e8558e9",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "64ad1f3a5ea2583a5981c051902d2030c3a258410e0a5b52aeccd9e1798252a6",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-23"
+}
+== es_20260924_31c92a57.sqlite3.manifest.json
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-24T21:00:00.266310+00:00",
+  "collector_git_commit": "21e41f631eb678e92f5957952b968b9d93556c3b",
+  "dataset_id": "31c92a57-242c-4b25-a983-0086c811ed9a",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "c8a3524bbb7f4635f87f45dbe2418aff17f3b0f7f65808cd806b3d9dba7c0106",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-24"
+}
+== es_20260925_c690ff8e.sqlite3.manifest.json
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-25T21:00:00.262970+00:00",
+  "collector_git_commit": "21e41f631eb678e92f5957952b968b9d93556c3b",
+  "dataset_id": "c690ff8e-28ac-4d7b-9107-e896987a6520",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "a57cc42d10f2eb36b55556bf21ea5fc700f0eb75a69f2dac38c85b005ffcadf5",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-25"
+}
+
+2e5968897f49dc4042ebae34d65ca624b3b0efe32dc6ac88cfc2f527d35b216f  es_20260921_64d684c9.sqlite3
+64ad1f3a5ea2583a5981c051902d2030c3a258410e0a5b52aeccd9e1798252a6  es_20260923_b2856c52.sqlite3
+c8a3524bbb7f4635f87f45dbe2418aff17f3b0f7f65808cd806b3d9dba7c0106  es_20260924_31c92a57.sqlite3
+a57cc42d10f2eb36b55556bf21ea5fc700f0eb75a69f2dac38c85b005ffcadf5  es_20260925_c690ff8e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8 501538816 2026-09-11 19:36:14.619436122 +0000 es_20260911_3716af9f.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-11 19:36:16.278396916 +0000 es_20260911_3716af9f.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 100663296 2026-09-15 21:00:01.076614565 +0000 es_20260915_b07e92d4.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-15 21:00:01.421225268 +0000 es_20260915_b07e92d4.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 441995264 2026-09-21 21:00:04.154673456 +0000 es_20260921_64d684c9.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-21 21:00:05.797630566 +0000 es_20260921_64d684c9.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 546938880 2026-09-23 21:00:05.103648247 +0000 es_20260923_b2856c52.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-23 21:00:07.202070545 +0000 es_20260923_b2856c52.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 654155776 2026-09-24 21:00:06.067111224 +0000 es_20260924_31c92a57.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-24 21:00:08.491807979 +0000 es_20260924_31c92a57.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 605577216 2026-09-25 21:00:05.828052874 +0000 es_20260925_c690ff8e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-25 21:00:08.048047714 +0000 es_20260925_c690ff8e.sqlite3.manifest.json

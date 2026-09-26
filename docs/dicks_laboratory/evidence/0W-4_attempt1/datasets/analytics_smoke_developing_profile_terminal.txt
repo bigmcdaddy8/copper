@@ -1,0 +1,61 @@
+######## es_20260921_64d684c9
+    7803.271613063055029801897055
+
+  POC: 7835.75
+  VAL: 7787.00
+  VAH: 7847.00
+
+Interpretation boundary:
+  - retained observations only
+  - cumulative from requested anchor
+  - not a rolling profile
+  - ordinary CME schedule only
+  - no claim of complete tape
+  - effective timeline is retrospective, not point-in-time feed knowledge
+dev_elapsed=188.83s
+######## es_20260923_b2856c52
+    7787.515559185598086930162847
+
+  POC: 7771.25
+  VAL: 7762.75
+  VAH: 7792.50
+
+Interpretation boundary:
+  - retained observations only
+  - cumulative from requested anchor
+  - not a rolling profile
+  - ordinary CME schedule only
+  - no claim of complete tape
+  - effective timeline is retrospective, not point-in-time feed knowledge
+dev_elapsed=224.17s
+######## es_20260924_31c92a57
+    7753.520068865148375572443029
+
+  POC: 7770.00
+  VAL: 7741.00
+  VAH: 7780.75
+
+Interpretation boundary:
+  - retained observations only
+  - cumulative from requested anchor
+  - not a rolling profile
+  - ordinary CME schedule only
+  - no claim of complete tape
+  - effective timeline is retrospective, not point-in-time feed knowledge
+dev_elapsed=277.92s
+######## es_20260925_c690ff8e
+    7788.068172270315928724977989
+
+  POC: 7803.50
+  VAL: 7777.75
+  VAH: 7811.50
+
+Interpretation boundary:
+  - retained observations only
+  - cumulative from requested anchor
+  - not a rolling profile
+  - ordinary CME schedule only
+  - no claim of complete tape
+  - effective timeline is retrospective, not point-in-time feed knowledge
+dev_elapsed=258.40s
+0

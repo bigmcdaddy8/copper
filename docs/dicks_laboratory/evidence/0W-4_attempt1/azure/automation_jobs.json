@@ -1,0 +1,110 @@
+[
+ {
+  "job_id": "ca99579a-0ad1-46ea-905b-65d0c8d90030",
+  "purpose": "0W-4 scheduled Sunday start (dicks-futures-dragon-start)",
+  "runbook": "Start-Dragon",
+  "status": "Completed",
+  "creationTime": "2026-09-20T20:30:04.7178477+00:00",
+  "startTime": "2026-09-20T20:31:01.8968499+00:00",
+  "endTime": "2026-09-20T20:32:40.7367554+00:00",
+  "provisioningState": "Succeeded",
+  "output_streams": [
+   {
+    "time": "2026-09-20T20:31:17.2287617+00:00",
+    "type": "Output",
+    "summary": "Start-Dragon: initial PowerState = PowerState/deallocated"
+   },
+   {
+    "time": "2026-09-20T20:32:40.6551014+00:00",
+    "type": "Output",
+    "summary": "Start-Dragon: final PowerState = PowerState/running"
+   },
+   {
+    "time": "2026-09-20T20:32:40.6881848+00:00",
+    "type": "Output",
+    "summary": "Start-Dragon: OK (PowerState/deallocated -> PowerState/running)"
+   }
+  ]
+ },
+ {
+  "job_id": "123d0e04-fabe-4295-947f-c30f7e1f6bce",
+  "purpose": "0W-4 scheduled Friday stop (dicks-futures-dragon-stop)",
+  "runbook": "Stop-Dragon",
+  "status": "Completed",
+  "creationTime": "2026-09-25T21:45:03.4773657+00:00",
+  "startTime": "2026-09-25T21:45:52.7368389+00:00",
+  "endTime": "2026-09-25T21:46:49.5293886+00:00",
+  "provisioningState": "Succeeded",
+  "output_streams": [
+   {
+    "time": "2026-09-25T21:46:07.3860908+00:00",
+    "type": "Output",
+    "summary": "Stop-Dragon: initial PowerState = PowerState/running"
+   },
+   {
+    "time": "2026-09-25T21:46:49.4321524+00:00",
+    "type": "Output",
+    "summary": "Stop-Dragon: final PowerState = PowerState/deallocated"
+   },
+   {
+    "time": "2026-09-25T21:46:49.4809701+00:00",
+    "type": "Output",
+    "summary": "Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)"
+   }
+  ]
+ },
+ {
+  "job_id": "75f4bebb-d01d-4040-a92e-60c8262b9af9",
+  "purpose": "post-run audit restart (on-demand)",
+  "runbook": "Start-Dragon",
+  "status": "Completed",
+  "creationTime": "2026-09-25T22:13:26.5417824+00:00",
+  "startTime": "2026-09-25T22:15:29.7651565+00:00",
+  "endTime": "2026-09-25T22:17:10.7202553+00:00",
+  "provisioningState": "Succeeded",
+  "output_streams": [
+   {
+    "time": "2026-09-25T22:15:47.9049853+00:00",
+    "type": "Output",
+    "summary": "Start-Dragon: initial PowerState = PowerState/deallocated"
+   },
+   {
+    "time": "2026-09-25T22:17:10.6124754+00:00",
+    "type": "Output",
+    "summary": "Start-Dragon: final PowerState = PowerState/running"
+   },
+   {
+    "time": "2026-09-25T22:17:10.6837459+00:00",
+    "type": "Output",
+    "summary": "Start-Dragon: OK (PowerState/deallocated -> PowerState/running)"
+   }
+  ]
+ },
+ {
+  "job_id": "883d6687-265b-45db-b5ff-518c0137bb09",
+  "purpose": "post-run audit deallocate (on-demand)",
+  "runbook": "Stop-Dragon",
+  "status": "Completed",
+  "creationTime": "2026-09-25T23:05:34.179652+00:00",
+  "startTime": "2026-09-25T23:06:55.2230951+00:00",
+  "endTime": "2026-09-25T23:08:06.3770948+00:00",
+  "provisioningState": "Succeeded",
+  "output_streams": [
+   {
+    "time": "2026-09-25T23:07:22.4850301+00:00",
+    "type": "Output",
+    "summary": "Stop-Dragon: initial PowerState = PowerState/running"
+   },
+   {
+    "time": "2026-09-25T23:08:06.1937139+00:00",
+    "type": "Output",
+    "summary": "Stop-Dragon: final PowerState = PowerState/deallocated"
+   },
+   {
+    "time": "2026-09-25T23:08:06.3124179+00:00",
+    "type": "Output",
+    "summary": "Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)"
+   }
+  ]
+ }
+]
