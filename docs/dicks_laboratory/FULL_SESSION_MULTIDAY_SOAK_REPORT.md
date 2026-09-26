@@ -4372,3 +4372,26 @@ deploy key "dragon-gen1-copper-deploy (0W-AZ2C)" (`read_only=true`); only
 `IdentitiesOnly yes`, `StrictHostKeyChecking yes` (known_hosts matches
 GitHub's published fingerprints). `git fetch --dry-run` OK; push refused (no
 write access). Key not rotated.
+
+**Deployment (2026-09-26).** `dragon` started explicitly (Start-Dragon job
+`2825b519-55ea-4af5-af54-9204aefd3e06`), then via the repaired deploy key:
+`git fetch` + `git merge --ff-only` `21e41f6` → `cd216e5b7327e4b46f5fc44b2de766a48ff9644d`
+(runtime code = `cd5b6596…`; the later commit is docs-only), clean tree,
+`uv sync --frozen --all-packages` clean. No unit files changed in 0W-4D; all
+six installed `dicks-lab-*` units byte-identical to the repo;
+`systemd-analyze verify` rc=0 (only distro-unit `CPUAccounting=` notices).
+Import/`--help` smoke and 40 targeted tests passed on `dragon`. No quote
+token requested, no preflight, no collector launch.
+
+**Final 0W-4D state.** Azure `dicks-futures-dragon-start` / `-stop`:
+disabled (legacy `automation-k9` `dragon-start-*`: also disabled).
+`dicks-lab-preflight-gate.timer` / `dicks-lab-launch-gate.timer`: disabled,
+inactive. `dicks-lab-es-session.timer`: static, inactive. Collector:
+inactive. `dragon`: `PowerState/deallocated` (Stop-Dragon job
+`8de66cfb-9683-4b65-9723-aca0d69f3fd0`, 2026-09-26T03:23:42Z).
+
+```
+0W-4D: PASS — RECONNECT TOKEN-LIFECYCLE CORRECTION READY FOR RE-SOAK
+0W-4 ATTEMPT 1: FAIL — EVIDENCE PRESERVED.  0W-4: OPEN.
+NEXT: PO REVIEW BEFORE ARMING 0W-4 ATTEMPT 2 (not armed).
+```
