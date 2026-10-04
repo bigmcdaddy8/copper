@@ -42,7 +42,7 @@ from __future__ import annotations
 import queue
 import threading
 import time
-from collections import Counter
+from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid5
@@ -93,6 +93,17 @@ class WriterFlushPolicy:
     `queue_maxsize`: hard bound on in-memory ingestion backlog (0W-2B §13).
     `overload_grace_seconds`: how long `submit_event` will wait for the writer
     to free a slot before declaring `CaptureBackpressureError`.
+
+    0W-5B WAL persistence (`journal_mode="wal"`): commits append to the WAL
+    (durable at COMMIT under synchronous=FULL). Random main-file page writes
+    move into PASSIVE checkpoints run by a separate checkpointer thread on its
+    own connection, so a checkpoint never blocks a commit (it only competes for
+    disk I/O). Every `checkpoint_poll_seconds` the checkpointer checkpoints iff
+    the WAL holds at least `checkpoint_min_wal_bytes` AND ingestion is quiet
+    (writer queue empty and fewer than `checkpoint_busy_events_per_second`
+    persisted over the trailing `checkpoint_quiet_seconds`) -- or the WAL has
+    reached `checkpoint_force_wal_bytes` (growth bound; runs even if busy).
+    `journal_mode="delete"` keeps the accepted 0W-5A rollback-journal path.
     """
 
     max_events: int = 20_000
@@ -100,6 +111,12 @@ class WriterFlushPolicy:
     queue_maxsize: int = 50_000
     overload_grace_seconds: float = 10.0
     sqlite_cache_size_kib: int = 262_144
+    journal_mode: str = "wal"
+    checkpoint_min_wal_bytes: int = 64 * 1024 * 1024
+    checkpoint_force_wal_bytes: int = 1024 * 1024 * 1024
+    checkpoint_quiet_seconds: float = 5.0
+    checkpoint_busy_events_per_second: float = 150.0
+    checkpoint_poll_seconds: float = 1.0
 
     def __post_init__(self) -> None:
         if self.max_events < 1:
@@ -112,6 +129,14 @@ class WriterFlushPolicy:
             raise ValueError("overload_grace_seconds must be non-negative.")
         if self.sqlite_cache_size_kib < 1:
             raise ValueError("sqlite_cache_size_kib must be positive.")
+        if self.journal_mode not in ("wal", "delete"):
+            raise ValueError("journal_mode must be 'wal' or 'delete'.")
+        if not 0 < self.checkpoint_min_wal_bytes <= self.checkpoint_force_wal_bytes:
+            raise ValueError("need 0 < checkpoint_min_wal_bytes <= checkpoint_force_wal_bytes.")
+        if self.checkpoint_quiet_seconds < 0 or self.checkpoint_busy_events_per_second <= 0:
+            raise ValueError("checkpoint_quiet_seconds must be >= 0 and checkpoint_busy_events_per_second > 0.")
+        if self.checkpoint_poll_seconds <= 0:
+            raise ValueError("checkpoint_poll_seconds must be positive.")
 
 
 @dataclass
@@ -130,15 +155,30 @@ class WriterMetrics:
     queue_depth_max: int = 0
     max_persist_lag_seconds: float = 0.0
     overloaded: bool = False
+    # 0W-5B WAL checkpoint evidence (all zero in DELETE mode).
+    checkpoint_count: int = 0
+    checkpoint_frames: int = 0
+    checkpoint_seconds_total: float = 0.0
+    checkpoint_seconds_max: float = 0.0
+    wal_bytes_max: int = 0
+
+    @property
+    def accounting_difference(self) -> int:
+        return self.submitted_events - self.persisted_events
 
     def as_detail_suffix(self) -> str:
         return (
+            f"writer_submitted_events={self.submitted_events}; "
+            f"writer_accounting_difference={self.accounting_difference}; "
             f"writer_flushes={self.flush_count}; "
             f"writer_batch_max={self.batch_size_max}; "
             f"writer_queue_depth_max={self.queue_depth_max}; "
             f"writer_max_persist_lag_s={self.max_persist_lag_seconds:.3f}; "
             f"writer_persisted_events={self.persisted_events}; "
-            f"writer_overloaded={str(self.overloaded).lower()}"
+            f"writer_overloaded={str(self.overloaded).lower()}; "
+            f"wal_checkpoints={self.checkpoint_count}; "
+            f"wal_checkpoint_s_max={self.checkpoint_seconds_max:.3f}; "
+            f"wal_bytes_max={self.wal_bytes_max}"
         )
 
 
@@ -215,6 +255,11 @@ class DurableWriter:
         self._ever_connected = False
         self._pending_disconnect_at: datetime | None = None
         self._last_disconnect_at: datetime | None = None
+        # 0W-5B background checkpointer (WAL mode only).
+        self._checkpointer_thread: threading.Thread | None = None
+        self._checkpointer_stop = threading.Event()
+        self._wal_ready = threading.Event()
+        self._checkpointer_failure: BaseException | None = None
 
     # ---- feed-thread facing API -------------------------------------------------
 
@@ -223,6 +268,11 @@ class DurableWriter:
             raise RuntimeError("DurableWriter already started.")
         self._started = True
         self._thread.start()
+        if self._policy.journal_mode == "wal":
+            self._checkpointer_thread = threading.Thread(
+                target=self._checkpoint_loop, name="dicks-wal-checkpointer", daemon=True
+            )
+            self._checkpointer_thread.start()
 
     def submit_event(self, source_order: int, event: DxLinkSourceEvent) -> None:
         """Hand one raw source event (already assigned its canonical
@@ -290,6 +340,13 @@ class DurableWriter:
             except queue.Full:
                 pass  # writer checks _stop_event on its next idle tick regardless
             self._thread.join()
+            self._checkpointer_stop.set()
+            if self._checkpointer_thread is not None:
+                self._checkpointer_thread.join()
+        if self._failure is None and self._checkpointer_failure is not None:
+            raise CaptureWriterError(
+                "The WAL checkpointer failed (committed data remains intact in the WAL)."
+            ) from self._checkpointer_failure
         if self._failure is not None:
             raise CaptureWriterError(
                 "The durable writer thread failed while persisting capture data."
@@ -335,6 +392,9 @@ class DurableWriter:
         last_flush = self._monotonic()
         try:
             self._store.set_cache_size_kib(self._policy.sqlite_cache_size_kib)
+            if self._policy.journal_mode == "wal":
+                self._store.enter_wal_capture_mode()
+                self._wal_ready.set()
             while True:
                 timeout = max(0.0, last_flush + self._policy.max_interval_seconds - self._monotonic())
                 try:
@@ -467,6 +527,10 @@ class DurableWriter:
                 )
         self._metrics.flush_count += 1
         self._metrics.persisted_events += batch.event_count
+        if self._policy.journal_mode == "wal":
+            wal_bytes = self._store.wal_size_bytes()
+            if wal_bytes > self._metrics.wal_bytes_max:
+                self._metrics.wal_bytes_max = wal_bytes
         if batch.event_count > self._metrics.batch_size_max:
             self._metrics.batch_size_max = batch.event_count
         if batch.earliest_enqueued_monotonic is not None:
@@ -474,6 +538,47 @@ class DurableWriter:
             if lag > self._metrics.max_persist_lag_seconds:
                 self._metrics.max_persist_lag_seconds = lag
         batch.clear()
+
+    def _checkpoint_loop(self) -> None:
+        """Background PASSIVE checkpoints (WAL mode). Never blocks a commit;
+        yields to ingestion by only starting while the queue is empty and the
+        trailing persisted rate is low (unless the WAL hit its growth bound)."""
+        while not self._wal_ready.wait(timeout=0.05):
+            if self._checkpointer_stop.is_set() or not self._thread.is_alive():
+                return
+        window = self._policy.checkpoint_quiet_seconds
+        history: deque[tuple[float, int]] = deque()
+        checkpointer = None
+        try:
+            checkpointer = self._store.open_wal_checkpointer()
+            while not self._checkpointer_stop.wait(self._policy.checkpoint_poll_seconds):
+                now = self._monotonic()
+                history.append((now, self._metrics.persisted_events))
+                while len(history) > 1 and history[1][0] <= now - window:
+                    history.popleft()
+                wal_bytes = self._store.wal_size_bytes()
+                if wal_bytes > self._metrics.wal_bytes_max:
+                    self._metrics.wal_bytes_max = wal_bytes
+                if wal_bytes < self._policy.checkpoint_min_wal_bytes:
+                    continue
+                base_time, base_persisted = history[0]
+                rate = (history[-1][1] - base_persisted) / max(now - base_time, 1e-9) if window > 0 else 0.0
+                quiet = self._queue.empty() and rate < self._policy.checkpoint_busy_events_per_second
+                if not quiet and wal_bytes < self._policy.checkpoint_force_wal_bytes:
+                    continue
+                started = self._monotonic()
+                _busy, _log_frames, checkpointed = checkpointer.checkpoint_passive()
+                elapsed = self._monotonic() - started
+                self._metrics.checkpoint_count += 1
+                self._metrics.checkpoint_frames += checkpointed
+                self._metrics.checkpoint_seconds_total += elapsed
+                if elapsed > self._metrics.checkpoint_seconds_max:
+                    self._metrics.checkpoint_seconds_max = elapsed
+        except BaseException as exc:  # noqa: BLE001 -- surfaced via drain_and_stop(); data stays in the WAL
+            self._checkpointer_failure = exc
+        finally:
+            if checkpointer is not None:
+                checkpointer.close()
 
     def _write_connected(self, moment: datetime) -> None:
         if not self._ever_connected:

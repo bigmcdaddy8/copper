@@ -53,7 +53,7 @@ from dicks_laboratory.sessions import (
     classify_es_session,
     session_coverage,
 )
-from dicks_laboratory.store import LaboratoryStore
+from dicks_laboratory.store import LaboratoryStore, WalCollapseError
 
 _CT = ZoneInfo("America/Chicago")
 
@@ -145,6 +145,11 @@ class LongHorizonCaptureResult:
     writer_queue_depth_max: int = 0
     writer_max_persist_lag_seconds: float = 0.0
     writer_persisted_events: int = 0
+    writer_submitted_events: int = 0
+    writer_accounting_difference: int = 0
+    wal_checkpoint_count: int = 0
+    wal_checkpoint_seconds_max: float = 0.0
+    wal_bytes_max: int = 0
     writer_overloaded: bool = False
     # Set only when the SQLite artifact closed cleanly but its sidecar
     # manifest/checksum could not be written (0W-2B §10) -- never rewrites
@@ -288,6 +293,13 @@ def interrupt_stale_dataset(database_path: Path, observed_at: datetime) -> None:
             ))
             store.set_dataset_lifecycle_state(dataset_id, DatasetLifecycleState.INTERRUPTED)
             _write_closing_summary(store, dataset_id, observed_at, collector_version=None, collector_git_commit=None)
+        # 0W-5B: a crashed WAL-mode dataset is recovered by SQLite on open; fold
+        # its WAL into the single file now. Best effort -- on failure the data
+        # stays intact in the WAL and the dataset is already INTERRUPTED.
+        try:
+            store.collapse_to_single_file()
+        except WalCollapseError:
+            pass
     finally:
         store.close()
 
@@ -630,18 +642,46 @@ def _run_one_trading_date_session(
     if max_events_fuse_triggered and close_moment < segment_deadline:
         _close_known_gap(store, dataset_id, close_moment, segment_deadline)
 
+    # 0W-5A/5B: every accepted item must be committed exactly once. (A
+    # mismatch already makes drain_and_stop() raise; this is the explicit
+    # closing gate, independent of journal mode.)
+    if writer_metrics.accounting_difference != 0:
+        target_state = DatasetLifecycleState.INTERRUPTED
+        stop = True
+        stopped_reason = stopped_reason or (
+            f"writer_accounting_mismatch; difference={writer_metrics.accounting_difference}"
+        )
+
+    # 0W-5B single-file artifact: move every committed WAL frame into the main
+    # file and return to DELETE mode BEFORE the closing writes, lifecycle state
+    # and checksum -- so nothing is ever checksummed or declared FINALIZED while
+    # committed evidence still lives only in a sidecar. Failure leaves the data
+    # intact in the WAL and the dataset truthfully INTERRUPTED (no checksum).
+    finalization_error = _collapse_and_check(store)
+    if finalization_error is not None:
+        target_state = DatasetLifecycleState.INTERRUPTED
+        stop = True
+
     stopped_detail = "capture_stopped"
     if stopped_reason:
         stopped_detail += f"; reason={stopped_reason}"
+    if finalization_error is not None:
+        stopped_detail += f"; finalization_failed={finalization_error}"
     stopped_detail += f"; {writer_metrics.as_detail_suffix()}"
 
     _finalize(
         store, dataset_id, close_moment, writer.classifications,
         collector_version, collector_git_commit, target_state, stopped_detail=stopped_detail,
+        writer_metrics=writer_metrics,
     )
 
     manifest_error: str | None = None
+    leftovers = store.sidecar_paths()
+    if finalization_error is None and leftovers:
+        finalization_error = f"sidecars remain after close writes: {[p.name for p in leftovers]}"
     try:
+        if finalization_error is not None:
+            raise WalCollapseError(finalization_error)
         result = _build_result(
             store, dataset_id, database_path, spec.instrument, trading_date, target_state,
             writer_metrics=writer_metrics, stopped_reason=stopped_reason,
@@ -827,6 +867,30 @@ def _dataset_identity_stub(dataset_id: UUID) -> DatasetIdentity:
     return DatasetIdentity(dataset_id=dataset_id, kind=DatasetKind.HISTORICAL_IMPORT, label="stub")
 
 
+# 0W-5B: how long the final collapse waits for a concurrent reader (e.g. a
+# read-only audit left open on the OPEN dataset) before giving up. Giving up
+# means INTERRUPTED with intact data, never a falsely FINALIZED artifact.
+FINALIZATION_BUSY_TIMEOUT_SECONDS = 60.0
+
+
+def _collapse_and_check(store: LaboratoryStore) -> str | None:
+    """0W-5B: collapse WAL -> single file, then quick_check. Returns None on
+    success or a short sanitized reason; never raises."""
+    try:
+        store.collapse_to_single_file(busy_timeout_seconds=FINALIZATION_BUSY_TIMEOUT_SECONDS)
+    except WalCollapseError as exc:
+        return f"wal_collapse:{exc}"
+    except Exception as exc:  # noqa: BLE001 -- surfaced truthfully as INTERRUPTED evidence
+        return f"wal_collapse:{type(exc).__name__}:{exc}"
+    try:
+        result = store.quick_check()
+    except Exception as exc:  # noqa: BLE001
+        return f"quick_check:{type(exc).__name__}:{exc}"
+    if result != "ok":
+        return f"quick_check:{result}"
+    return None
+
+
 def _finalize(
     store: LaboratoryStore,
     dataset_id: UUID,
@@ -836,6 +900,7 @@ def _finalize(
     collector_git_commit: str,
     target_state: DatasetLifecycleState,
     stopped_detail: str = "capture_stopped",
+    writer_metrics: WriterMetrics | None = None,
 ) -> None:
     """Close a dataset intentionally, recording exactly the requested closure
     state -- never silently defaulting to FINALIZED regardless of intent
@@ -854,7 +919,9 @@ def _finalize(
     ))
     store.update_dataset_capture_ended(dataset_id, closed_at)
     store.set_dataset_lifecycle_state(dataset_id, target_state)
-    _write_closing_summary(store, dataset_id, closed_at, collector_version, collector_git_commit)
+    _write_closing_summary(
+        store, dataset_id, closed_at, collector_version, collector_git_commit, writer_metrics=writer_metrics
+    )
 
 
 def _write_closing_summary(
@@ -863,6 +930,7 @@ def _write_closing_summary(
     closed_at: datetime,
     collector_version: str | None,
     collector_git_commit: str | None,
+    writer_metrics: WriterMetrics | None = None,
 ) -> None:
     if store.load_dataset_closing_summary(dataset_id) is not None:
         return  # already written once; a closing summary is a frozen snapshot, never rewritten
@@ -888,6 +956,8 @@ def _write_closing_summary(
             closed_at=closed_at,
             collector_version=collector_version,
             collector_git_commit=collector_git_commit,
+            submitted_events=writer_metrics.submitted_events if writer_metrics else None,
+            persisted_events=writer_metrics.persisted_events if writer_metrics else None,
         )
     )
 
@@ -939,7 +1009,12 @@ def _build_result(
         writer_queue_depth_max=metrics.queue_depth_max,
         writer_max_persist_lag_seconds=metrics.max_persist_lag_seconds,
         writer_persisted_events=metrics.persisted_events,
+        writer_submitted_events=metrics.submitted_events,
+        writer_accounting_difference=metrics.accounting_difference,
         writer_overloaded=metrics.overloaded,
+        wal_checkpoint_count=metrics.checkpoint_count,
+        wal_checkpoint_seconds_max=metrics.checkpoint_seconds_max,
+        wal_bytes_max=metrics.wal_bytes_max,
         manifest_error=manifest_error,
         stopped_reason=stopped_reason,
     )
@@ -981,6 +1056,9 @@ def write_manifest(
         "sha256": checksum_sha256,
         "collector_git_commit": summary.collector_git_commit if summary else None,
         "closed_at": summary.closed_at.isoformat() if summary else None,
+        "submitted_events": summary.submitted_events if summary else None,
+        "persisted_events": summary.persisted_events if summary else None,
+        "accounting_difference": summary.accounting_difference if summary else None,
         "checksum_scope": "file integrity only; not a market-data completeness claim",
     }
     manifest_path = database_path.with_suffix(database_path.suffix + ".manifest.json")

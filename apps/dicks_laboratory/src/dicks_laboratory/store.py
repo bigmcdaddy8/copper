@@ -176,6 +176,34 @@ CREATE TABLE IF NOT EXISTS dataset_closing_summaries (
 """
 
 
+class WalCollapseError(RuntimeError):
+    """The OPEN dataset could not be proven fully collapsed from WAL into one
+    self-contained file. Its committed data is still intact (in the WAL); it
+    must not be marked FINALIZED or checksummed."""
+
+
+class WalCheckpointer:
+    """Dedicated connection that only runs PASSIVE checkpoints (0W-5B).
+
+    PASSIVE never takes the write lock and never waits, so it cannot block the
+    writer's commits; it copies committed WAL frames into the main file
+    concurrently. It never writes rows, never commits, never discards data."""
+
+    def __init__(self, db_path: Path) -> None:
+        self._connection = sqlite3.connect(db_path, check_same_thread=False, isolation_level=None)
+        self._connection.execute("PRAGMA wal_autocheckpoint = 0")
+
+    def checkpoint_passive(self) -> tuple[int, int, int]:
+        cursor = self._connection.execute("PRAGMA wal_checkpoint(PASSIVE)")
+        busy, log_frames, checkpointed = cursor.fetchone()
+        cursor.fetchall()
+        cursor.close()
+        return int(busy), int(log_frames), int(checkpointed)
+
+    def close(self) -> None:
+        self._connection.close()
+
+
 class LaboratoryStore:
     """Owns a small SQLite schema and canonical object serialization for Phase 0G."""
 
@@ -185,6 +213,7 @@ class LaboratoryStore:
         # one dedicated writer thread for the run, then reclaimed by the capture
         # thread after that writer has joined -- never touched by two threads at
         # once. It is not a licence for concurrent access.
+        self._path = Path(db_path)
         if read_only:
             if not Path(db_path).is_file():
                 raise FileNotFoundError(f"Database not found: {db_path}")
@@ -203,6 +232,100 @@ class LaboratoryStore:
 
     def close(self) -> None:
         self._connection.close()
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
+    # ---- 0W-5B: WAL capture mode ------------------------------------------------
+    #
+    # While a dataset is OPEN the writer commits into the WAL (append-only,
+    # fsync'd at every COMMIT under synchronous=FULL, so a committed batch is
+    # durable before the commit returns). Moving pages into the main file
+    # (checkpoint) is separate work the writer schedules only when ingestion
+    # is quiet. A dataset is never FINALIZED until `collapse_to_single_file()`
+    # has moved every committed frame into the main file and returned the
+    # database to rollback-journal (DELETE) mode with no -wal/-shm sidecars.
+
+    def enter_wal_capture_mode(self) -> None:
+        """WAL, synchronous=FULL, no automatic checkpoints, WAL file truncated
+        on every restart (so its size is the live un-checkpointed volume)."""
+        mode = self._connection.execute("PRAGMA journal_mode = WAL").fetchone()[0]
+        if mode != "wal":
+            raise RuntimeError(f"Could not enter WAL capture mode (journal_mode={mode!r}).")
+        self._connection.execute("PRAGMA synchronous = FULL")
+        self._connection.execute("PRAGMA wal_autocheckpoint = 0")
+        self._connection.execute("PRAGMA journal_size_limit = 0")
+        if self._connection.execute("PRAGMA synchronous").fetchone()[0] != 2:
+            raise RuntimeError("WAL capture mode requires synchronous=FULL.")
+
+    def journal_mode(self) -> str:
+        return self._connection.execute("PRAGMA journal_mode").fetchone()[0]
+
+    def wal_size_bytes(self) -> int:
+        wal = self._path.with_name(self._path.name + "-wal")
+        try:
+            return wal.stat().st_size
+        except FileNotFoundError:
+            return 0
+
+    def checkpoint_passive(self) -> tuple[int, int, int]:
+        """PASSIVE checkpoint: copy committed WAL frames into the main file
+        without waiting on anyone. Returns SQLite's (busy, log_frames,
+        checkpointed_frames). Never commits or discards data."""
+        cursor = self._connection.execute("PRAGMA wal_checkpoint(PASSIVE)")
+        busy, log_frames, checkpointed = cursor.fetchone()
+        cursor.fetchall()
+        cursor.close()
+        return int(busy), int(log_frames), int(checkpointed)
+
+    def open_wal_checkpointer(self) -> "WalCheckpointer":
+        """A second connection to this database used only for PASSIVE
+        checkpoints off the writer thread (0W-5B)."""
+        return WalCheckpointer(self._path)
+
+    def sidecar_paths(self) -> tuple[Path, ...]:
+        """-wal / -shm / -journal files that currently exist next to the database."""
+        return tuple(
+            candidate
+            for suffix in ("-wal", "-shm", "-journal")
+            if (candidate := self._path.with_name(self._path.name + suffix)).exists()
+        )
+
+    def collapse_to_single_file(self, busy_timeout_seconds: float = 60.0) -> None:
+        """Move every committed WAL frame into the main file, return to DELETE
+        mode and remove the sidecars. Raises `WalCollapseError` -- leaving all
+        committed data intact in the WAL -- if any step cannot be proven.
+
+        A no-op (beyond the checks) for a database already in DELETE mode."""
+        if self._in_transaction:
+            raise WalCollapseError("collapse_to_single_file() inside an open transaction.")
+        self._connection.commit()
+        previous_timeout = self._connection.execute("PRAGMA busy_timeout").fetchone()[0]
+        self._connection.execute(f"PRAGMA busy_timeout = {int(busy_timeout_seconds * 1000)}")
+        try:
+            if self.journal_mode() == "wal":
+                busy, log_frames, checkpointed = self._connection.execute(
+                    "PRAGMA wal_checkpoint(TRUNCATE)"
+                ).fetchone()
+                if busy != 0 or log_frames != checkpointed:
+                    raise WalCollapseError(
+                        f"final checkpoint incomplete: busy={busy} log={log_frames} checkpointed={checkpointed}"
+                    )
+                try:
+                    mode = self._connection.execute("PRAGMA journal_mode = DELETE").fetchone()[0]
+                except sqlite3.OperationalError as exc:
+                    raise WalCollapseError(f"journal_mode=DELETE failed: {exc}") from exc
+                if mode != "delete":
+                    raise WalCollapseError(f"journal_mode is {mode!r} after collapse, expected 'delete'.")
+        finally:
+            self._connection.execute(f"PRAGMA busy_timeout = {int(previous_timeout)}")
+        leftovers = self.sidecar_paths()
+        if leftovers:
+            raise WalCollapseError(f"sidecars remain after collapse: {[p.name for p in leftovers]}")
+
+    def quick_check(self) -> str:
+        return self._connection.execute("PRAGMA quick_check").fetchone()[0]
 
     def set_cache_size_kib(self, kib: int) -> None:
         """Size this connection's SQLite page cache (memory only; not persisted
@@ -275,6 +398,14 @@ class LaboratoryStore:
                 "trading_date": "TEXT",
                 "instrument_id": "TEXT",
                 "lifecycle_state": "TEXT",
+            },
+        )
+        self._ensure_columns(
+            "dataset_closing_summaries",
+            {
+                "submitted_events": "INTEGER",
+                "persisted_events": "INTEGER",
+                "accounting_difference": "INTEGER",
             },
         )
 
@@ -428,14 +559,16 @@ class LaboratoryStore:
             INSERT INTO dataset_closing_summaries (
                 dataset_id, accepted_trade_count, deferred_event_count, rejected_record_count,
                 known_gap_count, suspected_gap_count, first_source_order, last_source_order,
-                closed_at, collector_version, collector_git_commit
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                closed_at, collector_version, collector_git_commit,
+                submitted_events, persisted_events, accounting_difference
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(summary.dataset_id), summary.accepted_trade_count, summary.deferred_event_count,
                 summary.rejected_record_count, summary.known_gap_count, summary.suspected_gap_count,
                 summary.first_source_order, summary.last_source_order, _timestamp_text(summary.closed_at),
                 summary.collector_version, summary.collector_git_commit,
+                summary.submitted_events, summary.persisted_events, summary.accounting_difference,
             ),
         )
         self._maybe_commit()
@@ -458,6 +591,8 @@ class LaboratoryStore:
             closed_at=_timestamp_from_text(row["closed_at"]),
             collector_version=row["collector_version"],
             collector_git_commit=row["collector_git_commit"],
+            submitted_events=row["submitted_events"] if "submitted_events" in row.keys() else None,
+            persisted_events=row["persisted_events"] if "persisted_events" in row.keys() else None,
         )
 
     def save_trade_observations(self, trades: tuple[TradeObservation, ...]) -> None:

@@ -48,3 +48,15 @@ class DatasetClosingSummary:
     closed_at: datetime
     collector_version: str | None
     collector_git_commit: str | None
+    # 0W-5B: the writer's own handoff accounting at drain. A successful
+    # FINALIZED close requires submitted == persisted (difference 0). None =
+    # not recorded (pre-0W-5B datasets, or a close with no writer, e.g. a
+    # stale dataset interrupted at startup) -- never fabricated.
+    submitted_events: int | None = None
+    persisted_events: int | None = None
+
+    @property
+    def accounting_difference(self) -> int | None:
+        if self.submitted_events is None or self.persisted_events is None:
+            return None
+        return self.submitted_events - self.persisted_events

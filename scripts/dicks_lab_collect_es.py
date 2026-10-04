@@ -210,7 +210,12 @@ def collect(
         "writer_queue_depth_max": result.writer_queue_depth_max,
         "writer_max_persist_lag_seconds": round(result.writer_max_persist_lag_seconds, 4),
         "writer_persisted_events": result.writer_persisted_events,
+        "writer_submitted_events": result.writer_submitted_events,
+        "writer_accounting_difference": result.writer_accounting_difference,
         "writer_overloaded": result.writer_overloaded,
+        "wal_checkpoint_count": result.wal_checkpoint_count,
+        "wal_checkpoint_seconds_max": round(result.wal_checkpoint_seconds_max, 4),
+        "wal_bytes_max": result.wal_bytes_max,
         "stopped_reason": result.stopped_reason,
     }
     typer.echo(json.dumps(summary, indent=2))
