@@ -1,0 +1,282 @@
+
+##### DATE
+Sun Oct  4 14:43:50 UTC 2026
+Sun Oct  4 09:43:50 CDT 2026
+
+##### UPTIME
+ 14:43:50 up 0 min,  1 user,  load average: 1.19, 0.40, 0.14
+2026-10-04 14:42:52
+
+##### BOOTS
+-14 246ad67dea6e4a92a96f33ceba78de3b Fri 2026-09-11 21:48:18 UTC Fri 2026-09-11 21:54:34 UTC
+-13 0cb3c098a8ff44019f49a1bfc4d4c3b5 Fri 2026-09-11 22:04:50 UTC Fri 2026-09-11 22:07:25 UTC
+-12 eb46471dbd314afb863c14de397a92c3 Fri 2026-09-11 22:59:50 UTC Fri 2026-09-11 23:01:27 UTC
+-11 eaa54fd348a944769b5c7f66135c10ed Sun 2026-09-13 20:31:43 UTC Mon 2026-09-14 03:33:42 UTC
+-10 26adb034c6e44a4296400850d2a41a3f Mon 2026-09-14 20:31:28 UTC Tue 2026-09-15 21:46:18 UTC
+ -9 4a09fec1b130420d9666cc87bc79d451 Wed 2026-09-16 01:13:27 UTC Wed 2026-09-16 01:22:55 UTC
+ -8 3aad92747dac4223a9c17975d7a02d20 Wed 2026-09-16 01:57:05 UTC Wed 2026-09-16 01:58:55 UTC
+ -7 453d7c4253cc4ff295912e9a5c9f9ad5 Wed 2026-09-16 02:27:47 UTC Wed 2026-09-16 02:39:12 UTC
+ -6 b12d85a38d564de9843481fffcc18237 Wed 2026-09-16 02:51:34 UTC Wed 2026-09-16 03:03:52 UTC
+ -5 6d561348d8684c6fb54488534770848d Sun 2026-09-20 20:31:51 UTC Fri 2026-09-25 21:46:12 UTC
+ -4 27bbd10243b04a799ccfb855de1ca13f Fri 2026-09-25 22:16:21 UTC Fri 2026-09-25 23:07:28 UTC
+ -3 12a7f0caec5c46daa60f5485e3d089a5 Sat 2026-09-26 03:16:49 UTC Sat 2026-09-26 03:22:59 UTC
+ -2 3dd99777c9684acb926f6bdd15058aae Sat 2026-09-26 03:33:43 UTC Sat 2026-09-26 03:38:12 UTC
+ -1 0ff441d51b8b489e96fec133994007a0 Sun 2026-09-27 20:31:40 UTC Fri 2026-10-02 21:46:01 UTC
+  0 95913c8285ab476c9df2ee9e8755b9c5 Sun 2026-10-04 14:42:58 UTC Sun 2026-10-04 14:43:50 UTC
+
+##### LAST_X
+/tmp/host_audit_a2.sh: line 11: last: command not found
+
+##### FAILED_NOW
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+
+##### GIT
+6f5247faeac00ef67b41318996de19ff5820299c
+porcelain_lines=0
+6f5247faeac00ef67b41318996de19ff5820299c
+6f5247faeac00ef67b41318996de19ff5820299c 2026-09-25 22:23:56 -0500 docs: record 0W-4D deployment and disarmed final state
+cd216e5b7327e4b46f5fc44b2de766a48ff9644d 2026-09-25 22:21:23 -0500 docs: record 0W-4 Attempt 1 result, root cause, and 0W-4D correction
+cd5b6596ef6bca45dd9df0b7f1334f2910581dd5 2026-09-25 22:19:07 -0500 fix: reuse still-valid quote token on DXLink reconnect (0W-4D)
+6f5247f HEAD@{2026-09-26 03:34:15 +0000}: merge origin/master: Fast-forward
+cd216e5 HEAD@{2026-09-26 03:21:39 +0000}: merge origin/master: Fast-forward
+21e41f6 HEAD@{2026-09-16 02:32:11 +0000}: merge origin/master: Fast-forward
+c8fcfa6 HEAD@{2026-09-14 03:32:36 +0000}: merge origin/master: Fast-forward
+7ce180e HEAD@{2026-09-11 21:53:21 +0000}: merge origin/master: Fast-forward
+b7f073c HEAD@{2026-09-11 21:51:46 +0000}: merge origin/master: Fast-forward
+f27a043 HEAD@{2026-09-10 00:46:14 +0000}: merge origin/master: Fast-forward
+f8ef340 HEAD@{2026-09-09 22:23:19 +0000}: merge origin/master: Fast-forward
+b2caca2 HEAD@{2026-09-09 22:10:28 +0000}: merge origin/master: Fast-forward
+c3eeefa HEAD@{2026-09-09 22:01:39 +0000}: merge origin/master: Fast-forward
+
+##### GIT_FETCH_DRYRUN
+fetch_rc=0
+
+##### GIT_REMOTE
+origin	git@github.com:bigmcdaddy8/copper.git (fetch)
+origin	git@github.com:bigmcdaddy8/copper.git (push)
+total 36
+drwx------ 3 temckee8 temckee8 4096 Sep 26 03:18 .
+drwxr-x--- 7 temckee8 temckee8 4096 Sep  9 23:15 ..
+drwx------ 2 temckee8 temckee8 4096 Sep 11 21:53 agent
+-rw------- 1 temckee8 temckee8  283 Sep  9 22:56 authorized_keys
+-rw------- 1 temckee8 temckee8  319 Sep 26 03:18 config
+-rw------- 1 temckee8 temckee8  419 Sep  9 21:04 id_ed25519_ghdeploy
+-rw-r--r-- 1 temckee8 temckee8  107 Sep  9 21:04 id_ed25519_ghdeploy.pub
+-rw------- 1 temckee8 temckee8  978 Sep  9 22:01 known_hosts
+-rw-r--r-- 1 temckee8 temckee8  142 Sep  9 21:05 known_hosts.old
+# copper origin (git@github.com:bigmcdaddy8/copper.git) -> read-only deploy key
+# "dragon-gen1-copper-deploy (0W-AZ2C)". Added 0W-4D (2026-09-26).
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_ghdeploy
+    IdentitiesOnly yes
+    StrictHostKeyChecking yes
+    UpdateHostKeys no
+
+##### GIT_SSH_TEST
+Hi bigmcdaddy8/copper! You've successfully authenticated, but GitHub does not provide shell access.
+
+##### FILE_MTIMES_SINCE_SOAK
+
+##### UNIT_FILES
+dicks-lab-es-session.service frag=/etc/systemd/system/dicks-lab-es-session.service 2026-09-16 02:32:35.383242663 +0000 sha=3c77d99872bbb379 repo=3c77d99872bbb379 dropins=
+dicks-lab-es-session.timer frag=/etc/systemd/system/dicks-lab-es-session.timer 2026-09-16 02:32:35.383344563 +0000 sha=78fb2b4f6639989d repo=78fb2b4f6639989d dropins=
+dicks-lab-launch-gate.service frag=/etc/systemd/system/dicks-lab-launch-gate.service 2026-09-16 02:32:35.383681165 +0000 sha=80409538bdc789b6 repo=80409538bdc789b6 dropins=
+dicks-lab-launch-gate.timer frag=/etc/systemd/system/dicks-lab-launch-gate.timer 2026-09-16 02:56:14.425350916 +0000 sha=05d9d2c7d4a48913 repo=05d9d2c7d4a48913 dropins=
+dicks-lab-preflight-gate.service frag=/etc/systemd/system/dicks-lab-preflight-gate.service 2026-09-16 02:32:35.383569765 +0000 sha=c1d1762e6909d2c3 repo=c1d1762e6909d2c3 dropins=
+dicks-lab-preflight-gate.timer frag=/etc/systemd/system/dicks-lab-preflight-gate.timer 2026-09-16 02:56:14.425278916 +0000 sha=12c3e2ddda3862f6 repo=12c3e2ddda3862f6 dropins=
+-rw-r--r--  1 root root 3954 2026-09-16 02:32:35.383242663 +0000 dicks-lab-es-session.service
+-rw-r--r--  1 root root 1449 2026-09-16 02:32:35.383344563 +0000 dicks-lab-es-session.timer
+-rw-r--r--  1 root root 1763 2026-09-16 02:32:35.383681165 +0000 dicks-lab-launch-gate.service
+-rw-r--r--  1 root root 1255 2026-09-16 02:56:14.425350916 +0000 dicks-lab-launch-gate.timer
+-rw-r--r--  1 root root 3076 2026-09-16 02:32:35.383569765 +0000 dicks-lab-preflight-gate.service
+-rw-r--r--  1 root root 1002 2026-09-16 02:56:14.425278916 +0000 dicks-lab-preflight-gate.timer
+
+##### TIMERS
+NEXT                            LEFT LAST                         PASSED UNIT                         ACTIVATES
+dicks-lab-preflight-gate.timer enabled=disabled active=inactive
+UnitFileState=disabled
+NextElapseUSecRealtime=
+LastTriggerUSec=
+dicks-lab-launch-gate.timer enabled=disabled active=inactive
+UnitFileState=disabled
+NextElapseUSecRealtime=
+LastTriggerUSec=
+dicks-lab-es-session.timer enabled=static active=inactive
+UnitFileState=static
+NextElapseUSecRealtime=
+LastTriggerUSec=
+
+##### SESSION_SERVICE_NOW
+ActiveState=inactive
+SubState=dead
+InvocationID=
+Result=success
+NRestarts=0
+ExecMainPID=0
+ExecMainStatus=0
+no dicks_lab processes
+
+##### MARKER
+ls: cannot access '/run/dicks-lab-launch-gate/': No such file or directory
+cat: /run/dicks-lab-launch-gate/preflight-ok: No such file or directory
+
+##### DISK
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        61G  2.8G   59G   5% /
+/dev/sda        251G  5.9G  233G   3% /srv/dicks_laboratory
+Filesystem        1B-blocks       Used    Available Use% Mounted on
+/dev/sda       269427478528 6323712000 249343094784   3% /srv/dicks_laboratory
+TARGET                SOURCE   FSTYPE OPTIONS
+/srv/dicks_laboratory /dev/sda ext4   rw,relatime
+5.9G	/srv/dicks_laboratory/data
+4.0K	/srv/dicks_laboratory/forensic
+4.0K	/srv/dicks_laboratory/logs
+16K	/srv/dicks_laboratory/lost+found
+/srv/dicks_laboratory/data/sessions/:
+total 6168100
+drwxr-xr-x 2 temckee8 temckee8      4096 2026-10-02 21:00:08.568181572 +0000 .
+drwxr-xr-x 4 temckee8 temckee8      4096 2026-09-09 22:37:12.823501745 +0000 ..
+-rw-rw-r-- 1 temckee8 temckee8     27848 2026-09-11 19:38:43.551019311 +0000 att4_samples.csv
+-rw-r--r-- 1 temckee8 temckee8 501538816 2026-09-11 19:36:14.619436122 +0000 es_20260911_3716af9f.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-11 19:36:16.278396916 +0000 es_20260911_3716af9f.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 100663296 2026-09-15 21:00:01.076614565 +0000 es_20260915_b07e92d4.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-15 21:00:01.421225268 +0000 es_20260915_b07e92d4.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 441995264 2026-09-21 21:00:04.154673456 +0000 es_20260921_64d684c9.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-21 21:00:05.797630566 +0000 es_20260921_64d684c9.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 546938880 2026-09-23 21:00:05.103648247 +0000 es_20260923_b2856c52.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-23 21:00:07.202070545 +0000 es_20260923_b2856c52.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 654155776 2026-09-24 21:00:06.067111224 +0000 es_20260924_31c92a57.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-24 21:00:08.491807979 +0000 es_20260924_31c92a57.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 605577216 2026-09-25 21:00:05.828052874 +0000 es_20260925_c690ff8e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-25 21:00:08.048047714 +0000 es_20260925_c690ff8e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 633470976 2026-09-28 21:00:05.621150883 +0000 es_20260928_843a6ca0.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-28 21:00:07.894855353 +0000 es_20260928_843a6ca0.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 598822912 2026-09-29 21:00:05.311039030 +0000 es_20260929_6af08205.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-29 21:00:07.326787869 +0000 es_20260929_6af08205.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 700641280 2026-09-30 21:00:06.187397421 +0000 es_20260930_9ac5a21e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-30 21:00:08.555258144 +0000 es_20260930_9ac5a21e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 836493312 2026-10-01 21:00:07.391803574 +0000 es_20261001_fe280370.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-10-01 21:00:10.125177716 +0000 es_20261001_fe280370.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 695705600 2026-10-02 21:00:06.123117822 +0000 es_20261002_7e8d7b5e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-10-02 21:00:08.569664111 +0000 es_20261002_7e8d7b5e.sqlite3.manifest.json
+
+/srv/dicks_laboratory/forensic:
+total 8
+drwxr-xr-x 2 temckee8 temckee8 4096 2026-09-09 21:03:03.031032573 +0000 .
+drwxr-xr-x 6 root     root     4096 2026-09-09 21:03:03.033762057 +0000 ..
+
+/srv/dicks_laboratory/logs:
+total 8
+drwxr-xr-x 2 temckee8 temckee8 4096 2026-09-09 21:03:03.027761652 +0000 .
+drwxr-xr-x 6 root     root     4096 2026-09-09 21:03:03.033762057 +0000 ..
+
+##### JOURNAL
+Archived and active journals take up 57M in the file system.
+Storage=persistent
+SystemMaxUse=2G
+SystemKeepFree=1G
+MaxRetentionSec=1month
+total 58444
+drwxr-sr-x+2 root systemd-journal     4096 2026-09-13 20:32:02.894149808 +0000 .
+drwxr-sr-x+3 root systemd-journal     4096 2026-09-09 20:58:49.412248300 +0000 ..
+-rw-r-----+1 root systemd-journal 33554432 2026-10-04 14:43:50.682837861 +0000 system.journal
+-rw-r-----+1 root systemd-journal 25165824 2026-09-13 20:32:03.186461526 +0000 system@6d0c1ab101bd414fa0d39bccf7e62f37-0000000000000001-00065b131e2c8a8c.journal
+-rw-r-----+1 root systemd-journal  8388608 2026-10-04 14:43:50.182824654 +0000 user-1000.journal
+File path: /var/log/journal/9c109154c29343628f17e253c20a3d18/system.journal
+Head realtime timestamp: Sun 2026-09-13 20:32:02 UTC (65b6335cde8df)
+Tail realtime timestamp: Sun 2026-10-04 14:43:50 UTC (65d04cb2d1a15)
+Disk usage: 32M
+File path: /var/log/journal/9c109154c29343628f17e253c20a3d18/system@6d0c1ab101bd414fa0d39bccf7e62f37-0000000000000001-00065b131e2c8a8c.journal
+Head realtime timestamp: Wed 2026-09-09 20:58:49 UTC (65b131e2c8a8c)
+Tail realtime timestamp: Sun 2026-09-13 20:32:02 UTC (65b6335cd254c)
+Disk usage: 17M
+File path: /var/log/journal/9c109154c29343628f17e253c20a3d18/user-1000.journal
+Head realtime timestamp: Wed 2026-09-09 21:35:18 UTC (65b13a0a96d5e)
+Tail realtime timestamp: Sun 2026-10-04 14:43:50 UTC (65d04cb2aad65)
+Disk usage: 8M
+
+##### JOURNAL_OLDEST
+2026-10-04T14:43:50+00:00 dragon systemd[1]: Started session-9.scope - Session 9 of User temckee8.
+2026-09-09T20:58:49+00:00 ubuntu kernel: Linux version 7.0.0-1012-azure (buildd@lcy02-amd64-067) (x86_64-linux-gnu-gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, GNU ld (GNU Binutils for Ubuntu) 2.46) #12-Ubuntu SMP PREEMPT Thu Aug  6 19:23:26 UTC 2026 (Ubuntu 7.0.0-1012.12-azure 7.0.12)
+2026-09-09T20:58:49+00:00 ubuntu kernel: Command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+
+##### OOM_KERNEL
+Oct 04 14:42:58 dragon kernel: Failed to register legacy timer interrupt
+Oct 04 14:42:58 dragon kernel: RAS: Correctable Errors collector initialized.
+Oct 04 14:42:58 dragon kernel: EXT4-fs (sdb1): orphan cleanup on readonly fs
+Oct 04 14:42:58 dragon kernel: EXT4-fs (sdb1): mounted filesystem b922264a-4095-43b9-8604-48fe2a2b30d6 ro with ordered data mode. Quota mode: none.
+Oct 04 14:42:58 dragon systemd[1]: Listening on systemd-factory-reset.socket - Factory Reset Management.
+Oct 04 14:42:58 dragon kernel: EXT4-fs (sdb1): re-mounted b922264a-4095-43b9-8604-48fe2a2b30d6 r/w.
+Oct 04 14:43:04 dragon kernel: EXT4-fs (sdb13): mounted filesystem 0a5013b6-4a6a-4eaa-80cd-715ad81197c6 r/w with ordered data mode. Quota mode: none.
+Oct 04 14:43:05 dragon kernel: EXT4-fs (sda): mounted filesystem 890b7de2-a7e1-4650-a7c9-464124698b29 r/w with ordered data mode. Quota mode: none.
+Oct 04 14:43:05 dragon kernel: faux_driver regulatory: Direct firmware load for regulatory.db failed with error -2
+Oct 04 14:43:05 dragon kernel: cfg80211: failed to load regulatory.db
+Oct 04 14:43:08 dragon kernel: EXT4-fs (sdc1): mounted filesystem 349fa435-e0e6-426a-b5a6-09698a985cba r/w with ordered data mode. Quota mode: none.
+
+##### APT_UNATTENDED
+disabled
+disabled
+disabled
+total 44
+drwxr-xr-x  2 root root    4096 2026-10-01 00:03:40.032468070 +0000 .
+drwxrwxr-x 11 root syslog  4096 2026-10-04 14:43:16.153631622 +0000 ..
+-rw-r--r--  1 root root   25120 2026-09-09 21:21:56.430206432 +0000 eipp.log.xz
+-rw-r--r--  1 root root       0 2026-10-01 00:03:40.024467861 +0000 history.log
+-rw-r--r--  1 root root     274 2026-09-09 21:22:03.551287380 +0000 history.log.1.gz
+-rw-r-----  1 root adm        0 2026-10-01 00:03:40.005467366 +0000 term.log
+-rw-r-----  1 root adm      584 2026-09-09 21:22:03.551287380 +0000 term.log.1.gz
+Start-Date: 2026-09-09  21:04:07
+Start-Date: 2026-09-09  21:21:57
+
+##### OTHER_TIMERS_1500CT
+NEXT                            LEFT LAST                         PASSED UNIT                         ACTIVATES
+Sun 2026-10-04 14:50:00 UTC     6min -                                 - sysstat-collect.timer        sysstat-collect.service
+Sun 2026-10-04 14:52:57 UTC     9min Fri 2026-10-02 00:04:05 UTC       - logrotate.timer              logrotate.service
+Sun 2026-10-04 14:57:52 UTC    14min -                                 - systemd-tmpfiles-clean.timer systemd-tmpfiles-clean.service
+Sun 2026-10-04 15:36:14 UTC    52min Fri 2026-10-02 21:20:05 UTC       - fwupd-refresh.timer          fwupd-refresh.service
+Sun 2026-10-04 17:54:23 UTC 3h 10min Fri 2026-10-02 11:48:05 UTC       - man-db.timer                 man-db.service
+Mon 2026-10-05 00:00:00 UTC       9h Sun 2026-10-04 14:43:09 UTC 42s ago dpkg-db-backup.timer         dpkg-db-backup.service
+Mon 2026-10-05 00:00:00 UTC       9h -                                 - sysstat-rotate.timer         sysstat-rotate.service
+Mon 2026-10-05 00:07:00 UTC       9h -                                 - sysstat-summary.timer        sysstat-summary.service
+Mon 2026-10-05 00:10:37 UTC       9h Mon 2026-09-28 01:08:39 UTC       - fstrim.timer                 fstrim.service
+Mon 2026-10-05 06:55:32 UTC      16h Mon 2026-09-28 14:01:39 UTC       - update-notifier-motd.timer   update-notifier-motd.service
+Sun 2026-10-11 03:10:02 UTC   6 days Sun 2026-10-04 14:43:29 UTC 21s ago e2scrub_all.timer            e2scrub_all.service
+Sun 2026-10-11 03:10:23 UTC   6 days Sun 2026-10-04 14:43:29 UTC 22s ago xfs_scrub_all.timer          xfs_scrub_all.service
+-                                  - -                                 - apport-autoreport.timer      apport-autoreport.service
+-                                  - -                                 - snapd.snap-repair.timer      snapd.snap-repair.service
+-                                  - -                                 - ua-timer.timer               ua-timer.service
+
+15 timers listed.
+
+##### SMART_FAIL_HISTORY
+
+##### TAILSCALE_NET
+2026-09-27T20:32:01+00:00 dragon tailscaled[934]: magicsock: adding connection to derp-27 for home-keep-alive
+2026-09-27T20:32:01+00:00 dragon tailscaled[934]: magicsock: 1 active derp conns: derp-27=cr0s,wr0s
+2026-09-27T20:32:01+00:00 dragon tailscaled[934]: derphttp.Client.Connect: connecting to derp-27 (iad)
+2026-09-27T20:32:01+00:00 dragon tailscaled[934]: magicsock: derp-27 connected; connGen=1
+2026-09-29T00:41:44+00:00 dragon tailscaled[934]: magicsock: 2 active derp conns: derp-12=cr0s,wr0s derp-27=cr28h10m0s,wr25h55m0s
+2026-09-29T00:41:44+00:00 dragon tailscaled[934]: derphttp.Client.Recv: connecting to derp-12 (ord)
+2026-09-29T00:41:45+00:00 dragon tailscaled[934]: magicsock: derp-12 connected; connGen=1
+2026-09-29T00:44:59+00:00 dragon tailscaled[934]: magicsock: 1 active derp conns: derp-27=cr28h13m0s,wr25h58m0s
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: tailscaled got signal terminated; shutting down
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: control: client.Shutdown ...
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: control: Client.Shutdown done.
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: ipnext: work queue shutdown failed: execqueue shut down
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: magicsock: closing connection to derp-27 (conn-close), age 121h13m57s
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: magicsock: 0 active derp conns
+2026-10-02T21:45:58+00:00 dragon tailscaled[934]: logger closing down
+2026-10-02T21:45:58+00:00 dragon tailscaled[35505]: logger closing down
+2026-10-04T14:43:17+00:00 dragon tailscaled[932]: magicsock: adding connection to derp-27 for home-keep-alive
+2026-10-04T14:43:17+00:00 dragon tailscaled[932]: magicsock: 1 active derp conns: derp-27=cr0s,wr0s
+2026-10-04T14:43:17+00:00 dragon tailscaled[932]: derphttp.Client.Connect: connecting to derp-27 (iad)
+2026-10-04T14:43:17+00:00 dragon tailscaled[932]: magicsock: derp-27 connected; connGen=1
+
+##### MEM
+               total        used        free      shared  buff/cache   available
+Mem:            7881         521        7122           4         485        7360
+Swap:              0           0           0

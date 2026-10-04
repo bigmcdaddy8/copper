@@ -1,0 +1,131 @@
+# arming boot 3dd99777c9684acb926f6bdd15058aae
+ -2 3dd99777c9684acb926f6bdd15058aae Sat 2026-09-26 03:33:43 UTC Sat 2026-09-26 03:38:12 UTC
+2026-09-26T03:33:43.345377+00:00 dragon kernel: Command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+2026-09-26T03:33:43.349889+00:00 dragon kernel: Kernel command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+2026-09-26T03:33:43.377004+00:00 dragon systemd[1]: /usr/lib/systemd/system/system-xfs_scrub.slice:15: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:33:43.377017+00:00 dragon systemd[1]: /usr/lib/systemd/system/walinuxagent.service:21: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:33:43.377029+00:00 dragon systemd[1]: /usr/lib/systemd/system/xfs_scrub_all.service:26: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:33:43.377055+00:00 dragon systemd[1]: Unnecessary job was removed for sys-devices-virtual-misc-vmbus\x21hv_fcopy.device - /sys/devices/virtual/misc/vmbus!hv_fcopy.
+2026-09-26T03:33:43.377067+00:00 dragon systemd[1]: Unnecessary job was removed for sys-devices-virtual-misc-vmbus\x21hv_vss.device - /sys/devices/virtual/misc/vmbus!hv_vss.
+2026-09-26T03:33:44.795563+00:00 dragon systemd[1]: plymouth-start.service - Show Plymouth Boot Screen skipped, unmet condition check ConditionKernelCommandLine=splash
+2026-09-26T03:33:46.007938+00:00 dragon systemd[1]: Found device dev-disk-by\x2duuid-890b7de2\x2da7e1\x2d4650\x2da7c9\x2d464124698b29.device - Virtual_Disk dicks_lab.
+2026-09-26T03:33:47.734689+00:00 dragon systemd-fsck[429]: dicks_lab: clean, 33/16777216 files, 2028556/67108864 blocks
+2026-09-26T03:33:48.452954+00:00 dragon systemd[1]: Mounting srv-dicks_laboratory.mount - /srv/dicks_laboratory...
+2026-09-26T03:33:48.786041+00:00 dragon apparmor.systemd[503]: Reloading AppArmor profiles
+2026-09-26T03:33:50.138370+00:00 dragon systemd[1]: Mounted srv-dicks_laboratory.mount - /srv/dicks_laboratory.
+2026-09-26T03:33:51.201256+00:00 dragon dhcpcd[756]: control command: dhcpcd --dumplease --ipv4only eth0
+2026-09-26T03:33:53.267771+00:00 dragon systemd[1]: Reloading...
+2026-09-26T03:33:53.471383+00:00 dragon systemd[1]: /usr/lib/systemd/system/xfs_scrub_all.service:26: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:33:53.472081+00:00 dragon systemd[1]: /usr/lib/systemd/system/system-xfs_scrub.slice:15: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:33:53.479065+00:00 dragon systemd[1]: /usr/lib/systemd/system/walinuxagent.service:21: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:33:53.654387+00:00 dragon systemd[1]: Reloading finished in 386 ms.
+2026-09-26T03:33:53.879864+00:00 dragon systemd[1]: snapd.recovery-chooser-trigger.service - Wait for the Ubuntu Core chooser trigger skipped, unmet condition check ConditionKernelCommandLine=snapd_recovery_mode
+2026-09-26T03:33:56.916197+00:00 dragon snapd[923]: backend.go:145: reloading profiles for snap-confine
+2026-09-26T03:34:00.567045+00:00 dragon python3[930]: ["2026-09-26T03:34:00.566", "INFO", "ubuntupro.daemon.poll_for_pro_license", "poll_for_pro_license", 82, "Configured to not poll for pro license, shutting down", {}]
+2026-09-26T03:34:03.556214+00:00 dragon python3[1189]: 2026-09-26T03:34:03.548448Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Target handler state: enabled [incarnation_1]
+2026-09-26T03:34:03.556770+00:00 dragon python3[1189]: 2026-09-26T03:34:03.556674Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] [Enable] current handler state is: enabled
+2026-09-26T03:34:03.556905+00:00 dragon python3[1189]: 2026-09-26T03:34:03.556808Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Update settings file: 6.settings
+2026-09-26T03:34:03.557231+00:00 dragon python3[1189]: 2026-09-26T03:34:03.557132Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Requested extension state: enabled
+2026-09-26T03:34:03.569795+00:00 dragon systemd[1]: /usr/lib/systemd/system/azure-vmextensions.slice:7: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:03.573509+00:00 dragon python3[1189]: 2026-09-26T03:34:03.573395Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Enable extension: [bin/run-command-shim enable]
+2026-09-26T03:34:03.573824+00:00 dragon python3[1189]: 2026-09-26T03:34:03.573733Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Executing command: /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/bin/run-command-shim enable with en
+2026-09-26T03:34:03.584997+00:00 dragon systemd[1]: /usr/lib/systemd/system/azure-vmextensions.slice:7: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:03.588653+00:00 dragon python3[1189]: 2026-09-26T03:34:03.588427Z INFO ExtHandler ExtHandler Started tracking cpu cgroup Microsoft.CPlat.Core.RunCommandLinux-1.0.12 [/sys/fs/cgroup/azure.slice/azure-vmextensions.slice/azure-vmextensions-Micros
+2026-09-26T03:34:03.588653+00:00 dragon python3[1189]: 2026-09-26T03:34:03.588541Z INFO ExtHandler ExtHandler Started tracking memory cgroup Microsoft.CPlat.Core.RunCommandLinux-1.0.12 [/sys/fs/cgroup/azure.slice/azure-vmextensions.slice/azure-vmextensions-Mic
+2026-09-26T03:34:03.595476+00:00 dragon systemd[1]: /usr/lib/systemd/system/azure-vmextensions.slice:7: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:03.597672+00:00 dragon systemd[1]: Created slice azure-vmextensions-Microsoft.CPlat.Core.RunCommandLinux.slice - Slice /azure/vmextensions/Microsoft.CPlat.Core.RunCommandLinux.
+2026-09-26T03:34:03.601403+00:00 dragon systemd[1]: Started enable_d5198a99-ba2a-4121-9fa5-255b24133ca3.scope - [systemd-run] /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/bin/run-command-shim enable.
+2026-09-26T03:34:05.589586+00:00 dragon python3[1189]: 2026-09-26T03:34:05.589378Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Command: bin/run-command-shim enable
+2026-09-26T03:34:05.589586+00:00 dragon python3[1189]: Not writing a placeholder status file, already exists: /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/status/6.status
+2026-09-26T03:34:05.589586+00:00 dragon python3[1189]: + nohup /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/bin/run-command-extension enable
+2026-09-26T03:34:05.622675+00:00 dragon python3[1189]: 2026-09-26T03:34:05.622618Z INFO ExtHandler ExtHandler Extension status: [('Microsoft.CPlat.Core.RunCommandLinux', 'success')]
+2026-09-26T03:34:05.623103+00:00 dragon python3[1189]: 2026-09-26T03:34:05.623061Z INFO ExtHandler ExtHandler All extensions in the goal state have reached a terminal state: [('Microsoft.CPlat.Core.RunCommandLinux', 'success')]
+2026-09-26T03:34:07.159842+00:00 dragon sshd-session[1383]: Accepted publickey for temckee8 from 100.121.123.14 port 44858 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:34:07.925990+00:00 dragon systemd-logind[927]: Removed session 1.
+2026-09-26T03:34:14.481977+00:00 dragon sshd-session[1546]: Accepted publickey for temckee8 from 100.121.123.14 port 48530 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:34:16.502437+00:00 dragon systemd-logind[927]: Removed session 3.
+2026-09-26T03:34:24.394046+00:00 dragon sshd-session[1639]: Accepted publickey for temckee8 from 100.121.123.14 port 39880 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:34:26.271492+00:00 dragon systemd-logind[927]: Removed session 4.
+2026-09-26T03:34:32.115805+00:00 dragon sshd-session[1707]: Accepted publickey for temckee8 from 100.121.123.14 port 39626 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:34:34.476654+00:00 dragon systemd-logind[927]: Removed session 5.
+2026-09-26T03:34:44.607877+00:00 dragon systemd[1388]: Removed slice app.slice - User Application Slice.
+2026-09-26T03:34:44.616265+00:00 dragon systemd-logind[927]: Removed session 2.
+2026-09-26T03:34:44.647007+00:00 dragon systemd[1]: Removed slice user-1000.slice - User Slice of UID 1000.
+2026-09-26T03:34:52.885264+00:00 dragon sshd-session[1779]: Accepted publickey for temckee8 from 100.121.123.14 port 41014 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:34:55.272416+00:00 dragon sudo[1951]: temckee8 :  PWD=/home/temckee8/Documents/REPOs/copper ; USER=root ; COMMAND=/usr/bin/systemctl daemon-reload
+2026-09-26T03:34:55.278684+00:00 dragon systemd[1]: Reloading...
+2026-09-26T03:34:55.500685+00:00 dragon systemd[1]: /usr/lib/systemd/system/xfs_scrub_all.service:26: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:55.501567+00:00 dragon systemd[1]: /usr/lib/systemd/system/system-xfs_scrub.slice:15: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:55.509561+00:00 dragon systemd[1]: /usr/lib/systemd/system/walinuxagent.service:21: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:55.670441+00:00 dragon systemd[1]: /usr/lib/systemd/system/azure-vmextensions.slice:7: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:34:55.689752+00:00 dragon systemd[1]: Reloading finished in 410 ms.
+2026-09-26T03:34:56.059471+00:00 dragon systemd-logind[927]: Removed session 6.
+2026-09-26T03:35:06.110730+00:00 dragon systemd[1784]: Removed slice app.slice - User Application Slice.
+2026-09-26T03:35:06.115320+00:00 dragon systemd-logind[927]: Removed session 7.
+2026-09-26T03:35:06.141098+00:00 dragon systemd[1]: Removed slice user-1000.slice - User Slice of UID 1000.
+2026-09-26T03:35:07.290116+00:00 dragon sshd-session[2067]: Accepted publickey for temckee8 from 100.121.123.14 port 59772 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:35:07.719223+00:00 dragon sudo[2140]: temckee8 :  PWD=/home/temckee8 ; USER=root ; COMMAND=/usr/bin/systemctl enable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer
+2026-09-26T03:35:07.727458+00:00 dragon systemd[1]: Reloading...
+2026-09-26T03:35:07.939511+00:00 dragon systemd[1]: /usr/lib/systemd/system/xfs_scrub_all.service:26: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:35:07.940233+00:00 dragon systemd[1]: /usr/lib/systemd/system/system-xfs_scrub.slice:15: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:35:07.947075+00:00 dragon systemd[1]: /usr/lib/systemd/system/walinuxagent.service:21: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:35:08.097139+00:00 dragon systemd[1]: /usr/lib/systemd/system/azure-vmextensions.slice:7: Support for option CPUAccounting= has been removed and it is ignored
+2026-09-26T03:35:08.115942+00:00 dragon systemd[1]: Reloading finished in 387 ms.
+2026-09-26T03:35:08.147883+00:00 dragon systemd[1]: Started dicks-lab-launch-gate.timer - Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago.
+2026-09-26T03:35:08.148091+00:00 dragon systemd[1]: Started dicks-lab-preflight-gate.timer - Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago.
+2026-09-26T03:35:08.361074+00:00 dragon systemd-logind[927]: Removed session 8.
+2026-09-26T03:35:18.610125+00:00 dragon systemd[2072]: Removed slice app.slice - User Application Slice.
+2026-09-26T03:35:18.614940+00:00 dragon systemd-logind[927]: Removed session 9.
+2026-09-26T03:35:18.641884+00:00 dragon systemd[1]: Removed slice user-1000.slice - User Slice of UID 1000.
+2026-09-26T03:37:17.783128+00:00 dragon sshd-session[2236]: Accepted publickey for temckee8 from 100.121.123.14 port 53898 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-26T03:37:18.716188+00:00 dragon systemd-logind[927]: Removed session 10.
+2026-09-26T03:37:28.861836+00:00 dragon systemd[2241]: Removed slice app.slice - User Application Slice.
+2026-09-26T03:37:28.872895+00:00 dragon systemd-logind[927]: Removed session 11.
+2026-09-26T03:37:28.901670+00:00 dragon systemd[1]: Removed slice user-1000.slice - User Slice of UID 1000.
+2026-09-26T03:38:10.177310+00:00 dragon systemd[1]: Removed slice azure-vmextensions-Microsoft.CPlat.Core.RunCommandLinux.slice - Slice /azure/vmextensions/Microsoft.CPlat.Core.RunCommandLinux.
+2026-09-26T03:38:10.177848+00:00 dragon systemd[1]: Removed slice system-modprobe.slice - Slice /system/modprobe.
+2026-09-26T03:38:10.179846+00:00 dragon systemd[1]: dicks-lab-launch-gate.timer: Deactivated successfully.
+2026-09-26T03:38:10.179907+00:00 dragon systemd[1]: Stopped dicks-lab-launch-gate.timer - Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago.
+2026-09-26T03:38:10.180153+00:00 dragon systemd[1]: dicks-lab-preflight-gate.timer: Deactivated successfully.
+2026-09-26T03:38:10.180217+00:00 dragon systemd[1]: Stopped dicks-lab-preflight-gate.timer - Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago.
+2026-09-26T03:38:10.215854+00:00 dragon systemd[1]: Unmounting srv-dicks_laboratory.mount - /srv/dicks_laboratory...
+2026-09-26T03:38:10.230236+00:00 dragon ModemManager[1100]: <msg> caught signal, shutting down...
+2026-09-26T03:38:10.335361+00:00 dragon tailscaled[928]: tailscaled got signal terminated; shutting down
+2026-09-26T03:38:10.997954+00:00 dragon systemd[1]: srv-dicks_laboratory.mount: Deactivated successfully.
+2026-09-26T03:38:10.998222+00:00 dragon systemd[1]: Unmounted srv-dicks_laboratory.mount - /srv/dicks_laboratory.
+2026-09-26T03:38:11.048664+00:00 dragon systemd[1]: Removed slice system-getty.slice - Slice /system/getty.
+2026-09-26T03:38:11.054358+00:00 dragon systemd[1]: Removed slice system-serial\x2dgetty.slice - Slice /system/serial-getty.
+2026-09-26T03:38:11.062397+00:00 dragon systemd[1]: plymouth-poweroff.service - Show Plymouth Power Off Screen skipped, unmet condition check ConditionKernelCommandLine=splash
+2026-09-26T03:38:11.918655+00:00 dragon systemd[1]: Removed slice system-xfs_scrub.slice - xfs_scrub background service slice.
+2026-09-26T03:38:11.921847+00:00 dragon systemd[1]: Removed slice user.slice - User and Session Slice.
+2026-09-26T03:38:12.105314+00:00 dragon systemd[1]: Removed slice system-systemd\x2dfsck.slice - Slice /system/systemd-fsck.
+2026-09-26T03:38:12.169002+00:00 dragon systemd[1]: systemd-poweroff.service: Deactivated successfully.
+2026-09-26T03:38:12.169027+00:00 dragon systemd[1]: Finished systemd-poweroff.service - System Power Off.
+2026-09-26T03:38:12.171174+00:00 dragon systemd[1]: Reached target poweroff.target - System Power Off.
+2026-09-26T03:38:12.173257+00:00 dragon systemd[1]: Shutting down.
+# preceding 0W-4D deploy boot 12a7f0ca (03:16-03:22Z)
+2026-09-26T03:16:49.583429+00:00 dragon kernel: Command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+2026-09-26T03:16:49.600833+00:00 dragon kernel: Kernel command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+2026-09-26T03:16:51.359350+00:00 dragon systemd[1]: plymouth-start.service - Show Plymouth Boot Screen skipped, unmet condition check ConditionKernelCommandLine=splash
+2026-09-26T03:16:58.572792+00:00 dragon dhcpcd[757]: control command: dhcpcd --dumplease --ipv4only eth0
+2026-09-26T03:17:01.452343+00:00 dragon systemd[1]: snapd.recovery-chooser-trigger.service - Wait for the Ubuntu Core chooser trigger skipped, unmet condition check ConditionKernelCommandLine=snapd_recovery_mode
+2026-09-26T03:17:11.756173+00:00 dragon python3[1283]: 2026-09-26T03:17:11.747185Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Target handler state: enabled [incarnation_1]
+2026-09-26T03:17:11.756173+00:00 dragon python3[1283]: 2026-09-26T03:17:11.755911Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] [Enable] current handler state is: enabled
+2026-09-26T03:17:11.756173+00:00 dragon python3[1283]: 2026-09-26T03:17:11.756038Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Update settings file: 6.settings
+2026-09-26T03:17:11.756611+00:00 dragon python3[1283]: 2026-09-26T03:17:11.756501Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Requested extension state: enabled
+2026-09-26T03:17:11.773263+00:00 dragon python3[1283]: 2026-09-26T03:17:11.773117Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Enable extension: [bin/run-command-shim enable]
+2026-09-26T03:17:11.773753+00:00 dragon python3[1283]: 2026-09-26T03:17:11.773585Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Executing command: /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/bin/run-command-shim enable with en
+2026-09-26T03:17:11.791932+00:00 dragon python3[1283]: 2026-09-26T03:17:11.791883Z INFO ExtHandler ExtHandler Started tracking cpu cgroup Microsoft.CPlat.Core.RunCommandLinux-1.0.12 [/sys/fs/cgroup/azure.slice/azure-vmextensions.slice/azure-vmextensions-Micros
+2026-09-26T03:17:11.792327+00:00 dragon python3[1283]: 2026-09-26T03:17:11.792289Z INFO ExtHandler ExtHandler Started tracking memory cgroup Microsoft.CPlat.Core.RunCommandLinux-1.0.12 [/sys/fs/cgroup/azure.slice/azure-vmextensions.slice/azure-vmextensions-Mic
+2026-09-26T03:17:11.802212+00:00 dragon systemd[1]: Created slice azure-vmextensions-Microsoft.CPlat.Core.RunCommandLinux.slice - Slice /azure/vmextensions/Microsoft.CPlat.Core.RunCommandLinux.
+2026-09-26T03:17:11.806487+00:00 dragon systemd[1]: Started enable_c36209bb-4650-4ed1-812f-71fa5312a034.scope - [systemd-run] /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/bin/run-command-shim enable.
+2026-09-26T03:17:13.795294+00:00 dragon python3[1283]: 2026-09-26T03:17:13.794926Z INFO ExtHandler [Microsoft.CPlat.Core.RunCommandLinux-1.0.12] Command: bin/run-command-shim enable
+2026-09-26T03:17:13.795294+00:00 dragon python3[1283]: Not writing a placeholder status file, already exists: /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/status/6.status
+2026-09-26T03:17:13.795294+00:00 dragon python3[1283]: + nohup /var/lib/waagent/Microsoft.CPlat.Core.RunCommandLinux-1.0.12/bin/run-command-extension enable
+2026-09-26T03:17:13.828619+00:00 dragon python3[1283]: 2026-09-26T03:17:13.828571Z INFO ExtHandler ExtHandler Extension status: [('Microsoft.CPlat.Core.RunCommandLinux', 'success')]
+2026-09-26T03:17:13.829118+00:00 dragon python3[1283]: 2026-09-26T03:17:13.829045Z INFO ExtHandler ExtHandler All extensions in the goal state have reached a terminal state: [('Microsoft.CPlat.Core.RunCommandLinux', 'success')]
+2026-09-26T03:17:18.586002+00:00 dragon sudo[1668]: temckee8 :  PWD=/home/temckee8 ; USER=root ; COMMAND=/usr/bin/systemctl disable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer
+2026-09-26T03:22:11.612211+00:00 dragon python3[1283]: 2026-09-26T03:22:11.612064Z INFO MonitorHandler ExtHandler Stopped tracking cpu cgroup Microsoft.CPlat.Core.RunCommandLinux-1.0.12 [/sys/fs/cgroup/azure.slice/azure-vmextensions.slice/azure-vmextensions-Mi
+2026-09-26T03:22:11.612385+00:00 dragon python3[1283]: 2026-09-26T03:22:11.612247Z INFO MonitorHandler ExtHandler Stopped tracking memory cgroup Microsoft.CPlat.Core.RunCommandLinux-1.0.12 [/sys/fs/cgroup/azure.slice/azure-vmextensions.slice/azure-vmextensions
+2026-09-26T03:22:56.317355+00:00 dragon systemd[1]: Removed slice azure-vmextensions-Microsoft.CPlat.Core.RunCommandLinux.slice - Slice /azure/vmextensions/Microsoft.CPlat.Core.RunCommandLinux.
+2026-09-26T03:22:57.473509+00:00 dragon systemd[1]: plymouth-poweroff.service - Show Plymouth Power Off Screen skipped, unmet condition check ConditionKernelCommandLine=splash

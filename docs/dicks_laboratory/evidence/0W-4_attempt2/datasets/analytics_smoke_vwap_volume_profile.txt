@@ -1,0 +1,574 @@
+######## es_20260928_843a6ca0
+Dick's Laboratory -- Anchored VWAP Analysis
+
+Dataset:
+  843a6ca0-3cf3-4878-b53c-a848e72bece5
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-09-28
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-27 17:00:00.000 America/Chicago
+  UTC:     2026-09-27T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-27 17:00:01.354 America/Chicago
+  Last trade:  2026-09-28 15:59:58.977 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.354s
+  Session end (Chicago): 2026-09-28 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,264,733
+  Volume: 1667765.0
+  VWAP:   7757.997257407368544129418713
+
+Effective tape:
+  Trades:              1,264,733
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7757.997257407368544129418713
+
+Label:
+  Captured-data developing session-open anchored VWAP
+Dick's Laboratory -- Volume Profile Analysis
+
+Dataset:
+  843a6ca0-3cf3-4878-b53c-a848e72bece5
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-09-28
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-27 17:00:00.000 America/Chicago
+  UTC:     2026-09-27T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-27 17:00:01.354 America/Chicago
+  Last trade:  2026-09-28 15:59:58.977 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.354s
+  Session end (Chicago): 2026-09-28 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Selected Effective Tape:
+  Trades: 1,264,733
+  Volume: 1667765.0
+  Corrections applied: 0
+  Cancels applied:     0
+
+VWAP:
+  7757.997257407368544129418713
+
+Volume Profile:
+  Low:  7726.00
+  High: 7803.00
+  Occupied levels: 308
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7746.25
+  Volume: 20176.0
+  Prints: 10649
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.17913195204360326544806972%
+  VAL: 7735.00
+  VAH: 7768.75
+  Included levels: 136
+
+Top 10 Volume Levels (ranked by volume desc, then price asc):
+  7746.25   20176.0   (10649 prints)
+  7746.00   19421.0   (10674 prints)
+  7762.75   18094.0   (14426 prints)
+  7763.00   18091.0   (14496 prints)
+  7763.25   17857.0   (14422 prints)
+  7765.00   17476.0   (13331 prints)
+  7747.00   17214.0   (9165 prints)
+  7764.50   17180.0   (13609 prints)
+  7763.50   16980.0   (13645 prints)
+  7763.75   16755.0   (13317 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+######## es_20260929_6af08205
+Dick's Laboratory -- Anchored VWAP Analysis
+
+Dataset:
+  6af08205-90f9-4735-809f-c7b8a62bda65
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-09-29
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-28 17:00:00.000 America/Chicago
+  UTC:     2026-09-28T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-28 17:00:01.340 America/Chicago
+  Last trade:  2026-09-29 15:59:58.111 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.340s
+  Session end (Chicago): 2026-09-29 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,194,184
+  Volume: 1534206.0
+  VWAP:   7733.321077645374871431867689
+
+Effective tape:
+  Trades:              1,194,184
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7733.321077645374871431867689
+
+Label:
+  Captured-data developing session-open anchored VWAP
+Dick's Laboratory -- Volume Profile Analysis
+
+Dataset:
+  6af08205-90f9-4735-809f-c7b8a62bda65
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-09-29
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-28 17:00:00.000 America/Chicago
+  UTC:     2026-09-28T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-28 17:00:01.340 America/Chicago
+  Last trade:  2026-09-29 15:59:58.111 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.340s
+  Session end (Chicago): 2026-09-29 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Selected Effective Tape:
+  Trades: 1,194,184
+  Volume: 1534206.0
+  Corrections applied: 0
+  Cancels applied:     0
+
+VWAP:
+  7733.321077645374871431867689
+
+Volume Profile:
+  Low:  7712.25
+  High: 7770.75
+  Occupied levels: 235
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7731.00
+  Volume: 17501.0
+  Prints: 10220
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.52142932565770176886285153%
+  VAL: 7721.75
+  VAH: 7745.50
+  Included levels: 96
+
+Top 10 Volume Levels (ranked by volume desc, then price asc):
+  7731.00   17501.0   (10220 prints)
+  7732.50   17108.0   (10105 prints)
+  7743.00   16843.0   (14025 prints)
+  7740.00   16119.0   (12240 prints)
+  7742.75   16082.0   (13383 prints)
+  7732.25   15980.0   (10010 prints)
+  7720.00   15249.0   (12139 prints)
+  7719.75   15204.0   (12831 prints)
+  7730.50   15189.0   (9725 prints)
+  7732.75   15122.0   (9014 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+######## es_20260930_9ac5a21e
+Dick's Laboratory -- Anchored VWAP Analysis
+
+Dataset:
+  9ac5a21e-a5c0-427c-91fc-af300539b711
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-09-30
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-29 17:00:00.000 America/Chicago
+  UTC:     2026-09-29T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-29 17:00:01.352 America/Chicago
+  Last trade:  2026-09-30 15:59:59.992 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.352s
+  Session end (Chicago): 2026-09-30 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,396,931
+  Volume: 1887514.0
+  VWAP:   7752.894521047261106407687572
+
+Effective tape:
+  Trades:              1,396,931
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7752.894521047261106407687572
+
+Label:
+  Captured-data developing session-open anchored VWAP
+Dick's Laboratory -- Volume Profile Analysis
+
+Dataset:
+  9ac5a21e-a5c0-427c-91fc-af300539b711
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-09-30
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-29 17:00:00.000 America/Chicago
+  UTC:     2026-09-29T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-29 17:00:01.352 America/Chicago
+  Last trade:  2026-09-30 15:59:59.992 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.352s
+  Session end (Chicago): 2026-09-30 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Selected Effective Tape:
+  Trades: 1,396,931
+  Volume: 1887514.0
+  Corrections applied: 0
+  Cancels applied:     0
+
+VWAP:
+  7752.894521047261106407687572
+
+Volume Profile:
+  Low:  7705.50
+  High: 7782.00
+  Occupied levels: 307
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7754.50
+  Volume: 17080.0
+  Prints: 13573
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.09224832239654911168870800%
+  VAL: 7746.25
+  VAH: 7779.00
+  Included levels: 132
+
+Top 10 Volume Levels (ranked by volume desc, then price asc):
+  7754.50   17080.0   (13573 prints)
+  7770.00   16373.0   (11299 prints)
+  7754.75   16247.0   (12772 prints)
+  7755.00   16092.0   (12357 prints)
+  7768.50   15923.0   (12704 prints)
+  7769.00   15733.0   (11740 prints)
+  7768.75   15332.0   (12507 prints)
+  7770.25   15299.0   (12407 prints)
+  7772.00   15175.0   (10530 prints)
+  7771.25   15083.0   (11273 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+######## es_20261001_fe280370
+Dick's Laboratory -- Anchored VWAP Analysis
+
+Dataset:
+  fe280370-99f6-4265-8bf1-a4ce7580f940
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-10-01
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-30 17:00:00.000 America/Chicago
+  UTC:     2026-09-30T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-30 17:00:01.145 America/Chicago
+  Last trade:  2026-10-01 15:59:59.885 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.145s
+  Session end (Chicago): 2026-10-01 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,667,659
+  Volume: 2124784.0
+  VWAP:   7713.438421270114985805616006
+
+Effective tape:
+  Trades:              1,667,659
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7713.438421270114985805616006
+
+Label:
+  Captured-data developing session-open anchored VWAP
+Dick's Laboratory -- Volume Profile Analysis
+
+Dataset:
+  fe280370-99f6-4265-8bf1-a4ce7580f940
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-10-01
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-09-30 17:00:00.000 America/Chicago
+  UTC:     2026-09-30T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-09-30 17:00:01.145 America/Chicago
+  Last trade:  2026-10-01 15:59:59.885 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.145s
+  Session end (Chicago): 2026-10-01 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Selected Effective Tape:
+  Trades: 1,667,659
+  Volume: 2124784.0
+  Corrections applied: 0
+  Cancels applied:     0
+
+VWAP:
+  7713.438421270114985805616006
+
+Volume Profile:
+  Low:  7672.75
+  High: 7767.75
+  Occupied levels: 381
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7730.00
+  Volume: 20433.0
+  Prints: 15152
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.43901874261101363715088216%
+  VAL: 7694.50
+  VAH: 7745.00
+  Included levels: 203
+
+Top 10 Volume Levels (ranked by volume desc, then price asc):
+  7730.00   20433.0   (15152 prints)
+  7730.50   18251.0   (14136 prints)
+  7730.25   17958.0   (14215 prints)
+  7729.75   17957.0   (14110 prints)
+  7690.00   17133.0   (12990 prints)
+  7730.75   16893.0   (13682 prints)
+  7731.00   16667.0   (13252 prints)
+  7731.25   16042.0   (12432 prints)
+  7689.00   16034.0   (12618 prints)
+  7723.00   15692.0   (10197 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+######## es_20261002_7e8d7b5e
+Dick's Laboratory -- Anchored VWAP Analysis
+
+Dataset:
+  7e8d7b5e-d7b8-4286-92a2-320bfd26723d
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-10-02
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-10-01 17:00:00.000 America/Chicago
+  UTC:     2026-10-01T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-10-01 17:00:01.000 America/Chicago
+  Last trade:  2026-10-02 15:59:59.993 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.000s
+  Session end (Chicago): 2026-10-02 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 1,387,081
+  Volume: 1761755.0
+  VWAP:   7777.745058762427238747725989
+
+Effective tape:
+  Trades:              1,387,081
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7777.745058762427238747725989
+  Reconstruction anomalies: 1 (('TARGET_SOURCE_EVENT_NOT_FOUND', 1),)
+
+Label:
+  Captured-data developing session-open anchored VWAP
+Dick's Laboratory -- Volume Profile Analysis
+
+Dataset:
+  7e8d7b5e-d7b8-4286-92a2-320bfd26723d
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-10-02
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-10-01 17:00:00.000 America/Chicago
+  UTC:     2026-10-01T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-10-01 17:00:01.000 America/Chicago
+  Last trade:  2026-10-02 15:59:59.993 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.000s
+  Session end (Chicago): 2026-10-02 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Selected Effective Tape:
+  Trades: 1,387,081
+  Volume: 1761755.0
+  Corrections applied: 0
+  Cancels applied:     0
+
+VWAP:
+  7777.745058762427238747725989
+
+Volume Profile:
+  Low:  7723.25
+  High: 7810.25
+  Occupied levels: 349
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7775.00
+  Volume: 25327.0
+  Prints: 18504
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.55129686023311981518429066%
+  VAL: 7764.50
+  VAH: 7797.25
+  Included levels: 132
+
+Top 10 Volume Levels (ranked by volume desc, then price asc):
+  7775.00   25327.0   (18504 prints)
+  7775.25   22202.0   (17380 prints)
+  7774.75   21134.0   (16686 prints)
+  7774.25   20868.0   (17089 prints)
+  7775.50   20763.0   (16295 prints)
+  7774.50   20731.0   (16752 prints)
+  7774.00   20073.0   (16523 prints)
+  7778.25   19350.0   (12995 prints)
+  7776.00   19004.0   (13650 prints)
+  7777.00   19003.0   (13537 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Reconstruction anomalies:
+  1 (('TARGET_SOURCE_EVENT_NOT_FOUND', 1),)
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.

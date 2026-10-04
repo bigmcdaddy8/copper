@@ -1,0 +1,5 @@
+# 2026-10-02 deferred DXLINK_CANCEL vs rejected INVALID_DXLINK_TICK (read-only query, 2026-10-04)
+deferred: [(105305, 'DXLINK_CANCEL', 'CANCEL', 7691961727608577538, 155138, '2026-10-02T07:00:00+00:00', '7750.0', '6.0', 'B', 'B', 0, '2026-10-02T07:40:04.790478+00:00')]
+rejected target: [(105221, 'INVALID_DXLINK_TICK', 'NEW', 7691961727608577538, 155138, '2026-10-02T07:00:00+00:00', '7750.0', '6.0', 'B', 'B', 0, '2026-10-02T07:39:44.258542+00:00')]
+accepted rows with that source_index: 0
+all 10-02 rejections (exchange_code, sale_cond, valid_tick): [('B', 'B', 0, 6)]

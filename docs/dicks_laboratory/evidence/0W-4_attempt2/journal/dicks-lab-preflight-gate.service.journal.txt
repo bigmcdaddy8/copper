@@ -1,0 +1,46 @@
+2026-09-27T21:42:00.031277+00:00 dragon systemd[1]: Starting dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch)...
+2026-09-27T21:42:02.750197+00:00 dragon uv[1831]: rest_reachable=true
+2026-09-27T21:42:02.750197+00:00 dragon uv[1831]: futures_endpoint_usable=true count=548
+2026-09-27T21:42:02.750197+00:00 dragon uv[1831]: symbol_/ESZ6_resolves=true
+2026-09-27T21:42:02.750197+00:00 dragon uv[1831]: streamer_symbol_matches_/ESZ26:XCME=true
+2026-09-27T21:42:02.750197+00:00 dragon uv[1831]: quote_token_requested=false
+2026-09-27T21:42:02.750197+00:00 dragon uv[1831]: PREFLIGHT_RESULT=PASS
+2026-09-27T21:42:02.841799+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Deactivated successfully.
+2026-09-27T21:42:02.842239+00:00 dragon systemd[1]: Finished dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch).
+2026-09-27T21:42:02.843290+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Consumed 571ms CPU time over 2.810s wall clock time, 119.8M memory peak.
+2026-09-28T21:42:00.015813+00:00 dragon systemd[1]: Starting dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch)...
+2026-09-28T21:42:00.860849+00:00 dragon uv[8955]: rest_reachable=true
+2026-09-28T21:42:00.860849+00:00 dragon uv[8955]: futures_endpoint_usable=true count=541
+2026-09-28T21:42:00.860849+00:00 dragon uv[8955]: symbol_/ESZ6_resolves=true
+2026-09-28T21:42:00.860849+00:00 dragon uv[8955]: streamer_symbol_matches_/ESZ26:XCME=true
+2026-09-28T21:42:00.860849+00:00 dragon uv[8955]: quote_token_requested=false
+2026-09-28T21:42:00.860849+00:00 dragon uv[8955]: PREFLIGHT_RESULT=PASS
+2026-09-28T21:42:00.938583+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Deactivated successfully.
+2026-09-28T21:42:00.938940+00:00 dragon systemd[1]: Finished dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch).
+2026-09-29T21:42:00.015717+00:00 dragon systemd[1]: Starting dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch)...
+2026-09-29T21:42:00.980426+00:00 dragon uv[16135]: rest_reachable=true
+2026-09-29T21:42:00.980426+00:00 dragon uv[16135]: futures_endpoint_usable=true count=541
+2026-09-29T21:42:00.980426+00:00 dragon uv[16135]: symbol_/ESZ6_resolves=true
+2026-09-29T21:42:00.980426+00:00 dragon uv[16135]: streamer_symbol_matches_/ESZ26:XCME=true
+2026-09-29T21:42:00.980426+00:00 dragon uv[16135]: quote_token_requested=false
+2026-09-29T21:42:00.980426+00:00 dragon uv[16135]: PREFLIGHT_RESULT=PASS
+2026-09-29T21:42:01.059684+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Deactivated successfully.
+2026-09-29T21:42:01.060039+00:00 dragon systemd[1]: Finished dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch).
+2026-09-30T21:42:00.017317+00:00 dragon systemd[1]: Starting dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch)...
+2026-09-30T21:42:00.740353+00:00 dragon uv[22520]: rest_reachable=true
+2026-09-30T21:42:00.740353+00:00 dragon uv[22520]: futures_endpoint_usable=true count=532
+2026-09-30T21:42:00.740353+00:00 dragon uv[22520]: symbol_/ESZ6_resolves=true
+2026-09-30T21:42:00.740353+00:00 dragon uv[22520]: streamer_symbol_matches_/ESZ26:XCME=true
+2026-09-30T21:42:00.740353+00:00 dragon uv[22520]: quote_token_requested=false
+2026-09-30T21:42:00.740353+00:00 dragon uv[22520]: PREFLIGHT_RESULT=PASS
+2026-09-30T21:42:00.821311+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Deactivated successfully.
+2026-09-30T21:42:00.821578+00:00 dragon systemd[1]: Finished dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch).
+2026-10-01T21:42:00.016916+00:00 dragon systemd[1]: Starting dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch)...
+2026-10-01T21:42:00.998846+00:00 dragon uv[28961]: rest_reachable=true
+2026-10-01T21:42:00.998846+00:00 dragon uv[28961]: futures_endpoint_usable=true count=533
+2026-10-01T21:42:00.998846+00:00 dragon uv[28961]: symbol_/ESZ6_resolves=true
+2026-10-01T21:42:00.998846+00:00 dragon uv[28961]: streamer_symbol_matches_/ESZ26:XCME=true
+2026-10-01T21:42:00.998846+00:00 dragon uv[28961]: quote_token_requested=false
+2026-10-01T21:42:00.998846+00:00 dragon uv[28961]: PREFLIGHT_RESULT=PASS
+2026-10-01T21:42:01.083412+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Deactivated successfully.
+2026-10-01T21:42:01.083774+00:00 dragon systemd[1]: Finished dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch).

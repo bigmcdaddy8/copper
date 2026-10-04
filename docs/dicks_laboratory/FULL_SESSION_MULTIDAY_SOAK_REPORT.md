@@ -4100,11 +4100,14 @@ DRAGON: DEALLOCATED.
 
 # 0W-4 — Multi-Day Unattended Weekly Soak (5 trading days, `dragon`)
 
-**Status: ATTEMPT 1 COMPLETE — FAIL (DATA COMPLETENESS / DAILY ROTATION).
-0W-4 remains OPEN.** Sections MA/MB below were written mid-soak (read-only
-warm-fuzzy checks; no code/config changes mid-soak). The final audit,
-Product Owner classification and root-cause chain are in MC-ME; the
-corrective phase is 0W-4D (MF).
+**Status: 0W-4 ACCEPTED / CLOSED (2026-10-04).** Attempt 1 (2026-09-20 → 25)
+FAIL (data completeness / daily rotation) → 0W-4D reconnect token-lifecycle
+correction → Attempt 2 (2026-09-27 → 10-02) OPERATIONAL PASS, with a
+dataset-quality qualification on 2026-09-29 (`KNOWN_GAP=1`, 1.593s).
+Sections MA/MB were written mid-soak (read-only warm-fuzzy checks; no
+code/config changes mid-soak). The Attempt-1 final audit, Product Owner
+classification and root-cause chain are in MC-ME. The corrective phase is
+0W-4D (MF), the Attempt-2 audit is MG, and the PO closure decision is MH.
 
 ## MA. 0W-4 Day 1 — 2026-09-21
 
@@ -4394,4 +4397,166 @@ inactive. `dragon`: `PowerState/deallocated` (Stop-Dragon job
 0W-4D: PASS — RECONNECT TOKEN-LIFECYCLE CORRECTION READY FOR RE-SOAK
 0W-4 ATTEMPT 1: FAIL — EVIDENCE PRESERVED.  0W-4: OPEN.
 NEXT: PO REVIEW BEFORE ARMING 0W-4 ATTEMPT 2 (not armed).
+```
+
+**Addendum: Attempt-2 arming (not recorded at the time).** About ten minutes
+after the 0W-4D final state above, Attempt 2 was armed in a separate,
+user-started pre-soak session. Start-Dragon job
+`5ae8d8bc-c428-4d05-81ab-8e88a7952378` (2026-09-26T03:32:28Z, boot `3dd99777…`).
+At 03:34:15Z, `git merge --ff-only` `cd216e5` → `6f5247f` (docs-only). At
+03:34:55Z, `systemctl daemon-reload`. At 03:35:07Z,
+`systemctl enable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer`.
+At 03:35:19–20Z, both Azure schedules were re-enabled. Stop-Dragon job
+`5705bcb5-b966-4f0c-bcaf-e669e11e3c81` deallocated the VM at 03:38:21Z.
+This is **pre-soak arming/deployment activity**. It is distinct from the
+autonomous Sunday production start and is not a soak reboot. Evidence:
+`evidence/0W-4_attempt2/host/sep26_arming_boot.journal.txt`,
+`evidence/0W-4_attempt2/azure/`.
+
+## MG. 0W-4 Attempt 2 — Final Audit (2026-09-27 → 2026-10-02)
+
+Audit run 2026-10-04. The full evidence and tables are in
+`evidence/0W-4_attempt2/README.md`. Baseline: `6f5247f`, with runtime code =
+`cd5b659` (0W-4D).
+
+**Automation paused first.** Before any restart, the Azure
+`dicks-futures-dragon-start` (enabled, next 2026-10-04T15:30-05:00) and
+`-stop` (enabled, next 2026-10-09T16:45-05:00) schedules were set to
+`isEnabled=false` at 14:37:57Z, with runbook links retained. On the audit
+boot, the guest gate timers were disabled at 14:43:29Z.
+
+**Host / Azure.** The scheduled Start-Dragon job `a10e743e…` (09-27
+20:30Z, MI caller `0c24e4c8…`) and the scheduled Stop-Dragon job
+`e93f792c…` (10-02 21:45Z, `running -> deallocated`, Succeeded 21:46:08Z)
+bracketed one guest boot `0ff441d5…` (5d 1h 14m). Activity Log shows zero
+write ops in between and no unplanned ResourceHealth events. Unexpected
+reboots/deallocations 0, OOM 0, I/O or filesystem errors 0, failed units 0.
+No code, unit, contract, VM, disk or package change. No sudo during the
+soak boot.
+
+**Scheduling / rotation: 5/5.** Preflight PASS at 16:42 CT
+(`quote_token_requested=false`) and the launch gate at 16:55 CT ran every
+evening. Each collector exited 0 at 16:10 CT with `NRestarts=0`. Datasets:
+`843a6ca0` (09-28), `6af08205` (09-29), `9ac5a21e` (09-30), `fe280370`
+(10-01), `7e8d7b5e` (10-02). All are `FUTURE:CME:ES:2026-12` /
+`/ESZ26:XCME`, collector commit `6f5247f`, FINALIZED.
+
+**Token horizon.** Each launch made one quote-token request, received
+86,400s against the 84,600s required (+1,800s), with `oauth_refreshed=false`.
+The near-expiry path never executed. The provider issued a full-lifetime
+token on every launch, including requests that arrived 9–117 ms before the
+standing token's expiry (10-02: 253 ms after).
+
+**Accounting / integrity.** Source events per day: 1,264,734 / 1,194,189 /
+1,396,936 / 1,667,661 / 1,387,088. Rejected: 1 / 5 / 5 / 2 / 6, all
+`INVALID_DXLINK_TICK`. Deferred: 1 on 10-02, a `DXLINK_CANCEL` whose
+source_index/sequence equal rejected print 105221. source_order and
+dataset_sequence have 0 holes and 0 duplicates. `quick_check` and
+`integrity_check` are ok, `journal_mode delete`, no sidecars. Independent
+sha256 = manifest = journal summary. Analytics smoke: developing terminal =
+static on all five.
+
+**Lifecycle.** Four days are clean (`KNOWN_GAP=0`, `SUSPECTED_GAP=0`).
+2026-09-29 had one disconnect: `SOURCE_DISCONNECTED` at
+2026-09-29T09:14:58.865Z (04:14:58.865 CT), stage SOCKET_RECEIVE,
+`no close frame received or sent`. It was followed by `KNOWN_GAP` 1.593s and
+`SOURCE_RECONNECTED` at 09:15:00.457Z, with source_order continuous
+(133617 → 133618). The host was idle at that minute, so there was no local
+cause.
+
+**Writer / disk.** `writer_overloaded=false` every day. On 09-30 the 14:59
+CT minute carried 55,416 events, the queue peaked at 46,236 of
+`queue_maxsize=50,000` (92.5%), and `max_persist_lag` reached 185.9s. The
+StandardSSD data disk sat at 100% IOPS consumed (~603 write IOPS) for 6
+minutes, 15:02–15:07 CT. B2ms PASS. StandardSSD WATCH, carried to 0W-5A.
+
+Audit-time classification under the then-current bar: `0W-4 ATTEMPT 2: FAIL
+— DATA COMPLETENESS (2026-09-29 KNOWN_GAP=1)`. That classification is
+superseded by MH.
+
+## MH. 0W-4 — Product Owner Decision: ACCEPTED / CLOSED (2026-10-04)
+
+```
+0W-4 ATTEMPT 2:
+OPERATIONAL PASS — FIVE-DAY AUTONOMOUS MULTI-DAY CAPTURE PROVEN
+
+DATASET QUALITY QUALIFICATION:
+2026-09-29 INCOMPLETE — KNOWN_GAP=1 (1.593 s)
+
+0W-4:
+ACCEPTED / CLOSED
+```
+
+**Rationale.** The PO separated **collector / host resilience** from
+**individual dataset completeness**. A provider or network interruption is
+not a collector implementation failure if the collector does all of the
+following: detects the disconnect, records it durably, records a truthful
+`KNOWN_GAP`, reconnects autonomously, preserves accounting, finishes
+normally, does not corrupt the dataset, and does not poison later trading
+dates. Attempt 2 did exactly that. 0W-4 therefore does not require five
+consecutive days on which the external provider never disconnects, because
+that is not an engineering property under our control. The production
+invariant is:
+
+```
+SOURCE INTERRUPTION
+→ TRUTHFUL QUALITY EVENT
+→ BOUNDED AUTONOMOUS RECOVERY
+→ NO SILENT DATA CLAIMS
+→ LATER DAILY ROTATION REMAINS HEALTHY
+```
+
+**Data-quality semantics are unchanged.** `FINALIZED` does **not** imply
+COMPLETE (the `dataset_state.py` contract since 0V). The 2026-09-29 dataset is
+permanently:
+
+| | 2026-09-29 (`6af08205…`) |
+|---|---|
+| FINALIZED | YES |
+| INTEGRITY | PASS |
+| ACCOUNTING | PASS |
+| KNOWN_GAP | 1 (09:14:58.865Z → 09:15:00.457Z) |
+| COMPLETE | **NO** (DATA COMPLETENESS = FAIL) |
+
+The distinction is durably observable without any code change. It is stored
+in the `KNOWN_GAP` / `SOURCE_DISCONNECTED` / `SOURCE_RECONNECTED` rows of
+`dataset_quality_events`, in `dataset_closing_summaries.known_gap_count = 1`,
+and in the manifest/journal summary (`known_gap_count: 1`). It is also
+exposed by the read model `audit.DatasetAudit` (`known_gap_count`,
+`known_gap_duration`, `gaps`). The VWAP / volume-profile / developing-profile
+reports do not read quality events and print only a generic
+"no claim of complete tape" boundary. Replay, the Market Study State and AI
+consumers must therefore take completeness from `DatasetAudit` or the closing
+summary, not from lifecycle state or analytics output (forward-agenda note,
+no code change in 0W-4).
+
+**Reconnect token-lifecycle correction (0W-4D): PRODUCTION PROOF PASS.** At
+the 2026-09-29 04:14:58.865 CT natural disconnect:
+
+| | Value |
+|---|---|
+| token remaining | 45,601s |
+| required for the remaining run (+900s) | 43,801s |
+| `quote_token_reused` | true |
+| `quote_token_requested` | false |
+| OAuth refresh | false |
+| reconnect | succeeded on attempt 1 |
+| KNOWN_GAP | 1.593s |
+
+The next launch (TD 2026-09-30) received a fresh 86,400s token and started
+normally. The Attempt-1 chain (reconnect mints a token → next-day horizon
+refusal) did not recur.
+
+**Near-expiry startup path: NOT NATURALLY EXERCISED. Status: covered by
+deterministic tests (`test_quote_token_lifecycle.py`), not blocking.** No
+experiment will be built just to trigger it.
+
+**State at closure.** Azure weekly start/stop are disabled. The recurring
+preflight/launch timers are disabled and inactive. `dicks-lab-es-session.timer`
+is static/inactive. `dragon` is `PowerState/deallocated` (Stop-Dragon job
+`4459269b…`, 2026-10-04T16:15:45Z). No collection is armed.
+
+```
+0W-4: ACCEPTED / CLOSED
+NEXT: 0W-5A — WRITER / PERSISTENCE BURST-HEADROOM ANALYSIS (collection stays disarmed)
 ```

@@ -1,0 +1,741 @@
+{
+ "query": "az monitor activity-log list -g rg-dev-environment 2026-09-25T00:00Z..2026-10-04T15:00Z (non-read Administrative + ResourceHealth)",
+ "note": "caller 0c24e4c8-b561-49d2-9b48-3e0f47ed2649 = automation-dragon system-assigned managed identity",
+ "events": [
+  {
+   "eventTimestamp": "2026-09-25T21:46:07.6892739Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "db80a5b5-8d30-4be2-80d8-52698f5414ea"
+  },
+  {
+   "eventTimestamp": "2026-09-25T21:46:07.8142751Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "db80a5b5-8d30-4be2-80d8-52698f5414ea"
+  },
+  {
+   "eventTimestamp": "2026-09-25T21:46:08.768Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Activated/action",
+   "status": "Active",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "077f1329-c03d-4529-8b53-5eda29c32993",
+   "title": "Unknown",
+   "currentHealthStatus": "Unavailable",
+   "cause": "Unknown"
+  },
+  {
+   "eventTimestamp": "2026-09-25T21:46:26.6961661Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "db80a5b5-8d30-4be2-80d8-52698f5414ea"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:13:26.403071Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "75f4bebb-d01d-4040-a92e-60c8262b9af9",
+   "correlationId": "8970a295-e9e1-4c0c-b9b5-5ff9f1530bbd"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:13:26.5905807Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Accepted",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "75f4bebb-d01d-4040-a92e-60c8262b9af9",
+   "correlationId": "8970a295-e9e1-4c0c-b9b5-5ff9f1530bbd"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:15:48.4822107Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "ba9f9234-1c6d-49ae-98a0-5e63bfbd06e0"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:15:48.7790937Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "ba9f9234-1c6d-49ae-98a0-5e63bfbd06e0"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:15:53.076Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/InProgress/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "077f1329-c03d-4529-8b53-5eda29c32993",
+   "title": "Vitual Machine allocated",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:15:53.748Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/InProgress/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "077f1329-c03d-4529-8b53-5eda29c32993",
+   "title": "Started by user",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:16:08.92Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Resolved/action",
+   "status": "Resolved",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "077f1329-c03d-4529-8b53-5eda29c32993",
+   "title": "Unknown",
+   "currentHealthStatus": "Available",
+   "cause": "Unknown"
+  },
+  {
+   "eventTimestamp": "2026-09-25T22:16:52.3562827Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "ba9f9234-1c6d-49ae-98a0-5e63bfbd06e0"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:05:33.9859752Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "883d6687-265b-45db-b5ff-518c0137bb09",
+   "correlationId": "2de2de89-f1ff-4484-9162-5e471601aa3d"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:05:34.2203137Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Accepted",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "883d6687-265b-45db-b5ff-518c0137bb09",
+   "correlationId": "2de2de89-f1ff-4484-9162-5e471601aa3d"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:07:23.076741Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "3b19b036-6273-4e13-8822-1fc8c171aa5e"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:07:23.1861143Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "3b19b036-6273-4e13-8822-1fc8c171aa5e"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:07:23.483Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "02ef0d94-ad40-48f2-86e8-ede7c82a22b1",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Available",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:07:24.312Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Activated/action",
+   "status": "Active",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "02ef0d94-ad40-48f2-86e8-ede7c82a22b1",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:07:42.0379067Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "3b19b036-6273-4e13-8822-1fc8c171aa5e"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:10:41.9821951Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "077f1329-c03d-4529-8b53-5eda29c32993",
+   "title": "Down: Virtual machine has been unavailable for 15 minutes",
+   "currentHealthStatus": "Unavailable",
+   "cause": "PlatformInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-25T23:18:26.3596102Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "077f1329-c03d-4529-8b53-5eda29c32993",
+   "title": "Down: Virtual machine has been unavailable for 15 minutes",
+   "currentHealthStatus": "Unavailable",
+   "cause": "PlatformInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T00:02:19.2145327Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "02ef0d94-ad40-48f2-86e8-ede7c82a22b1",
+   "title": "Down: Virtual machine has been unavailable for 15 minutes",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:04:25.0483774Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-start",
+   "correlationId": "d7fa8866-544d-4d2f-bcaf-5e5746286ed0"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:04:25.1577539Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Succeeded",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-start",
+   "correlationId": "d7fa8866-544d-4d2f-bcaf-5e5746286ed0"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:04:25.8480079Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-stop",
+   "correlationId": "77c64f80-3ae7-4e31-93f6-d41b6c28b5e1"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:04:25.9261347Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Succeeded",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-stop",
+   "correlationId": "77c64f80-3ae7-4e31-93f6-d41b6c28b5e1"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:15:29.6364982Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "2825b519-55ea-4af5-af54-9204aefd3e06",
+   "correlationId": "022a6811-5823-4bdb-b7d6-c6b262a70c66"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:15:29.8552508Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Accepted",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "2825b519-55ea-4af5-af54-9204aefd3e06",
+   "correlationId": "022a6811-5823-4bdb-b7d6-c6b262a70c66"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:18.1594186Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "cb164458-a9b5-4a11-8e63-c8d88ed4daf3"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:18.4719213Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "cb164458-a9b5-4a11-8e63-c8d88ed4daf3"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:22.103Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "945eeaa8-e7c4-4149-b4ea-570064334baa",
+   "title": "Vitual Machine allocated",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:22.103Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "945eeaa8-e7c4-4149-b4ea-570064334baa",
+   "title": "Vitual Machine allocated",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:22.619Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Started by user",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:22.619Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Started by user",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:38.301Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Resolved/action",
+   "status": "Resolved",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Unknown",
+   "currentHealthStatus": "Available",
+   "cause": "Unknown"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:16:38.301Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Resolved/action",
+   "status": "Resolved",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Unknown",
+   "currentHealthStatus": "Available",
+   "cause": "Unknown"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:17:14.9453787Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "cb164458-a9b5-4a11-8e63-c8d88ed4daf3"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:22:04.6962019Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "8de66cfb-9683-4b65-9723-aca0d69f3fd0",
+   "correlationId": "833e6976-6e6b-434d-956f-14e5c5f7cd8f"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:22:04.8680742Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Accepted",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "8de66cfb-9683-4b65-9723-aca0d69f3fd0",
+   "correlationId": "833e6976-6e6b-434d-956f-14e5c5f7cd8f"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:22:55.0207023Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "4d7609f3-9745-4166-adec-23294baac308"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:22:55.1300792Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "4d7609f3-9745-4166-adec-23294baac308"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:22:55.67Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Available",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:22:55.715Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Activated/action",
+   "status": "Active",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:23:13.9920151Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "4d7609f3-9745-4166-adec-23294baac308"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:32:28.0527668Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "5ae8d8bc-c428-4d05-81ab-8e88a7952378",
+   "correlationId": "44507053-ad2f-4f0a-9977-3798121c1efd"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:32:28.2246414Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Accepted",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "5ae8d8bc-c428-4d05-81ab-8e88a7952378",
+   "correlationId": "44507053-ad2f-4f0a-9977-3798121c1efd"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:33:15.8734856Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "eb9d0241-a25c-4082-b224-e11682d12bdd"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:33:16.123466Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "eb9d0241-a25c-4082-b224-e11682d12bdd"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:33:19.634Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/InProgress/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Vitual Machine allocated",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:33:20.212Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/InProgress/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Started by user",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:33:33.744Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Resolved/action",
+   "status": "Resolved",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Unknown",
+   "currentHealthStatus": "Available",
+   "cause": "Unknown"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:34:12.4971642Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "eb9d0241-a25c-4082-b224-e11682d12bdd"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:35:19.3546129Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-start",
+   "correlationId": "42ad7ece-7a54-4931-bc49-3a8014ce62ec"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:35:19.432744Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Succeeded",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-start",
+   "correlationId": "42ad7ece-7a54-4931-bc49-3a8014ce62ec"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:35:20.229989Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-stop",
+   "correlationId": "ce93f9d4-6aa9-4d5b-938b-790f534db7c1"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:35:20.3706155Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/schedules/write",
+   "status": "Succeeded",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "dicks-futures-dragon-stop",
+   "correlationId": "ce93f9d4-6aa9-4d5b-938b-790f534db7c1"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:37:19.0959708Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Started",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "5705bcb5-b966-4f0c-bcaf-e669e11e3c81",
+   "correlationId": "744c9e2a-a003-4f4b-b9c2-b541b4802a79"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:37:19.3615998Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Automation/automationAccounts/jobs/write",
+   "status": "Accepted",
+   "caller": "USER (subscription owner; UPN redacted)",
+   "resource": "5705bcb5-b966-4f0c-bcaf-e669e11e3c81",
+   "correlationId": "744c9e2a-a003-4f4b-b9c2-b541b4802a79"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:38:08.9172633Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "50d69d83-4487-4aef-b66a-fc3f16866c2f"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:38:09.0266432Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "50d69d83-4487-4aef-b66a-fc3f16866c2f"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:38:09.39Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "4efbba5a-96b5-4fc8-afdc-5590d78ae28c",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Available",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-26T03:38:21.0647616Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "50d69d83-4487-4aef-b66a-fc3f16866c2f"
+  },
+  {
+   "eventTimestamp": "2026-09-27T20:31:10.1041818Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "17fcc091-f44e-4e79-880f-6b8d8a09613d"
+  },
+  {
+   "eventTimestamp": "2026-09-27T20:31:10.3698112Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "17fcc091-f44e-4e79-880f-6b8d8a09613d"
+  },
+  {
+   "eventTimestamp": "2026-09-27T20:31:14.057Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "63c335f5-e4c3-4d09-8ad4-2e5ab76dde84",
+   "title": "Vitual Machine allocated",
+   "currentHealthStatus": "Available",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-27T20:31:14.603Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "3b2d3ea9-4c87-4f93-a267-aafb835b9dd0",
+   "title": "Started by user",
+   "currentHealthStatus": "Available",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-09-27T20:32:05.9450768Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/start/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "17fcc091-f44e-4e79-880f-6b8d8a09613d"
+  },
+  {
+   "eventTimestamp": "2026-10-02T21:45:56.1122773Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Started",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "43634605-fb02-44cd-8e75-0257e2e14aae"
+  },
+  {
+   "eventTimestamp": "2026-10-02T21:45:56.2372785Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Accepted",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "43634605-fb02-44cd-8e75-0257e2e14aae"
+  },
+  {
+   "eventTimestamp": "2026-10-02T21:45:56.586Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "5800c3e0-7bed-42ab-a4ea-4badc2cb34d5",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Available",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-10-02T21:45:57.475Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Activated/action",
+   "status": "Active",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "5800c3e0-7bed-42ab-a4ea-4badc2cb34d5",
+   "title": "Stopping and deallocating",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  },
+  {
+   "eventTimestamp": "2026-10-02T21:46:08.8238918Z",
+   "category": "Administrative",
+   "operation": "Microsoft.Compute/virtualMachines/deallocate/action",
+   "status": "Succeeded",
+   "caller": "0c24e4c8-b561-49d2-9b48-3e0f47ed2649",
+   "resource": "dragon",
+   "correlationId": "43634605-fb02-44cd-8e75-0257e2e14aae"
+  },
+  {
+   "eventTimestamp": "2026-10-02T23:11:16.2838615Z",
+   "category": "ResourceHealth",
+   "operation": "Microsoft.Resourcehealth/healthevent/Updated/action",
+   "status": "Updated",
+   "caller": null,
+   "resource": "DRAGON",
+   "correlationId": "5800c3e0-7bed-42ab-a4ea-4badc2cb34d5",
+   "title": "Down: Virtual machine has been unavailable for 15 minutes",
+   "currentHealthStatus": "Unavailable",
+   "cause": "UserInitiated"
+  }
+ ]
+}

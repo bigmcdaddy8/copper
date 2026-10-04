@@ -1,0 +1,18 @@
+# robby (workstation) boot history - captured 2026-10-04T14:55:07Z
+ -7 f30638f6b5bc41379fc7e7671dfb2c03 Tue 2026-09-08 20:59:13 CDT Fri 2026-09-11 22:50:50 CDT
+ -6 f64fc50f148b40fb95f67808ffde68d2 Fri 2026-09-11 22:51:02 CDT Fri 2026-09-11 23:33:08 CDT
+ -5 bdf94bb27f06401e914375e21ece5b9a Fri 2026-09-11 23:38:41 CDT Fri 2026-09-11 23:52:05 CDT
+ -4 c6d685ec1bb14b2098f60fd407579c0b Fri 2026-09-11 23:52:23 CDT Sat 2026-09-12 10:40:17 CDT
+ -3 5ebab0a2508640d6af8b9c8ddd25865c Sat 2026-09-12 10:41:07 CDT Mon 2026-09-14 23:51:39 CDT
+ -2 22b5d05bca08431fb9a58bc164a8fca6 Tue 2026-09-15 10:54:46 CDT Fri 2026-09-18 08:26:26 CDT
+ -1 295d321efca24a918a4d885c7e4f0d67 Sat 2026-09-19 18:34:45 CDT Sat 2026-10-03 23:17:56 CDT
+  0 1a8dc70125734e52a623b28b686b185c Sat 2026-10-03 23:18:12 CDT Sun 2026-10-04 09:55:15 CDT
+
+# robby suspend/resume during soak window
+2026-09-27T20:41:05-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.
+2026-09-28T19:38:15-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.
+2026-09-29T08:25:57-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.
+2026-09-29T21:01:25-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.
+2026-09-30T19:47:13-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.
+2026-10-01T20:07:59-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.
+2026-10-02T11:49:39-05:00 robby systemd-resolved[440]: Grace period over, resuming full feature set (UDP+EDNS0) for DNS server 100.100.100.100.

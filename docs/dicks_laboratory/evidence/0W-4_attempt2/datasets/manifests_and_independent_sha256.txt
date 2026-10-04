@@ -1,0 +1,72 @@
+# Attempt-2 manifests + independent sha256sum + sizes (read on dragon 2026-10-04, audit boot 95913c82)
+
+real	34m8.744s
+user	2m2.841s
+sys	1m30.077s
+-rw-rw-r-- 1 temckee8 temckee8 40777 Oct  4 15:18 /tmp/db_audit_a2.json
+c3159322fc15a56d1da981b623b9e44bbc550b853207cd53f2383c04f33f1917  es_20260928_843a6ca0.sqlite3
+es_20260928_843a6ca0.sqlite3 633470976
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-28T21:00:00.320058+00:00",
+  "collector_git_commit": "6f5247faeac00ef67b41318996de19ff5820299c",
+  "dataset_id": "843a6ca0-3cf3-4878-b53c-a848e72bece5",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "c3159322fc15a56d1da981b623b9e44bbc550b853207cd53f2383c04f33f1917",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-28"
+}
+
+0b59b7197d486c7ed5fcf5afa08f83e42ec19ed889b44ef421f1eecbf3d07dde  es_20260929_6af08205.sqlite3
+es_20260929_6af08205.sqlite3 598822912
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-29T21:00:00.597217+00:00",
+  "collector_git_commit": "6f5247faeac00ef67b41318996de19ff5820299c",
+  "dataset_id": "6af08205-90f9-4735-809f-c7b8a62bda65",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "0b59b7197d486c7ed5fcf5afa08f83e42ec19ed889b44ef421f1eecbf3d07dde",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-29"
+}
+
+61489eea4ace51dee3aafaa1e1dff5fc7d843e491205f42c2e0dbd098a8aa17c  es_20260930_9ac5a21e.sqlite3
+es_20260930_9ac5a21e.sqlite3 700641280
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-09-30T21:00:00.189046+00:00",
+  "collector_git_commit": "6f5247faeac00ef67b41318996de19ff5820299c",
+  "dataset_id": "9ac5a21e-a5c0-427c-91fc-af300539b711",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "61489eea4ace51dee3aafaa1e1dff5fc7d843e491205f42c2e0dbd098a8aa17c",
+  "state": "FINALIZED",
+  "trading_date": "2026-09-30"
+}
+
+58545a1b7507ab0dc934adef9e6699fb11cc17745d7526e413b00897093bd95e  es_20261001_fe280370.sqlite3
+es_20261001_fe280370.sqlite3 836493312
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-10-01T21:00:00.166575+00:00",
+  "collector_git_commit": "6f5247faeac00ef67b41318996de19ff5820299c",
+  "dataset_id": "fe280370-99f6-4265-8bf1-a4ce7580f940",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "58545a1b7507ab0dc934adef9e6699fb11cc17745d7526e413b00897093bd95e",
+  "state": "FINALIZED",
+  "trading_date": "2026-10-01"
+}
+
+cd47e987c8edbec758d590c7580d4a4bb982ed802da18d21fea338f020c3fae2  es_20261002_7e8d7b5e.sqlite3
+es_20261002_7e8d7b5e.sqlite3 695705600
+{
+  "checksum_scope": "file integrity only; not a market-data completeness claim",
+  "closed_at": "2026-10-02T21:00:00.219628+00:00",
+  "collector_git_commit": "6f5247faeac00ef67b41318996de19ff5820299c",
+  "dataset_id": "7e8d7b5e-d7b8-4286-92a2-320bfd26723d",
+  "instrument": "FUTURE:CME:ES:2026-12",
+  "sha256": "cd47e987c8edbec758d590c7580d4a4bb982ed802da18d21fea338f020c3fae2",
+  "state": "FINALIZED",
+  "trading_date": "2026-10-02"
+}
+
+NO_SIDECARS

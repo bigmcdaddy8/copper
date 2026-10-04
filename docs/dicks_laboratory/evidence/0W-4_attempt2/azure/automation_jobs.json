@@ -1,0 +1,106 @@
+{
+ "captured_at_utc": "2026-10-04",
+ "account": "automation-dragon",
+ "jobs": [
+  {
+   "job_name": "5ae8d8bc-c428-4d05-81ab-8e88a7952378",
+   "jobId": "f01b2703-4a44-487c-9fea-85f829491238",
+   "runbook": "Start-Dragon",
+   "trigger": "USER (az automation runbook start)",
+   "status": "Completed",
+   "creationTime": "2026-09-26T03:32:28.1793772+00:00",
+   "startTime": "2026-09-26T03:33:03.8481129+00:00",
+   "endTime": "2026-09-26T03:34:37.7835045+00:00",
+   "exception": "",
+   "output": [
+    [
+     "2026-09-26T03:33:15.5899555+00:00",
+     "Start-Dragon: initial PowerState = PowerState/deallocated"
+    ],
+    [
+     "2026-09-26T03:34:37.6844969+00:00",
+     "Start-Dragon: final PowerState = PowerState/running"
+    ],
+    [
+     "2026-09-26T03:34:37.7530023+00:00",
+     "Start-Dragon: OK (PowerState/deallocated -> PowerState/running)"
+    ]
+   ]
+  },
+  {
+   "job_name": "5705bcb5-b966-4f0c-bcaf-e669e11e3c81",
+   "jobId": "3768c711-c4e3-4441-b36e-c8a27aacf441",
+   "runbook": "Stop-Dragon",
+   "trigger": "USER (az automation runbook start)",
+   "status": "Completed",
+   "creationTime": "2026-09-26T03:37:19.296206+00:00",
+   "startTime": "2026-09-26T03:37:55.1589404+00:00",
+   "endTime": "2026-09-26T03:38:50.478278+00:00",
+   "exception": "",
+   "output": [
+    [
+     "2026-09-26T03:38:08.7209773+00:00",
+     "Stop-Dragon: initial PowerState = PowerState/running"
+    ],
+    [
+     "2026-09-26T03:38:50.3658967+00:00",
+     "Stop-Dragon: final PowerState = PowerState/deallocated"
+    ],
+    [
+     "2026-09-26T03:38:50.4230514+00:00",
+     "Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)"
+    ]
+   ]
+  },
+  {
+   "job_name": "SCH_0ab59016-a1bc-4097-ab1e-d760e912e2dc_3734bea8-2b92-4009-b59f-9e8a24327bdc_639261378000000000",
+   "jobId": "a10e743e-313f-4834-a2cc-df3d63a59cfd",
+   "runbook": "Start-Dragon",
+   "trigger": "SCHEDULE (SCH_ job name)",
+   "status": "Completed",
+   "creationTime": "2026-09-27T20:30:07.0284087+00:00",
+   "startTime": "2026-09-27T20:30:56.9776671+00:00",
+   "endTime": "2026-09-27T20:32:31.9199872+00:00",
+   "exception": "",
+   "output": [
+    [
+     "2026-09-27T20:31:09.8217811+00:00",
+     "Start-Dragon: initial PowerState = PowerState/deallocated"
+    ],
+    [
+     "2026-09-27T20:32:31.8409867+00:00",
+     "Start-Dragon: final PowerState = PowerState/running"
+    ],
+    [
+     "2026-09-27T20:32:31.8693964+00:00",
+     "Start-Dragon: OK (PowerState/deallocated -> PowerState/running)"
+    ]
+   ]
+  },
+  {
+   "job_name": "SCH_78720c51-af4e-4e49-8aee-382941274307_b9045025-11c4-40c7-b2c8-1c319f69f1f3_639265743000000000",
+   "jobId": "e93f792c-7365-40e8-a621-2e1ba588c9c2",
+   "runbook": "Stop-Dragon",
+   "trigger": "SCHEDULE (SCH_ job name)",
+   "status": "Completed",
+   "creationTime": "2026-10-02T21:45:03.6081477+00:00",
+   "startTime": "2026-10-02T21:45:41.5269789+00:00",
+   "endTime": "2026-10-02T21:46:37.5104639+00:00",
+   "exception": "",
+   "output": [
+    [
+     "2026-10-02T21:45:55.6521691+00:00",
+     "Stop-Dragon: initial PowerState = PowerState/running"
+    ],
+    [
+     "2026-10-02T21:46:37.4224084+00:00",
+     "Stop-Dragon: final PowerState = PowerState/deallocated"
+    ],
+    [
+     "2026-10-02T21:46:37.4565272+00:00",
+     "Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)"
+    ]
+   ]
+  }
+ ]
+}

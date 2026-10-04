@@ -1,0 +1,11 @@
+2026-09-28: n=1380 CPUmean=1.86 CPU1minMax=6.48 credits min=109.8 end=886.1 availMemMin=6.90GiB dataWriteIOPS avgmax=603 peak=603 IOPSconsumed max=100.0% mins>=95%=3 mins>=99.5%=3 queueDepthMax=129.7 readIOPSmax=1
+   >=95% minutes CT: ['12:14', '15:01', '15:02']
+2026-09-29: n=1380 CPUmean=1.87 CPU1minMax=30.49 credits min=920.6 end=924.0 availMemMin=6.92GiB dataWriteIOPS avgmax=603 peak=603 IOPSconsumed max=100.0% mins>=95%=3 mins>=99.5%=3 queueDepthMax=131.3 readIOPSmax=0
+   >=95% minutes CT: ['13:03', '15:02', '15:03']
+2026-09-30: n=1380 CPUmean=1.84 CPU1minMax=7.00 credits min=924.0 end=924.0 availMemMin=6.87GiB dataWriteIOPS avgmax=603 peak=603 IOPSconsumed max=100.0% mins>=95%=6 mins>=99.5%=6 queueDepthMax=131.7 readIOPSmax=0
+   >=95% minutes CT: ['15:02', '15:03', '15:04', '15:05', '15:06', '15:07']
+2026-10-01: n=1380 CPUmean=1.94 CPU1minMax=6.58 credits min=924.0 end=924.0 availMemMin=6.86GiB dataWriteIOPS avgmax=603 peak=603 IOPSconsumed max=100.0% mins>=95%=3 mins>=99.5%=3 queueDepthMax=132.3 readIOPSmax=0
+   >=95% minutes CT: ['12:33', '15:02', '15:03']
+2026-10-02: n=1380 CPUmean=1.85 CPU1minMax=5.92 credits min=924.0 end=924.0 availMemMin=6.86GiB dataWriteIOPS avgmax=582 peak=582 IOPSconsumed max=100.0% mins>=95%=2 mins>=99.5%=1 queueDepthMax=126.3 readIOPSmax=0
+   >=95% minutes CT: ['15:01', '15:03']
+credits first ('2026-09-27T20:34:00Z', 60.47) min overall ('2026-09-27T20:34:00Z', 60.47) last ('2026-10-02T21:46:00Z', 924.0)

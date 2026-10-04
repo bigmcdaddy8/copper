@@ -1,0 +1,23 @@
+# 0W-4 Attempt 2 token lifecycle (metadata only; no token values exist in the journal)
+# source: journal/dicks-lab-es-session.service.journal.txt; required horizon = 83,700 + 900 = 84,600 s
+TD 2026-09-28 pid=1902 issued_at=2026-09-27T21:55:01.225000+00:00 expires_at=2026-09-28T21:55:01.225000+00:00 remaining_at_startup=86400 required=84600 margin=+1800 oauth_refreshed=false quote_token_requests_at_startup=1 imminent_expiry_wait_lines=0
+TD 2026-09-29 pid=9051 issued_at=2026-09-28T21:55:01.108000+00:00 expires_at=2026-09-29T21:55:01.108000+00:00 remaining_at_startup=86400 required=84600 margin=+1800 oauth_refreshed=false quote_token_requests_at_startup=1 imminent_expiry_wait_lines=0 issued 117 ms BEFORE prior token expiry (2026-09-28T21:55:01.225000+00:00)
+TD 2026-09-30 pid=16226 issued_at=2026-09-29T21:55:01.099000+00:00 expires_at=2026-09-30T21:55:01.099000+00:00 remaining_at_startup=86400 required=84600 margin=+1800 oauth_refreshed=false quote_token_requests_at_startup=1 imminent_expiry_wait_lines=0 issued 9 ms BEFORE prior token expiry (2026-09-29T21:55:01.108000+00:00)
+TD 2026-10-01 pid=22595 issued_at=2026-09-30T21:55:00.999000+00:00 expires_at=2026-10-01T21:55:00.999000+00:00 remaining_at_startup=86400 required=84600 margin=+1800 oauth_refreshed=false quote_token_requests_at_startup=1 imminent_expiry_wait_lines=0 issued 100 ms BEFORE prior token expiry (2026-09-30T21:55:01.099000+00:00)
+TD 2026-10-02 pid=29037 issued_at=2026-10-01T21:55:01.252000+00:00 expires_at=2026-10-02T21:55:01.252000+00:00 remaining_at_startup=86400 required=84600 margin=+1800 oauth_refreshed=false quote_token_requests_at_startup=1 imminent_expiry_wait_lines=0 issued 253 ms AFTER prior token expiry (2026-10-01T21:55:00.999000+00:00)
+
+# reconnect credential decisions (all days)
+2026-09-27T21:55:01.090390+00:00 dragon uv[1902]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-28T21:10:01.332068+00:00 dragon uv[1902]:   "reconnect_count": 0,
+2026-09-28T21:55:01.012133+00:00 dragon uv[9051]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-29T09:14:59.865092+00:00 dragon uv[9051]: reconnect: attempt=1 refresh_collector_invoked=true
+2026-09-29T09:14:59.865092+00:00 dragon uv[9051]: reconnect_credentials: quote_token_reused=true quote_token_requested=false quote_token_remaining_seconds=45601 required_seconds=43801
+2026-09-29T21:10:01.273724+00:00 dragon uv[9051]:   "reconnect_count": 1,
+2026-09-29T21:55:01.000348+00:00 dragon uv[16226]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-09-30T21:10:01.430019+00:00 dragon uv[16226]:   "reconnect_count": 0,
+2026-09-30T21:55:00.899946+00:00 dragon uv[22595]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-10-01T21:10:01.120999+00:00 dragon uv[22595]:   "reconnect_count": 0,
+2026-10-01T21:55:01.108225+00:00 dragon uv[29037]: Bounded duration: 83700 (83700s)  Max reconnect attempts: 5
+2026-10-02T21:10:01.302304+00:00 dragon uv[29037]:   "reconnect_count": 0,
+reconnect lines with quote_token_requested=true: 0
+oauth_refreshed=true anywhere: 0

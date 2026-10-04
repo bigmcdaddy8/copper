@@ -1,0 +1,126 @@
+##### BOOT LIST
+ -3 12a7f0caec5c46daa60f5485e3d089a5 Sat 2026-09-26 03:16:49 UTC Sat 2026-09-26 03:22:59 UTC
+ -2 3dd99777c9684acb926f6bdd15058aae Sat 2026-09-26 03:33:43 UTC Sat 2026-09-26 03:38:12 UTC
+ -1 0ff441d51b8b489e96fec133994007a0 Sun 2026-09-27 20:31:40 UTC Fri 2026-10-02 21:46:01 UTC
+  0 95913c8285ab476c9df2ee9e8755b9c5 Sun 2026-10-04 14:42:58 UTC Sun 2026-10-04 14:54:48 UTC
+##### SOAK BOOT FIRST/LAST
+2026-09-27T20:31:40.993156+00:00 dragon kernel: Linux version 7.0.0-1012-azure (buildd@lcy02-amd64-067) (x86_64-linux-gnu-gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, GNU ld (GNU Binutils for Ubuntu) 2.46) #12-Ubuntu SMP PREEMPT Thu Aug  6 19:23:26 UTC 2026 (Ubuntu 7.0.0-1012.12-azure 7.0.12)
+2026-09-27T20:31:40.993207+00:00 dragon kernel: Command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+2026-09-27T20:31:40.993227+00:00 dragon kernel: KERNEL supported cpus:
+2026-10-02T21:46:00.353210+00:00 dragon systemd[1]: Stopping multipathd.service - Device-Mapper Multipath Device Controller...
+2026-10-02T21:46:00.357241+00:00 dragon systemd[1]: Stopping lvm2-monitor.service - Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling...
+2026-10-02T21:46:00.360129+00:00 dragon systemd[1]: systemd-tmpfiles-setup-dev.service: Deactivated successfully.
+2026-10-02T21:46:00.360233+00:00 dragon systemd[1]: Stopped systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev.
+2026-10-02T21:46:00.364389+00:00 dragon systemd[1]: systemd-tmpfiles-setup-dev-early.service: Deactivated successfully.
+2026-10-02T21:46:00.364445+00:00 dragon systemd[1]: Stopped systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+2026-10-02T21:46:00.381959+00:00 dragon systemd[1]: multipathd.service: Deactivated successfully.
+2026-10-02T21:46:00.382273+00:00 dragon systemd[1]: Stopped multipathd.service - Device-Mapper Multipath Device Controller.
+2026-10-02T21:46:00.384768+00:00 dragon systemd[1]: multipathd.service: Consumed 30.135s CPU time over 5d 1h 14min 18.975s wall clock time, 3.7M memory peak.
+2026-10-02T21:46:00.385739+00:00 dragon systemd[1]: systemd-remount-fs.service: Deactivated successfully.
+2026-10-02T21:46:00.385853+00:00 dragon systemd[1]: Stopped systemd-remount-fs.service - Remount Root and Kernel File Systems.
+2026-10-02T21:46:00.390103+00:00 dragon systemd[1]: systemd-fsck-root.service: Deactivated successfully.
+2026-10-02T21:46:00.390151+00:00 dragon systemd[1]: Stopped systemd-fsck-root.service - File System Check on Root Device.
+2026-10-02T21:46:00.409094+00:00 dragon systemd[1]: lvm2-monitor.service: Deactivated successfully.
+2026-10-02T21:46:00.409538+00:00 dragon systemd[1]: Stopped lvm2-monitor.service - Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling.
+2026-10-02T21:46:00.412884+00:00 dragon systemd[1]: Reached target shutdown.target - System Shutdown.
+2026-10-02T21:46:00.414862+00:00 dragon systemd[1]: Reached target final.target - Late Shutdown Services.
+2026-10-02T21:46:00.417276+00:00 dragon systemd[1]: systemd-poweroff.service: Deactivated successfully.
+2026-10-02T21:46:00.417307+00:00 dragon systemd[1]: Finished systemd-poweroff.service - System Power Off.
+2026-10-02T21:46:00.419611+00:00 dragon systemd[1]: Reached target poweroff.target - System Power Off.
+2026-10-02T21:46:00.421771+00:00 dragon systemd[1]: Shutting down.
+2026-10-02T21:46:00.464035+00:00 dragon systemd-shutdown[1]: Syncing filesystems and block devices.
+2026-10-02T21:46:01.152669+00:00 dragon systemd-shutdown[1]: Sending SIGTERM to remaining processes...
+2026-10-02T21:46:01.152805+00:00 dragon systemd-journald[144]: Received SIGTERM from PID 1 (systemd-shutdow).
+2026-10-02T21:46:01.152911+00:00 dragon systemd-journald[144]: Journal stopped
+##### KERNEL WARN+ (soak boot, after 20:33Z)
+2026-09-27T21:16:06.186097+00:00 dragon kernel: hv_storvsc f8b3781a-1e82-4818-a1c3-63d806ec15bb: tag#93 cmd 0xa1 status: scsi 0x2 srb 0x86 host 0xc0000001
+2026-09-27T21:16:06.286022+00:00 dragon kernel: hv_storvsc f8b3781a-1e82-4818-a1c3-63d806ec15bb: tag#120 cmd 0xa1 status: scsi 0x2 srb 0x86 host 0xc0000001
+2026-09-27T21:16:06.322235+00:00 dragon kernel: hv_storvsc f8b3781b-1e82-4818-a1c3-63d806ec15bb: tag#65 cmd 0xa1 status: scsi 0x2 srb 0x86 host 0xc0000001
+2026-10-02T21:45:58.737014+00:00 dragon kernel: workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 11 times, consider switching to WQ_UNBOUND
+##### KERNEL oom/io/ext4 grep (whole soak boot)
+2026-09-27T20:31:40.993207+00:00 dragon kernel: Command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+2026-09-27T20:31:40.996655+00:00 dragon kernel: Kernel command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+##### ERR+ priority all units (soak boot after boot settle)
+-- No entries --
+##### FAILED-STATE lines
+NONE
+##### daemon-reload / unit changes
+2026-09-27T20:31:47.281052+00:00 dragon apparmor.systemd[504]: Reloading AppArmor profiles
+2026-09-27T20:31:51.851123+00:00 dragon systemd[1]: Reloading...
+2026-09-27T20:31:52.259922+00:00 dragon systemd[1]: Reloading finished in 408 ms.
+2026-09-27T20:31:56.935708+00:00 dragon snapd[926]: backend.go:145: reloading profiles for snap-confine
+##### SSH logins
+2026-09-27T22:43:58.374415+00:00 dragon sshd-session[2125]: Accepted publickey for temckee8 from 100.121.123.14 port 35396 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:43:58.377646+00:00 dragon sshd-session[2125]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:44:10.224074+00:00 dragon sshd-session[2296]: Accepted publickey for temckee8 from 100.121.123.14 port 56212 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:44:10.227320+00:00 dragon sshd-session[2296]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:44:20.193360+00:00 dragon sshd-session[2372]: Accepted publickey for temckee8 from 100.121.123.14 port 41610 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:44:20.196729+00:00 dragon sshd-session[2372]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:44:25.988207+00:00 dragon sshd-session[2454]: Accepted publickey for temckee8 from 100.121.123.14 port 41616 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:44:25.990318+00:00 dragon sshd-session[2454]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:44:31.727680+00:00 dragon sshd-session[2519]: Accepted publickey for temckee8 from 100.121.123.14 port 44270 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:44:31.730196+00:00 dragon sshd-session[2519]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:44:45.735349+00:00 dragon sshd-session[2599]: Accepted publickey for temckee8 from 100.121.123.14 port 47872 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:44:45.738590+00:00 dragon sshd-session[2599]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:44:52.862819+00:00 dragon sshd-session[2675]: Accepted publickey for temckee8 from 100.121.123.14 port 53682 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:44:52.865571+00:00 dragon sshd-session[2675]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-27T22:45:46.889317+00:00 dragon sshd-session[2750]: Accepted publickey for temckee8 from 100.121.123.14 port 43078 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-27T22:45:46.892821+00:00 dragon sshd-session[2750]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:41:45.460663+00:00 dragon sshd-session[9798]: Accepted publickey for temckee8 from 100.121.123.14 port 39834 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:41:45.463361+00:00 dragon sshd-session[9798]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:41:53.706126+00:00 dragon sshd-session[9992]: Accepted publickey for temckee8 from 100.121.123.14 port 40050 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:41:53.709220+00:00 dragon sshd-session[9992]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:41:58.834024+00:00 dragon sshd-session[10066]: Accepted publickey for temckee8 from 100.121.123.14 port 40060 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:41:58.836963+00:00 dragon sshd-session[10066]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:42:12.982209+00:00 dragon sshd-session[10143]: Accepted publickey for temckee8 from 100.121.123.14 port 50596 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:42:12.985136+00:00 dragon sshd-session[10143]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:42:18.175945+00:00 dragon sshd-session[10226]: Accepted publickey for temckee8 from 100.121.123.14 port 50602 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:42:18.178152+00:00 dragon sshd-session[10226]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:42:21.613295+00:00 dragon sshd-session[10285]: Accepted publickey for temckee8 from 100.121.123.14 port 50176 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:42:21.616100+00:00 dragon sshd-session[10285]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:42:32.157302+00:00 dragon sshd-session[10341]: Accepted publickey for temckee8 from 100.121.123.14 port 36336 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:42:32.159291+00:00 dragon sshd-session[10341]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:42:33.725109+00:00 dragon sshd-session[10433]: Accepted publickey for temckee8 from 100.121.123.14 port 36352 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:42:33.727545+00:00 dragon sshd-session[10433]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-09-29T00:42:43.984332+00:00 dragon sshd-session[10491]: Accepted publickey for temckee8 from 100.121.123.14 port 32872 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-09-29T00:42:43.987325+00:00 dragon sshd-session[10491]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+##### sudo
+-- No entries --
+sudo_lines=0
+##### systemd-logind sessions
+2026-09-27T22:43:58.395043+00:00 dragon systemd-logind[931]: New session '3' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:43:58.429977+00:00 dragon systemd-logind[931]: New session '4' of user 'temckee8' with class 'manager' and type 'unspecified'.
+2026-09-27T22:44:10.233060+00:00 dragon systemd-logind[931]: New session '5' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:44:20.203066+00:00 dragon systemd-logind[931]: New session '6' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:44:25.995285+00:00 dragon systemd-logind[931]: New session '7' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:44:31.735209+00:00 dragon systemd-logind[931]: New session '8' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:44:45.761035+00:00 dragon systemd-logind[931]: New session '9' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:44:45.805313+00:00 dragon systemd-logind[931]: New session '10' of user 'temckee8' with class 'manager' and type 'unspecified'.
+2026-09-27T22:44:52.870826+00:00 dragon systemd-logind[931]: New session '11' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:45:46.909017+00:00 dragon systemd-logind[931]: New session '12' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-27T22:45:46.945187+00:00 dragon systemd-logind[931]: New session '13' of user 'temckee8' with class 'manager' and type 'unspecified'.
+2026-09-29T00:41:45.479944+00:00 dragon systemd-logind[931]: New session '42' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:41:45.510766+00:00 dragon systemd-logind[931]: New session '43' of user 'temckee8' with class 'manager' and type 'unspecified'.
+2026-09-29T00:41:53.714226+00:00 dragon systemd-logind[931]: New session '44' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:41:58.843143+00:00 dragon systemd-logind[931]: New session '45' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:42:12.998782+00:00 dragon systemd-logind[931]: New session '46' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:42:13.035699+00:00 dragon systemd-logind[931]: New session '47' of user 'temckee8' with class 'manager' and type 'unspecified'.
+2026-09-29T00:42:18.183056+00:00 dragon systemd-logind[931]: New session '48' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:42:21.620757+00:00 dragon systemd-logind[931]: New session '49' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:42:32.173766+00:00 dragon systemd-logind[931]: New session '50' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:42:32.214299+00:00 dragon systemd-logind[931]: New session '51' of user 'temckee8' with class 'manager' and type 'unspecified'.
+2026-09-29T00:42:33.732079+00:00 dragon systemd-logind[931]: New session '52' of user 'temckee8' with class 'user' and type 'tty'.
+2026-09-29T00:42:43.992650+00:00 dragon systemd-logind[931]: New session '53' of user 'temckee8' with class 'user' and type 'tty'.
+##### apt/dpkg/unattended in soak boot
+2026-09-27T20:31:52.313807+00:00 dragon systemd[1]: Started dpkg-db-backup.timer - Daily dpkg database backup timer.
+2026-09-27T20:31:52.444777+00:00 dragon systemd[1]: Starting dpkg-db-backup.service - Daily dpkg database backup service...
+2026-09-27T20:31:55.350559+00:00 dragon systemd[1]: dpkg-db-backup.service: Deactivated successfully.
+2026-09-27T20:31:55.350864+00:00 dragon systemd[1]: Finished dpkg-db-backup.service - Daily dpkg database backup service.
+2026-09-28T00:00:05.019280+00:00 dragon systemd[1]: Starting dpkg-db-backup.service - Daily dpkg database backup service...
+2026-09-28T00:00:05.056490+00:00 dragon systemd[1]: dpkg-db-backup.service: Deactivated successfully.
+2026-09-28T00:00:05.058274+00:00 dragon systemd[1]: Finished dpkg-db-backup.service - Daily dpkg database backup service.
+2026-09-29T00:00:05.018910+00:00 dragon systemd[1]: Starting dpkg-db-backup.service - Daily dpkg database backup service...
+2026-09-29T00:00:05.048593+00:00 dragon systemd[1]: dpkg-db-backup.service: Deactivated successfully.
+2026-09-29T00:00:05.049195+00:00 dragon systemd[1]: Finished dpkg-db-backup.service - Daily dpkg database backup service.
+##### clock
+2026-09-27T20:32:19.084797+00:00 dragon chronyd[979]: Selected source PHC0
