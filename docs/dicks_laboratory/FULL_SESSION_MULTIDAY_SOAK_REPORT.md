@@ -4560,3 +4560,21 @@ is static/inactive. `dragon` is `PowerState/deallocated` (Stop-Dragon job
 0W-4: ACCEPTED / CLOSED
 NEXT: 0W-5A — WRITER / PERSISTENCE BURST-HEADROOM ANALYSIS (collection stays disarmed)
 ```
+
+## MI. 0W-5A — Writer / Persistence Burst Headroom (2026-10-04)
+
+Full analysis: `WRITER_BURST_HEADROOM_0W5A.md`.
+
+- **Bottleneck.** Random uuid5 index page writes, forced to disk on every commit
+  under the rollback journal, hit the StandardSSD's ~603 IOPS. That is ~2.4
+  device writes per event, and a 250 ev/s drain reproduces the live 09-30 queue
+  peak (46,236) and lag (185.9s).
+- **Silent tail-loss defect found and fixed.** Events enqueued during an
+  idle-timer flush that coincided with the final `drain_and_stop()` were
+  dropped. A drain now also fails loudly on any submitted ≠ persisted mismatch.
+- **Shipped.** Writer batches are capped at 20,000 (was 250), with a 256 MiB
+  page cache. This gives 2.3× fewer device writes per event on the authentic
+  burst, with exact accounting and unchanged durability and finalization.
+- **Result.** The headroom target (≤50% queue at 1×, no overload at 2×) is not
+  yet met. A WAL-decoupled commit path is the measured follow-up candidate.
+- **Deployment.** Not deployed to `dragon`. Collection remains disarmed.

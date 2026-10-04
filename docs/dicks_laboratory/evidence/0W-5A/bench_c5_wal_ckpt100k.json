@@ -1,0 +1,91 @@
+{
+ "label": "c5_wal_ckpt100k_batch2000_cache256m",
+ "source_db": "es_20260930_9ac5a21e.sqlite3 (sha256 61489eea\u2026, read-only copy)",
+ "policy": {
+  "max_events": 2000,
+  "max_interval_seconds": 0.1,
+  "queue_maxsize": 50000,
+  "overload_grace_seconds": 10.0
+ },
+ "pragmas": {
+  "journal_mode": "wal",
+  "synchronous": 2,
+  "cache_size": -262144,
+  "page_size": 4096,
+  "wal_autocheckpoint": 100000
+ },
+ "burst_window": [
+  "2026-09-30T19:58:00Z",
+  "2026-09-30T20:06:00Z"
+ ],
+ "source_last_order": 1396936,
+ "phases": [
+  {
+   "phase": "prefill",
+   "events": 1253944,
+   "wall_seconds": 207.575,
+   "events_per_second": 6040.9,
+   "cpu_seconds": 204.086,
+   "flush_count": 628,
+   "avg_events_per_flush": 1996.73,
+   "batch_size_p50": 2000,
+   "batch_size_max": 2000,
+   "queue_depth_max": 50000,
+   "max_persist_lag_seconds": 12.452,
+   "device_writes": 390660,
+   "device_writes_per_event": 0.3115,
+   "device_flushes": 1564,
+   "sectors_written": 25851680,
+   "bytes_written_per_event": 10555.5,
+   "predicted_events_per_second_at_603_iops": 1935.5,
+   "batch_size_histogram": {
+    ">=250": 1,
+    ">=1000": 627
+   }
+  },
+  {
+   "phase": "burst",
+   "events": 104813,
+   "wall_seconds": 19.176,
+   "events_per_second": 5465.8,
+   "cpu_seconds": 16.379,
+   "flush_count": 53,
+   "avg_events_per_flush": 1977.6,
+   "batch_size_p50": 2000,
+   "batch_size_max": 2000,
+   "queue_depth_max": 50000,
+   "max_persist_lag_seconds": 9.57,
+   "device_writes": 77928,
+   "device_writes_per_event": 0.7435,
+   "device_flushes": 135,
+   "sectors_written": 2927912,
+   "bytes_written_per_event": 14302.5,
+   "predicted_events_per_second_at_603_iops": 811.0,
+   "batch_size_histogram": {
+    ">=250": 1,
+    ">=1000": 52
+   }
+  }
+ ],
+ "accounting": {
+  "source_accepted": 1358752,
+  "source_rejected": 5,
+  "source_deferred": 0,
+  "bench_accepted": 1358752,
+  "bench_rejected": 5,
+  "bench_deferred": 0,
+  "bench_dataset_sequence": [
+   1,
+   1358752,
+   1358752
+  ],
+  "bench_source_order_distinct": 1358757,
+  "bench_journal_mode": "wal",
+  "bench_synchronous": 2,
+  "bench_quick_check": "ok",
+  "exact": true
+ },
+ "db_size_bytes": 680976384,
+ "device": "sda",
+ "generated_at": "2026-10-04T17:29:24.956118+00:00"
+}

@@ -1,0 +1,19 @@
+{"scale": 1.0, "cap": 250, "queue_peak": 49064, "pct_of_50k": 98.1, "max_lag_s": 234.0, "largest_batch": 250, "overload": false}
+{"scale": 1.0, "cap": 2000, "queue_peak": 46953, "pct_of_50k": 93.9, "max_lag_s": 202.6, "largest_batch": 2000, "overload": false}
+{"scale": 1.0, "cap": 10000, "queue_peak": 41275, "pct_of_50k": 82.5, "max_lag_s": 137.1, "largest_batch": 10000, "overload": false}
+{"scale": 1.0, "cap": 20000, "queue_peak": 39852, "pct_of_50k": 79.7, "max_lag_s": 99.6, "largest_batch": 20000, "overload": false}
+{"scale": 1.0, "cap": 50000, "queue_peak": 39852, "pct_of_50k": 79.7, "max_lag_s": 85.6, "largest_batch": 39852, "overload": false}
+{"scale": 1.5, "cap": 250, "queue_peak": 83506, "pct_of_50k": 167.0, "max_lag_s": 397.5, "largest_batch": 250, "overload": true}
+{"scale": 1.5, "cap": 2000, "queue_peak": 80257, "pct_of_50k": 160.5, "max_lag_s": 340.6, "largest_batch": 2000, "overload": true}
+{"scale": 1.5, "cap": 10000, "queue_peak": 70467, "pct_of_50k": 140.9, "max_lag_s": 218.9, "largest_batch": 10000, "overload": true}
+{"scale": 1.5, "cap": 20000, "queue_peak": 66757, "pct_of_50k": 133.5, "max_lag_s": 145.6, "largest_batch": 20000, "overload": true}
+{"scale": 1.5, "cap": 50000, "queue_peak": 66757, "pct_of_50k": 133.5, "max_lag_s": 120.5, "largest_batch": 50000, "overload": true}
+{"scale": 2.0, "cap": 250, "queue_peak": 119185, "pct_of_50k": 238.4, "max_lag_s": 567.1, "largest_batch": 250, "overload": true}
+{"scale": 2.0, "cap": 2000, "queue_peak": 115500, "pct_of_50k": 231.0, "max_lag_s": 487.2, "largest_batch": 2000, "overload": true}
+{"scale": 2.0, "cap": 10000, "queue_peak": 102724, "pct_of_50k": 205.4, "max_lag_s": 305.4, "largest_batch": 10000, "overload": true}
+{"scale": 2.0, "cap": 20000, "queue_peak": 95420, "pct_of_50k": 190.8, "max_lag_s": 203.3, "largest_batch": 20000, "overload": true}
+{"scale": 2.0, "cap": 50000, "queue_peak": 85530, "pct_of_50k": 171.1, "max_lag_s": 161.4, "largest_batch": 50000, "overload": true}
+--- WAL commit path (checkpoint deferred off-burst): per event CPU 0.17 ms + 10.5 KB at 100 MB/s; 3 fsyncs x 5 ms per commit
+{"scale": 1.0, "wal_cap": 2000, "queue_peak": 4857, "pct_of_50k": 9.7, "max_lag_s": 1.9}
+{"scale": 1.5, "wal_cap": 2000, "queue_peak": 10397, "pct_of_50k": 20.8, "max_lag_s": 3.5}
+{"scale": 2.0, "wal_cap": 2000, "queue_peak": 17586, "pct_of_50k": 35.2, "max_lag_s": 5.4}
