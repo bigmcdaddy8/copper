@@ -204,6 +204,14 @@ class LaboratoryStore:
     def close(self) -> None:
         self._connection.close()
 
+    def set_cache_size_kib(self, kib: int) -> None:
+        """Size this connection's SQLite page cache (memory only; not persisted
+        in the file, no durability effect). 0W-5A: lets one large writer batch
+        keep its dirty index pages in memory instead of spilling mid-transaction."""
+        if kib < 1:
+            raise ValueError("cache size must be positive.")
+        self._connection.execute(f"PRAGMA cache_size = -{int(kib)}")
+
     @contextmanager
     def transaction(self) -> Iterator[None]:
         """Batch many `save_*` calls into ONE SQLite transaction/commit.

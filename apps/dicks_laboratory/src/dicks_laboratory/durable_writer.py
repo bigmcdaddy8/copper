@@ -14,7 +14,8 @@ This module moves persistence off that thread:
             |
     single persistence writer     (one dedicated thread: normalize + batch)
             |
-    SQLite                        (one transaction per batch, not per event)
+    SQLite                        (one transaction per batch, not per event;
+                                   a backlog is committed in large batches, 0W-5A)
 
 Design choices and why this is the *smallest* safe change:
 
@@ -72,21 +73,33 @@ class CaptureWriterError(RuntimeError):
 
 @dataclass(frozen=True)
 class WriterFlushPolicy:
-    """Explicit bounded batch policy (0W-2B §17).
+    """Explicit bounded batch policy (0W-2B §17, retuned in 0W-5A).
 
-    `max_events` / `max_interval_seconds`: flush after N events OR T seconds,
-    whichever comes first -- bounds both SQLite transaction overhead and the
-    window of un-durable in-memory events.
+    `max_interval_seconds`: when the queue goes quiet, whatever is staged is
+    committed after at most T seconds -- the un-durable window in ordinary flow.
+
+    `max_events`: cap on one batch. A batch only grows past what arrives within
+    `max_interval_seconds` while the writer is *behind* (the queue never empties),
+    so in practice it is "commit everything already queued, up to N". Those items
+    are equally un-durable whether they sit in the queue or in the batch, so a
+    large cap does not widen the crash-loss window; it lets one commit amortize
+    the random index-page writes of many events. 0W-5A measured device writes per
+    event of 2.72 at 250 vs 1.22 at 20,000 on the authentic 2026-09-30 burst
+    (docs/dicks_laboratory/WRITER_BURST_HEADROOM_0W5A.md).
+
+    `sqlite_cache_size_kib`: page cache for the writer's connection, sized so a
+    full batch's dirty pages stay in memory (no mid-transaction spill).
 
     `queue_maxsize`: hard bound on in-memory ingestion backlog (0W-2B §13).
     `overload_grace_seconds`: how long `submit_event` will wait for the writer
     to free a slot before declaring `CaptureBackpressureError`.
     """
 
-    max_events: int = 250
+    max_events: int = 20_000
     max_interval_seconds: float = 0.1
     queue_maxsize: int = 50_000
     overload_grace_seconds: float = 10.0
+    sqlite_cache_size_kib: int = 262_144
 
     def __post_init__(self) -> None:
         if self.max_events < 1:
@@ -97,6 +110,8 @@ class WriterFlushPolicy:
             raise ValueError("queue_maxsize must be positive.")
         if self.overload_grace_seconds < 0:
             raise ValueError("overload_grace_seconds must be non-negative.")
+        if self.sqlite_cache_size_kib < 1:
+            raise ValueError("sqlite_cache_size_kib must be positive.")
 
 
 @dataclass
@@ -319,6 +334,7 @@ class DurableWriter:
         batch = _Batch()
         last_flush = self._monotonic()
         try:
+            self._store.set_cache_size_kib(self._policy.sqlite_cache_size_kib)
             while True:
                 timeout = max(0.0, last_flush + self._policy.max_interval_seconds - self._monotonic())
                 try:

@@ -476,3 +476,44 @@ def test_drain_raises_if_persisted_count_ever_disagrees_with_submitted(tmp_path)
     with pytest.raises(CaptureWriterError, match="submitted_events=6 persisted_events=5"):
         writer.drain_and_stop()
     store.close()
+
+
+def test_default_policy_commits_a_backlog_in_one_large_batch_with_exact_accounting(tmp_path):
+    """0W-5A: while the writer is behind, everything already queued (up to
+    `max_events`) is committed together instead of in 250-event slices."""
+
+    assert WriterFlushPolicy().max_events == 20_000
+    store = _FirstFlushGatedStore(tmp_path / "es.sqlite3", check_same_thread=False)
+    dataset_id = uuid4()
+    store.save_dataset(
+        DatasetIdentity(
+            dataset_id=dataset_id, kind=DatasetKind.HISTORICAL_IMPORT, label="backlog",
+            source_locator="t", source_timezone="UTC epoch milliseconds", normalizer_version="t",
+            capture_started_at=_T0, origin=DatasetOrigin.AUTHENTIC_SOURCE,
+        )
+    )
+    store.save_dataset_trading_context(dataset_id, _T0.date(), _INSTRUMENT)
+    writer = _new_writer(store, dataset_id)
+    writer.start()
+    writer.submit_event(1, _event(1))
+    assert store.entered.wait(timeout=5)  # first (1-event) commit is blocked: a backlog builds
+    for i in range(2, 3_002):
+        writer.submit_event(i, _event(i))
+    store.release.set()
+    metrics = writer.drain_and_stop()
+    assert metrics.batch_size_max == 3_000  # the whole backlog in one transaction
+    assert metrics.flush_count == 2
+    assert _provenance_source_orders(store, dataset_id) == list(range(1, 3_002))
+    store.close()
+
+
+def test_writer_connection_uses_the_policy_page_cache(tmp_path):
+    store, dataset_id = _make_store(tmp_path)
+    writer = _new_writer(store, dataset_id, sqlite_cache_size_kib=12_345)
+    writer.start()
+    writer.submit_event(1, _event(1))
+    writer.drain_and_stop()
+    assert store._connection.execute("PRAGMA cache_size").fetchone()[0] == -12_345  # noqa: SLF001
+    with pytest.raises(ValueError):
+        WriterFlushPolicy(sqlite_cache_size_kib=0)
+    store.close()
