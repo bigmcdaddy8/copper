@@ -316,4 +316,3 @@ CLI JSON gains submitted/difference/WAL fields).
 - finalization wall time
 - submitted == persisted
 - single-file FINALIZED artifact
-
