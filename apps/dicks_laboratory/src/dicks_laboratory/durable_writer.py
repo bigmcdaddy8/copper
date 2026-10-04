@@ -218,7 +218,6 @@ class DurableWriter:
         immediately if the writer thread has already failed.
         """
         self._raise_if_writer_failed()
-        self._metrics.submitted_events += 1
         item = (_EVENT, self._monotonic(), source_order, event)
         try:
             self._queue.put(item, timeout=self._policy.overload_grace_seconds)
@@ -230,6 +229,7 @@ class DurableWriter:
                 f"{self._policy.overload_grace_seconds:.0f}s at source_order="
                 f"{source_order}. Capture completeness can no longer be assured."
             ) from None
+        self._metrics.submitted_events += 1  # counted only once the writer owns the item
         depth = self._queue.qsize()
         if depth > self._metrics.queue_depth_max:
             self._metrics.queue_depth_max = depth
@@ -279,6 +279,14 @@ class DurableWriter:
             raise CaptureWriterError(
                 "The durable writer thread failed while persisting capture data."
             ) from self._failure
+        if self._metrics.persisted_events != self._metrics.submitted_events:
+            # 0W-5A: every accepted item must be committed exactly once. Any
+            # mismatch means items were lost in flight -- never report success.
+            raise CaptureWriterError(
+                "Durable writer accounting mismatch at drain: "
+                f"submitted_events={self._metrics.submitted_events} "
+                f"persisted_events={self._metrics.persisted_events}."
+            )
         return self._metrics
 
     # ---- read-only accessors --------------------------------------------------
@@ -319,7 +327,11 @@ class DurableWriter:
                     if not batch.is_empty():
                         self._flush(batch)
                     last_flush = self._monotonic()
-                    if self._stop_event.is_set():
+                    # 0W-5A: items (and the stop request) can arrive while that
+                    # flush commits. Stop only once nothing is left: the feed
+                    # thread requests stop after its last submit, so an empty
+                    # queue here is final; a queued STOP marker is handled below.
+                    if self._stop_event.is_set() and self._queue.empty():
                         return
                     continue
 

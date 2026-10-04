@@ -409,3 +409,70 @@ def test_writer_join_is_bounded_even_if_stop_marker_cannot_enqueue(tmp_path):
     assert time.monotonic() - started < 10.0
     assert _provenance_source_orders(store, dataset_id) == list(range(1, 40))
     store.close()
+
+
+# --------------------------------------------------------------------------- #
+# 0W-5A -- stop requested while an idle-timer flush is in progress            #
+# --------------------------------------------------------------------------- #
+class _FirstFlushGatedStore(LaboratoryStore):
+    """The first trade commit blocks until released, so the writer is provably
+    inside its idle-timer flush while more events and the stop request arrive."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        import threading
+
+        self.entered = threading.Event()
+        self.release = threading.Event()
+        self._calls = 0
+
+    def save_trade_observations(self, trades):  # type: ignore[override]
+        self._calls += 1
+        if self._calls == 1:
+            self.entered.set()
+            self.release.wait(timeout=10)
+        super().save_trade_observations(trades)
+
+
+def test_events_enqueued_during_idle_flush_survive_a_concurrent_stop(tmp_path):
+    """0W-5A defect: after an idle-timer flush the writer returned as soon as
+    `_stop_event` was set, abandoning everything enqueued during that flush --
+    silently, with `drain_and_stop()` reporting success. Production policy."""
+    import threading
+
+    store = _FirstFlushGatedStore(tmp_path / "es.sqlite3", check_same_thread=False)
+    dataset_id = uuid4()
+    store.save_dataset(
+        DatasetIdentity(
+            dataset_id=dataset_id, kind=DatasetKind.HISTORICAL_IMPORT, label="gated-idle",
+            source_locator="t", source_timezone="UTC epoch milliseconds", normalizer_version="t",
+            capture_started_at=_T0, origin=DatasetOrigin.AUTHENTIC_SOURCE,
+        )
+    )
+    store.save_dataset_trading_context(dataset_id, _T0.date(), _INSTRUMENT)
+    writer = _new_writer(store, dataset_id)
+    writer.start()
+    for i in range(1, 11):
+        writer.submit_event(i, _event(i))
+    assert store.entered.wait(timeout=5)  # the 0.1 s idle timer fired: batch 1..10 is committing
+    for i in range(11, 21):
+        writer.submit_event(i, _event(i))  # arrive during that commit
+    threading.Timer(0.3, store.release.set).start()  # commit finishes after stop was requested
+    metrics = writer.drain_and_stop()
+    assert _provenance_source_orders(store, dataset_id) == list(range(1, 21))
+    assert metrics.submitted_events == metrics.persisted_events == 20
+    store.close()
+
+
+def test_drain_raises_if_persisted_count_ever_disagrees_with_submitted(tmp_path):
+    """Defence in depth: any future path that loses accepted items must fail
+    loudly at drain (-> INTERRUPTED), never return metrics as if complete."""
+    store, dataset_id = _make_store(tmp_path)
+    writer = _new_writer(store, dataset_id)
+    writer.start()
+    for i in range(1, 6):
+        writer.submit_event(i, _event(i))
+    writer._metrics.submitted_events += 1  # noqa: SLF001 -- simulate an item lost in flight
+    with pytest.raises(CaptureWriterError, match="submitted_events=6 persisted_events=5"):
+        writer.drain_and_stop()
+    store.close()
