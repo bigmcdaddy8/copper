@@ -78,17 +78,38 @@ def test_benchmark_replays_real_writer_with_exact_accounting_and_leaves_source_u
     result = _run(
         "run", str(source), "--scratch-dir", str(tmp_path / "scratch"),
         "--burst-start", _iso(300), "--burst-end", _iso(500), "--label", "smoke", "--output-json", str(report),
+        "--checkpoint-quiet-seconds", "0.1",
     )
     assert result.returncode == 0, result.stdout + result.stderr
     data = json.loads(report.read_text())
-    assert [phase["phase"] for phase in data["phases"]] == ["prefill", "burst"]
-    assert data["phases"][0]["events"] == 299 and data["phases"][1]["events"] == 200
+    assert [phase["phase"] for phase in data["phases"]] == ["prefill", "burst", "tail"]
+    assert [phase["events"] for phase in data["phases"]] == [299, 200, 101]
     accounting = data["accounting"]
     assert accounting["exact"] is True
-    assert (accounting["bench_accepted"], accounting["bench_rejected"], accounting["bench_deferred"]) == (497, 1, 1)
+    assert (accounting["bench_accepted"], accounting["bench_rejected"], accounting["bench_deferred"]) == (598, 1, 1)
     assert accounting["bench_journal_mode"] == "delete" and accounting["bench_quick_check"] == "ok"
+    assert accounting["submitted_total"] == accounting["persisted_total"] == 600
+    fin = data["finalization"]
+    assert fin["journal_mode_before"] == "wal" and fin["sidecars_after_close"] == [] and fin["checksum_stable"]
     assert source.read_bytes() == before
     assert not list((tmp_path / "scratch").iterdir())  # disposable DB removed
+
+
+def test_paced_mode_scales_the_burst_with_distinct_trades_under_disk_emulation(tmp_path):
+    source = _build_source(tmp_path)
+    report = tmp_path / "paced.json"
+    result = _run(
+        "run", str(source), "--scratch-dir", str(tmp_path / "scratch"), "--mode", "paced",
+        "--window-start", _iso(500), "--burst-end", _iso(515), "--scale", "2",
+        "--scale-start", _iso(505), "--scale-end", _iso(510), "--emulate-iops", "603",
+        "--checkpoint-quiet-seconds", "0.1", "--label", "paced", "--output-json", str(report), "--no-cold-checks",
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    data = json.loads(report.read_text())
+    paced = data["phases"][1]
+    assert paced["phase"] == "paced" and paced["synthetic_events"] == 5 and paced["events"] == 20
+    assert paced["emulated_iops"] == 603.0 and paced["accounting_difference"] == 0
+    assert data["accounting"]["exact"] is True and data["accounting"]["bench_accepted"] == 517
 
 
 def test_live_burst_replay_reports_queue_peak_and_lag(tmp_path):

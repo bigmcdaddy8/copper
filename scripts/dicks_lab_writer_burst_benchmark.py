@@ -1,36 +1,43 @@
-"""0W-5A deterministic writer/persistence burst benchmark (offline, read-only source).
+"""0W-5A/0W-5B deterministic writer/persistence benchmark (offline, read-only source).
 
 Replays the authentic raw TimeAndSale stream of one FINALIZED dataset, in
 `source_order`, through the real `DurableWriter` + `LaboratoryStore` into a
-disposable database, and measures what persistence costs:
+disposable database. The source is opened `mode=ro` and never modified; no
+network access.
 
-    prefill     source_order 1 .. (first event received at/after --burst-start)
-                -> grows the indexes to their real pre-burst size
-    burst       the --burst-start .. --burst-end window, submitted as fast as
-                the bounded queue accepts (always backlogged, as during the
-                live post-burst drain), measured on its own
+Modes
+  lifecycle  prefill (start .. --burst-start) -> burst window at full speed
+             (always backlogged, as during the live drain) -> quiet pause
+             (post-burst checkpoint opportunity) -> tail (rest of the day) ->
+             finalization. Measures whole-lifecycle device I/O per component.
+  paced      prefill (start .. --window-start) at full speed -> the window
+             replayed at its real arrival times (burst minute optionally
+             scaled with distinct synthetic trades) -> finalization. With
+             --emulate-iops the writer thread is held after every commit /
+             checkpoint / collapse until a serial disk of that IOPS (and
+             --emulate-mbps) would have completed the measured device writes,
+             so queue peak and persist lag reflect that disk.
 
-The source dataset is opened `mode=ro` and never modified. No network access.
+Prefill/tail are submitted in chunks with idle pauses so a WAL-mode writer's
+own quiet-time checkpoint policy runs during them, as it would in quiet flow.
 
-Device write operations are read from /proc/diskstats for the block device
-holding the scratch database (a whole-device counter: run on an otherwise idle
-host). `device writes / event` is the transferable number: on a disk with an
-IOPS ceiling the sustained persistence rate is approximately
-`ceiling / (device writes per event)`. `--live-burst-replay` then pushes the
-real per-event arrival times of the source window (optionally scaled) through
-a FIFO model at that rate to predict queue peak and persist lag.
+I/O is attributed per operation from /proc/diskstats around each commit,
+checkpoint and collapse (only the writer thread writes to disk during those
+windows); Azure-style IOPS units = max(writes, bytes / 256 KiB).
 """
 from __future__ import annotations
 
 import bisect
 import json
+import math
 import os
 import resource
 import shutil
 import sqlite3
+import threading
 import time
-from collections import Counter
-from dataclasses import asdict, dataclass
+from contextlib import contextmanager
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import UUID, uuid5
@@ -38,11 +45,14 @@ from uuid import UUID, uuid5
 import typer
 
 from K9.tastytrade.dxlink import DxLinkSourceEvent
-from dicks_laboratory.durable_writer import DurableWriter, WriterFlushPolicy
+from dicks_laboratory.durable_writer import CaptureBackpressureError, DurableWriter, WriterFlushPolicy
+from dicks_laboratory.long_running_capture import compute_sha256
 from dicks_laboratory.models import DatasetIdentity, DatasetKind, DatasetOrigin, InstrumentIdentity, InstrumentKind
 from dicks_laboratory.store import LaboratoryStore
 
 app = typer.Typer(add_completion=False)
+
+_AZURE_IO_BYTES = 256 * 1024
 
 _SOURCE_SQL = """
 SELECT p.source_order, p.received_at, p.event_symbol, t.event_timestamp, p.event_classification,
@@ -130,21 +140,145 @@ def _device_for(path: Path) -> str | None:
     return parent if Path(f"/sys/block/{parent}").exists() else name
 
 
-def _diskstats(device: str | None) -> tuple[int, int, int] | None:
-    """(writes completed, sectors written, flushes completed) for one block device."""
+def _diskstats(device: str | None) -> dict | None:
+    """Cumulative counters for one block device (None if unavailable)."""
     if device is None:
         return None
     for line in Path("/proc/diskstats").read_text().splitlines():
         parts = line.split()
         if parts[2] == device:
-            flushes = int(parts[18]) if len(parts) > 18 else 0
-            return int(parts[7]), int(parts[9]), flushes
+            return {
+                "reads": int(parts[3]), "read_bytes": int(parts[5]) * 512,
+                "writes": int(parts[7]), "write_bytes": int(parts[9]) * 512,
+                "flushes": int(parts[18]) if len(parts) > 18 else 0,
+            }
     return None
 
 
+def _delta(before: dict | None, after: dict | None) -> dict:
+    if before is None or after is None:
+        return {"reads": 0, "read_bytes": 0, "writes": 0, "write_bytes": 0, "flushes": 0, "measured": False}
+    out = {k: after[k] - before[k] for k in before}
+    out["measured"] = True
+    return out
+
+
+def azure_units(writes: int, write_bytes: int) -> int:
+    """Azure disk IOPS accounting: each I/O counts once per started 256 KiB."""
+    return max(writes, math.ceil(write_bytes / _AZURE_IO_BYTES))
+
+
+class EmulatedDisk:
+    """A disk of `iops` Azure units/s and `mbps` MB/s shared by two streams.
+
+    Foreground (writer commits) is FIFO-serial. While a background checkpoint
+    holds the disk, the foreground gets only `1 - bg_share` of the bandwidth
+    plus `contention_latency` seconds of queueing per commit, and the
+    checkpoint itself is charged at only `bg_share` of the bandwidth for its
+    whole duration (both pessimistic). `charge_*()` returns how long the caller
+    must still wait for the I/O it just issued to complete."""
+
+    def __init__(self, iops: float, mbps: float, bg_share: float = 0.5, contention_latency: float = 0.5) -> None:
+        self.iops = iops
+        self.bytes_per_second = mbps * 1_000_000
+        self.bg_share = bg_share
+        self.contention_latency = contention_latency
+        self._fg_free = 0.0
+        self._bg_until = 0.0
+        self._lock = threading.Lock()
+        self.busy_seconds = 0.0
+
+    def _service(self, writes: int, write_bytes: int, share: float) -> float:
+        return max(azure_units(writes, write_bytes) / (self.iops * share), write_bytes / (self.bytes_per_second * share))
+
+    def charge(self, issued_at: float, writes: int, write_bytes: int, background: bool = False) -> float:
+        with self._lock:
+            if background:
+                service = self._service(writes, write_bytes, self.bg_share)
+                self._bg_until = max(self._bg_until, issued_at) + service
+                done = self._bg_until
+            else:
+                contended = issued_at < self._bg_until
+                service = self._service(writes, write_bytes, 1.0 - self.bg_share if contended else 1.0)
+                service += self.contention_latency if contended else 0.0
+                self._fg_free = max(self._fg_free, issued_at) + service
+                done = self._fg_free
+            self.busy_seconds += service
+            return max(0.0, done - time.perf_counter())
+
+
+class _BenchStore(LaboratoryStore):
+    """Benchmark-only: attributes device I/O to each commit / checkpoint /
+    collapse and optionally holds the calling thread for an emulated disk.
+    Real execution of measured operations is serialized (measurement lock) so
+    concurrent threads never mix their device writes; emulated waits overlap.
+    Persistence itself is the unmodified production code."""
+
+    def __init__(self, *args, device: str | None = None, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.device = device
+        self.disk: EmulatedDisk | None = None
+        self.ops: list[dict] = []
+        self.phase = "setup"
+        self._measure_lock = threading.Lock()
+
+    def _account(self, kind: str, before: dict | None, started: float, extra: dict | None = None,
+                 background: bool = False) -> None:
+        d = _delta(before, _diskstats(self.device))
+        elapsed = time.perf_counter() - started
+        self._record(kind, d, started, elapsed, extra, background)
+
+    def _record(self, kind, d, started, elapsed, extra, background) -> None:
+        waited = 0.0
+        if self.disk is not None and d["measured"]:
+            waited = self.disk.charge(started, d["writes"], d["write_bytes"], background=background)
+            if waited > 0:
+                time.sleep(waited)
+        self.ops.append({"phase": self.phase, "kind": kind, "t_start": started, "seconds": elapsed + waited, "emulated_wait": waited,
+                         **{k: d[k] for k in ("writes", "write_bytes", "reads", "read_bytes", "flushes")},
+                         **(extra or {})})
+
+    @contextmanager
+    def transaction(self):
+        with self._measure_lock:
+            before, started = _diskstats(self.device), time.perf_counter()
+            with super().transaction():
+                yield
+            d = _delta(before, _diskstats(self.device))
+            elapsed = time.perf_counter() - started
+        self._record("commit", d, started, elapsed, None, False)
+
+    def open_wal_checkpointer(self):
+        inner, outer = super().open_wal_checkpointer(), self
+
+        class Measured:
+            def checkpoint_passive(self):
+                wal = outer.wal_size_bytes()
+                with outer._measure_lock:
+                    before, started = _diskstats(outer.device), time.perf_counter()
+                    result = inner.checkpoint_passive()
+                    d = _delta(before, _diskstats(outer.device))
+                    elapsed = time.perf_counter() - started
+                outer._record("checkpoint", d, started, elapsed, {"wal_bytes_before": wal, "frames": result[2]}, True)
+                return result
+
+            def close(self):
+                inner.close()
+
+        return Measured()
+
+    def measured(self, kind: str, fn):
+        with self._measure_lock:
+            before, started = _diskstats(self.device), time.perf_counter()
+            value = fn()
+            d = _delta(before, _diskstats(self.device))
+            elapsed = time.perf_counter() - started
+        self._record(kind, d, started, elapsed, None, False)
+        return value
+
+
 class _RecordingWriter(DurableWriter):
-    """Benchmark-only subclass: records each committed batch size. Persistence
-    itself is the unmodified production `_flush`."""
+    """Benchmark-only subclass: records each committed batch size."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -157,84 +291,401 @@ class _RecordingWriter(DurableWriter):
             self.batch_sizes.append(size)
 
 
-@dataclass
-class PhaseResult:
-    phase: str
-    events: int
-    wall_seconds: float
-    events_per_second: float
-    cpu_seconds: float
-    flush_count: int
-    avg_events_per_flush: float
-    batch_size_p50: int
-    batch_size_max: int
-    queue_depth_max: int
-    max_persist_lag_seconds: float
-    device_writes: int | None
-    device_writes_per_event: float | None
-    device_flushes: int | None
-    sectors_written: int | None
-    bytes_written_per_event: float | None
-    predicted_events_per_second_at_603_iops: float | None
+def _synthetic_copy(event: DxLinkSourceEvent, k: int) -> DxLinkSourceEvent:
+    """A distinct accepted trade with the same shape/timing (scaled-burst cases only)."""
+    fields = dict(event.fields)
+    # Real DXLink indices are ~7.7e18 (near the int64 limit): 2**62 + k can
+    # neither overflow int64 nor collide with real (or small test) indices.
+    fields["index"] = (1 << 62) + k
+    fields["sequence"] = (1 << 62) + k
+    return DxLinkSourceEvent(event.event_type, event.streamer_symbol, fields, event.received_at)
 
 
-def _run_phase(phase, writer_factory, source, first, last, device, wal_final_checkpoint=True) -> tuple[PhaseResult, dict]:
-    writer = writer_factory()
-    os.sync()
-    before = _diskstats(device)
-    cpu0 = resource.getrusage(resource.RUSAGE_SELF)
-    t0 = time.perf_counter()
-    writer.start()
-    count = 0
-    for order, event in _source_events(source, first, last):
-        writer.submit_event(order, event)
-        count += 1
-    metrics = writer.drain_and_stop()
-    connection = writer._store._connection  # noqa: SLF001 -- count deferred WAL page writes inside the phase
-    if wal_final_checkpoint and connection.execute("PRAGMA journal_mode").fetchone()[0] == "wal":
-        connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-    wall = time.perf_counter() - t0
-    cpu1 = resource.getrusage(resource.RUSAGE_SELF)
-    os.sync()
-    after = _diskstats(device)
-    sizes = sorted(writer.batch_sizes)
-    if before is not None and after is not None and count:
-        writes, sectors, flushes = (b - a for a, b in zip(before, after))
-        per_event = writes / count
+def _wait_idle(writer: DurableWriter, settle: float) -> None:
+    while writer.metrics.persisted_events < writer.metrics.submitted_events:
+        time.sleep(0.01)
+    time.sleep(settle)
+
+
+def _phase_summary(name, store, writer, events, wall, cpu, input_seconds=None, extra=None) -> dict:
+    ops = [o for o in store.ops if o["phase"] == name]
+    commits = [o for o in ops if o["kind"] == "commit"]
+    ckpts = [o for o in ops if o["kind"] == "checkpoint"]
+    m = writer.metrics if writer else None
+    sizes = sorted(writer.batch_sizes) if writer else []
+
+    def tot(rows, key):
+        return sum(r[key] for r in rows)
+
+    cw, cb = tot(commits, "writes"), tot(commits, "write_bytes")
+    aw, ab = tot(ops, "writes"), tot(ops, "write_bytes")
+
+    def per(x):
+        return round(x / events, 4) if events else None
+
+    out = {
+        "phase": name, "events": events, "wall_seconds": round(wall, 3), "cpu_seconds": round(cpu, 3),
+        "input_events_per_second": round(events / input_seconds, 1) if input_seconds else None,
+        "persist_events_per_second": round(events / wall, 1) if wall else None,
+        "commit_count": len(commits),
+        "commit_writes_per_event": per(cw), "commit_azure_units_per_event": per(azure_units(cw, cb)),
+        "commit_bytes_per_event": per(cb),
+        "all_writes_per_event": per(aw), "all_azure_units_per_event": per(azure_units(aw, ab)),
+        "checkpoint_count": len(ckpts), "checkpoint_seconds_total": round(tot(ckpts, "seconds"), 3),
+        "checkpoint_seconds_max": round(max((c["seconds"] for c in ckpts), default=0.0), 3),
+        "checkpoint_writes": tot(ckpts, "writes"),
+        "checkpoint_azure_units": azure_units(tot(ckpts, "writes"), tot(ckpts, "write_bytes")),
+        "checkpoint_wal_bytes_max": max((c["wal_bytes_before"] for c in ckpts), default=0),
+        "emulated_wait_seconds": round(tot(ops, "emulated_wait"), 3),
+    }
+    if m is not None:
+        out.update({
+            "submitted_events": m.submitted_events, "persisted_events": m.persisted_events,
+            "accounting_difference": m.accounting_difference, "flush_count": m.flush_count,
+            "batch_size_p50": sizes[len(sizes) // 2] if sizes else 0, "batch_size_max": m.batch_size_max,
+            "queue_depth_max": m.queue_depth_max,
+            "queue_limit_pct": round(100 * m.queue_depth_max / writer._policy.queue_maxsize, 1),  # noqa: SLF001
+            "max_persist_lag_seconds": round(m.max_persist_lag_seconds, 3), "writer_overloaded": m.overloaded,
+            "wal_bytes_max": m.wal_bytes_max,
+        })
+    out.update(extra or {})
+    return out
+
+
+@app.command()
+def run(
+    source_db: Path = typer.Argument(..., help="FINALIZED Dick's Laboratory dataset (opened read-only)."),
+    scratch_dir: Path = typer.Option(..., "--scratch-dir", help="Directory for the disposable benchmark DB (real disk, not tmpfs)."),
+    mode: str = typer.Option("lifecycle", "--mode", help="'lifecycle' or 'paced'."),
+    journal_mode: str = typer.Option(WriterFlushPolicy().journal_mode, "--journal-mode", help="Writer policy: 'wal' or 'delete'."),
+    burst_start: str = typer.Option("2026-09-30T19:58:00Z", "--burst-start", help="lifecycle: full-speed burst window start."),
+    burst_end: str = typer.Option("2026-09-30T20:06:00Z", "--burst-end", help="lifecycle: burst window end / paced: window end."),
+    window_start: str = typer.Option("2026-09-30T19:57:00Z", "--window-start", help="paced: replay window start."),
+    scale: float = typer.Option(1.0, "--scale", help="paced: event-count multiplier inside the scale window."),
+    scale_start: str = typer.Option("2026-09-30T19:59:00Z", "--scale-start"),
+    scale_end: str = typer.Option("2026-09-30T20:01:00Z", "--scale-end"),
+    emulate_iops: float = typer.Option(0.0, "--emulate-iops", help="paced: serial-disk emulation (0 = off)."),
+    emulate_mbps: float = typer.Option(100.0, "--emulate-mbps"),
+    emulate_bg_share: float = typer.Option(0.5, "--emulate-bg-share", help="Disk share of a background checkpoint under contention."),
+    emulate_contention_latency: float = typer.Option(0.5, "--emulate-contention-latency", help="Extra seconds per commit while a checkpoint holds the disk."),
+    max_events: int = typer.Option(WriterFlushPolicy().max_events, "--max-events"),
+    checkpoint_quiet_seconds: float = typer.Option(WriterFlushPolicy().checkpoint_quiet_seconds, "--checkpoint-quiet-seconds"),
+    checkpoint_min_wal_mib: float = typer.Option(WriterFlushPolicy().checkpoint_min_wal_bytes / 2**20, "--checkpoint-min-wal-mib"),
+    checkpoint_force_wal_mib: float = typer.Option(WriterFlushPolicy().checkpoint_force_wal_bytes / 2**20, "--checkpoint-force-wal-mib"),
+    prefill_chunk: int = typer.Option(20_000, "--prefill-chunk", help="Events per prefill/tail chunk before an idle pause."),
+    prefill_limit: int | None = typer.Option(None, "--prefill-limit", help="Cap prefill events (smoke tests)."),
+    burst_limit: int | None = typer.Option(None, "--burst-limit", help="Cap burst/window events (smoke tests)."),
+    skip_tail: bool = typer.Option(False, "--skip-tail"),
+    prefill_snapshot: Path | None = typer.Option(
+        None, "--prefill-snapshot",
+        help="Reuse (or create) a collapsed copy of the prefilled DB for this window start -- same index state, minutes faster.",
+    ),
+    cold_checks: bool = typer.Option(True, "--cold-checks/--no-cold-checks"),
+    label: str = typer.Option("run", "--label"),
+    output_json: Path | None = typer.Option(None, "--output-json"),
+    keep_db: bool = typer.Option(False, "--keep-db"),
+) -> None:
+    if mode not in ("lifecycle", "paced"):
+        raise typer.BadParameter("--mode must be 'lifecycle' or 'paced'")
+    source = sqlite3.connect(f"file:{source_db}?mode=ro", uri=True)
+    source_dataset_id, trading_date, instrument_id, locator = source.execute(
+        "SELECT dataset_id, trading_date, instrument_id, source_locator FROM datasets").fetchone()
+    _, exchange, root, expiry = instrument_id.split(":")
+    year, month = (int(part) for part in expiry.split("-"))
+    instrument = InstrumentIdentity(InstrumentKind.FUTURE, exchange, root, year, month)
+    symbol = locator.split(":", 1)[1].rsplit(":", 1)[0]
+    last_order = source.execute(
+        "SELECT MAX(source_order) FROM (SELECT source_order FROM observation_source_provenance "
+        "UNION ALL SELECT source_order FROM normalization_rejections "
+        "UNION ALL SELECT source_order FROM deferred_dxlink_timesale_events)").fetchone()[0]
+
+    def first_order_at(moment: str) -> int:
+        row = source.execute(
+            "SELECT MIN(source_order) FROM observation_source_provenance WHERE received_at >= ?",
+            (_ts(moment).isoformat(),)).fetchone()
+        return int(row[0]) if row[0] is not None else last_order + 1
+
+    win_first = first_order_at(burst_start if mode == "lifecycle" else window_start)
+    win_last = first_order_at(burst_end) - 1
+    prefill_last = win_first - 1 if prefill_limit is None else min(win_first - 1, prefill_limit)
+    if burst_limit is not None:
+        win_last = min(win_last, win_first + burst_limit - 1)
+    tail_span = (win_last + 1, last_order) if (mode == "lifecycle" and not skip_tail) else None
+
+    scratch_dir.mkdir(parents=True, exist_ok=True)
+    work = scratch_dir / f"bench_{label}_{os.getpid()}"
+    work.mkdir()
+    db_path = work / "bench.sqlite3"
+    device = _device_for(work)
+    store = _BenchStore(db_path, check_same_thread=False, device=device)
+    dataset_id = uuid5(UUID(source_dataset_id), f"0w5-benchmark:{label}")
+    store.save_dataset(DatasetIdentity(
+        dataset_id=dataset_id, kind=DatasetKind.HISTORICAL_IMPORT, label=f"0w5-bench-{label}",
+        source_locator=locator, source_timezone="UTC epoch milliseconds", normalizer_version="bench",
+        capture_started_at=_ts(window_start), origin=DatasetOrigin.AUTHENTIC_SOURCE))
+    store.save_dataset_trading_context(dataset_id, datetime.fromisoformat(trading_date).date(), instrument)
+    policy = WriterFlushPolicy(
+        journal_mode=journal_mode, max_events=max_events, checkpoint_quiet_seconds=checkpoint_quiet_seconds,
+        checkpoint_min_wal_bytes=int(checkpoint_min_wal_mib * 2**20),
+        checkpoint_force_wal_bytes=int(checkpoint_force_wal_mib * 2**20))
+    quiet_policy = replace(policy, checkpoint_quiet_seconds=min(policy.checkpoint_quiet_seconds, 0.2),
+                           checkpoint_poll_seconds=min(policy.checkpoint_poll_seconds, 0.1))
+    seen: set[int] = set()
+    state = {"next_seq": 1, "next_order": 1, "synthetic": 0}
+    phases: list[dict] = []
+
+    def new_writer(pol: WriterFlushPolicy) -> _RecordingWriter:
+        return _RecordingWriter(store, dataset_id, instrument, symbol,
+                                start_dataset_sequence=state["next_seq"], seen_new_source_indices=seen, policy=pol)
+
+    def cpu_now() -> float:
+        r = resource.getrusage(resource.RUSAGE_SELF)
+        return r.ru_utime + r.ru_stime
+
+    def chunked_phase(name: str, first: int, last: int) -> None:
+        """Full-speed chunks with idle pauses (quiet-flow checkpoint opportunities)."""
+        if last < first:
+            return
+        store.phase = name
+        writer = new_writer(quiet_policy)
+        cpu0, t0 = cpu_now(), time.perf_counter()
+        writer.start()
+        count = 0
+        for _order, event in _source_events(source, first, last):
+            writer.submit_event(state["next_order"], event)
+            state["next_order"] += 1
+            count += 1
+            if count % prefill_chunk == 0:
+                _wait_idle(writer, quiet_policy.checkpoint_quiet_seconds + 0.3)
+        _wait_idle(writer, quiet_policy.checkpoint_quiet_seconds + 0.3)
+        writer.drain_and_stop()
+        state["next_seq"] = store.count_trade_observations(dataset_id) + 1
+        phases.append(_phase_summary(name, store, writer, count, time.perf_counter() - t0, cpu_now() - cpu0))
+        typer.echo(json.dumps(phases[-1]))
+
+    if prefill_snapshot is not None and prefill_snapshot.exists():
+        store.close()
+        shutil.copyfile(prefill_snapshot, db_path)
+        store = _BenchStore(db_path, check_same_thread=False, device=device)
+        (dataset_id,) = store.list_dataset_ids()  # the snapshot's own dataset
+        state["next_order"] = prefill_last + 1
+        state["next_seq"] = store.count_trade_observations(dataset_id) + 1
+        seen.update(row[0] for row in store._connection.execute("SELECT source_index FROM observation_source_provenance"))  # noqa: SLF001
+        if state["next_seq"] - 1 != source.execute(
+                "SELECT COUNT(*) FROM observation_source_provenance WHERE source_order <= ?", (prefill_last,)).fetchone()[0]:
+            raise typer.BadParameter("--prefill-snapshot does not match this source/window")
+        phases.append({"phase": "prefill", "events": prefill_last, "from_snapshot": str(prefill_snapshot),
+                       "submitted_events": prefill_last, "persisted_events": prefill_last})
     else:
-        writes = sectors = flushes = per_event = None
-    result = PhaseResult(
-        phase=phase,
-        events=count,
-        wall_seconds=round(wall, 3),
-        events_per_second=round(count / wall, 1) if wall else 0.0,
-        cpu_seconds=round((cpu1.ru_utime + cpu1.ru_stime) - (cpu0.ru_utime + cpu0.ru_stime), 3),
-        flush_count=metrics.flush_count,
-        avg_events_per_flush=round(metrics.persisted_events / metrics.flush_count, 2) if metrics.flush_count else 0.0,
-        batch_size_p50=sizes[len(sizes) // 2] if sizes else 0,
-        batch_size_max=metrics.batch_size_max,
-        queue_depth_max=metrics.queue_depth_max,
-        max_persist_lag_seconds=round(metrics.max_persist_lag_seconds, 3),
-        device_writes=writes,
-        device_writes_per_event=None if per_event is None else round(per_event, 4),
-        device_flushes=flushes,
-        sectors_written=sectors,
-        bytes_written_per_event=None if sectors is None else round(sectors * 512 / count, 1),
-        predicted_events_per_second_at_603_iops=round(603 / per_event, 1) if per_event else None,
+        chunked_phase("prefill", 1, prefill_last)
+        if prefill_snapshot is not None:
+            store.collapse_to_single_file()
+            shutil.copyfile(db_path, prefill_snapshot)
+
+    # ---- the measured window ------------------------------------------------
+    store.phase = "burst" if mode == "lifecycle" else "paced"
+    writer = new_writer(policy)
+    scale_window = (_ts(scale_start), _ts(scale_end))
+    stream: list[DxLinkSourceEvent] = []
+    carry = 0.0
+    for _order, event in _source_events(source, win_first, win_last):
+        stream.append(event)
+        if mode == "paced" and scale != 1.0 and scale_window[0] <= event.received_at < scale_window[1] \
+                and event.fields.get("type") == "NEW" and event.fields.get("validTick"):
+            carry += scale - 1.0
+            while carry >= 1.0:
+                carry -= 1.0
+                state["synthetic"] += 1
+                stream.append(_synthetic_copy(event, state["synthetic"]))
+    if mode == "paced" and emulate_iops > 0:
+        store.disk = EmulatedDisk(emulate_iops, emulate_mbps, emulate_bg_share, emulate_contention_latency)
+    cpu0, t0 = cpu_now(), time.perf_counter()
+    samples: list[tuple[float, int, int]] = []
+    sampling = threading.Event()
+
+    def sampler() -> None:
+        while not sampling.is_set():
+            samples.append((round(time.perf_counter() - t0, 2), writer._queue.qsize(), store.wal_size_bytes()))  # noqa: SLF001
+            time.sleep(0.25)
+
+    sampler_thread = threading.Thread(target=sampler, daemon=True)
+    writer.start()
+    sampler_thread.start()
+    first_arrival = stream[0].received_at if stream else None
+    overloaded_at: int | None = None
+    for position, event in enumerate(stream):
+        if mode == "paced":
+            delay = t0 + (event.received_at - first_arrival).total_seconds() - time.perf_counter()
+            if delay > 0:
+                time.sleep(delay)
+        try:
+            writer.submit_event(state["next_order"], event)
+        except CaptureBackpressureError:
+            overloaded_at = position  # production: the dataset would end INTERRUPTED here
+            break
+        state["next_order"] += 1
+    input_seconds = (time.perf_counter() - t0) if mode == "paced" else None
+    _wait_idle(writer, policy.checkpoint_quiet_seconds + 1.5)  # post-burst quiet: checkpoint opportunity
+    writer.drain_and_stop()
+    sampling.set()
+    sampler_thread.join()
+    state["next_seq"] = store.count_trade_observations(dataset_id) + 1
+    window_ops = [o for o in store.ops if o["phase"] == store.phase]
+    timeline = {
+        "queue_wal_samples": samples,
+        "slow_ops": [
+            {"kind": o["kind"], "t": round(o["t_start"] - t0, 2), "seconds": round(o["seconds"], 2),
+             "azure_units": azure_units(o["writes"], o["write_bytes"]), "wal_bytes_before": o.get("wal_bytes_before")}
+            for o in window_ops if o["kind"] != "commit" or o["seconds"] > 1.0
+        ],
+    }
+    submitted_window = writer.metrics.submitted_events
+    phases.append(_phase_summary(
+        store.phase, store, writer, submitted_window, time.perf_counter() - t0, cpu_now() - cpu0, input_seconds=input_seconds,
+        extra={"synthetic_events": state["synthetic"], "scale": scale, "emulated_iops": emulate_iops or None,
+               "overloaded": overloaded_at is not None, "overloaded_at_stream_position": overloaded_at,
+               "stream_events": len(stream),
+               "emulated_disk_busy_seconds": round(store.disk.busy_seconds, 3) if store.disk else None,
+               "emulated_bg_share": emulate_bg_share if store.disk else None,
+               "emulated_contention_latency": emulate_contention_latency if store.disk else None}))
+    typer.echo(json.dumps(phases[-1]))
+    phases[-1]["timeline"] = timeline
+
+    if tail_span is not None:
+        chunked_phase("tail", tail_span[0], tail_span[1] if prefill_limit is None else win_last)
+
+    # ---- finalization (each step measured; emulated disk still applies in paced mode) ----
+    store.phase = "finalize"
+    fin: dict = {"journal_mode_before": store.journal_mode(), "wal_bytes_before": store.wal_size_bytes()}
+    t_fin = time.perf_counter()
+    if fin["journal_mode_before"] == "wal":
+        fin["final_checkpoint"] = list(store.measured(
+            "final_checkpoint", lambda: store._connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()))  # noqa: SLF001
+    store.measured("collapse", store.collapse_to_single_file)
+    fin["sidecars_after_collapse"] = [p.name for p in store.sidecar_paths()]
+    fin["journal_mode_after"] = store.journal_mode()
+    t = time.perf_counter()
+    fin["quick_check"] = store.quick_check()
+    fin["quick_check_seconds_warm"] = round(time.perf_counter() - t, 3)
+    t = time.perf_counter()
+    fin["integrity_check"] = store._connection.execute("PRAGMA integrity_check").fetchone()[0]  # noqa: SLF001
+    fin["integrity_check_seconds_warm"] = round(time.perf_counter() - t, 3)
+    fin["finalization_core_seconds"] = round(time.perf_counter() - t_fin, 3)
+
+    bench = store._connection  # noqa: SLF001 -- read-only verification queries
+    replayed = [(1, prefill_last), (win_first, win_last)]
+    if tail_span is not None and prefill_limit is None:
+        replayed.append(tail_span)
+
+    def source_counts(table: str) -> int:
+        return sum(source.execute(f"SELECT COUNT(*) FROM {table} WHERE source_order BETWEEN ? AND ?", span).fetchone()[0]
+                   for span in replayed if span[1] >= span[0])
+
+    accounting = {
+        "source_accepted": source_counts("observation_source_provenance"),
+        "synthetic_accepted": state["synthetic"],
+        "source_rejected": source_counts("normalization_rejections"),
+        "source_deferred": source_counts("deferred_dxlink_timesale_events"),
+        "bench_accepted": bench.execute("SELECT COUNT(*) FROM trade_observations").fetchone()[0],
+        "bench_rejected": bench.execute("SELECT COUNT(*) FROM normalization_rejections").fetchone()[0],
+        "bench_deferred": bench.execute("SELECT COUNT(*) FROM deferred_dxlink_timesale_events").fetchone()[0],
+        "bench_dataset_sequence": list(bench.execute(
+            "SELECT MIN(dataset_sequence), MAX(dataset_sequence), COUNT(DISTINCT dataset_sequence) FROM trade_observations").fetchone()),
+        "bench_source_order": list(bench.execute(
+            "SELECT MIN(o), MAX(o), COUNT(DISTINCT o) FROM (SELECT source_order o FROM observation_source_provenance "
+            "UNION ALL SELECT source_order FROM normalization_rejections "
+            "UNION ALL SELECT source_order FROM deferred_dxlink_timesale_events)").fetchone()),
+        "submitted_total": sum(p.get("submitted_events", 0) for p in phases),
+        "persisted_total": sum(p.get("persisted_events", 0) for p in phases),
+        "bench_journal_mode": fin["journal_mode_after"],
+        "bench_synchronous": bench.execute("PRAGMA synchronous").fetchone()[0],
+        "bench_quick_check": fin["quick_check"],
+        "bench_integrity_check": fin["integrity_check"],
+    }
+    if overloaded_at is None:
+        expected = accounting["source_accepted"] + accounting["synthetic_accepted"]
+        total = expected + accounting["source_rejected"] + accounting["source_deferred"]
+        source_match = (
+            accounting["bench_accepted"] == expected
+            and accounting["bench_rejected"] == accounting["source_rejected"]
+            and accounting["bench_deferred"] == accounting["source_deferred"]
+        )
+    else:
+        # Overload stopped submission part-way: check exactness over what was submitted.
+        expected = accounting["bench_accepted"]
+        total = accounting["submitted_total"]
+        source_match = expected + accounting["bench_rejected"] + accounting["bench_deferred"] == total
+    accounting["overloaded"] = overloaded_at is not None
+    accounting["exact"] = (
+        source_match
+        and accounting["bench_dataset_sequence"] == [1, expected, expected]
+        and accounting["bench_source_order"] == [1, total, total]
+        and accounting["submitted_total"] == accounting["persisted_total"] == total
+        and fin["sidecars_after_collapse"] == [] and fin["journal_mode_after"] == "delete"
+        and fin["quick_check"] == "ok" and fin["integrity_check"] == "ok"
     )
-    histogram = Counter(_bucket(size) for size in sizes)
-    return result, {"batch_size_histogram": dict(sorted(histogram.items(), key=lambda kv: _bucket_key(kv[0])))}
+    store.disk = None
+    store.close()
+    leftovers = sorted(p.name for p in work.iterdir() if p.name != db_path.name)
+    t = time.perf_counter()
+    fin["checksum_sha256"] = compute_sha256(db_path)
+    fin["checksum_seconds_warm"] = round(time.perf_counter() - t, 3)
+    fin["checksum_stable"] = compute_sha256(db_path) == fin["checksum_sha256"]
+    fin["sidecars_after_close"] = leftovers
+    if cold_checks and hasattr(os, "posix_fadvise"):
+        def evict() -> None:
+            os.sync()
+            with db_path.open("rb") as handle:
+                os.posix_fadvise(handle.fileno(), 0, 0, os.POSIX_FADV_DONTNEED)
 
+        evict()
+        before, t = _diskstats(device), time.perf_counter()
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.execute("PRAGMA quick_check").fetchone()
+        conn.close()
+        d = _delta(before, _diskstats(device))
+        fin["quick_check_cold"] = {"seconds": round(time.perf_counter() - t, 3), "device_reads": d["reads"], "read_bytes": d["read_bytes"]}
+        evict()
+        before, t = _diskstats(device), time.perf_counter()
+        compute_sha256(db_path)
+        d = _delta(before, _diskstats(device))
+        fin["checksum_cold"] = {"seconds": round(time.perf_counter() - t, 3), "device_reads": d["reads"], "read_bytes": d["read_bytes"]}
+    fin_ops = [o for o in store.ops if o["phase"] == "finalize"]
+    fin["finalize_ops"] = [{k: o[k] for k in ("kind", "seconds", "writes", "write_bytes", "reads")} for o in fin_ops]
+    fin["finalize_azure_units"] = azure_units(sum(o["writes"] for o in fin_ops), sum(o["write_bytes"] for o in fin_ops))
+    accounting["exact"] = accounting["exact"] and fin["checksum_stable"] and leftovers == []
+    db_size = db_path.stat().st_size
 
-def _bucket(size: int) -> str:
-    for edge in (1, 5, 10, 50, 100, 249):
-        if size <= edge:
-            return f"<={edge}"
-    return f"={size}" if size in (250,) else ">=250" if size < 1000 else ">=1000"
+    def units(kinds: tuple[str, ...] | None) -> int:
+        rows = [o for o in store.ops if kinds is None or o["kind"] in kinds]
+        return azure_units(sum(o["writes"] for o in rows), sum(o["write_bytes"] for o in rows))
 
-
-def _bucket_key(label: str) -> int:
-    return int("".join(ch for ch in label if ch.isdigit()))
+    events_total = sum(p["events"] for p in phases)
+    lifecycle_totals = {
+        "events": events_total,
+        "device_writes": sum(o["writes"] for o in store.ops),
+        "bytes_written": sum(o["write_bytes"] for o in store.ops),
+        "azure_units": units(None),
+        "commit_azure_units": units(("commit",)),
+        "checkpoint_azure_units": units(("checkpoint", "final_checkpoint", "collapse")),
+        "azure_units_per_event": round(units(None) / events_total, 4) if events_total else None,
+        "max_rss_mib": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 1),
+    }
+    summary = {"finalization": fin, "accounting": accounting, "lifecycle_totals": lifecycle_totals,
+               "db_size_bytes": db_size, "device": device}
+    typer.echo(json.dumps(summary))
+    report = {
+        "label": label, "mode": mode, "source_db": str(source_db), "policy": policy.__dict__,
+        "windows": {"burst_or_window": [burst_start if mode == "lifecycle" else window_start, burst_end],
+                    "scale_window": [scale_start, scale_end]},
+        "phases": phases, **summary, "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if output_json:
+        output_json.write_text(json.dumps(report, indent=1, default=str))
+    if not keep_db:
+        shutil.rmtree(work)
+    if not accounting["exact"]:
+        raise typer.Exit(code=1)
 
 
 def fifo_replay(arrivals: list[float], events_per_second: float, batch: int) -> tuple[int, float]:
@@ -268,154 +719,6 @@ def scaled_arrivals(arrivals: list[float], window: tuple[float, float], factor: 
         else:
             out.append(t)
     return out
-
-
-@app.command()
-def run(
-    source_db: Path = typer.Argument(..., help="FINALIZED Dick's Laboratory dataset (opened read-only)."),
-    scratch_dir: Path = typer.Option(..., "--scratch-dir", help="Directory for the disposable benchmark DB (real disk, not tmpfs)."),
-    burst_start: str = typer.Option("2026-09-30T19:58:00Z", "--burst-start"),
-    burst_end: str = typer.Option("2026-09-30T20:06:00Z", "--burst-end"),
-    max_events: int = typer.Option(WriterFlushPolicy().max_events, "--max-events"),
-    max_interval_seconds: float = typer.Option(WriterFlushPolicy().max_interval_seconds, "--max-interval-seconds"),
-    queue_maxsize: int = typer.Option(WriterFlushPolicy().queue_maxsize, "--queue-maxsize"),
-    prefill_limit: int | None = typer.Option(None, "--prefill-limit", help="Cap prefill events (smoke tests)."),
-    burst_limit: int | None = typer.Option(None, "--burst-limit", help="Cap burst events (smoke tests)."),
-    cache_size_kib: int | None = typer.Option(None, "--cache-size-kib", help="Experiment: PRAGMA cache_size=-N on the scratch DB."),
-    journal_mode: str | None = typer.Option(None, "--journal-mode", help="Experiment: PRAGMA journal_mode on the scratch DB (e.g. wal)."),
-    wal_autocheckpoint: int | None = typer.Option(None, "--wal-autocheckpoint", help="Experiment: PRAGMA wal_autocheckpoint (pages)."),
-    wal_final_checkpoint: bool = typer.Option(
-        True, "--wal-final-checkpoint/--no-wal-final-checkpoint",
-        help="Experiment: count (default) or exclude deferred WAL checkpoint writes in each phase.",
-    ),
-    label: str = typer.Option("baseline", "--label"),
-    output_json: Path | None = typer.Option(None, "--output-json"),
-    keep_db: bool = typer.Option(False, "--keep-db"),
-) -> None:
-    source = sqlite3.connect(f"file:{source_db}?mode=ro", uri=True)
-    dataset_row = source.execute("SELECT dataset_id, trading_date, instrument_id, source_locator FROM datasets").fetchone()
-    source_dataset_id, trading_date, instrument_id, locator = dataset_row
-    _, exchange, root, expiry = instrument_id.split(":")
-    year, month = (int(part) for part in expiry.split("-"))
-    instrument = InstrumentIdentity(InstrumentKind.FUTURE, exchange, root, year, month)
-    symbol = locator.split(":", 1)[1].rsplit(":", 1)[0]
-
-    def first_order_at(moment: str) -> int:
-        row = source.execute(
-            "SELECT MIN(source_order) FROM observation_source_provenance WHERE received_at >= ?",
-            (_ts(moment).isoformat(),),
-        ).fetchone()
-        return int(row[0])
-
-    last_order = source.execute(
-        "SELECT MAX(source_order) FROM (SELECT source_order FROM observation_source_provenance "
-        "UNION ALL SELECT source_order FROM normalization_rejections "
-        "UNION ALL SELECT source_order FROM deferred_dxlink_timesale_events)"
-    ).fetchone()[0]
-    burst_first = first_order_at(burst_start)
-    burst_last = first_order_at(burst_end) - 1
-    prefill_last = burst_first - 1
-    if prefill_limit is not None:
-        prefill_last = min(prefill_last, prefill_limit)
-    if burst_limit is not None:
-        burst_last = min(burst_last, burst_first + burst_limit - 1)
-
-    scratch_dir.mkdir(parents=True, exist_ok=True)
-    work = scratch_dir / f"bench_{label}_{os.getpid()}"
-    work.mkdir()
-    db_path = work / "bench.sqlite3"
-    device = _device_for(work)
-    store = LaboratoryStore(db_path, check_same_thread=False)
-    pragmas = {}
-    connection = store._connection  # noqa: SLF001 -- benchmark-only experiment knobs
-    if cache_size_kib is not None:
-        connection.execute(f"PRAGMA cache_size=-{int(cache_size_kib)}")
-    if journal_mode is not None:
-        connection.execute(f"PRAGMA journal_mode={journal_mode}")
-    if wal_autocheckpoint is not None:
-        connection.execute(f"PRAGMA wal_autocheckpoint={int(wal_autocheckpoint)}")
-    for name in ("journal_mode", "synchronous", "cache_size", "page_size", "wal_autocheckpoint"):
-        pragmas[name] = connection.execute(f"PRAGMA {name}").fetchone()[0]
-    typer.echo(json.dumps({"pragmas": pragmas}))
-    dataset_id = uuid5(UUID(source_dataset_id), f"0w5a-benchmark:{label}")
-    started = _ts(burst_start)
-    store.save_dataset(
-        DatasetIdentity(
-            dataset_id=dataset_id, kind=DatasetKind.HISTORICAL_IMPORT, label=f"0w5a-bench-{label}",
-            source_locator=locator, source_timezone="UTC epoch milliseconds", normalizer_version="bench",
-            capture_started_at=started, origin=DatasetOrigin.AUTHENTIC_SOURCE,
-        )
-    )
-    store.save_dataset_trading_context(dataset_id, datetime.fromisoformat(trading_date).date(), instrument)
-    policy = WriterFlushPolicy(max_events=max_events, max_interval_seconds=max_interval_seconds, queue_maxsize=queue_maxsize)
-    seen: set[int] = set()
-    sequence = {"next": 1}
-
-    def factory() -> _RecordingWriter:
-        writer = _RecordingWriter(
-            store, dataset_id, instrument, symbol,
-            start_dataset_sequence=sequence["next"], seen_new_source_indices=seen, policy=policy,
-        )
-        return writer
-
-    phases = []
-    for phase, first, last in (("prefill", 1, prefill_last), ("burst", burst_first, burst_last)):
-        if last < first:
-            continue
-        result, extra = _run_phase(phase, factory, source, first, last, device, wal_final_checkpoint)
-        sequence["next"] = store.count_trade_observations(dataset_id) + 1
-        phases.append({**asdict(result), **extra})
-        typer.echo(json.dumps({**asdict(result), **extra}))
-
-    # Exact accounting of what was replayed vs the source.
-    replayed = [(1, prefill_last)] + ([(burst_first, burst_last)] if burst_last >= burst_first else [])
-    def source_counts(table: str) -> int:
-        return sum(
-            source.execute(f"SELECT COUNT(*) FROM {table} WHERE source_order BETWEEN ? AND ?", span).fetchone()[0]
-            for span in replayed
-        )
-    bench = store._connection  # noqa: SLF001 -- read-only verification queries
-    accounting = {
-        "source_accepted": source_counts("observation_source_provenance"),
-        "source_rejected": source_counts("normalization_rejections"),
-        "source_deferred": source_counts("deferred_dxlink_timesale_events"),
-        "bench_accepted": bench.execute("SELECT COUNT(*) FROM trade_observations").fetchone()[0],
-        "bench_rejected": bench.execute("SELECT COUNT(*) FROM normalization_rejections").fetchone()[0],
-        "bench_deferred": bench.execute("SELECT COUNT(*) FROM deferred_dxlink_timesale_events").fetchone()[0],
-        "bench_dataset_sequence": list(bench.execute(
-            "SELECT MIN(dataset_sequence), MAX(dataset_sequence), COUNT(DISTINCT dataset_sequence) FROM trade_observations"
-        ).fetchone()),
-        "bench_source_order_distinct": bench.execute(
-            "SELECT COUNT(DISTINCT source_order) FROM (SELECT source_order FROM observation_source_provenance "
-            "UNION ALL SELECT source_order FROM normalization_rejections UNION ALL SELECT source_order FROM deferred_dxlink_timesale_events)"
-        ).fetchone()[0],
-        "bench_journal_mode": bench.execute("PRAGMA journal_mode").fetchone()[0],
-        "bench_synchronous": bench.execute("PRAGMA synchronous").fetchone()[0],
-        "bench_quick_check": bench.execute("PRAGMA quick_check").fetchone()[0],
-    }
-    accounting["exact"] = (
-        accounting["source_accepted"] == accounting["bench_accepted"]
-        and accounting["source_rejected"] == accounting["bench_rejected"]
-        and accounting["source_deferred"] == accounting["bench_deferred"]
-        and accounting["bench_dataset_sequence"][0] == 1
-        and accounting["bench_dataset_sequence"][1] == accounting["bench_dataset_sequence"][2] == accounting["bench_accepted"]
-    )
-    store.close()
-    db_size = db_path.stat().st_size
-    typer.echo(json.dumps({"accounting": accounting, "db_size_bytes": db_size, "device": device}))
-
-    report = {
-        "label": label, "source_db": str(source_db), "policy": asdict(policy), "pragmas": pragmas,
-        "burst_window": [burst_start, burst_end], "source_last_order": last_order,
-        "phases": phases, "accounting": accounting, "db_size_bytes": db_size, "device": device,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-    }
-    if output_json:
-        output_json.write_text(json.dumps(report, indent=1))
-    if not keep_db:
-        shutil.rmtree(work)
-    if not accounting["exact"]:
-        raise typer.Exit(code=1)
 
 
 @app.command("live-burst-replay")
