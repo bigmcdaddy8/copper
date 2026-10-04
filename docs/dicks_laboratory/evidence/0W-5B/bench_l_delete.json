@@ -1,0 +1,748 @@
+{
+ "label": "l_delete",
+ "mode": "lifecycle",
+ "source_db": "es_20260930_9ac5a21e.sqlite3 (authentic 2026-09-30, sha256 61489eea..., read-only copy)",
+ "policy": {
+  "max_events": 20000,
+  "max_interval_seconds": 0.1,
+  "queue_maxsize": 50000,
+  "overload_grace_seconds": 10.0,
+  "sqlite_cache_size_kib": 262144,
+  "journal_mode": "delete",
+  "checkpoint_min_wal_bytes": 67108864,
+  "checkpoint_force_wal_bytes": 1073741824,
+  "checkpoint_quiet_seconds": 5.0,
+  "checkpoint_busy_events_per_second": 150.0,
+  "checkpoint_poll_seconds": 1.0
+ },
+ "windows": {
+  "burst_or_window": [
+   "2026-09-30T19:58:00Z",
+   "2026-09-30T20:06:00Z"
+  ],
+  "scale_window": [
+   "2026-09-30T19:59:00Z",
+   "2026-09-30T20:01:00Z"
+  ]
+ },
+ "phases": [
+  {
+   "phase": "prefill",
+   "events": 1253944,
+   "wall_seconds": 243.315,
+   "cpu_seconds": 199.625,
+   "input_events_per_second": null,
+   "persist_events_per_second": 5153.6,
+   "commit_count": 209,
+   "commit_writes_per_event": 0.9588,
+   "commit_azure_units_per_event": 0.9588,
+   "commit_bytes_per_event": 9162.4066,
+   "all_writes_per_event": 0.9588,
+   "all_azure_units_per_event": 0.9588,
+   "checkpoint_count": 0,
+   "checkpoint_seconds_total": 0,
+   "checkpoint_seconds_max": 0.0,
+   "checkpoint_writes": 0,
+   "checkpoint_azure_units": 0,
+   "checkpoint_wal_bytes_max": 0,
+   "emulated_wait_seconds": 0.0,
+   "submitted_events": 1253944,
+   "persisted_events": 1253944,
+   "accounting_difference": 0,
+   "flush_count": 209,
+   "batch_size_p50": 3348,
+   "batch_size_max": 18505,
+   "queue_depth_max": 18505,
+   "queue_limit_pct": 37.0,
+   "max_persist_lag_seconds": 4.134,
+   "writer_overloaded": false,
+   "wal_bytes_max": 0
+  },
+  {
+   "phase": "burst",
+   "events": 104813,
+   "wall_seconds": 24.702,
+   "cpu_seconds": 12.592,
+   "input_events_per_second": null,
+   "persist_events_per_second": 4243.1,
+   "commit_count": 6,
+   "commit_writes_per_event": 1.1567,
+   "commit_azure_units_per_event": 1.1567,
+   "commit_bytes_per_event": 11063.0258,
+   "all_writes_per_event": 1.1567,
+   "all_azure_units_per_event": 1.1567,
+   "checkpoint_count": 0,
+   "checkpoint_seconds_total": 0,
+   "checkpoint_seconds_max": 0.0,
+   "checkpoint_writes": 0,
+   "checkpoint_azure_units": 0,
+   "checkpoint_wal_bytes_max": 0,
+   "emulated_wait_seconds": 0.0,
+   "submitted_events": 104813,
+   "persisted_events": 104813,
+   "accounting_difference": 0,
+   "flush_count": 6,
+   "batch_size_p50": 20000,
+   "batch_size_max": 20000,
+   "queue_depth_max": 50000,
+   "queue_limit_pct": 100.0,
+   "max_persist_lag_seconds": 12.821,
+   "writer_overloaded": false,
+   "wal_bytes_max": 0,
+   "synthetic_events": 0,
+   "scale": 1.0,
+   "emulated_iops": null,
+   "overloaded": false,
+   "overloaded_at_stream_position": null,
+   "stream_events": 104813,
+   "emulated_disk_busy_seconds": null,
+   "emulated_bg_share": null,
+   "emulated_contention_latency": null,
+   "timeline": {
+    "queue_wal_samples": [
+     [
+      0.0,
+      0,
+      0
+     ],
+     [
+      0.25,
+      50000,
+      0
+     ],
+     [
+      0.51,
+      49865,
+      0
+     ],
+     [
+      0.77,
+      50000,
+      0
+     ],
+     [
+      1.02,
+      50000,
+      0
+     ],
+     [
+      1.27,
+      50000,
+      0
+     ],
+     [
+      1.52,
+      50000,
+      0
+     ],
+     [
+      1.77,
+      50000,
+      0
+     ],
+     [
+      2.02,
+      50000,
+      0
+     ],
+     [
+      2.27,
+      50000,
+      0
+     ],
+     [
+      2.52,
+      50000,
+      0
+     ],
+     [
+      2.77,
+      50000,
+      0
+     ],
+     [
+      3.02,
+      50000,
+      0
+     ],
+     [
+      3.27,
+      50000,
+      0
+     ],
+     [
+      3.52,
+      50000,
+      0
+     ],
+     [
+      3.78,
+      50000,
+      0
+     ],
+     [
+      4.03,
+      50000,
+      0
+     ],
+     [
+      4.29,
+      50000,
+      0
+     ],
+     [
+      4.54,
+      50000,
+      0
+     ],
+     [
+      4.79,
+      50000,
+      0
+     ],
+     [
+      5.04,
+      50000,
+      0
+     ],
+     [
+      5.29,
+      50000,
+      0
+     ],
+     [
+      5.54,
+      50000,
+      0
+     ],
+     [
+      5.79,
+      50000,
+      0
+     ],
+     [
+      6.04,
+      50000,
+      0
+     ],
+     [
+      6.29,
+      50000,
+      0
+     ],
+     [
+      6.54,
+      50000,
+      0
+     ],
+     [
+      6.79,
+      50000,
+      0
+     ],
+     [
+      7.05,
+      50000,
+      0
+     ],
+     [
+      7.3,
+      50000,
+      0
+     ],
+     [
+      7.55,
+      44813,
+      0
+     ],
+     [
+      7.8,
+      44813,
+      0
+     ],
+     [
+      8.05,
+      44813,
+      0
+     ],
+     [
+      8.3,
+      44813,
+      0
+     ],
+     [
+      8.55,
+      44813,
+      0
+     ],
+     [
+      8.8,
+      44813,
+      0
+     ],
+     [
+      9.05,
+      44813,
+      0
+     ],
+     [
+      9.31,
+      44813,
+      0
+     ],
+     [
+      9.56,
+      44813,
+      0
+     ],
+     [
+      9.81,
+      41953,
+      0
+     ],
+     [
+      10.07,
+      35176,
+      0
+     ],
+     [
+      10.34,
+      30739,
+      0
+     ],
+     [
+      10.59,
+      24813,
+      0
+     ],
+     [
+      10.84,
+      24813,
+      0
+     ],
+     [
+      11.09,
+      24813,
+      0
+     ],
+     [
+      11.34,
+      24813,
+      0
+     ],
+     [
+      11.59,
+      24813,
+      0
+     ],
+     [
+      11.84,
+      24813,
+      0
+     ],
+     [
+      12.09,
+      24813,
+      0
+     ],
+     [
+      12.34,
+      24813,
+      0
+     ],
+     [
+      12.59,
+      24813,
+      0
+     ],
+     [
+      12.84,
+      24813,
+      0
+     ],
+     [
+      13.09,
+      24813,
+      0
+     ],
+     [
+      13.34,
+      24813,
+      0
+     ],
+     [
+      13.6,
+      18755,
+      0
+     ],
+     [
+      13.86,
+      11693,
+      0
+     ],
+     [
+      14.13,
+      4871,
+      0
+     ],
+     [
+      14.38,
+      4813,
+      0
+     ],
+     [
+      14.63,
+      4813,
+      0
+     ],
+     [
+      14.88,
+      4813,
+      0
+     ],
+     [
+      15.13,
+      4813,
+      0
+     ],
+     [
+      15.38,
+      4813,
+      0
+     ],
+     [
+      15.63,
+      4813,
+      0
+     ],
+     [
+      15.88,
+      4813,
+      0
+     ],
+     [
+      16.13,
+      4813,
+      0
+     ],
+     [
+      16.38,
+      4813,
+      0
+     ],
+     [
+      16.63,
+      4813,
+      0
+     ],
+     [
+      16.88,
+      0,
+      0
+     ],
+     [
+      17.13,
+      0,
+      0
+     ],
+     [
+      17.38,
+      0,
+      0
+     ],
+     [
+      17.63,
+      0,
+      0
+     ],
+     [
+      17.88,
+      0,
+      0
+     ],
+     [
+      18.13,
+      0,
+      0
+     ],
+     [
+      18.38,
+      0,
+      0
+     ],
+     [
+      18.63,
+      0,
+      0
+     ],
+     [
+      18.88,
+      0,
+      0
+     ],
+     [
+      19.13,
+      0,
+      0
+     ],
+     [
+      19.38,
+      0,
+      0
+     ],
+     [
+      19.63,
+      0,
+      0
+     ],
+     [
+      19.88,
+      0,
+      0
+     ],
+     [
+      20.13,
+      0,
+      0
+     ],
+     [
+      20.38,
+      0,
+      0
+     ],
+     [
+      20.63,
+      0,
+      0
+     ],
+     [
+      20.88,
+      0,
+      0
+     ],
+     [
+      21.13,
+      0,
+      0
+     ],
+     [
+      21.38,
+      0,
+      0
+     ],
+     [
+      21.63,
+      0,
+      0
+     ],
+     [
+      21.89,
+      0,
+      0
+     ],
+     [
+      22.14,
+      0,
+      0
+     ],
+     [
+      22.39,
+      0,
+      0
+     ],
+     [
+      22.64,
+      0,
+      0
+     ],
+     [
+      22.89,
+      0,
+      0
+     ],
+     [
+      23.14,
+      0,
+      0
+     ],
+     [
+      23.39,
+      0,
+      0
+     ],
+     [
+      23.64,
+      0,
+      0
+     ],
+     [
+      23.89,
+      0,
+      0
+     ],
+     [
+      24.14,
+      0,
+      0
+     ],
+     [
+      24.39,
+      0,
+      0
+     ]
+    ],
+    "slow_ops": [
+     {
+      "kind": "commit",
+      "t": 1.13,
+      "seconds": 2.27,
+      "azure_units": 21935,
+      "wal_bytes_before": null
+     },
+     {
+      "kind": "commit",
+      "t": 4.35,
+      "seconds": 2.33,
+      "azure_units": 22138,
+      "wal_bytes_before": null
+     },
+     {
+      "kind": "commit",
+      "t": 7.52,
+      "seconds": 2.18,
+      "azure_units": 22139,
+      "wal_bytes_before": null
+     },
+     {
+      "kind": "commit",
+      "t": 10.57,
+      "seconds": 2.79,
+      "azure_units": 22485,
+      "wal_bytes_before": null
+     },
+     {
+      "kind": "commit",
+      "t": 14.13,
+      "seconds": 2.51,
+      "azure_units": 22783,
+      "wal_bytes_before": null
+     },
+     {
+      "kind": "commit",
+      "t": 16.84,
+      "seconds": 1.05,
+      "azure_units": 9754,
+      "wal_bytes_before": null
+     }
+    ]
+   }
+  },
+  {
+   "phase": "tail",
+   "events": 38179,
+   "wall_seconds": 10.329,
+   "cpu_seconds": 6.817,
+   "input_events_per_second": null,
+   "persist_events_per_second": 3696.3,
+   "commit_count": 6,
+   "commit_writes_per_event": 1.544,
+   "commit_azure_units_per_event": 1.544,
+   "commit_bytes_per_event": 14252.9085,
+   "all_writes_per_event": 1.544,
+   "all_azure_units_per_event": 1.544,
+   "checkpoint_count": 0,
+   "checkpoint_seconds_total": 0,
+   "checkpoint_seconds_max": 0.0,
+   "checkpoint_writes": 0,
+   "checkpoint_azure_units": 0,
+   "checkpoint_wal_bytes_max": 0,
+   "emulated_wait_seconds": 0.0,
+   "submitted_events": 38179,
+   "persisted_events": 38179,
+   "accounting_difference": 0,
+   "flush_count": 6,
+   "batch_size_p50": 6948,
+   "batch_size_max": 16504,
+   "queue_depth_max": 16504,
+   "queue_limit_pct": 33.0,
+   "max_persist_lag_seconds": 3.966,
+   "writer_overloaded": false,
+   "wal_bytes_max": 0
+  }
+ ],
+ "finalization": {
+  "journal_mode_before": "delete",
+  "wal_bytes_before": 0,
+  "sidecars_after_collapse": [],
+  "journal_mode_after": "delete",
+  "quick_check": "ok",
+  "quick_check_seconds_warm": 1.295,
+  "integrity_check": "ok",
+  "integrity_check_seconds_warm": 6.399,
+  "finalization_core_seconds": 7.694,
+  "checksum_sha256": "cce44598d1ec83e41b0f7cf6ce689055cfc5d5719fae0178cc6ee3676e2f6f40",
+  "checksum_seconds_warm": 1.982,
+  "checksum_stable": true,
+  "sidecars_after_close": [],
+  "quick_check_cold": {
+   "seconds": 28.786,
+   "device_reads": 163771,
+   "read_bytes": 700641280
+  },
+  "checksum_cold": {
+   "seconds": 2.435,
+   "device_reads": 721,
+   "read_bytes": 701874176
+  },
+  "finalize_ops": [
+   {
+    "kind": "collapse",
+    "seconds": 0.00021624800137942657,
+    "writes": 0,
+    "write_bytes": 0,
+    "reads": 0
+   }
+  ],
+  "finalize_azure_units": 0
+ },
+ "accounting": {
+  "source_accepted": 1396931,
+  "synthetic_accepted": 0,
+  "source_rejected": 5,
+  "source_deferred": 0,
+  "bench_accepted": 1396931,
+  "bench_rejected": 5,
+  "bench_deferred": 0,
+  "bench_dataset_sequence": [
+   1,
+   1396931,
+   1396931
+  ],
+  "bench_source_order": [
+   1,
+   1396936,
+   1396936
+  ],
+  "submitted_total": 1396936,
+  "persisted_total": 1396936,
+  "bench_journal_mode": "delete",
+  "bench_synchronous": 2,
+  "bench_quick_check": "ok",
+  "bench_integrity_check": "ok",
+  "overloaded": false,
+  "exact": true
+ },
+ "lifecycle_totals": {
+  "events": 1396936,
+  "device_writes": 1382486,
+  "bytes_written": 13192855552,
+  "azure_units": 1382486,
+  "commit_azure_units": 1382486,
+  "checkpoint_azure_units": 0,
+  "azure_units_per_event": 0.9897,
+  "max_rss_mib": 615.6
+ },
+ "db_size_bytes": 700641280,
+ "device": "sda",
+ "generated_at": "2026-10-04T21:36:03.589898+00:00"
+}

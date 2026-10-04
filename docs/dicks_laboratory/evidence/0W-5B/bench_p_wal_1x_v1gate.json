@@ -1,0 +1,183 @@
+{
+ "label": "p_wal_1x",
+ "mode": "paced",
+ "source_db": "es_20260930_9ac5a21e.sqlite3 (authentic 2026-09-30, sha256 61489eea..., read-only copy)",
+ "policy": {
+  "max_events": 20000,
+  "max_interval_seconds": 0.1,
+  "queue_maxsize": 50000,
+  "overload_grace_seconds": 10.0,
+  "sqlite_cache_size_kib": 262144,
+  "journal_mode": "wal",
+  "checkpoint_min_wal_bytes": 67108864,
+  "checkpoint_force_wal_bytes": 1073741824,
+  "checkpoint_quiet_seconds": 5.0,
+  "checkpoint_busy_batch_events": 500
+ },
+ "windows": {
+  "burst_or_window": [
+   "2026-09-30T19:57:00Z",
+   "2026-09-30T20:06:00Z"
+  ],
+  "scale_window": [
+   "2026-09-30T19:59:00Z",
+   "2026-09-30T20:01:00Z"
+  ]
+ },
+ "phases": [
+  {
+   "phase": "prefill",
+   "events": 1246895,
+   "wall_seconds": 186.353,
+   "cpu_seconds": 161.273,
+   "input_events_per_second": null,
+   "persist_events_per_second": 6691.0,
+   "commit_count": 155,
+   "commit_writes_per_event": 0.0069,
+   "commit_azure_units_per_event": 0.0181,
+   "commit_bytes_per_event": 4734.363,
+   "all_writes_per_event": 0.5895,
+   "all_azure_units_per_event": 0.5895,
+   "checkpoint_count": 106,
+   "checkpoint_seconds_total": 25.087,
+   "checkpoint_seconds_max": 1.091,
+   "checkpoint_writes": 726451,
+   "checkpoint_azure_units": 726451,
+   "checkpoint_wal_bytes_max": 145588472,
+   "emulated_wait_seconds": 0.0,
+   "submitted_events": 1246895,
+   "persisted_events": 1246895,
+   "accounting_difference": 0,
+   "flush_count": 155,
+   "batch_size_p50": 8588,
+   "batch_size_max": 20000,
+   "queue_depth_max": 20000,
+   "queue_limit_pct": 40.0,
+   "max_persist_lag_seconds": 2.536,
+   "writer_overloaded": false,
+   "wal_bytes_max": 145588472
+  },
+  {
+   "phase": "paced",
+   "events": 111862,
+   "wall_seconds": 556.634,
+   "cpu_seconds": 17.775,
+   "input_events_per_second": 207.2,
+   "persist_events_per_second": 201.0,
+   "commit_count": 1840,
+   "commit_writes_per_event": 0.0606,
+   "commit_azure_units_per_event": 0.0606,
+   "commit_bytes_per_event": 9444.8717,
+   "all_writes_per_event": 1.407,
+   "all_azure_units_per_event": 1.407,
+   "checkpoint_count": 11,
+   "checkpoint_seconds_total": 249.769,
+   "checkpoint_seconds_max": 44.585,
+   "checkpoint_writes": 150611,
+   "checkpoint_azure_units": 150611,
+   "checkpoint_wal_bytes_max": 302272072,
+   "emulated_wait_seconds": 245.943,
+   "submitted_events": 111862,
+   "persisted_events": 111862,
+   "accounting_difference": 0,
+   "flush_count": 1840,
+   "batch_size_p50": 8,
+   "batch_size_max": 20000,
+   "queue_depth_max": 33422,
+   "queue_limit_pct": 66.8,
+   "max_persist_lag_seconds": 45.491,
+   "writer_overloaded": false,
+   "wal_bytes_max": 302272072,
+   "synthetic_events": 0,
+   "scale": 1.0,
+   "emulated_iops": 603.0,
+   "emulated_disk_busy_seconds": 266.17
+  }
+ ],
+ "finalization": {
+  "journal_mode_before": "wal",
+  "wal_bytes_before": 2043552,
+  "final_checkpoint": [
+   0,
+   0,
+   0
+  ],
+  "sidecars_after_collapse": [],
+  "journal_mode_after": "delete",
+  "quick_check": "ok",
+  "quick_check_seconds_warm": 1.404,
+  "integrity_check": "ok",
+  "integrity_check_seconds_warm": 5.838,
+  "finalization_core_seconds": 8.073,
+  "checksum_sha256": "1bcf036f623a26789e33f89304ca44fd5e00b24ab657a332cba51497084adcaa",
+  "checksum_seconds_warm": 1.903,
+  "checksum_stable": true,
+  "sidecars_after_close": [],
+  "quick_check_cold": {
+   "seconds": 27.35,
+   "device_reads": 158954,
+   "read_bytes": 681693184
+  },
+  "checksum_cold": {
+   "seconds": 2.375,
+   "device_reads": 659,
+   "read_bytes": 681390080
+  },
+  "finalize_ops": [
+   {
+    "kind": "final_checkpoint",
+    "seconds": 0.79435398770147,
+    "writes": 479,
+    "write_bytes": 2150400,
+    "reads": 0
+   },
+   {
+    "kind": "collapse",
+    "seconds": 0.03650039700005436,
+    "writes": 9,
+    "write_bytes": 139264,
+    "reads": 0
+   }
+  ],
+  "finalize_azure_units": 488
+ },
+ "accounting": {
+  "source_accepted": 1358752,
+  "synthetic_accepted": 0,
+  "source_rejected": 5,
+  "source_deferred": 0,
+  "bench_accepted": 1358752,
+  "bench_rejected": 5,
+  "bench_deferred": 0,
+  "bench_dataset_sequence": [
+   1,
+   1358752,
+   1358752
+  ],
+  "bench_source_order": [
+   1,
+   1358757,
+   1358757
+  ],
+  "submitted_total": 1358757,
+  "persisted_total": 1358757,
+  "bench_journal_mode": "delete",
+  "bench_synchronous": 2,
+  "bench_quick_check": "ok",
+  "bench_integrity_check": "ok",
+  "exact": true
+ },
+ "lifecycle_totals": {
+  "events": 1358757,
+  "device_writes": 892919,
+  "bytes_written": 11678416896,
+  "azure_units": 892919,
+  "commit_azure_units": 26550,
+  "checkpoint_azure_units": 877550,
+  "azure_units_per_event": 0.6572,
+  "max_rss_mib": 854.2
+ },
+ "db_size_bytes": 681385984,
+ "device": "sda",
+ "generated_at": "2026-10-04T19:18:34.181103+00:00"
+}

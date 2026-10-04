@@ -4578,3 +4578,40 @@ Full analysis: `WRITER_BURST_HEADROOM_0W5A.md`.
 - **Result.** The headroom target (≤50% queue at 1×, no overload at 2×) is not
   yet met. A WAL-decoupled commit path is the measured follow-up candidate.
 - **Deployment.** Not deployed to `dragon`. Collection remains disarmed.
+
+## MJ. 0W-5B — WAL-Decoupled Persistence (2026-10-04)
+
+Full analysis: `WAL_PERSISTENCE_0W5B.md`; evidence: `evidence/0W-5B/`.
+
+- **Historical qualification preserved.** 0W-4 operational capability is
+  ACCEPTED. Tail completeness of pre-`ef4f133` datasets is NOT FULLY PROVABLE;
+  no dataset was rewritten.
+- **Design (v3).**
+  - OPEN datasets run in WAL with `synchronous=FULL`; commits are sequential
+    WAL appends.
+  - PASSIVE checkpoints run on a separate checkpointer connection, never
+    blocking commits, and only when quiet (or WAL ≥ 1 GiB).
+  - Finalization drains, proves submitted == persisted, collapses to one
+    DELETE-mode file (TRUNCATE + `journal_mode=DELETE`, verified, no
+    sidecars), runs `quick_check`, then writes the closing evidence, the state,
+    the checksum and the manifest.
+  - A collapse failure leaves the dataset truthfully INTERRUPTED.
+  - Two writer-thread checkpoint iterations were measured and rejected: on the
+    writer thread, lag can never be shorter than the longest checkpoint.
+- **Proof.** A crash/recovery matrix A–H using real process kills, plus
+  background-checkpointer, gating and legacy-summary tests. Full repository
+  1,261 passed.
+- **Authentic 09-30 burst, 603-IOPS emulation** (calibrated to live 0W-4):
+  - WAL: 6.2% / 2.2 s at 1×, 8.6% / 3.2 s at 1.5×, 43.5% / 7.4 s at 2×.
+  - Harsh contention: 5.9% / 5.3 s at 1×, 52.6% / 17.5 s at 2×.
+  - Accepted DELETE: 78.1% / 99 s at 1×, overload at 1.5× and 2×.
+  - DELETE at 3,500 IOPS: 66.5% at 2×.
+  - Finalization projected ≈ 66 s warm, ≈ 5.2 min cold.
+  - No disk upgrade is required.
+- **Not deployed.** `dragon` remains at `6f5247f`, deallocated; Azure and guest
+  timers are disarmed.
+
+```
+0W-5B: PASS — WAL-DECOUPLED PERSISTENCE READY FOR ONE-DAY LIVE PROOF
+NEXT: PO REVIEW BEFORE 0W-5C LIVE VALIDATION
+```
