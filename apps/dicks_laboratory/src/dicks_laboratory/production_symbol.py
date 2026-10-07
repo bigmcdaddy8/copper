@@ -13,7 +13,9 @@ they run, so a stale or delisted pin fails safely rather than silently.
 """
 from __future__ import annotations
 
-# 0W-4B: pinned for the 2026-09-21..25 soak week. Historical September 2026
-# datasets (`/ESU6`, `/ESU26:XCME`) are unaffected -- they remain valid on
-# their own recorded instrument identity regardless of this constant.
+# 0W-4B: pinned for the 2026-09-21..25 soak week; still the lead contract.
+# Historical September 2026 datasets (`/ESU6`, `/ESU26:XCME`) are unaffected --
+# they remain valid on their own recorded instrument identity regardless of
+# this constant. 0X-A: change it only through the Human-approved roll workflow
+# (`scripts/dicks_lab_roll_check.py`; docs/dicks_laboratory/FUTURES_CONTRACT_ROLL_0XA.md).
 PINNED_ES_SYMBOL = "/ESZ6"

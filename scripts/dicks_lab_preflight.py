@@ -1,7 +1,9 @@
 """Pre-arm credential + instrument preflight for long-horizon ES capture.
 
-0W-2D: proves OAuth/REST reachability, the futures endpoint, and that /ESU6
-resolves to /ESU26:XCME -- WITHOUT requesting a DXLink quote token. Requesting
+0W-2D: proves OAuth/REST reachability, the futures endpoint, and that the
+pinned contract resolves to its streamer symbol -- WITHOUT requesting a DXLink
+quote token. 0X-A adds the contract-roll status of the pin (warn-only while
+approaching/due; fail-closed when stale, invalid or conflicted). Requesting
 the quote token early starts its ~24h lifetime and was the 0W-2 Attempt-3
 KNOWN_GAP root cause (see docs/dicks_laboratory 0W-2C / 0W-2D). Prints only
 booleans / counts. Exit 0 = PASS.
@@ -11,12 +13,15 @@ token at startup) at the actual session launch.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import typer
 from dotenv import load_dotenv
 
 from K9.tastytrade.client import TastytradeClient
 from K9.tastytrade.settings import TastytradeSettings
 from dicks_laboratory.es_contract import expected_streamer_symbol
+from dicks_laboratory.futures_contracts import RollSeverity, assess_roll, upcoming_trading_date
 from dicks_laboratory.preflight import run_credential_preflight
 from dicks_laboratory.production_symbol import PINNED_ES_SYMBOL
 
@@ -43,9 +48,19 @@ def preflight() -> None:
         f"streamer_symbol_matches_{_EXPECTED_STREAMER}="
         f"{str(result.streamer_symbol_matches).lower()}"
     )
+    # 0X-A: contract-roll status of the pin for the trading date this preflight
+    # protects, from the same metadata response. ROLL_APPROACHING / ROLL_DUE
+    # warn only; a stale, invalid or conflicted pin fails closed. Never re-pins.
+    roll = assess_roll(result.futures_metadata, _SYMBOL, upcoming_trading_date(datetime.now(tz=timezone.utc)))
+    typer.echo(f"roll_trading_date={roll.trading_date.isoformat()}")
+    typer.echo(f"roll_state={roll.state.value} roll_severity={roll.severity.value}")
+    for reason in roll.reasons:
+        typer.echo(f"roll_reason={reason}")
+    typer.echo(f"roll_recommended_action={roll.recommended_action}")
     typer.echo("quote_token_requested=false")
-    typer.echo(f"PREFLIGHT_RESULT={'PASS' if result.ok else 'FAIL'}")
-    if not result.ok:
+    ok = result.ok and roll.severity is not RollSeverity.FAIL
+    typer.echo(f"PREFLIGHT_RESULT={'PASS' if ok else 'FAIL'}")
+    if not ok:
         raise typer.Exit(code=1)
 
 

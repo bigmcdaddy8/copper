@@ -10,7 +10,7 @@ The quote token is obtained only at real collector startup.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 
@@ -30,6 +30,9 @@ class CredentialPreflightResult:
     futures_count: int
     symbol_resolves: bool
     streamer_symbol_matches: bool
+    # 0X-A: the same single `list_futures()` response, kept so the roll check
+    # needs no second REST call. Public instrument metadata only.
+    futures_metadata: list[dict] | None = field(default=None, repr=False, compare=False)
 
     @property
     def ok(self) -> bool:
@@ -86,4 +89,5 @@ def run_credential_preflight(
         futures_count=len(futures),
         symbol_resolves=symbol_resolves,
         streamer_symbol_matches=streamer_symbol_matches,
+        futures_metadata=futures,
     )
