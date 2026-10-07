@@ -1,7 +1,9 @@
 # Safe credential/instrument preflight gate for Dick's Laboratory bounded ES
 # capture launches. Runs the existing accepted `dicks_lab_preflight.py`
-# (0W-2D) -- REST/OAuth reachability, futures endpoint, /ESU6 -> /ESU26:XCME
-# resolution -- WITHOUT requesting a DXLink quote token. On success only,
+# (0W-2D) -- REST/OAuth reachability, futures endpoint, pinned-contract
+# (`production_symbol.PINNED_ES_SYMBOL`) -> streamer-symbol resolution, and
+# (0X-B) contract-roll status: ROLL_DUE / stale / invalid pins fail --
+# WITHOUT requesting a DXLink quote token. On success only,
 # creates a boot-ephemeral marker that dicks-lab-launch-gate.service requires
 # before starting the real, untouched production dicks-lab-es-session.service.
 #

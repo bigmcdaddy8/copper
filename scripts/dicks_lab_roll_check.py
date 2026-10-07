@@ -6,7 +6,9 @@ never changes the production pin. `--metadata-json` replays a saved
 
   check  -- roll status of the pinned production contract for a trading date
   chain  -- nearby listed contracts for a Laboratory universe root
-Exit code: `check` exits 1 when the assessment severity is FAIL.
+Exit code reflects production readiness (0X-B): `check` exits 0 for CURRENT /
+ROLL_APPROACHING (and a warning-level METADATA_CONFLICT), 1 for ROLL_DUE and
+every FAIL state -- exactly when the production preflight would refuse.
 """
 from __future__ import annotations
 
@@ -105,6 +107,8 @@ def check(
         typer.echo(f"  - {reason}")
     typer.echo("")
     typer.echo(f"Recommended production action:\n  {a.recommended_action}")
+    readiness = {RollSeverity.OK: "PASS", RollSeverity.WARN: "PASS + WARNING", RollSeverity.FAIL: "FAIL"}[a.severity]
+    typer.echo(f"\nProduction readiness (preflight policy):\n  {readiness}")
     typer.echo("")
     typer.echo("Read-only: no quote token requested; the production pin is never changed by this tool.")
     if roll_record_draft_path is not None:

@@ -260,8 +260,9 @@ class RollState(StrEnum):
 
 class RollSeverity(StrEnum):
     OK = "OK"
-    WARN = "WARN"  # non-blocking: production preflight still passes
-    FAIL = "FAIL"  # production preflight fails closed
+    # Severity IS the production-preflight consequence (0X-B policy):
+    WARN = "WARN"  # non-blocking: production preflight passes with warning lines
+    FAIL = "FAIL"  # production preflight fails closed (incl. ROLL_DUE since 0X-B)
 
 
 @dataclass(frozen=True)
@@ -295,8 +296,10 @@ def assess_roll(
 
     Precedence: invalid pin / unavailable metadata / stale pin / identity
     conflicts FAIL first; otherwise the exchange lifecycle phase decides
-    CURRENT / ROLL_APPROACHING / ROLL_DUE, and broker active-month
-    disagreement is reported (WARN) without overriding the exchange phase.
+    CURRENT (OK) / ROLL_APPROACHING (WARN) / ROLL_DUE (FAIL, 0X-B), and broker
+    active-month disagreement is reported without overriding the exchange
+    phase -- as a WARN-level METADATA_CONFLICT only while the pin is otherwise
+    CURRENT (identity-level conflicts are FAIL above).
     """
     try:
         parsed = parse_contract_symbol(pinned_symbol)
@@ -373,8 +376,13 @@ def assess_roll(
         reasons = [f"customary roll {roll_date} reached (trading date {trading_date}); {pinned_symbol} expires {pinned.expiration_date}"]
         if broker_active is not None and broker_active.broker_symbol == pinned_symbol:
             reasons.append("note: broker still flags the pin as active-month")
-        return _result(root, trading_date, pinned_symbol, RollState.ROLL_DUE, RollSeverity.WARN, reasons,
-                       _roll_action("HUMAN: APPROVE ROLL NOW", pinned_symbol, candidate), **facts)
+        # 0X-B: the production objective is the intended LEAD contract. Past the
+        # customary roll the pin is no longer the lead, so production fails
+        # closed even though the contract is still tradeable. Never re-pins.
+        reasons.append("production policy: the pin is no longer the customary lead contract")
+        return _result(root, trading_date, pinned_symbol, RollState.ROLL_DUE, RollSeverity.FAIL, reasons,
+                       _roll_action("ROLL REQUIRED BEFORE PRODUCTION CAPTURE -- HUMAN APPROVAL",
+                                    pinned_symbol, candidate), **facts)
     if trading_date >= approaching_from:
         reasons = [f"customary roll {roll_date} is {(roll_date - trading_date).days} calendar days away "
                    f"(warning window starts {approaching_from})"] + broker_notes

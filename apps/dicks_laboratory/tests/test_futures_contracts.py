@@ -172,15 +172,18 @@ def test_approaching_the_day_before_roll():
     assert (a.state, a.severity) == (RollState.ROLL_APPROACHING, RollSeverity.WARN)
 
 
-def test_on_customary_roll_date_is_roll_due_warn():
+def test_on_customary_roll_date_is_roll_due_fail():
+    # 0X-B: production captures the intended LEAD contract; past the customary
+    # roll the old pin fails closed even though it is still tradeable.
     a = assess_roll(_es_chain(), "/ESZ6", date(2026, 12, 14))
-    assert (a.state, a.severity) == (RollState.ROLL_DUE, RollSeverity.WARN)
-    assert "APPROVE ROLL" in a.recommended_action and "/ESH7" in a.recommended_action
+    assert (a.state, a.severity) == (RollState.ROLL_DUE, RollSeverity.FAIL)
+    assert "ROLL REQUIRED BEFORE PRODUCTION CAPTURE" in a.recommended_action
+    assert "HUMAN APPROVAL" in a.recommended_action and "/ESH7" in a.recommended_action
 
 
 def test_after_roll_while_old_pin_remains():
     a = assess_roll(_es_chain(z6_active=False, h7_next=False), "/ESZ6", date(2026, 12, 17))
-    assert (a.state, a.severity) == (RollState.ROLL_DUE, RollSeverity.WARN)
+    assert (a.state, a.severity) == (RollState.ROLL_DUE, RollSeverity.FAIL)
 
 
 def test_on_expiration_trading_date_pin_is_stale_fail():
@@ -289,3 +292,34 @@ def test_roll_record_draft_captures_provenance_without_decision():
 ])
 def test_upcoming_trading_date(now, expected):
     assert upcoming_trading_date(datetime.fromisoformat(now)) == expected
+
+
+# --- 0X-B: December 2026 production transition table --------------------------------
+
+
+@pytest.mark.parametrize("td,state,severity", [
+    (date(2026, 11, 29), RollState.CURRENT, RollSeverity.OK),             # day before warning window
+    (date(2026, 11, 30), RollState.ROLL_APPROACHING, RollSeverity.WARN),  # warning window first day
+    (date(2026, 12, 11), RollState.ROLL_APPROACHING, RollSeverity.WARN),  # last trading date before roll
+    (date(2026, 12, 13), RollState.ROLL_APPROACHING, RollSeverity.WARN),  # calendar day before roll
+    (date(2026, 12, 14), RollState.ROLL_DUE, RollSeverity.FAIL),          # customary roll trading date
+    (date(2026, 12, 15), RollState.ROLL_DUE, RollSeverity.FAIL),          # after customary roll
+    (date(2026, 12, 17), RollState.ROLL_DUE, RollSeverity.FAIL),
+    (date(2026, 12, 18), RollState.PIN_STALE, RollSeverity.FAIL),         # expiration
+])
+def test_december_2026_transition_for_z6_pin(td, state, severity):
+    a = assess_roll(_es_chain(), "/ESZ6", td)
+    assert (a.state, a.severity) == (state, severity)
+
+
+def test_early_broker_discrepancy_stays_warning_level_not_production_invalid():
+    futures = _es_chain(z6_active=False)
+    futures[2]["active-month"] = True
+    a = assess_roll(futures, "/ESZ6", date(2026, 10, 7))
+    assert (a.state, a.severity) == (RollState.METADATA_CONFLICT, RollSeverity.WARN)
+
+
+def test_december_published_dates_keep_cme_published_provenance():
+    entry = exchange_calendar_entry(LABORATORY_UNIVERSE["ES"], 2026, 12)
+    assert entry.source == "CME_PUBLISHED"
+    assert assess_roll(_es_chain(), "/ESZ6", date(2026, 10, 7)).exchange.source == "CME_PUBLISHED"
