@@ -4715,3 +4715,30 @@ STANDARDSSD: PASS — SUFFICIENT WITH WAL
 CAPTURE / PERSISTENCE INFRASTRUCTURE: READY TO LEAVE ACTIVE DEVELOPMENT
 NEXT: 0X-A — FUTURES INSTRUMENT UNIVERSE & CONTRACT-ROLL FOUNDATION
 ```
+
+## ML. 0X-A — Futures Instrument Universe & Contract-Roll Foundation (2026-10-07)
+
+Full write-up: `FUTURES_CONTRACT_ROLL_0XA.md`; evidence: `evidence/0X-A/`.
+
+- **Read-only foundation, no auto-roll.** New `futures_contracts.py` keeps
+  three concepts separate: the CME exchange lifecycle, Tastytrade broker
+  metadata, and the Laboratory production pin. It holds a small ES/MES/NQ/MNQ
+  universe and a deterministic, explained `assess_roll`.
+- **ES schedule verified.** The `/ESZ6` customary roll is **2026-12-14** and
+  expiration **2026-12-18**. `/ESH7` is next-active.
+  - Warning window: TD 2026-11-30.
+  - Re-pin deploy deadline: Sun 2026-12-13 17:00 CT.
+  - Fail-closed: TD 2026-12-18.
+- **Tools.**
+  - `scripts/dicks_lab_roll_check.py` (`check` / `chain`) is the Human's roll
+    tool.
+  - The production preflight now reports roll status from the same single
+    metadata call. It warns on APPROACHING/DUE and fails closed when the pin
+    is stale, invalid or conflicted.
+  - The preflight change is not yet deployed to `dragon`.
+- 65 new tests. Full suite 1,326 passed. Collection stays disarmed.
+
+```
+0X-A: READY FOR REVIEW
+NEXT: PO REVIEW BEFORE MARKET-PROFILE DEVELOPMENT
+```

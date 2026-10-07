@@ -1,0 +1,86 @@
+# captured 2026-10-07T02:32:06Z on robby, live REST (list_futures only, no quote token)
+$ uv run --frozen python scripts/dicks_lab_roll_check.py check
+Product: ES
+Trading date: 2026-10-07
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  CURRENT (OK)
+  - customary roll 2026-12-14; warning window starts 2026-11-30
+
+Recommended production action:
+  NONE
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+
+$ uv run --frozen python scripts/dicks_lab_roll_check.py chain ES
+Product: ES -- E-mini S&P 500 (CME)
+Listed cycle (policy): HMUZ
+Broker: listed-months HMUZ  tick 0.25  multiplier 50.0
+
+symbol    streamer        instrument_id            expires     active next  tradeable closing_only
+/ESZ6     /ESZ26:XCME     FUTURE:CME:ES:2026-12    2026-12-18  yes    no    yes       no
+/ESH7     /ESH27:XCME     FUTURE:CME:ES:2027-03    2027-03-19  no     yes   yes       no
+/ESM7     /ESM27:XCME     FUTURE:CME:ES:2027-06    2027-06-17  no     no    yes       no
+/ESU7     /ESU27:XCME     FUTURE:CME:ES:2027-09    2027-09-17  no     no    yes       no
+
+$ uv run --frozen python scripts/dicks_lab_roll_check.py chain MES
+Product: MES -- Micro E-mini S&P 500 (CME)
+Listed cycle (policy): HMUZ   micro of ES
+Broker: listed-months HMUZ  tick 0.25  multiplier 5.0
+
+symbol    streamer        instrument_id            expires     active next  tradeable closing_only
+/MESZ6    /MESZ26:XCME    FUTURE:CME:MES:2026-12   2026-12-18  yes    no    yes       no
+/MESH7    /MESH27:XCME    FUTURE:CME:MES:2027-03   2027-03-19  no     yes   yes       no
+/MESM7    /MESM27:XCME    FUTURE:CME:MES:2027-06   2027-06-17  no     no    yes       no
+
+$ uv run --frozen python scripts/dicks_lab_roll_check.py chain NQ
+Product: NQ -- E-mini Nasdaq-100 (CME)
+Listed cycle (policy): HMUZ
+Broker: listed-months HMUZ  tick 0.25  multiplier 20.0
+
+symbol    streamer        instrument_id            expires     active next  tradeable closing_only
+/NQZ6     /NQZ26:XCME     FUTURE:CME:NQ:2026-12    2026-12-18  yes    no    yes       no
+/NQH7     /NQH27:XCME     FUTURE:CME:NQ:2027-03    2027-03-19  no     yes   yes       no
+/NQM7     /NQM27:XCME     FUTURE:CME:NQ:2027-06    2027-06-17  no     no    yes       no
+/NQU7     /NQU27:XCME     FUTURE:CME:NQ:2027-09    2027-09-17  no     no    yes       no
+
+$ uv run --frozen python scripts/dicks_lab_roll_check.py chain MNQ
+Product: MNQ -- Micro E-mini Nasdaq-100 (CME)
+Listed cycle (policy): HMUZ   micro of NQ
+Broker: listed-months HMUZ  tick 0.25  multiplier 2.0
+
+symbol    streamer        instrument_id            expires     active next  tradeable closing_only
+/MNQZ6    /MNQZ26:XCME    FUTURE:CME:MNQ:2026-12   2026-12-18  yes    no    yes       no
+/MNQH7    /MNQH27:XCME    FUTURE:CME:MNQ:2027-03   2027-03-19  no     yes   yes       no
+/MNQM7    /MNQM27:XCME    FUTURE:CME:MNQ:2027-06   2027-06-17  no     no    yes       no
+
+$ uv run --frozen python scripts/dicks_lab_preflight.py
+rest_reachable=true
+futures_endpoint_usable=true count=534
+symbol_/ESZ6_resolves=true
+streamer_symbol_matches_/ESZ26:XCME=true
+roll_trading_date=2026-10-07
+roll_state=CURRENT roll_severity=OK
+roll_reason=customary roll 2026-12-14; warning window starts 2026-11-30
+roll_recommended_action=NONE
+quote_token_requested=false
+PREFLIGHT_RESULT=PASS
+rc=0

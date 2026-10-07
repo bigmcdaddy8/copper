@@ -1,0 +1,3666 @@
+{
+ "rows": [
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-06-17",
+   "contract-size": "5.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "MESM7",
+   "expiration-date": "2027-06-17",
+   "expires-at": "2027-06-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 51,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "MS",
+    "clearing-exchange-code": "16",
+    "clearport-code": "MES",
+    "code": "MES",
+    "description": "Micro E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "MES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "5.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 3,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "equity_index"
+    },
+    "root-symbol": "/MES",
+    "security-group": "MES",
+    "small-notional": true,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-06-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "5.0",
+   "product-code": "MES",
+   "product-group": "CME_ES",
+   "security-id": "42023308",
+   "stops-trading-at": "2027-06-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/MESM27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/MESM7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-03-19",
+   "contract-size": "2.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "MNQH7",
+   "expiration-date": "2027-03-19",
+   "expires-at": "2027-03-19T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 83,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "MQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "MNQ",
+    "code": "MNQ",
+    "description": "Micro E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "MNQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "2.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 3,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "equity_index"
+    },
+    "root-symbol": "/MNQ",
+    "security-group": "MNQ",
+    "small-notional": true,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-03-19",
+   "main-fraction": "0.0",
+   "next-active-month": true,
+   "notional-multiplier": "2.0",
+   "product-code": "MNQ",
+   "product-group": "CME_EQUITY",
+   "security-id": "42019197",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/MNQM7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-03-19T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/MNQH27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/MNQH7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-06-17",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42140856"
+   },
+   "exchange-symbol": "ESM7",
+   "expiration-date": "2027-06-17",
+   "expires-at": "2027-06-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-06-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42140856",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESU7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESH8",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-06-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESM27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESM7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": true,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2026-12-18",
+   "contract-size": "5.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "MESZ6",
+   "expiration-date": "2026-12-18",
+   "expires-at": "2026-12-18T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 51,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "MS",
+    "clearing-exchange-code": "16",
+    "clearport-code": "MES",
+    "code": "MES",
+    "description": "Micro E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "MES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "5.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 3,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "equity_index"
+    },
+    "root-symbol": "/MES",
+    "security-group": "MES",
+    "small-notional": true,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2026-12-18",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "5.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "MES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/MESH7",
+   "security-id": "42001581",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/MESH7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/MESM7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2026-12-18T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/MESZ26:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/MESZ6",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-06-17",
+   "contract-size": "20.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "NQM7",
+   "expiration-date": "2027-06-17",
+   "expires-at": "2027-06-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 829,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "NQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "NQ",
+    "code": "NQ",
+    "description": "E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "NQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "20.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/NQ",
+    "security-group": "NQ",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-06-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "20.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "NQ",
+   "product-group": "CME_EQUITY",
+   "security-id": "42019315",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/NQU7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/NQZ7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-06-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/NQM27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/NQM7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": true,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2026-12-18",
+   "contract-size": "20.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "261401"
+   },
+   "exchange-symbol": "NQZ6",
+   "expiration-date": "2026-12-18",
+   "expires-at": "2026-12-18T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 829,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "NQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "NQ",
+    "code": "NQ",
+    "description": "E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "NQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "20.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/NQ",
+    "security-group": "NQ",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2026-12-18",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "20.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "NQ",
+   "product-group": "CME_EQUITY",
+   "roll-target-symbol": "/NQH7",
+   "security-id": "261401",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/NQH7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/NQM7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/NQU7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/NQZ7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2026-12-18T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/NQZ26:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/NQZ6",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2028-03-17",
+   "contract-size": "20.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "NQH8",
+   "expiration-date": "2028-03-17",
+   "expires-at": "2028-03-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 829,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "NQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "NQ",
+    "code": "NQ",
+    "description": "E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "NQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "20.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/NQ",
+    "security-group": "NQ",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2028-03-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "20.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "NQ",
+   "product-group": "CME_EQUITY",
+   "security-id": "42030566",
+   "stops-trading-at": "2028-03-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/NQH28:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/NQH8",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2019-06-21",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42005050"
+   },
+   "exchange-symbol": "ESM9",
+   "expiration-date": "2029-06-15",
+   "expires-at": "2029-06-15T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2029-06-15",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42005050",
+   "stops-trading-at": "2029-06-15T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESM29:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESM9",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2018-03-16",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42140879"
+   },
+   "exchange-symbol": "ESH8",
+   "expiration-date": "2028-03-17",
+   "expires-at": "2028-03-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2028-03-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42140879",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESM8",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU8",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2028-03-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESH28:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESH8",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2021-09-17",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "ESU1",
+   "expiration-date": "2031-09-19",
+   "expires-at": "2031-09-19T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2031-09-19",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESZ1",
+   "security-id": "42043646",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESZ1",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2031-09-19T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESU31:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESU1",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2021-12-17",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "ESZ1",
+   "expiration-date": "2031-12-19",
+   "expires-at": "2031-12-19T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2031-12-19",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESZ6",
+   "security-id": "42031296",
+   "stops-trading-at": "2031-12-19T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESZ31:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESZ1",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-06-17",
+   "contract-size": "2.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "MNQM7",
+   "expiration-date": "2027-06-17",
+   "expires-at": "2027-06-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 83,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "MQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "MNQ",
+    "code": "MNQ",
+    "description": "Micro E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "MNQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "2.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 3,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "equity_index"
+    },
+    "root-symbol": "/MNQ",
+    "security-group": "MNQ",
+    "small-notional": true,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-06-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "2.0",
+   "product-code": "MNQ",
+   "product-group": "CME_EQUITY",
+   "security-id": "42022776",
+   "stops-trading-at": "2027-06-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/MNQM27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/MNQM7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2021-06-18",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "ESM1",
+   "expiration-date": "2031-06-20",
+   "expires-at": "2031-06-20T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2031-06-20",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESU1",
+   "security-id": "42018369",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESU1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ1",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2031-06-20T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESM31:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESM1",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2021-03-19",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "ESH1",
+   "expiration-date": "2031-03-21",
+   "expires-at": "2031-03-21T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2031-03-21",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESM1",
+   "security-id": "42004833",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESM1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ1",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2031-03-21T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESH31:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESH1",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2020-09-18",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "ESU0",
+   "expiration-date": "2030-09-20",
+   "expires-at": "2030-09-20T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2030-09-20",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESZ0",
+   "security-id": "42004613",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESH1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ0",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU1",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2030-09-20T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESU30:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESU0",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2020-06-19",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": null
+   },
+   "exchange-symbol": "ESM0",
+   "expiration-date": "2030-06-21",
+   "expires-at": "2030-06-21T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2030-06-21",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESU0",
+   "security-id": "42004092",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESH1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU0",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ0",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2030-06-21T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESM30:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESM0",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2020-12-18",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "ESZ0",
+   "expiration-date": "2030-12-20",
+   "expires-at": "2030-12-20T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2030-12-20",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESH1",
+   "security-id": "42004653",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESZ1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESH1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU1",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2030-12-20T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESZ30:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESZ0",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2020-03-20",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42000746"
+   },
+   "exchange-symbol": "ESH0",
+   "expiration-date": "2030-03-15",
+   "expires-at": "2030-03-15T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2030-03-15",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESM0",
+   "security-id": "42000746",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESM0",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESH1",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU0",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ0",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2030-03-15T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESH30:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESH0",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2019-12-20",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42004134"
+   },
+   "exchange-symbol": "ESZ9",
+   "expiration-date": "2029-12-21",
+   "expires-at": "2029-12-21T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2029-12-21",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42004134",
+   "stops-trading-at": "2029-12-21T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESZ29:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESZ9",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2019-09-20",
+   "contract-size": "0.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42000977"
+   },
+   "exchange-symbol": "ESU9",
+   "expiration-date": "2029-09-21",
+   "expires-at": "2029-09-21T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2029-09-21",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "value": "0.25"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42000977",
+   "stops-trading-at": "2029-09-21T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESU29:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESU9",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2019-03-15",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42002687"
+   },
+   "exchange-symbol": "ESH9",
+   "expiration-date": "2029-03-16",
+   "expires-at": "2029-03-16T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2029-03-16",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42002687",
+   "stops-trading-at": "2029-03-16T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESH29:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESH9",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2018-12-21",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42033138"
+   },
+   "exchange-symbol": "ESZ8",
+   "expiration-date": "2028-12-15",
+   "expires-at": "2028-12-15T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2028-12-15",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42033138",
+   "stops-trading-at": "2028-12-15T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESZ28:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESZ8",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2018-09-21",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42140861"
+   },
+   "exchange-symbol": "ESU8",
+   "expiration-date": "2028-09-15",
+   "expires-at": "2028-09-15T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2028-09-15",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42140861",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESZ8",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2028-09-15T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESU28:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESU8",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2018-06-15",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42140863"
+   },
+   "exchange-symbol": "ESM8",
+   "expiration-date": "2028-06-16",
+   "expires-at": "2028-06-16T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": true,
+   "is-tradeable": true,
+   "last-trade-date": "2028-06-16",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42140863",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESU8",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2028-06-16T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESM28:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESM8",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-12-17",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "17740"
+   },
+   "exchange-symbol": "ESZ7",
+   "expiration-date": "2027-12-17",
+   "expires-at": "2027-12-17T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-12-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESZ2",
+   "security-id": "17740",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESH8",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM8",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-12-17T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESZ27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESZ7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-03-19",
+   "contract-size": "5.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "MESH7",
+   "expiration-date": "2027-03-19",
+   "expires-at": "2027-03-19T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 51,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "MS",
+    "clearing-exchange-code": "16",
+    "clearport-code": "MES",
+    "code": "MES",
+    "description": "Micro E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "MES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "5.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 3,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "equity_index"
+    },
+    "root-symbol": "/MES",
+    "security-group": "MES",
+    "small-notional": true,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-03-19",
+   "main-fraction": "0.0",
+   "next-active-month": true,
+   "notional-multiplier": "5.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "MES",
+   "product-group": "CME_ES",
+   "security-id": "42003945",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/MESM7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-03-19T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/MESH27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/MESH7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": true,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2026-12-18",
+   "contract-size": "2.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "MNQZ6",
+   "expiration-date": "2026-12-18",
+   "expires-at": "2026-12-18T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 83,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "MQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "MNQ",
+    "code": "MNQ",
+    "description": "Micro E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "MNQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "2.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 3,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "equity_index"
+    },
+    "root-symbol": "/MNQ",
+    "security-group": "MNQ",
+    "small-notional": true,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2026-12-18",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "2.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "MNQ",
+   "product-group": "CME_EQUITY",
+   "roll-target-symbol": "/MNQH7",
+   "security-id": "42005282",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/MNQH7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/MNQM7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2026-12-18T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/MNQZ26:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/MNQZ6",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-09-17",
+   "contract-size": "20.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "NQU7",
+   "expiration-date": "2027-09-17",
+   "expires-at": "2027-09-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 829,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "NQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "NQ",
+    "code": "NQ",
+    "description": "E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "NQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "20.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/NQ",
+    "security-group": "NQ",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-09-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "20.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "NQ",
+   "product-group": "CME_EQUITY",
+   "security-id": "42009738",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/NQZ7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-09-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/NQU27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/NQU7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-12-17",
+   "contract-size": "20.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "23041"
+   },
+   "exchange-symbol": "NQZ7",
+   "expiration-date": "2027-12-17",
+   "expires-at": "2027-12-17T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 829,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "NQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "NQ",
+    "code": "NQ",
+    "description": "E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "NQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "20.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/NQ",
+    "security-group": "NQ",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-12-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "20.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "NQ",
+   "product-group": "CME_EQUITY",
+   "roll-target-symbol": "/NQZ2",
+   "security-id": "23041",
+   "stops-trading-at": "2027-12-17T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/NQZ27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/NQZ7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-09-17",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42140874"
+   },
+   "exchange-symbol": "ESU7",
+   "expiration-date": "2027-09-17",
+   "expires-at": "2027-09-17T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-09-17",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42140874",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESH8",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM8",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-09-17T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESU27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESU7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-03-19",
+   "contract-size": "20.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-symbol": "NQH7",
+   "expiration-date": "2027-03-19",
+   "expires-at": "2027-03-19T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 829,
+    "symbol": "QQQ"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "NQ",
+    "clearing-exchange-code": "16",
+    "clearport-code": "NQ",
+    "code": "NQ",
+    "description": "E Mini Nasdaq",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "NQ",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "20.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/NQ",
+    "security-group": "NQ",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "Nasdaq 100 Index",
+    "underlying-identifier": "NDX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-03-19",
+   "main-fraction": "0.0",
+   "next-active-month": true,
+   "notional-multiplier": "20.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "threshold": "500.0",
+     "value": "0.5"
+    },
+    {
+     "value": "1.0"
+    }
+   ],
+   "product-code": "NQ",
+   "product-group": "CME_EQUITY",
+   "security-id": "42005205",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/NQU7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/NQZ7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/NQM7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-03-19T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/NQH27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/NQH7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": false,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2027-03-19",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "42140860"
+   },
+   "exchange-symbol": "ESH7",
+   "expiration-date": "2027-03-19",
+   "expires-at": "2027-03-19T13:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2027-03-19",
+   "main-fraction": "0.0",
+   "next-active-month": true,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "security-id": "42140860",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESZ7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESH8",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESU7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2027-03-19T13:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESH27:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESH7",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  },
+  {
+   "active": true,
+   "active-month": true,
+   "back-month-first-calendar-symbol": true,
+   "closing-only-date": "2026-12-18",
+   "contract-size": "50.0",
+   "display-factor": "0.01",
+   "exchange": "CME",
+   "exchange-data": {
+    "security_id": "10252"
+   },
+   "exchange-symbol": "ESZ6",
+   "expiration-date": "2026-12-18",
+   "expires-at": "2026-12-18T14:30:00.000+00:00",
+   "future-etf-equivalent": {
+    "share-quantity": 505,
+    "symbol": "SPY"
+   },
+   "future-product": {
+    "active-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "back-month-first-calendar-symbol": true,
+    "cash-settled": true,
+    "clearing-code": "ES",
+    "clearing-exchange-code": "16",
+    "clearport-code": "ES",
+    "code": "ES",
+    "description": "E Mini S&P",
+    "display-factor": "0.01",
+    "exchange": "CME",
+    "first-notice": false,
+    "futures-trading-cutoff-times": [
+     {
+      "offset-seconds": 34200,
+      "timezone": "Market Zone",
+      "timing": "Default"
+     }
+    ],
+    "legacy-code": "ES",
+    "legacy-exchange-code": "CME",
+    "listed-months": [
+     "H",
+     "M",
+     "U",
+     "Z"
+    ],
+    "market-sector": "Equity Index",
+    "notional-multiplier": "50.0",
+    "product-type": "Financial",
+    "roll": {
+     "active-count": 6,
+     "business-days-offset": 4,
+     "cash-settled": true,
+     "first-notice": false,
+     "name": "expanded_offering_equity_index"
+    },
+    "root-symbol": "/ES",
+    "security-group": "ES",
+    "small-notional": false,
+    "streamer-exchange-code": "XCME",
+    "supported": true,
+    "tick-size": "0.25",
+    "underlying-description": "S&P 500 Index",
+    "underlying-identifier": "SPX"
+   },
+   "is-closing-only": false,
+   "is-tradeable": true,
+   "last-trade-date": "2026-12-18",
+   "main-fraction": "0.0",
+   "next-active-month": false,
+   "notional-multiplier": "50.0",
+   "option-tick-sizes": [
+    {
+     "threshold": "5.0",
+     "value": "0.05"
+    },
+    {
+     "threshold": "20.0",
+     "value": "0.1"
+    },
+    {
+     "threshold": "100.0",
+     "value": "0.25"
+    },
+    {
+     "value": "0.5"
+    }
+   ],
+   "product-code": "ES",
+   "product-group": "CME_ES",
+   "roll-target-symbol": "/ESH7",
+   "security-id": "10252",
+   "spread-tick-sizes": [
+    {
+     "symbol": "/ESU7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESZ7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESH7",
+     "value": "0.05"
+    },
+    {
+     "symbol": "/ESM7",
+     "value": "0.05"
+    }
+   ],
+   "stops-trading-at": "2026-12-18T14:30:00.000+00:00",
+   "streamer-exchange-code": "XCME",
+   "streamer-symbol": "/ESZ26:XCME",
+   "sub-fraction": "0.0",
+   "symbol": "/ESZ6",
+   "tick-size": "0.25",
+   "tick-sizes": [
+    {
+     "value": "0.25"
+    }
+   ]
+  }
+ ],
+ "source": "Tastytrade REST GET /instruments/futures (list_futures), production, captured 2026-10-07T02:3xZ from robby; no quote token; filtered to ES/MES/NQ/MNQ",
+ "total_rows_all_products": 534
+}

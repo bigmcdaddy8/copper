@@ -1,0 +1,212 @@
+################ --trading-date 2026-10-07 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-10-07
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  CURRENT (OK)
+  - customary roll 2026-12-14; warning window starts 2026-11-30
+
+Recommended production action:
+  NONE
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+################ --trading-date 2026-11-27 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-11-27
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  CURRENT (OK)
+  - customary roll 2026-12-14; warning window starts 2026-11-30
+
+Recommended production action:
+  NONE
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+################ --trading-date 2026-11-30 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-11-30
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  ROLL_APPROACHING (WARN)
+  - customary roll 2026-12-14 is 14 calendar days away (warning window starts 2026-11-30)
+
+Recommended production action:
+  HUMAN: REVIEW AND PREPARE ROLL: /ESZ6 -> /ESH7
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+################ --trading-date 2026-12-11 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-12-11
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  ROLL_APPROACHING (WARN)
+  - customary roll 2026-12-14 is 3 calendar days away (warning window starts 2026-11-30)
+
+Recommended production action:
+  HUMAN: REVIEW AND PREPARE ROLL: /ESZ6 -> /ESH7
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+################ --trading-date 2026-12-14 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-12-14
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  ROLL_DUE (WARN)
+  - customary roll 2026-12-14 reached (trading date 2026-12-14); /ESZ6 expires 2026-12-18
+  - note: broker still flags the pin as active-month
+
+Recommended production action:
+  HUMAN: APPROVE ROLL NOW: /ESZ6 -> /ESH7
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+################ --trading-date 2026-12-17 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-12-17
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  ROLL_DUE (WARN)
+  - customary roll 2026-12-14 reached (trading date 2026-12-17); /ESZ6 expires 2026-12-18
+  - note: broker still flags the pin as active-month
+
+Recommended production action:
+  HUMAN: APPROVE ROLL NOW: /ESZ6 -> /ESH7
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=0
+################ --trading-date 2026-12-18 (offline replay of the 2026-10-07 metadata)
+Product: ES
+Trading date: 2026-12-18
+
+Pinned:
+  /ESZ6
+  FUTURE:CME:ES:2026-12  streamer /ESZ26:XCME
+  expires 2026-12-18 (trading stops 2026-12-18 08:30 CST)
+  tradeable=true closing_only=false tick=0.25 multiplier=50.0
+
+Exchange (CME):
+  customary roll 2026-12-14  expiration 2026-12-18  [CME_PUBLISHED]
+  warning window from 2026-11-30
+
+Broker (Tastytrade metadata):
+  active-month       /ESZ6  /ESZ26:XCME  FUTURE:CME:ES:2026-12  expires 2026-12-18
+  next-active-month  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Exchange successor candidate:
+  /ESH7  /ESH27:XCME  FUTURE:CME:ES:2027-03  expires 2027-03-19
+
+Roll state:
+  PIN_STALE (FAIL)
+  - trading date 2026-12-18 is on/after expiration 2026-12-18 (last trade day session is truncated)
+
+Recommended production action:
+  HUMAN: RE-PIN REQUIRED: /ESZ6 -> /ESH7
+
+Read-only: no quote token requested; the production pin is never changed by this tool.
+rc=1
