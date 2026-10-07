@@ -4615,3 +4615,103 @@ Full analysis: `WAL_PERSISTENCE_0W5B.md`; evidence: `evidence/0W-5B/`.
 0W-5B: PASS — WAL-DECOUPLED PERSISTENCE READY FOR ONE-DAY LIVE PROOF
 NEXT: PO REVIEW BEFORE 0W-5C LIVE VALIDATION
 ```
+
+## MK. 0W-5C — One-Day Live WAL Proof (TD 2026-10-06) — ACCEPTED / CLOSED
+
+Evidence: `evidence/0W-5C/README.md`. Runtime `a27013b` (0W-5B WAL design).
+
+**Part A: actual StandardSSD calibration** (2026-10-05 00:11–01:14Z, arming
+boot, on `dragon-data1`, real writer/checkpointer contention, authentic
+09-30 burst):
+
+| run | queue peak | max lag | overload | accounting |
+|---|---|---|---|---|
+| WAL 1× | 5.5% | 5.6 s | no | exact |
+| WAL 1.5× | 13.5% | 8.6 s | no | exact |
+| **WAL 2×** | **48.8%** | **14.5 s** | **no** | **exact** |
+| DELETE 1× | 65.6% | 105.2 s | no | exact |
+
+**Arming.** `dragon` ff-merged to `a27013b`, gate timers enabled, and one-time
+Azure schedules `dicks-0w5c-dragon-{start,stop}` set for Mon 15:30 / Tue 16:30 CT.
+
+**Live run (fully autonomous).** Each step below ran on its own:
+
+```
+schedule-triggered start 15:30
+→ 16:42 preflight PASS
+→ 16:55 launch gate
+→ collector PID 1883 (fresh 86,400 s token, +1,800 s margin)
+→ CAPTURE_STARTED 17:00:00.000
+→ CAPTURE_STOPPED 16:00:00.436
+→ manifest 16:00:12.850
+→ exit 16:10:02
+→ schedule-triggered deallocate 16:31:41
+```
+
+During the production boot there were zero SSH logins, zero sudo commands and
+zero ARM write operations.
+
+**LIVE 2026-10-06** (dataset `2b6cc528…`, `FUTURE:CME:ES:2026-12`, FINALIZED,
+KNOWN_GAP 0):
+
+| | |
+|---|---|
+| submitted | **893,081** |
+| persisted | **893,081** |
+| difference | **0** (closing summary = manifest = CAPTURE_STOPPED = JSON) |
+| queue peak | **568 / 50,000 = 1.14%** |
+| max persist lag | **2.497 s** |
+| writer_overloaded | **false** |
+| peak WAL | **405.8 MiB** (< 1 GiB force bound; no forced checkpoint, no checkpointer error) |
+| checkpoint count | **662** |
+| longest checkpoint | **24.693 s** |
+| peak StandardSSD IOPS consumed | **59%** (15:01 CT); 0 minutes ≥ 95% (under DELETE, 100% on every 0W-4 day) |
+| finalization | **12.4 s** |
+| journal after FINALIZED | **DELETE** |
+| sidecars | **NONE** |
+| integrity / checksum | **PASS** (sha256 `a97c6ba0…`: independent = manifest = JSON) |
+
+Downstream DatasetAudit, VWAP, volume profile and developing profile all PASS
+on the single-file artifact.
+
+**Load qualification.** The 2026-10-06 live peak minute had **26,243**
+events; the 2026-09-30 historical peak minute had **55,416**. The live tape
+was lighter. The actual-StandardSSD 2× authentic replay (48.8% / 14.5 s, no
+overload, exact) covers the harder case. Together the lighter live tape and
+the harder actual-disk replay support the production decision. Like-for-like
+DELETE day 2026-10-02 (24,232-event peak minute): queue 24.9%, lag 48.8 s,
+IOPS consumed 100%.
+
+**Persistence architecture decision:**
+
+```
+WAL + synchronous=FULL:        ACCEPTED PRODUCTION DESIGN
+StandardSSD:                   SUFFICIENT
+Premium disk:                  NOT REQUIRED
+Additional persistence soak:   NOT REQUIRED
+```
+
+Historical DELETE-mode evidence (§MG, §MI, `evidence/0W-4_*`, `0W-5A`,
+`0W-5B`) is retained unchanged.
+
+**Persistence backlog (non-blocking):**
+- per-checkpoint production timestamps: BACKLOG
+- live commit-latency-during-checkpoint telemetry: BACKLOG
+- collector memory peak ~1.2 GiB (was 0.75–1.0 G under DELETE): INFORMATIONAL,
+  capacity is ample (≥ 6.7 GiB available)
+
+**State at closure.**
+- All six Azure schedules are disabled: the expired 0W-5C one-time pair
+  (disabled 2026-10-07T02:18Z), the weekly pair, and the legacy K9 pair.
+- The guest gate timers are disabled/inactive. `dicks-lab-es-session.timer`
+  is static/inactive.
+- `dragon` is `PowerState/deallocated`. No collection is armed.
+
+```
+0W-5C: PASS / ACCEPTED / CLOSED
+0W-5: ACCEPTED / CLOSED
+LIVE WAL PERSISTENCE: PROVEN
+STANDARDSSD: PASS — SUFFICIENT WITH WAL
+CAPTURE / PERSISTENCE INFRASTRUCTURE: READY TO LEAVE ACTIVE DEVELOPMENT
+NEXT: 0X-A — FUTURES INSTRUMENT UNIVERSE & CONTRACT-ROLL FOUNDATION
+```

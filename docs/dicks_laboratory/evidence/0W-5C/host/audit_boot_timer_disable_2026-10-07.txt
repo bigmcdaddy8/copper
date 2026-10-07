@@ -1,0 +1,79 @@
++ date -u +%FT%T.%NZ
+2026-10-07T01:48:22.214805258Z
++ systemctl list-timers --all --no-pager
++ grep -i dicks
+Wed 2026-10-07 21:42:00 UTC      19h -                                 - dicks-lab-preflight-gate.timer dicks-lab-preflight-gate.service
+Wed 2026-10-07 21:55:00 UTC      20h -                                 - dicks-lab-launch-gate.timer    dicks-lab-launch-gate.service
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service
+++ systemctl is-enabled dicks-lab-preflight-gate.timer
+++ systemctl is-active dicks-lab-preflight-gate.timer
+dicks-lab-preflight-gate.timer enabled=enabled active=active
++ echo 'dicks-lab-preflight-gate.timer enabled=enabled active=active'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service
+++ systemctl is-enabled dicks-lab-launch-gate.timer
+++ systemctl is-active dicks-lab-launch-gate.timer
+dicks-lab-launch-gate.timer enabled=enabled active=active
++ echo 'dicks-lab-launch-gate.timer enabled=enabled active=active'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service
+++ systemctl is-enabled dicks-lab-es-session.timer
+++ systemctl is-active dicks-lab-es-session.timer
+dicks-lab-es-session.timer enabled=static active=inactive
++ echo 'dicks-lab-es-session.timer enabled=static active=inactive'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service
+++ systemctl is-enabled dicks-lab-es-session.service
+++ systemctl is-active dicks-lab-es-session.service
+dicks-lab-es-session.service enabled=static active=inactive
++ echo 'dicks-lab-es-session.service enabled=static active=inactive'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service
+++ systemctl is-enabled dicks-lab-preflight-gate.service
+++ systemctl is-active dicks-lab-preflight-gate.service
+dicks-lab-preflight-gate.service enabled=static active=inactive
++ echo 'dicks-lab-preflight-gate.service enabled=static active=inactive'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service
+++ systemctl is-enabled dicks-lab-launch-gate.service
+++ systemctl is-active dicks-lab-launch-gate.service
+dicks-lab-launch-gate.service enabled=static active=inactive
++ echo 'dicks-lab-launch-gate.service enabled=static active=inactive'
++ sudo systemctl disable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer
+Removed '/etc/systemd/system/timers.target.wants/dicks-lab-preflight-gate.timer'.
+Removed '/etc/systemd/system/timers.target.wants/dicks-lab-launch-gate.timer'.
++ date -u +%FT%T.%NZ
+2026-10-07T01:48:22.861167241Z
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service
+++ systemctl is-enabled dicks-lab-preflight-gate.timer
+++ systemctl is-active dicks-lab-preflight-gate.timer
+dicks-lab-preflight-gate.timer enabled=disabled active=inactive
++ echo 'dicks-lab-preflight-gate.timer enabled=disabled active=inactive'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service
+++ systemctl is-enabled dicks-lab-launch-gate.timer
+++ systemctl is-active dicks-lab-launch-gate.timer
+dicks-lab-launch-gate.timer enabled=disabled active=inactive
++ echo 'dicks-lab-launch-gate.timer enabled=disabled active=inactive'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service
+++ systemctl is-enabled dicks-lab-es-session.timer
+++ systemctl is-active dicks-lab-es-session.timer
+dicks-lab-es-session.timer enabled=static active=inactive
++ echo 'dicks-lab-es-session.timer enabled=static active=inactive'
++ for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service
+++ systemctl is-enabled dicks-lab-es-session.service
+++ systemctl is-active dicks-lab-es-session.service
+dicks-lab-es-session.service enabled=static active=inactive
++ echo 'dicks-lab-es-session.service enabled=static active=inactive'
++ systemctl list-timers --all --no-pager
++ grep -i dicks
+no dicks timers listed above => none scheduled
++ echo 'no dicks timers listed above => none scheduled'
+2026-10-07T02:01:02Z
+dicks-lab-preflight-gate.timer enabled=disabled active=inactive
+dicks-lab-launch-gate.timer enabled=disabled active=inactive
+dicks-lab-es-session.timer enabled=static active=inactive
+dicks-lab-es-session.service enabled=static active=inactive
+dicks-lab-preflight-gate.service enabled=static active=inactive
+dicks-lab-launch-gate.service enabled=static active=inactive
+dicks timers scheduled: 0
+failed units: 0
+3183 bash -c date -u +%FT%TZ; for u in dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer dicks-lab-es-session.timer dicks-lab-es-session.service dicks-lab-preflight-gate.service dicks-lab-launch-gate.service; do echo "$u enabled=$(systemctl is-enabled $u) active=$(systemctl is-active $u)"; done; echo "dicks timers scheduled: $(systemctl list-timers --all --no-pager | grep -ci dicks)"; echo "failed units: $(systemctl --failed --no-legend | wc -l)"; pgrep -af "dicks_lab|bench_0w5c" || echo "no dicks_lab processes"; ls /tmp/0w5c* 2>/dev/null || echo "no 0w5c temp files"; cd ~/Documents/REPOs/copper && echo "HEAD $(git rev-parse HEAD) porcelain=$(git status --porcelain | wc -l)"; ls /srv/dicks_laboratory/data/sessions/es_20261006_2b6cc528.sqlite3-* 2>/dev/null || echo "no sidecars"
+host.txt
+HEAD a27013b24dc6f010d00c93d5d730544c2cdcead9 porcelain=0
+no sidecars
+2026-10-07 post-check: removed leftover /tmp/0w5caudit.HeOK (first, stdin-truncated host-audit attempt); no 0w5c temp files; no dicks_lab processes

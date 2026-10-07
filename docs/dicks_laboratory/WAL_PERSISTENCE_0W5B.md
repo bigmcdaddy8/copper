@@ -316,3 +316,38 @@ CLI JSON gains submitted/difference/WAL fields).
 - finalization wall time
 - submitted == persisted
 - single-file FINALIZED artifact
+
+## 15. 0W-5C live outcome (TD 2026-10-06) — ACCEPTED PRODUCTION DESIGN
+
+Evidence: `evidence/0W-5C/README.md`. The design in §14 ran unchanged on
+`dragon` (`a27013b`) for one full autonomous trading date.
+
+| §14 verification item | Live result |
+|---|---|
+| queue / lag | **568 / 50,000 = 1.14%**, **2.497 s** max persist lag, `writer_overloaded=false` |
+| WAL peak | **405.8 MiB**; the 1 GiB force bound was not reached, so no forced checkpoint; no checkpointer error |
+| checkpoints | **662**, longest **24.693 s** |
+| finalization wall time | **12.4 s** CAPTURE_STOPPED → manifest (the §10 projection was ≈ 66 s warm) |
+| submitted == persisted | **893,081 == 893,081**, difference **0** in all four durable records |
+| single-file FINALIZED artifact | journal **DELETE**, sidecars **NONE**, quick/integrity ok, checksum agrees |
+| disk | StandardSSD peak **59%** IOPS consumed, 0 minutes ≥ 95% |
+| checkpoint timing vs 15:00 CT burst | **not observable in production** (aggregates only). The Azure disk peak at 15:01 came two minutes after the 14:59 event peak, which is consistent with quiet-time deferral but not a measurement. |
+| commit latency during checkpoints | **not observable in production**. Part-A actual disk at 2×: p50 0.89 s, max 6.5 s during checkpoints, 0.27 s max outside them. |
+
+**Load qualification.** The live peak minute had 26,243 events, against
+55,416 on 2026-09-30. Part-A on the actual StandardSSD replayed the authentic
+09-30 burst at 1× (5.5% / 5.6 s), 1.5× (13.5% / 8.6 s) and **2× (48.8% /
+14.5 s, no overload, exact accounting)**. The lighter live tape and the
+harder actual-disk replay together support the decision.
+
+**Decision (PO, 2026-10-06):**
+- WAL + `synchronous=FULL` is the **ACCEPTED PRODUCTION DESIGN**.
+- StandardSSD is **SUFFICIENT**.
+- A premium disk is **NOT REQUIRED**.
+- An additional persistence soak is **NOT REQUIRED**.
+- The DELETE path and all historical DELETE-mode evidence are retained.
+
+**Backlog (non-blocking):**
+- per-checkpoint production timestamps
+- live commit-latency-during-checkpoint telemetry
+- collector memory peak ~1.2 GiB (informational; ample capacity)

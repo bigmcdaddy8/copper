@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "cache": "None",
+      "lun": 0,
+      "n": "dragon-data1"
+    }
+  ],
+  "os": "dragon-osdisk-gen1",
+  "size": "Standard_B2ms"
+}

@@ -1,0 +1,17 @@
+0W-5C token horizon (metadata only; no token values). Source: dicks-lab-es-session.service journal, PID 1883.
+
+launch-gate trigger         2026-10-05T21:55:00.401870Z (16:55:00.402 CDT), ExecCondition passed
+collector service started   2026-10-05T21:55:00.498913Z, MainPID 1883, Restart=no, NRestarts=0
+fresh_collector line        2026-10-05T21:55:01.896751Z
+  quote_token_requested=true  fresh_dxlink_collector=true  oauth_refreshed=false
+  quote_token_issued_at       2026-10-05T21:55:01.869000Z
+  quote_token_expires_at      2026-10-06T21:55:01.869000Z
+  quote_token_remaining_seconds 86400
+required horizon            83,700 (duration) + 900 = 84,600 s
+margin                      +1,800 s   -> FRESH TOKEN IMMEDIATELY
+quote-token requests        1 (startup only); preflight made 0 (quote_token_requested=false)
+reconnects                  0 -> no reconnect credential decision occurred
+near-expiry startup path    NOT exercised (no imminent_expiry line; prior token state unknown to this boot,
+                            first collector start since 10-02)
+token expiry vs capture     expires 2026-10-06 16:55:01.869 CDT, 55m01s after CAPTURE_STOPPED (16:00:00.436)
+                            and 45m00s after service exit (16:10:02.033)

@@ -1,0 +1,20 @@
+[
+  {
+    "gb": 256,
+    "iops": 500,
+    "mbps": 100,
+    "modified": null,
+    "n": "dragon-data1",
+    "sku": "StandardSSD_LRS",
+    "state": "Reserved"
+  },
+  {
+    "gb": 64,
+    "iops": 500,
+    "mbps": 100,
+    "modified": null,
+    "n": "dragon-osdisk-gen1",
+    "sku": "StandardSSD_LRS",
+    "state": "Reserved"
+  }
+]

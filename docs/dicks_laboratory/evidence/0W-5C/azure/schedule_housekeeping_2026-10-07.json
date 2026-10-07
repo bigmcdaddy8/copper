@@ -1,0 +1,41 @@
+# before housekeeping 2026-10-07T02:18:57Z
+[
+  {
+    "desc": "0W-5C one-day live WAL proof: power ON dragon before Mon 16:42 preflight (TD 2026-10-06)",
+    "enabled": true,
+    "expiry": "2026-10-05T15:30:00-05:00",
+    "freq": "OneTime",
+    "lastModified": "2026-10-05T01:27:07.613333+00:00",
+    "name": "dicks-0w5c-dragon-start",
+    "next": null,
+    "start": "2026-10-05T15:30:00-05:00"
+  },
+  {
+    "desc": "0W-5C one-day live WAL proof: deallocate dragon after ~16:10 collector exit, before Tue 16:42 preflight",
+    "enabled": true,
+    "expiry": "2026-10-06T16:30:00-05:00",
+    "freq": "OneTime",
+    "lastModified": "2026-10-05T01:27:08.570000+00:00",
+    "name": "dicks-0w5c-dragon-stop",
+    "next": null,
+    "start": "2026-10-06T16:30:00-05:00"
+  }
+]
+# disable dicks-0w5c-dragon-start 2026-10-07T02:18:58Z
+{
+  "enabled": false,
+  "expiry": "2026-10-05T15:30:00-05:00",
+  "freq": "OneTime",
+  "lastModified": "2026-10-05T01:27:07.613333+00:00",
+  "name": "dicks-0w5c-dragon-start",
+  "next": null
+}
+# disable dicks-0w5c-dragon-stop 2026-10-07T02:18:59Z
+{
+  "enabled": false,
+  "expiry": "2026-10-06T16:30:00-05:00",
+  "freq": "OneTime",
+  "lastModified": "2026-10-05T01:27:08.570000+00:00",
+  "name": "dicks-0w5c-dragon-stop",
+  "next": null
+}

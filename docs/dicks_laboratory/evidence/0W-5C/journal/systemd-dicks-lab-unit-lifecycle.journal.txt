@@ -1,0 +1,75 @@
+2026-10-05T00:07:36.781627+00:00 dragon systemd[1]: Found device dev-disk-by\x2duuid-890b7de2\x2da7e1\x2d4650\x2da7c9\x2d464124698b29.device - Virtual_Disk dicks_lab.
+2026-10-05T00:07:40.107681+00:00 dragon systemd[1]: Mounting srv-dicks_laboratory.mount - /srv/dicks_laboratory...
+2026-10-05T00:07:40.146679+00:00 dragon systemd[1]: Starting finalrd.service - Create final runtime dir for shutdown pivot root...
+2026-10-05T00:07:40.187788+00:00 dragon systemd[1]: Finished finalrd.service - Create final runtime dir for shutdown pivot root.
+2026-10-05T00:07:41.935099+00:00 dragon systemd[1]: Mounted srv-dicks_laboratory.mount - /srv/dicks_laboratory.
+2026-10-05T00:07:45.736665+00:00 dragon systemd[1]: Starting dracut-shutdown.service - Restore /run/initramfs on shutdown...
+2026-10-05T00:07:45.874290+00:00 dragon systemd[1]: Finished dracut-shutdown.service - Restore /run/initramfs on shutdown.
+2026-10-05T00:08:29.230986+00:00 dragon systemd[1350]: Reached target shutdown.target - Shutdown.
+2026-10-05T00:09:12.482255+00:00 dragon systemd[1806]: Reached target shutdown.target - Shutdown.
+2026-10-05T00:09:38.480504+00:00 dragon systemd[1908]: Reached target shutdown.target - Shutdown.
+2026-10-05T00:11:14.729367+00:00 dragon systemd[2065]: Reached target shutdown.target - Shutdown.
+2026-10-05T01:14:39.480446+00:00 dragon systemd[2221]: Reached target shutdown.target - Shutdown.
+2026-10-05T01:25:50.981167+00:00 dragon systemd[12946]: Reached target shutdown.target - Shutdown.
+2026-10-05T01:26:25.954788+00:00 dragon systemd[1]: Started dicks-lab-preflight-gate.timer - Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago.
+2026-10-05T01:26:25.960380+00:00 dragon systemd[1]: Started dicks-lab-launch-gate.timer - Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago.
+2026-10-05T01:26:36.230779+00:00 dragon systemd[14560]: Reached target shutdown.target - Shutdown.
+2026-10-05T01:27:43.729836+00:00 dragon systemd[14980]: Reached target shutdown.target - Shutdown.
+2026-10-05T01:28:43.395401+00:00 dragon systemd[1]: dicks-lab-launch-gate.timer: Deactivated successfully.
+2026-10-05T01:28:43.395503+00:00 dragon systemd[1]: Stopped dicks-lab-launch-gate.timer - Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago.
+2026-10-05T01:28:43.397761+00:00 dragon systemd[1]: dicks-lab-preflight-gate.timer: Deactivated successfully.
+2026-10-05T01:28:43.397854+00:00 dragon systemd[1]: Stopped dicks-lab-preflight-gate.timer - Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago.
+2026-10-05T01:28:43.441762+00:00 dragon systemd[1]: Unmounting srv-dicks_laboratory.mount - /srv/dicks_laboratory...
+2026-10-05T01:28:43.479817+00:00 dragon systemd[1]: Stopping dracut-shutdown.service - Restore /run/initramfs on shutdown...
+2026-10-05T01:28:43.495830+00:00 dragon systemd[1]: Stopping finalrd.service - Create final runtime dir for shutdown pivot root...
+2026-10-05T01:28:43.537046+00:00 dragon systemd[1]: snapd.system-shutdown.service - Ubuntu core (all-snaps) system shutdown helper setup service skipped, unmet condition check ConditionPathExists=/usr/lib/snapd/system-shutdown
+2026-10-05T01:28:44.445650+00:00 dragon systemd[1]: srv-dicks_laboratory.mount: Deactivated successfully.
+2026-10-05T01:28:44.446234+00:00 dragon systemd[1]: Unmounted srv-dicks_laboratory.mount - /srv/dicks_laboratory.
+2026-10-05T01:28:44.456380+00:00 dragon systemd[1]: dracut-shutdown.service: Deactivated successfully.
+2026-10-05T01:28:44.456723+00:00 dragon systemd[1]: Stopped dracut-shutdown.service - Restore /run/initramfs on shutdown.
+2026-10-05T01:28:44.833942+00:00 dragon systemd[1]: Stopped finalrd.service - Create final runtime dir for shutdown pivot root.
+2026-10-05T01:28:45.343623+00:00 dragon systemd[1]: Reached target shutdown.target - System Shutdown.
+2026-10-05T01:28:45.346393+00:00 dragon systemd[1]: Reached target final.target - Late Shutdown Services.
+2026-10-05T01:28:45.348336+00:00 dragon systemd[1]: systemd-poweroff.service: Deactivated successfully.
+2026-10-05T01:28:45.348363+00:00 dragon systemd[1]: Finished systemd-poweroff.service - System Power Off.
+2026-10-05T01:28:45.350149+00:00 dragon systemd[1]: Reached target poweroff.target - System Power Off.
+2026-10-05T01:28:45.352047+00:00 dragon systemd[1]: Shutting down.
+2026-10-05T20:31:37.593608+00:00 dragon systemd[1]: Found device dev-disk-by\x2duuid-890b7de2\x2da7e1\x2d4650\x2da7c9\x2d464124698b29.device - Virtual_Disk dicks_lab.
+2026-10-05T20:31:39.551001+00:00 dragon systemd[1]: Mounting srv-dicks_laboratory.mount - /srv/dicks_laboratory...
+2026-10-05T20:31:40.937837+00:00 dragon systemd[1]: Starting finalrd.service - Create final runtime dir for shutdown pivot root...
+2026-10-05T20:31:40.980829+00:00 dragon systemd[1]: Finished finalrd.service - Create final runtime dir for shutdown pivot root.
+2026-10-05T20:31:41.738357+00:00 dragon systemd[1]: Mounted srv-dicks_laboratory.mount - /srv/dicks_laboratory.
+2026-10-05T20:31:46.230774+00:00 dragon systemd[1]: Started dicks-lab-launch-gate.timer - Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago.
+2026-10-05T20:31:46.233462+00:00 dragon systemd[1]: Started dicks-lab-preflight-gate.timer - Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago.
+2026-10-05T20:31:46.412961+00:00 dragon systemd[1]: Starting dracut-shutdown.service - Restore /run/initramfs on shutdown...
+2026-10-05T20:31:46.641161+00:00 dragon systemd[1]: Finished dracut-shutdown.service - Restore /run/initramfs on shutdown.
+2026-10-05T21:42:00.422136+00:00 dragon systemd[1]: Starting dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch)...
+2026-10-05T21:42:03.433237+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Deactivated successfully.
+2026-10-05T21:42:03.433703+00:00 dragon systemd[1]: Finished dicks-lab-preflight-gate.service - Dick's Laboratory — safe preflight gate (no quote-token fetch).
+2026-10-05T21:42:03.434188+00:00 dragon systemd[1]: dicks-lab-preflight-gate.service: Consumed 654ms CPU time over 3.011s wall clock time, 119.9M memory peak.
+2026-10-05T21:55:00.401870+00:00 dragon systemd[1]: Starting dicks-lab-launch-gate.service - Dick's Laboratory — fail-closed launcher for dicks-lab-es-session.service...
+2026-10-05T21:55:00.460771+00:00 dragon systemd[1]: Starting dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture...
+2026-10-05T21:55:00.461361+00:00 dragon systemd[1]: dicks-lab-launch-gate.service: Deactivated successfully.
+2026-10-05T21:55:00.461621+00:00 dragon systemd[1]: Finished dicks-lab-launch-gate.service - Dick's Laboratory — fail-closed launcher for dicks-lab-es-session.service.
+2026-10-05T21:55:00.498913+00:00 dragon systemd[1]: Started dicks-lab-es-session.service - Dick's Laboratory — one bounded ES trading-date TimeAndSale capture.
+2026-10-06T21:10:02.033480+00:00 dragon systemd[1]: dicks-lab-es-session.service: Deactivated successfully.
+2026-10-06T21:10:02.033931+00:00 dragon systemd[1]: dicks-lab-es-session.service: Consumed 7min 40.719s CPU time over 23h 15min 1.572s wall clock time, 1.2G memory peak.
+2026-10-06T21:31:30.735610+00:00 dragon systemd[1]: dicks-lab-launch-gate.timer: Deactivated successfully.
+2026-10-06T21:31:30.735702+00:00 dragon systemd[1]: Stopped dicks-lab-launch-gate.timer - Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago.
+2026-10-06T21:31:30.738118+00:00 dragon systemd[1]: dicks-lab-preflight-gate.timer: Deactivated successfully.
+2026-10-06T21:31:30.738168+00:00 dragon systemd[1]: Stopped dicks-lab-preflight-gate.timer - Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago.
+2026-10-06T21:31:30.781872+00:00 dragon systemd[1]: Unmounting srv-dicks_laboratory.mount - /srv/dicks_laboratory...
+2026-10-06T21:31:30.822917+00:00 dragon systemd[1]: Stopping dracut-shutdown.service - Restore /run/initramfs on shutdown...
+2026-10-06T21:31:30.842137+00:00 dragon systemd[1]: Stopping finalrd.service - Create final runtime dir for shutdown pivot root...
+2026-10-06T21:31:30.887044+00:00 dragon systemd[1]: snapd.system-shutdown.service - Ubuntu core (all-snaps) system shutdown helper setup service skipped, unmet condition check ConditionPathExists=/usr/lib/snapd/system-shutdown
+2026-10-06T21:31:31.795532+00:00 dragon systemd[1]: srv-dicks_laboratory.mount: Deactivated successfully.
+2026-10-06T21:31:31.796162+00:00 dragon systemd[1]: Unmounted srv-dicks_laboratory.mount - /srv/dicks_laboratory.
+2026-10-06T21:31:31.808654+00:00 dragon systemd[1]: dracut-shutdown.service: Deactivated successfully.
+2026-10-06T21:31:31.811969+00:00 dragon systemd[1]: Stopped dracut-shutdown.service - Restore /run/initramfs on shutdown.
+2026-10-06T21:31:32.850230+00:00 dragon systemd[1]: Stopped finalrd.service - Create final runtime dir for shutdown pivot root.
+2026-10-06T21:31:33.004062+00:00 dragon systemd[1]: Reached target shutdown.target - System Shutdown.
+2026-10-06T21:31:33.006155+00:00 dragon systemd[1]: Reached target final.target - Late Shutdown Services.
+2026-10-06T21:31:33.008041+00:00 dragon systemd[1]: systemd-poweroff.service: Deactivated successfully.
+2026-10-06T21:31:33.008073+00:00 dragon systemd[1]: Finished systemd-poweroff.service - System Power Off.
+2026-10-06T21:31:33.009997+00:00 dragon systemd[1]: Reached target poweroff.target - System Power Off.
+2026-10-06T21:31:33.012203+00:00 dragon systemd[1]: Shutting down.

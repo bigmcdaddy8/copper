@@ -1,0 +1,22 @@
+[
+  {
+    "id": "9fc4a295-14e8-4dec-8024-419ca37d2c71",
+    "runbook": "Start-Dragon",
+    "schedule": "dicks-0w5c-dragon-start"
+  },
+  {
+    "id": "0ab59016-a1bc-4097-ab1e-d760e912e2dc",
+    "runbook": "Start-Dragon",
+    "schedule": "dicks-futures-dragon-start"
+  },
+  {
+    "id": "fa4f56a7-3fac-4cfd-9216-86d2cf31919c",
+    "runbook": "Stop-Dragon",
+    "schedule": "dicks-0w5c-dragon-stop"
+  },
+  {
+    "id": "78720c51-af4e-4e49-8aee-382941274307",
+    "runbook": "Stop-Dragon",
+    "schedule": "dicks-futures-dragon-stop"
+  }
+]

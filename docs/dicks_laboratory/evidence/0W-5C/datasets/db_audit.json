@@ -1,0 +1,517 @@
+{
+ "es_20261006_2b6cc528.sqlite3": {
+  "path": "/srv/dicks_laboratory/data/sessions/es_20261006_2b6cc528.sqlite3",
+  "size_bytes": 447324160,
+  "sidecars": [
+   "es_20261006_2b6cc528.sqlite3.manifest.json"
+  ],
+  "journal_mode": "delete",
+  "quick_check": "ok",
+  "integrity_check": "ok",
+  "datasets": [
+   {
+    "dataset_id": "2b6cc528-8928-4c2b-a27d-77794fc61d26",
+    "kind": "HISTORICAL_IMPORT",
+    "origin": "AUTHENTIC_SOURCE",
+    "label": "long-horizon-es-2026-10-06",
+    "source_locator": "TASTYTRADE_DXLINK:/ESZ26:XCME:TimeAndSale",
+    "source_timezone": "UTC epoch milliseconds",
+    "normalizer_version": "phase-0v-serious-collection-v1",
+    "capture_started_at": "2026-10-05T22:00:00.000209+00:00",
+    "capture_ended_at": "2026-10-06T21:00:00.435640+00:00",
+    "parent_dataset_id": null,
+    "transformation_policy": null,
+    "transformation_version": null,
+    "random_seed": null,
+    "trading_date": "2026-10-06",
+    "instrument_id": "FUTURE:CME:ES:2026-12",
+    "lifecycle_state": "FINALIZED"
+   }
+  ],
+  "instruments": [
+   {
+    "canonical_id": "FUTURE:CME:ES:2026-12",
+    "kind": "FUTURE",
+    "exchange": "CME",
+    "root": "ES",
+    "expiration_year": 2026,
+    "expiration_month": 12
+   }
+  ],
+  "closing": [
+   {
+    "dataset_id": "2b6cc528-8928-4c2b-a27d-77794fc61d26",
+    "accepted_trade_count": 893077,
+    "deferred_event_count": 0,
+    "rejected_record_count": 4,
+    "known_gap_count": 0,
+    "suspected_gap_count": 0,
+    "first_source_order": 1,
+    "last_source_order": 893081,
+    "closed_at": "2026-10-06T21:00:00.435640+00:00",
+    "collector_version": "phase-0v-serious-collection-v1",
+    "collector_git_commit": "a27013b24dc6f010d00c93d5d730544c2cdcead9",
+    "submitted_events": 893081,
+    "persisted_events": 893081,
+    "accounting_difference": 0
+   }
+  ],
+  "quality_events": [
+   {
+    "evidence_type": "CAPTURE_STARTED",
+    "detail": "capture_started",
+    "observed_at": "2026-10-05T22:00:00.000209+00:00",
+    "interval_start": null,
+    "interval_end": null,
+    "source_record_ref": null
+   },
+   {
+    "evidence_type": "SOURCE_CONNECTED",
+    "detail": "source_connected",
+    "observed_at": "2026-10-05T22:00:01.710941+00:00",
+    "interval_start": null,
+    "interval_end": null,
+    "source_record_ref": null
+   },
+   {
+    "evidence_type": "CAPTURE_STOPPED",
+    "detail": "capture_stopped; writer_submitted_events=893081; writer_accounting_difference=0; writer_flushes=98805; writer_batch_max=1398; writer_queue_depth_max=568; writer_max_persist_lag_s=2.497; writer_persisted_events=893081; writer_overloaded=false; wal_checkpoints=662; wal_checkpoint_s_max=24.693; wal_bytes_max=425521872",
+    "observed_at": "2026-10-06T21:00:00.435640+00:00",
+    "interval_start": null,
+    "interval_end": null,
+    "source_record_ref": null
+   }
+  ],
+  "qe_counts": {
+   "CAPTURE_STARTED": 1,
+   "CAPTURE_STOPPED": 1,
+   "SOURCE_CONNECTED": 1
+  },
+  "accepted": 893077,
+  "dseq": {
+   "mn": 1,
+   "mx": 893077,
+   "nd": 893077,
+   "n": 893077
+  },
+  "trade_actions": {
+   "NEW": 893077
+  },
+  "rejected": 4,
+  "rejections_by_reason": [
+   {
+    "reason": "INVALID_DXLINK_TICK",
+    "n": 4
+   }
+  ],
+  "rejection_rows": [
+   {
+    "source_order": 21700,
+    "reason": "INVALID_DXLINK_TICK",
+    "detail": null,
+    "event_symbol": "/ESZ26:XCME",
+    "event_time": "2026-10-06T01:47:00+00:00",
+    "event_classification": "NEW",
+    "event_flags": 0,
+    "price": "7835.0",
+    "size": "19.0",
+    "received_at": "2026-10-06T01:54:05.224030+00:00"
+   },
+   {
+    "source_order": 21701,
+    "reason": "INVALID_DXLINK_TICK",
+    "detail": null,
+    "event_symbol": "/ESZ26:XCME",
+    "event_time": "2026-10-06T01:47:00+00:00",
+    "event_classification": "NEW",
+    "event_flags": 0,
+    "price": "7835.0",
+    "size": "19.0",
+    "received_at": "2026-10-06T01:54:05.875192+00:00"
+   },
+   {
+    "source_order": 41550,
+    "reason": "INVALID_DXLINK_TICK",
+    "detail": null,
+    "event_symbol": "/ESZ26:XCME",
+    "event_time": "2026-10-06T06:06:00+00:00",
+    "event_classification": "NEW",
+    "event_flags": 0,
+    "price": "7835.0",
+    "size": "120.0",
+    "received_at": "2026-10-06T06:12:35.184356+00:00"
+   },
+   {
+    "source_order": 41566,
+    "reason": "INVALID_DXLINK_TICK",
+    "detail": null,
+    "event_symbol": "/ESZ26:XCME",
+    "event_time": "2026-10-06T06:06:00+00:00",
+    "event_classification": "NEW",
+    "event_flags": 0,
+    "price": "7835.0",
+    "size": "30.0",
+    "received_at": "2026-10-06T06:12:36.287747+00:00"
+   }
+  ],
+  "deferred": 0,
+  "deferred_by_reason": [],
+  "source_order": {
+   "mn": 1,
+   "mx": 893081,
+   "nd": 893081,
+   "n": 893081
+  },
+  "provenance_rows": 893077,
+  "first_trade": {
+   "dataset_sequence": 1,
+   "event_timestamp": "2026-10-05T22:00:01.939000+00:00",
+   "received_at": "2026-10-05T22:00:01.952632+00:00"
+  },
+  "last_trade": {
+   "dataset_sequence": 893077,
+   "event_timestamp": "2026-10-06T20:59:59.122000+00:00",
+   "received_at": "2026-10-06T20:59:59.135170+00:00"
+  },
+  "min_max_event_ts": {
+   "mn": "2026-10-05T22:00:01.939000+00:00",
+   "mx": "2026-10-06T20:59:59.122000+00:00"
+  },
+  "gap_brackets": [],
+  "busiest_minutes_ct": [
+   [
+    "Tue 14:59",
+    26243
+   ],
+   [
+    "Tue 08:30",
+    8131
+   ],
+   [
+    "Tue 08:31",
+    6401
+   ],
+   [
+    "Tue 14:58",
+    5815
+   ],
+   [
+    "Tue 09:00",
+    5561
+   ],
+   [
+    "Tue 09:30",
+    5168
+   ],
+   [
+    "Tue 08:40",
+    4677
+   ],
+   [
+    "Tue 15:00",
+    4668
+   ],
+   [
+    "Tue 09:04",
+    4586
+   ],
+   [
+    "Tue 14:54",
+    4475
+   ]
+  ],
+  "window_0820_0900_ct": [
+   [
+    "08:20",
+    795
+   ],
+   [
+    "08:21",
+    621
+   ],
+   [
+    "08:22",
+    596
+   ],
+   [
+    "08:23",
+    542
+   ],
+   [
+    "08:24",
+    715
+   ],
+   [
+    "08:25",
+    1720
+   ],
+   [
+    "08:26",
+    525
+   ],
+   [
+    "08:27",
+    1144
+   ],
+   [
+    "08:28",
+    902
+   ],
+   [
+    "08:29",
+    1301
+   ],
+   [
+    "08:30",
+    8131
+   ],
+   [
+    "08:31",
+    6401
+   ],
+   [
+    "08:32",
+    3593
+   ],
+   [
+    "08:33",
+    2850
+   ],
+   [
+    "08:34",
+    3283
+   ],
+   [
+    "08:35",
+    3323
+   ],
+   [
+    "08:36",
+    3139
+   ],
+   [
+    "08:37",
+    2453
+   ],
+   [
+    "08:38",
+    3630
+   ],
+   [
+    "08:39",
+    2395
+   ],
+   [
+    "08:40",
+    4677
+   ],
+   [
+    "08:41",
+    3065
+   ],
+   [
+    "08:42",
+    2660
+   ],
+   [
+    "08:43",
+    2062
+   ],
+   [
+    "08:44",
+    2254
+   ],
+   [
+    "08:45",
+    3013
+   ],
+   [
+    "08:46",
+    3114
+   ],
+   [
+    "08:47",
+    2437
+   ],
+   [
+    "08:48",
+    1959
+   ],
+   [
+    "08:49",
+    2209
+   ],
+   [
+    "08:50",
+    3267
+   ],
+   [
+    "08:51",
+    2544
+   ],
+   [
+    "08:52",
+    2041
+   ],
+   [
+    "08:53",
+    2337
+   ],
+   [
+    "08:54",
+    2685
+   ],
+   [
+    "08:55",
+    3630
+   ],
+   [
+    "08:56",
+    2542
+   ],
+   [
+    "08:57",
+    3598
+   ],
+   [
+    "08:58",
+    3015
+   ],
+   [
+    "08:59",
+    2628
+   ]
+  ],
+  "window_1455_1510_ct": [
+   [
+    "14:55",
+    4434
+   ],
+   [
+    "14:56",
+    2200
+   ],
+   [
+    "14:57",
+    2533
+   ],
+   [
+    "14:58",
+    5815
+   ],
+   [
+    "14:59",
+    26243
+   ],
+   [
+    "15:00",
+    4668
+   ],
+   [
+    "15:01",
+    1127
+   ],
+   [
+    "15:02",
+    805
+   ],
+   [
+    "15:03",
+    488
+   ],
+   [
+    "15:04",
+    540
+   ],
+   [
+    "15:05",
+    770
+   ],
+   [
+    "15:06",
+    563
+   ],
+   [
+    "15:07",
+    393
+   ],
+   [
+    "15:08",
+    424
+   ],
+   [
+    "15:09",
+    270
+   ],
+   [
+    "15:10",
+    198
+   ]
+  ],
+  "pragmas": {
+   "page_size": 4096,
+   "page_count": 109210,
+   "freelist_count": 0,
+   "auto_vacuum": 0,
+   "user_version": 0
+  },
+  "tables": [
+   "dataset_closing_summaries",
+   "dataset_quality_events",
+   "datasets",
+   "deferred_dxlink_timesale_events",
+   "instruments",
+   "normalization_rejections",
+   "observation_source_provenance",
+   "quality_event_links",
+   "rejected_dxlink_timesale_source_records",
+   "trade_observations"
+  ],
+  "capture_stopped_detail": [
+   "capture_stopped; writer_submitted_events=893081; writer_accounting_difference=0; writer_flushes=98805; writer_batch_max=1398; writer_queue_depth_max=568; writer_max_persist_lag_s=2.497; writer_persisted_events=893081; writer_overloaded=false; wal_checkpoints=662; wal_checkpoint_s_max=24.693; wal_bytes_max=425521872"
+  ],
+  "events_per_hour_ct": {
+   "Mon 17": 3578,
+   "Mon 18": 2817,
+   "Mon 19": 6983,
+   "Mon 20": 8685,
+   "Mon 21": 5018,
+   "Mon 22": 4794,
+   "Mon 23": 3949,
+   "Tue 00": 4101,
+   "Tue 01": 9852,
+   "Tue 02": 18384,
+   "Tue 03": 15796,
+   "Tue 04": 15911,
+   "Tue 05": 11457,
+   "Tue 06": 23642,
+   "Tue 07": 30905,
+   "Tue 08": 113953,
+   "Tue 09": 166190,
+   "Tue 10": 108459,
+   "Tue 11": 77694,
+   "Tue 12": 83728,
+   "Tue 13": 52941,
+   "Tue 14": 103780,
+   "Tue 15": 20460
+  },
+  "receive_silences_gt60s": [],
+  "dseq_holes": 0,
+  "dseq_dups": 0,
+  "so_holes": 0,
+  "so_dups": 0,
+  "manifest": {
+   "accounting_difference": 0,
+   "checksum_scope": "file integrity only; not a market-data completeness claim",
+   "closed_at": "2026-10-06T21:00:00.435640+00:00",
+   "collector_git_commit": "a27013b24dc6f010d00c93d5d730544c2cdcead9",
+   "dataset_id": "2b6cc528-8928-4c2b-a27d-77794fc61d26",
+   "instrument": "FUTURE:CME:ES:2026-12",
+   "persisted_events": 893081,
+   "sha256": "a97c6ba09853bb418d6f65d48cf1e53f3ae554535f9d874849cd3ff9ceef9bf3",
+   "state": "FINALIZED",
+   "submitted_events": 893081,
+   "trading_date": "2026-10-06"
+  }
+ }
+}

@@ -1,0 +1,72 @@
+=== automation-dragon
+[
+  {
+    "desc": "0W-5C one-day live WAL proof: power ON dragon before Mon 16:42 preflight (TD 2026-10-06)",
+    "enabled": true,
+    "expiry": "2026-10-05T15:30:00-05:00",
+    "freq": "OneTime",
+    "interval": null,
+    "name": "dicks-0w5c-dragon-start",
+    "next": null,
+    "start": "2026-10-05T15:30:00-05:00",
+    "tz": "America/Chicago"
+  },
+  {
+    "desc": "0W-5C one-day live WAL proof: deallocate dragon after ~16:10 collector exit, before Tue 16:42 preflight",
+    "enabled": true,
+    "expiry": "2026-10-06T16:30:00-05:00",
+    "freq": "OneTime",
+    "interval": null,
+    "name": "dicks-0w5c-dragon-stop",
+    "next": null,
+    "start": "2026-10-06T16:30:00-05:00",
+    "tz": "America/Chicago"
+  },
+  {
+    "desc": "Dicks Laboratory: power ON dragon before the CME Sunday reopen",
+    "enabled": false,
+    "expiry": "9999-12-31T17:59:00-06:00",
+    "freq": "Week",
+    "interval": 1,
+    "name": "dicks-futures-dragon-start",
+    "next": "2026-10-11T15:30:00-05:00",
+    "start": "2026-09-13T15:30:00-05:00",
+    "tz": "America/Chicago"
+  },
+  {
+    "desc": "Dicks Laboratory: deallocate dragon ~35 min after Friday collector clean exit",
+    "enabled": false,
+    "expiry": "9999-12-31T17:59:00-06:00",
+    "freq": "Week",
+    "interval": 1,
+    "name": "dicks-futures-dragon-stop",
+    "next": "2026-10-09T16:45:00-05:00",
+    "start": "2026-09-11T16:45:00-05:00",
+    "tz": "America/Chicago"
+  }
+]
+=== automation-k9
+[
+  {
+    "desc": "Start dragon VM Saturday at 05:45 CT",
+    "enabled": false,
+    "expiry": "9999-12-31T17:59:00-06:00",
+    "freq": "Week",
+    "interval": 1,
+    "name": "dragon-start-saturday",
+    "next": "2026-10-10T10:45:00-05:00",
+    "start": "2026-06-20T10:45:00-05:00",
+    "tz": "America/Chicago"
+  },
+  {
+    "desc": "Start dragon VM Mon-Fri at 05:45 CT",
+    "enabled": false,
+    "expiry": "9999-12-31T17:59:00-06:00",
+    "freq": "Week",
+    "interval": 1,
+    "name": "dragon-start-weekday",
+    "next": "2026-10-07T05:45:00-05:00",
+    "start": "2026-06-17T05:45:00-05:00",
+    "tz": "America/Chicago"
+  }
+]

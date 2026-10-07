@@ -1,0 +1,655 @@
+
+##### DATE
+Wed Oct  7 01:48:57 UTC 2026
+Tue Oct  6 20:48:57 CDT 2026
+
+##### UPTIME
+ 01:48:57 up 1 min,  1 user,  load average: 1.41, 0.60, 0.22
+2026-10-07 01:47:35
+
+##### BOOTS
+-14 26adb034c6e44a4296400850d2a41a3f Mon 2026-09-14 20:31:28 UTC Tue 2026-09-15 21:46:18 UTC
+-13 4a09fec1b130420d9666cc87bc79d451 Wed 2026-09-16 01:13:27 UTC Wed 2026-09-16 01:22:55 UTC
+-12 3aad92747dac4223a9c17975d7a02d20 Wed 2026-09-16 01:57:05 UTC Wed 2026-09-16 01:58:55 UTC
+-11 453d7c4253cc4ff295912e9a5c9f9ad5 Wed 2026-09-16 02:27:47 UTC Wed 2026-09-16 02:39:12 UTC
+-10 b12d85a38d564de9843481fffcc18237 Wed 2026-09-16 02:51:34 UTC Wed 2026-09-16 03:03:52 UTC
+ -9 6d561348d8684c6fb54488534770848d Sun 2026-09-20 20:31:51 UTC Fri 2026-09-25 21:46:12 UTC
+ -8 27bbd10243b04a799ccfb855de1ca13f Fri 2026-09-25 22:16:21 UTC Fri 2026-09-25 23:07:28 UTC
+ -7 12a7f0caec5c46daa60f5485e3d089a5 Sat 2026-09-26 03:16:49 UTC Sat 2026-09-26 03:22:59 UTC
+ -6 3dd99777c9684acb926f6bdd15058aae Sat 2026-09-26 03:33:43 UTC Sat 2026-09-26 03:38:12 UTC
+ -5 0ff441d51b8b489e96fec133994007a0 Sun 2026-09-27 20:31:40 UTC Fri 2026-10-02 21:46:01 UTC
+ -4 95913c8285ab476c9df2ee9e8755b9c5 Sun 2026-10-04 14:42:58 UTC Sun 2026-10-04 16:15:07 UTC
+ -3 fceb9ac94a1748dfb6c320f4e26f089a Sun 2026-10-04 16:38:03 UTC Sun 2026-10-04 16:44:53 UTC
+ -2 469e93204fab45a1877fc5ffafc862e9 Mon 2026-10-05 00:07:33 UTC Mon 2026-10-05 01:28:46 UTC
+ -1 cd2a0fbc426f4f79bc4685f06606419d Mon 2026-10-05 20:31:34 UTC Tue 2026-10-06 21:31:33 UTC
+  0 b89b71f09f754759baad3c3da4ac5188 Wed 2026-10-07 01:47:39 UTC Wed 2026-10-07 01:48:57 UTC
+
+##### LAST_X
+/tmp/0w5c_host_audit.sh: line 11: last: command not found
+
+##### FAILED_NOW
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+
+##### GIT
+a27013b24dc6f010d00c93d5d730544c2cdcead9
+porcelain_lines=0
+a27013b24dc6f010d00c93d5d730544c2cdcead9
+a27013b24dc6f010d00c93d5d730544c2cdcead9 2026-10-04 17:26:28 -0500 docs: drop trailing blank line in 0W-5B design doc
+471395bdd24969903cf85d75a672f2d1681204f0 2026-10-04 17:26:14 -0500 docs: record 0W-5B WAL persistence design, proof and benchmarks
+81578c500dd174fc06c003233aaf8861efac421e 2026-10-04 17:26:14 -0500 perf: paced/lifecycle WAL benchmark with emulated-disk timelines (0W-5B)
+a27013b HEAD@{2026-10-05 00:08:08 +0000}: merge origin/master: Fast-forward
+6f5247f HEAD@{2026-09-26 03:34:15 +0000}: merge origin/master: Fast-forward
+cd216e5 HEAD@{2026-09-26 03:21:39 +0000}: merge origin/master: Fast-forward
+21e41f6 HEAD@{2026-09-16 02:32:11 +0000}: merge origin/master: Fast-forward
+c8fcfa6 HEAD@{2026-09-14 03:32:36 +0000}: merge origin/master: Fast-forward
+7ce180e HEAD@{2026-09-11 21:53:21 +0000}: merge origin/master: Fast-forward
+b7f073c HEAD@{2026-09-11 21:51:46 +0000}: merge origin/master: Fast-forward
+f27a043 HEAD@{2026-09-10 00:46:14 +0000}: merge origin/master: Fast-forward
+f8ef340 HEAD@{2026-09-09 22:23:19 +0000}: merge origin/master: Fast-forward
+b2caca2 HEAD@{2026-09-09 22:10:28 +0000}: merge origin/master: Fast-forward
+
+##### GIT_FETCH_DRYRUN
+fetch_rc=0
+
+##### GIT_REMOTE
+origin	git@github.com:bigmcdaddy8/copper.git (fetch)
+origin	git@github.com:bigmcdaddy8/copper.git (push)
+total 36
+drwx------ 3 temckee8 temckee8 4096 Sep 26 03:18 .
+drwxr-x--- 7 temckee8 temckee8 4096 Sep  9 23:15 ..
+drwx------ 2 temckee8 temckee8 4096 Sep 11 21:53 agent
+-rw------- 1 temckee8 temckee8  283 Sep  9 22:56 authorized_keys
+-rw------- 1 temckee8 temckee8  319 Sep 26 03:18 config
+-rw------- 1 temckee8 temckee8  419 Sep  9 21:04 id_ed25519_ghdeploy
+-rw-r--r-- 1 temckee8 temckee8  107 Sep  9 21:04 id_ed25519_ghdeploy.pub
+-rw------- 1 temckee8 temckee8  978 Sep  9 22:01 known_hosts
+-rw-r--r-- 1 temckee8 temckee8  142 Sep  9 21:05 known_hosts.old
+# copper origin (git@github.com:bigmcdaddy8/copper.git) -> read-only deploy key
+# "dragon-gen1-copper-deploy (0W-AZ2C)". Added 0W-4D (2026-09-26).
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_ghdeploy
+    IdentitiesOnly yes
+    StrictHostKeyChecking yes
+    UpdateHostKeys no
+
+##### GIT_SSH_TEST
+Hi bigmcdaddy8/copper! You've successfully authenticated, but GitHub does not provide shell access.
+
+##### FILE_MTIMES_SINCE_SOAK
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/tests/test_durable_writer.py
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/tests/test_wal_persistence.py
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/tests/test_writer_burst_benchmark_cli.py
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/src/dicks_laboratory/long_running_capture.py
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/src/dicks_laboratory/store.py
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/src/dicks_laboratory/durable_writer.py
+/home/temckee8/Documents/REPOs/copper/apps/dicks_laboratory/src/dicks_laboratory/dataset_state.py
+/home/temckee8/Documents/REPOs/copper/.ruff_cache/CACHEDIR.TAG
+/home/temckee8/Documents/REPOs/copper/.ruff_cache/.gitignore
+/home/temckee8/Documents/REPOs/copper/.ruff_cache/0.15.9/9309230840929058532
+/home/temckee8/Documents/REPOs/copper/.ruff_cache/0.15.9/14865426781074928836
+/home/temckee8/Documents/REPOs/copper/.ruff_cache/0.15.9/4811731984398693332
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/WRITER_BURST_HEADROOM_0W5A.md
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/timeline_model.py
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c5_wal_ckpt100k.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/timeline_model_2026-09-30.jsonl
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c7_batch10000_fixed.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c4_batch20000.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_post_change_defaults.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_baseline.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c6b_batch50000_fixed.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c2_wal.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c1_batch2000.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c3_wal_batch2000.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/constant_rate_fit_2026-09-30.jsonl
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c8_wal_commit_only.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5A/bench_c0_cache64m.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5B/bench_t_wal_v3_1x.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5B/bench_p_delete250_1x.json
+/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/evidence/0W-5B/bench_h_delete_2x_3500iops.json
+
+##### UNIT_FILES
+dicks-lab-es-session.service frag=/etc/systemd/system/dicks-lab-es-session.service 2026-09-16 02:32:35.383242663 +0000 sha=3c77d99872bbb379 repo=3c77d99872bbb379 dropins=
+dicks-lab-es-session.timer frag=/etc/systemd/system/dicks-lab-es-session.timer 2026-09-16 02:32:35.383344563 +0000 sha=78fb2b4f6639989d repo=78fb2b4f6639989d dropins=
+dicks-lab-launch-gate.service frag=/etc/systemd/system/dicks-lab-launch-gate.service 2026-09-16 02:32:35.383681165 +0000 sha=80409538bdc789b6 repo=80409538bdc789b6 dropins=
+dicks-lab-launch-gate.timer frag=/etc/systemd/system/dicks-lab-launch-gate.timer 2026-09-16 02:56:14.425350916 +0000 sha=05d9d2c7d4a48913 repo=05d9d2c7d4a48913 dropins=
+dicks-lab-preflight-gate.service frag=/etc/systemd/system/dicks-lab-preflight-gate.service 2026-09-16 02:32:35.383569765 +0000 sha=c1d1762e6909d2c3 repo=c1d1762e6909d2c3 dropins=
+dicks-lab-preflight-gate.timer frag=/etc/systemd/system/dicks-lab-preflight-gate.timer 2026-09-16 02:56:14.425278916 +0000 sha=12c3e2ddda3862f6 repo=12c3e2ddda3862f6 dropins=
+-rw-r--r--  1 root root 3954 2026-09-16 02:32:35.383242663 +0000 dicks-lab-es-session.service
+-rw-r--r--  1 root root 1449 2026-09-16 02:32:35.383344563 +0000 dicks-lab-es-session.timer
+-rw-r--r--  1 root root 1763 2026-09-16 02:32:35.383681165 +0000 dicks-lab-launch-gate.service
+-rw-r--r--  1 root root 1255 2026-09-16 02:56:14.425350916 +0000 dicks-lab-launch-gate.timer
+-rw-r--r--  1 root root 3076 2026-09-16 02:32:35.383569765 +0000 dicks-lab-preflight-gate.service
+-rw-r--r--  1 root root 1002 2026-09-16 02:56:14.425278916 +0000 dicks-lab-preflight-gate.timer
+
+##### TIMERS
+NEXT                            LEFT LAST                             PASSED UNIT                         ACTIVATES
+dicks-lab-preflight-gate.timer enabled=disabled active=inactive
+UnitFileState=disabled
+NextElapseUSecRealtime=
+LastTriggerUSec=
+dicks-lab-launch-gate.timer enabled=disabled active=inactive
+UnitFileState=disabled
+NextElapseUSecRealtime=
+LastTriggerUSec=
+dicks-lab-es-session.timer enabled=static active=inactive
+UnitFileState=static
+NextElapseUSecRealtime=
+LastTriggerUSec=
+
+##### SESSION_SERVICE_NOW
+ActiveState=inactive
+SubState=dead
+InvocationID=
+Result=success
+NRestarts=0
+ExecMainPID=0
+ExecMainStatus=0
+no dicks_lab processes
+
+##### MARKER
+ls: cannot access '/run/dicks-lab-launch-gate/': No such file or directory
+cat: /run/dicks-lab-launch-gate/preflight-ok: No such file or directory
+
+##### DISK
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        61G  2.8G   59G   5% /
+/dev/sda        251G  6.4G  232G   3% /srv/dicks_laboratory
+Filesystem        1B-blocks       Used    Available Use% Mounted on
+/dev/sda       269427478528 6772457472 248894349312   3% /srv/dicks_laboratory
+TARGET                SOURCE   FSTYPE OPTIONS
+/srv/dicks_laboratory /dev/sda ext4   rw,relatime
+6.4G	/srv/dicks_laboratory/data
+4.0K	/srv/dicks_laboratory/forensic
+4.0K	/srv/dicks_laboratory/logs
+16K	/srv/dicks_laboratory/lost+found
+/srv/dicks_laboratory/data/sessions/:
+total 6604948
+drwxr-xr-x 2 temckee8 temckee8      4096 2026-10-06 21:00:12.848462794 +0000 .
+drwxr-xr-x 5 temckee8 temckee8      4096 2026-10-05 00:11:19.654165527 +0000 ..
+-rw-rw-r-- 1 temckee8 temckee8     27848 2026-09-11 19:38:43.551019311 +0000 att4_samples.csv
+-rw-r--r-- 1 temckee8 temckee8 501538816 2026-09-11 19:36:14.619436122 +0000 es_20260911_3716af9f.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-11 19:36:16.278396916 +0000 es_20260911_3716af9f.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 100663296 2026-09-15 21:00:01.076614565 +0000 es_20260915_b07e92d4.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-15 21:00:01.421225268 +0000 es_20260915_b07e92d4.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 441995264 2026-09-21 21:00:04.154673456 +0000 es_20260921_64d684c9.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-21 21:00:05.797630566 +0000 es_20260921_64d684c9.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 546938880 2026-09-23 21:00:05.103648247 +0000 es_20260923_b2856c52.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-23 21:00:07.202070545 +0000 es_20260923_b2856c52.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 654155776 2026-09-24 21:00:06.067111224 +0000 es_20260924_31c92a57.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-24 21:00:08.491807979 +0000 es_20260924_31c92a57.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 605577216 2026-09-25 21:00:05.828052874 +0000 es_20260925_c690ff8e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-25 21:00:08.048047714 +0000 es_20260925_c690ff8e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 633470976 2026-09-28 21:00:05.621150883 +0000 es_20260928_843a6ca0.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-28 21:00:07.894855353 +0000 es_20260928_843a6ca0.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 598822912 2026-09-29 21:00:05.311039030 +0000 es_20260929_6af08205.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-29 21:00:07.326787869 +0000 es_20260929_6af08205.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 700641280 2026-09-30 21:00:06.187397421 +0000 es_20260930_9ac5a21e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-30 21:00:08.555258144 +0000 es_20260930_9ac5a21e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 836493312 2026-10-01 21:00:07.391803574 +0000 es_20261001_fe280370.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-10-01 21:00:10.125177716 +0000 es_20261001_fe280370.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 695705600 2026-10-02 21:00:06.123117822 +0000 es_20261002_7e8d7b5e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-10-02 21:00:08.569664111 +0000 es_20261002_7e8d7b5e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 447324160 2026-10-06 21:00:11.296451959 +0000 es_20261006_2b6cc528.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       528 2026-10-06 21:00:12.849658702 +0000 es_20261006_2b6cc528.sqlite3.manifest.json
+
+/srv/dicks_laboratory/forensic:
+total 8
+drwxr-xr-x 2 temckee8 temckee8 4096 2026-09-09 21:03:03.031032573 +0000 .
+drwxr-xr-x 6 root     root     4096 2026-09-09 21:03:03.033762057 +0000 ..
+
+/srv/dicks_laboratory/logs:
+total 8
+drwxr-xr-x 2 temckee8 temckee8 4096 2026-09-09 21:03:03.027761652 +0000 .
+drwxr-xr-x 6 root     root     4096 2026-09-09 21:03:03.033762057 +0000 ..
+
+##### JOURNAL
+Archived and active journals take up 65M in the file system.
+Storage=persistent
+SystemMaxUse=2G
+SystemKeepFree=1G
+MaxRetentionSec=1month
+total 66636
+drwxr-sr-x+2 root systemd-journal     4096 2026-09-13 20:32:02.894149808 +0000 .
+drwxr-sr-x+3 root systemd-journal     4096 2026-09-09 20:58:49.412248300 +0000 ..
+-rw-r-----+1 root systemd-journal 33554432 2026-10-07 01:48:57.595373682 +0000 system.journal
+-rw-r-----+1 root systemd-journal 25165824 2026-09-13 20:32:03.186461526 +0000 system@6d0c1ab101bd414fa0d39bccf7e62f37-0000000000000001-00065b131e2c8a8c.journal
+-rw-r-----+1 root systemd-journal 16777216 2026-10-07 01:48:57.095333654 +0000 user-1000.journal
+File path: /var/log/journal/9c109154c29343628f17e253c20a3d18/system.journal
+Head realtime timestamp: Sun 2026-09-13 20:32:02 UTC (65b6335cde8df)
+Tail realtime timestamp: Wed 2026-10-07 01:48:57 UTC (65d36517e4196)
+Disk usage: 32M
+File path: /var/log/journal/9c109154c29343628f17e253c20a3d18/system@6d0c1ab101bd414fa0d39bccf7e62f37-0000000000000001-00065b131e2c8a8c.journal
+Head realtime timestamp: Wed 2026-09-09 20:58:49 UTC (65b131e2c8a8c)
+Tail realtime timestamp: Sun 2026-09-13 20:32:02 UTC (65b6335cd254c)
+Disk usage: 17M
+File path: /var/log/journal/9c109154c29343628f17e253c20a3d18/user-1000.journal
+Head realtime timestamp: Wed 2026-09-09 21:35:18 UTC (65b13a0a96d5e)
+Tail realtime timestamp: Wed 2026-10-07 01:48:56 UTC (65d3651771d78)
+Disk usage: 16M
+
+##### JOURNAL_OLDEST
+2026-10-07T01:48:57+00:00 dragon systemd[1]: Started session-7.scope - Session 7 of User temckee8.
+2026-09-09T20:58:49+00:00 ubuntu kernel: Linux version 7.0.0-1012-azure (buildd@lcy02-amd64-067) (x86_64-linux-gnu-gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, GNU ld (GNU Binutils for Ubuntu) 2.46) #12-Ubuntu SMP PREEMPT Thu Aug  6 19:23:26 UTC 2026 (Ubuntu 7.0.0-1012.12-azure 7.0.12)
+2026-09-09T20:58:49+00:00 ubuntu kernel: Command line: BOOT_IMAGE=/vmlinuz-7.0.0-1012-azure root=PARTUUID=44d85214-9b4b-44df-a3e8-f8688a1ed1f4 ro console=tty1 console=ttyS0 earlyprintk=ttyS0 nvme_core.io_timeout=240 panic=-1
+
+##### OOM_KERNEL
+Oct 07 01:47:39 dragon kernel: Failed to register legacy timer interrupt
+Oct 07 01:47:39 dragon kernel: RAS: Correctable Errors collector initialized.
+Oct 07 01:47:39 dragon kernel: EXT4-fs (sdb1): orphan cleanup on readonly fs
+Oct 07 01:47:39 dragon kernel: EXT4-fs (sdb1): mounted filesystem b922264a-4095-43b9-8604-48fe2a2b30d6 ro with ordered data mode. Quota mode: none.
+Oct 07 01:47:39 dragon systemd[1]: Listening on systemd-factory-reset.socket - Factory Reset Management.
+Oct 07 01:47:40 dragon kernel: EXT4-fs (sdb1): re-mounted b922264a-4095-43b9-8604-48fe2a2b30d6 r/w.
+Oct 07 01:47:46 dragon kernel: EXT4-fs (sdb13): mounted filesystem 0a5013b6-4a6a-4eaa-80cd-715ad81197c6 r/w with ordered data mode. Quota mode: none.
+Oct 07 01:47:47 dragon kernel: faux_driver regulatory: Direct firmware load for regulatory.db failed with error -2
+Oct 07 01:47:47 dragon kernel: cfg80211: failed to load regulatory.db
+Oct 07 01:47:48 dragon kernel: EXT4-fs (sda): mounted filesystem 890b7de2-a7e1-4650-a7c9-464124698b29 r/w with ordered data mode. Quota mode: none.
+Oct 07 01:47:51 dragon kernel: EXT4-fs (sdc1): mounted filesystem 217f157e-8d02-41dd-b6b3-b7f855075aca r/w with ordered data mode. Quota mode: none.
+
+##### APT_UNATTENDED
+disabled
+disabled
+disabled
+total 44
+drwxr-xr-x  2 root root    4096 2026-10-01 00:03:40.032468070 +0000 .
+drwxrwxr-x 11 root syslog  4096 2026-10-07 01:48:00.030097718 +0000 ..
+-rw-r--r--  1 root root   25120 2026-09-09 21:21:56.430206432 +0000 eipp.log.xz
+-rw-r--r--  1 root root       0 2026-10-01 00:03:40.024467861 +0000 history.log
+-rw-r--r--  1 root root     274 2026-09-09 21:22:03.551287380 +0000 history.log.1.gz
+-rw-r-----  1 root adm        0 2026-10-01 00:03:40.005467366 +0000 term.log
+-rw-r-----  1 root adm      584 2026-09-09 21:22:03.551287380 +0000 term.log.1.gz
+Start-Date: 2026-09-09  21:04:07
+Start-Date: 2026-09-09  21:21:57
+
+##### OTHER_TIMERS_1500CT
+NEXT                            LEFT LAST                             PASSED UNIT                         ACTIVATES
+Wed 2026-10-07 01:50:00 UTC  1min 1s -                                     - sysstat-collect.timer        sysstat-collect.service
+Wed 2026-10-07 02:02:35 UTC    13min -                                     - systemd-tmpfiles-clean.timer systemd-tmpfiles-clean.service
+Wed 2026-10-07 02:16:36 UTC    27min Tue 2026-10-06 00:49:47 UTC           - logrotate.timer              logrotate.service
+Wed 2026-10-07 02:31:58 UTC    43min Tue 2026-10-06 21:21:25 UTC           - fwupd-refresh.timer          fwupd-refresh.service
+Wed 2026-10-07 05:59:15 UTC 4h 10min Tue 2026-10-06 03:11:25 UTC           - man-db.timer                 man-db.service
+Thu 2026-10-08 00:00:00 UTC      22h Wed 2026-10-07 01:47:52 UTC 1min 5s ago dpkg-db-backup.timer         dpkg-db-backup.service
+Thu 2026-10-08 00:00:00 UTC      22h -                                     - sysstat-rotate.timer         sysstat-rotate.service
+Thu 2026-10-08 00:07:00 UTC      22h -                                     - sysstat-summary.timer        sysstat-summary.service
+Sun 2026-10-11 03:10:45 UTC   4 days Sun 2026-10-04 14:43:29 UTC           - xfs_scrub_all.timer          xfs_scrub_all.service
+Sun 2026-10-11 03:10:52 UTC   4 days Sun 2026-10-04 14:43:29 UTC           - e2scrub_all.timer            e2scrub_all.service
+Sun 2026-10-11 21:50:22 UTC   4 days Mon 2026-09-28 14:01:39 UTC           - update-notifier-motd.timer   update-notifier-motd.service
+Mon 2026-10-12 00:42:29 UTC   4 days Mon 2026-10-05 01:16:38 UTC           - fstrim.timer                 fstrim.service
+-                                  - -                                     - apport-autoreport.timer      apport-autoreport.service
+-                                  - -                                     - snapd.snap-repair.timer      snapd.snap-repair.service
+-                                  - -                                     - ua-timer.timer               ua-timer.service
+
+15 timers listed.
+
+##### SMART_FAIL_HISTORY
+
+##### TAILSCALE_NET
+2026-10-05T00:07:54+00:00 dragon tailscaled[932]: magicsock: adding connection to derp-27 for home-keep-alive
+2026-10-05T00:07:54+00:00 dragon tailscaled[932]: magicsock: 1 active derp conns: derp-27=cr0s,wr0s
+2026-10-05T00:07:54+00:00 dragon tailscaled[932]: derphttp.Client.Connect: connecting to derp-27 (iad)
+2026-10-05T00:07:54+00:00 dragon tailscaled[932]: magicsock: derp-27 connected; connGen=1
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: tailscaled got signal terminated; shutting down
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: control: client.Shutdown ...
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: control: Client.Shutdown done.
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: ipnext: work queue shutdown failed: execqueue shut down
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: magicsock: closing connection to derp-27 (conn-close), age 1h20m49s
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: magicsock: 0 active derp conns
+2026-10-05T01:28:43+00:00 dragon tailscaled[932]: logger closing down
+2026-10-05T01:28:44+00:00 dragon tailscaled[15311]: logger closing down
+2026-10-05T20:31:55+00:00 dragon tailscaled[937]: magicsock: adding connection to derp-27 for home-keep-alive
+2026-10-05T20:31:55+00:00 dragon tailscaled[937]: magicsock: 1 active derp conns: derp-27=cr0s,wr0s
+2026-10-05T20:31:55+00:00 dragon tailscaled[937]: derphttp.Client.Connect: connecting to derp-27 (iad)
+2026-10-05T20:31:55+00:00 dragon tailscaled[937]: magicsock: derp-27 connected; connGen=1
+2026-10-06T21:31:30+00:00 dragon tailscaled[937]: tailscaled got signal terminated; shutting down
+2026-10-06T21:31:30+00:00 dragon tailscaled[937]: control: client.Shutdown ...
+2026-10-06T21:31:30+00:00 dragon tailscaled[937]: control: Client.Shutdown done.
+2026-10-06T21:31:30+00:00 dragon tailscaled[937]: ipnext: work queue shutdown failed: execqueue shut down
+2026-10-06T21:31:30+00:00 dragon tailscaled[937]: magicsock: closing connection to derp-27 (conn-close), age 24h59m35s
+2026-10-06T21:31:30+00:00 dragon tailscaled[937]: magicsock: 0 active derp conns
+2026-10-06T21:31:31+00:00 dragon tailscaled[937]: logger closing down
+2026-10-06T21:31:31+00:00 dragon tailscaled[8276]: logger closing down
+2026-10-07T01:48:02+00:00 dragon tailscaled[932]: magicsock: adding connection to derp-27 for home-keep-alive
+2026-10-07T01:48:02+00:00 dragon tailscaled[932]: magicsock: 1 active derp conns: derp-27=cr0s,wr0s
+2026-10-07T01:48:02+00:00 dragon tailscaled[932]: derphttp.Client.Connect: connecting to derp-27 (iad)
+2026-10-07T01:48:02+00:00 dragon tailscaled[932]: magicsock: derp-27 connected; connGen=1
+
+##### MEM
+               total        used        free      shared  buff/cache   available
+Mem:            7881         526        7105           4         497        7355
+Swap:              0           0           0
+
+##### PACKAGES_DPKG_SINCE
+dpkg_lines_since_10-04=0
+
+##### UNIT_SHOW_SESSION
+# /etc/systemd/system/dicks-lab-es-session.service
+# Dick's Laboratory — one bounded ES TimeAndSale capture per ordinary CME
+# trading date. Launched ONLY by dicks-lab-es-session.timer (Sun–Thu 16:55
+# America/Chicago). Not a multi-day process: each trading date gets a fresh
+# process and a fresh DXLink quote token (0W-2D credential-lifetime model).
+#
+# Canonical command lineage: 0W-2 Attempt 3 / Attempt 4 accepted units
+# (FULL_SESSION_MULTIDAY_SOAK_REPORT.md §DD / §HE) — `--duration 83700`
+# (23h15m), horizon guard + 900s = 84600s, fresh ~24h token ⇒ ~1800s headroom.
+# The robby-era `systemd-inhibit --what=sleep:idle` wrapper is intentionally
+# dropped: dragon is a headless server VM with no sleep/suspend behaviour.
+#
+# 0W-2E: Attempt 4 (AZURE) proved the collector's own CLI default of
+# `--max-events 1,000,000` is NOT a safe production value — a full ES
+# trading date exceeds it, tripping the safety fuse ~84 minutes before the
+# true 16:00 CT close (see FULL_SESSION_MULTIDAY_SOAK_REPORT.md §LB). The
+# production unit must always pass an explicit value well above one ordinary
+# session's observed volume (~1,000,000 events); `--max-events 5000000` is
+# ~5x that observed cap, still bounded, and verified against writer/disk
+# capacity in §AZ5/§LB — do not rely on the Python default here.
+#
+# 0W-4B: `--symbol` is now passed explicitly rather than relying on the
+# collector's Python default (`dicks_laboratory.production_symbol
+# .PINNED_ES_SYMBOL`), so the production epoch's pinned ES contract is
+# visible directly in this tracked unit, not hidden in a script default.
+# Changing it for a new soak/production epoch requires editing this line
+# AND the constant it must agree with (see `production_symbol.py`) --
+# `test_production_unit_config.py::test_production_unit_pins_explicit_symbol_matching_config`
+# fails the build if they ever drift.
+#
+# System-level unit (NOT `systemctl --user`, no linger, no GUI/session owner).
+
+[Unit]
+Description=Dick's Laboratory — one bounded ES trading-date TimeAndSale capture
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+Wants=network-online.target
+After=network-online.target time-sync.target srv-dicks_laboratory.mount
+RequiresMountsFor=/srv/dicks_laboratory
+ConditionPathIsMountPoint=/srv/dicks_laboratory
+AssertPathExists=/home/temckee8/Documents/REPOs/copper/.env
+
+[Service]
+Type=simple
+User=temckee8
+Group=temckee8
+WorkingDirectory=/home/temckee8/Documents/REPOs/copper
+Environment=HOME=/home/temckee8
+Environment=PATH=/home/temckee8/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MemoryAccounting=yes
+
+# Fail-closed preconditions (data disk must be mounted; .env must be 600/temckee8).
+ExecStartPre=/usr/bin/mountpoint -q /srv/dicks_laboratory
+ExecStartPre=/usr/bin/bash -c 'f=/home/temckee8/Documents/REPOs/copper/.env; test -f "$f" && [ "$(stat -c %%a "$f")" = 600 ] && [ "$(stat -c %%U "$f")" = temckee8 ]'
+
+# One bounded trading-date capture. Fresh quote token acquired inside the process.
+ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_collect_es.py --symbol /ESZ6 --duration 83700 --max-events 5000000 --data-dir /srv/dicks_laboratory/data/sessions
+
+# Graceful shutdown (matches accepted soak units).
+KillSignal=SIGINT
+TimeoutStopSec=180
+
+# Hard ceiling: launch 16:55 CT + 83700s → collector self-exits ~16:10 next day
+# (session close is usually earlier, ~16:00). 84300s ⇒ systemd SIGINT backstop
+# ~16:20; +TimeoutStopSec ⇒ SIGKILL ~16:23 — comfortably before the next 16:55
+# launch. The unit can never overlap the next trading date's process.
+RuntimeMaxSec=84300
+
+# A fatal collector exit must stay failed — NO late catch-up relaunch that
+# would masquerade as a complete session (0W-2 Attempt-4 lesson). Transient
+# DXLink reconnects are handled inside the collector, not by systemd.
+Restart=no
+
+# No [Install]: this service is started only by dicks-lab-es-session.timer.
+
+# /etc/systemd/system/dicks-lab-launch-gate.service
+# Fail-closed launcher only -- contains NO collector logic and is NOT a copy
+# of dicks-lab-es-session.service. It does exactly one thing: if (and only
+# if) dicks-lab-preflight-gate.service's marker exists, start the REAL,
+# untouched, tracked production service via a plain `systemctl start`. If
+# the marker is absent (preflight never ran, failed, or its marker could not
+# be created), the Condition below fails, systemd marks this activation
+# "skipped" (not failed), and the collector never launches -- fail-closed,
+# no polling loop, no redesign of the collector. (0W-2 Attempt-5 design,
+# unchanged in behavior by the 0W-2F marker-path correction.)
+#
+# 0W-4A: triggered by the recurring dicks-lab-launch-gate.timer
+# (Sun,Mon,Tue,Wed,Thu 16:55 America/Chicago, immediately after the 16:42
+# preflight). ExecCondition= (not ConditionPathExists=) so the check keeps
+# the original fail-closed "skipped, not failed" semantics while actually
+# validating the marker's payload equals *today's* America/Chicago date, via
+# dicks_lab_gate_marker.sh check. A marker left over from an earlier trading
+# date (or any date-content mismatch) fails the condition exactly like a
+# missing marker -- no late catch-up launch, no stale cross-day
+# authorization, regardless of how long dragon has been up.
+
+[Unit]
+Description=Dick's Laboratory — fail-closed launcher for dicks-lab-es-session.service
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+
+[Service]
+Type=oneshot
+ExecCondition=/home/temckee8/Documents/REPOs/copper/deploy/dicks_laboratory/scripts/dicks_lab_gate_marker.sh check /run/dicks-lab-launch-gate/preflight-ok
+ExecStart=/usr/bin/systemctl start --no-block dicks-lab-es-session.service
+
+# /etc/systemd/system/dicks-lab-preflight-gate.service
+# Safe credential/instrument preflight gate for Dick's Laboratory bounded ES
+# capture launches. Runs the existing accepted `dicks_lab_preflight.py`
+# (0W-2D) -- REST/OAuth reachability, futures endpoint, /ESU6 -> /ESU26:XCME
+# resolution -- WITHOUT requesting a DXLink quote token. On success only,
+# creates a boot-ephemeral marker that dicks-lab-launch-gate.service requires
+# before starting the real, untouched production dicks-lab-es-session.service.
+#
+# 0W-2F: the marker MUST be created via RuntimeDirectory=, never a bare
+# `touch /run/...`. /run is root:root 0755 and this service intentionally
+# runs unprivileged (User=temckee8); a direct write to /run's root fails with
+# Permission denied -- the 0W-2 Attempt-5 root cause. RuntimeDirectory= makes
+# systemd pre-create /run/dicks-lab-launch-gate owned by User=/Group= before
+# ExecStartPre runs, so temckee8 can write into it. RuntimeDirectoryPreserve=
+# yes is required because a Type=oneshot service (no RemainAfterExit) is
+# considered "stopped" the instant ExecStart(+Post) finish -- without
+# RuntimeDirectoryPreserve=yes, systemd deletes the directory's contents at
+# that exact point, before dicks-lab-launch-gate.service ever gets to check
+# it minutes later. The marker still never survives a reboot: /run is tmpfs,
+# always empty at boot, independent of RuntimeDirectoryPreserve=.
+#
+# 0W-4A: triggered by the recurring dicks-lab-preflight-gate.timer
+# (Sun,Mon,Tue,Wed,Thu 16:42 America/Chicago), one run per trading date. The
+# marker's payload is now the trading date it authorizes (written via
+# dicks_lab_gate_marker.sh, America/Chicago), not just its bare existence --
+# see dicks-lab-launch-gate.service and dicks_lab_gate_marker.sh for why: a
+# dragon that stays up all week (recurring Azure schedule, no daily reboot)
+# never gets tmpfs cleared between trading dates, so existence alone would
+# let a stale marker from an earlier boot silently persist. `rm -f` here
+# still runs first as defense in depth, but the launch-gate's own date check
+# is what actually proves a Day-N marker cannot authorize Day-N+1.
+
+[Unit]
+Description=Dick's Laboratory — safe preflight gate (no quote-token fetch)
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+After=network-online.target time-sync.target
+Wants=network-online.target
+AssertPathExists=/home/temckee8/Documents/REPOs/copper/.env
+
+[Service]
+Type=oneshot
+User=temckee8
+Group=temckee8
+WorkingDirectory=/home/temckee8/Documents/REPOs/copper
+Environment=HOME=/home/temckee8
+Environment=PATH=/home/temckee8/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RuntimeDirectory=dicks-lab-launch-gate
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+ExecStartPre=/usr/bin/rm -f /run/dicks-lab-launch-gate/preflight-ok
+ExecStart=/home/temckee8/.local/bin/uv run --frozen python scripts/dicks_lab_preflight.py
+ExecStartPost=/home/temckee8/Documents/REPOs/copper/deploy/dicks_laboratory/scripts/dicks_lab_gate_marker.sh write /run/dicks-lab-launch-gate/preflight-ok
+
+# /etc/systemd/system/dicks-lab-preflight-gate.timer
+# 0W-4A: recurring trigger for dicks-lab-preflight-gate.service, one run per
+# ordinary CME trading-date launch evening (Sun-Thu), 13 minutes ahead of the
+# 16:55 launch-gate/collector window -- same 13-minute margin proven safe in
+# 0W-2 Attempt 6's one-date preflight (16:42 -> 16:55). Persistent=false:
+# same 0W-2 Attempt-4 lesson as dicks-lab-es-session.timer -- a missed
+# preflight window must stay a visible miss, not a late catch-up run.
+#
+# NOT enabled as part of 0W-4A. 0W-4A is a design/readiness phase; arming
+# (systemctl enable --now) requires separate PO/Human authorization.
+
+[Unit]
+Description=Daily Dick's Laboratory safe preflight gate — Sun-Thu 16:42 America/Chicago
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+
+[Timer]
+OnCalendar=Sun,Mon,Tue,Wed,Thu *-*-* 16:42:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-preflight-gate.service
+
+[Install]
+WantedBy=timers.target
+
+# /etc/systemd/system/dicks-lab-launch-gate.timer
+# 0W-4A: recurring trigger for dicks-lab-launch-gate.service, one run per
+# ordinary CME trading-date launch evening (Sun-Thu) at 16:55 America/Chicago
+# -- the single production trigger for dicks-lab-es-session.service. This
+# timer, not dicks-lab-es-session.timer, is the real recurring launch path:
+# dicks-lab-es-session.timer's own [Install] was removed (see that unit's
+# header) specifically so there is exactly one way the collector can start
+# on a schedule, with the fail-closed marker check always in front of it.
+# Persistent=false: same 0W-2 Attempt-4 lesson -- a missed launch window
+# must stay a visible miss, not a late catch-up run.
+#
+# NOT enabled as part of 0W-4A. 0W-4A is a design/readiness phase; arming
+# (systemctl enable --now, both this and dicks-lab-preflight-gate.timer)
+# requires separate PO/Human authorization.
+
+[Unit]
+Description=Daily Dick's Laboratory fail-closed launch gate — Sun-Thu 16:55 America/Chicago
+Documentation=file:/home/temckee8/Documents/REPOs/copper/docs/dicks_laboratory/FULL_SESSION_MULTIDAY_SOAK_REPORT.md
+
+[Timer]
+OnCalendar=Sun,Mon,Tue,Wed,Thu *-*-* 16:55:00 America/Chicago
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=dicks-lab-launch-gate.service
+
+[Install]
+WantedBy=timers.target
+
+##### SUDO_AND_SSH_LOGINS
+2026-10-05T00:08:09.966014+00:00 dragon sudo[1700]: temckee8 :  PWD=/home/temckee8/Documents/REPOs/copper ; USER=root ; COMMAND=/usr/bin/systemd-analyze verify /etc/systemd/system/dicks-lab-es-session.service /etc/systemd/system/dicks-lab-launch-gate.service /etc/systemd/system/dicks-lab-preflight-gate.service /etc/systemd/system/dicks-lab-es-session.timer /etc/systemd/system/dicks-lab-launch-gate.timer /etc/systemd/system/dicks-lab-preflight-gate.timer
+2026-10-05T01:26:25.416336+00:00 dragon sudo[14884]: temckee8 :  PWD=/home/temckee8 ; USER=root ; COMMAND=/usr/bin/systemctl enable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer
+2026-10-07T01:48:22.365104+00:00 dragon sudo[1633]: temckee8 :  PWD=/home/temckee8 ; USER=root ; COMMAND=/usr/bin/systemctl disable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer
+2026-10-05T00:07:55.488638+00:00 dragon sshd-session[1307]: Accepted publickey for temckee8 from 100.121.123.14 port 46204 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:07:55.492391+00:00 dragon sshd-session[1307]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:07:57.731032+00:00 dragon sshd-session[1547]: Accepted publickey for temckee8 from 100.121.123.14 port 48234 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:07:57.734134+00:00 dragon sshd-session[1547]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:08:07.844855+00:00 dragon sshd-session[1624]: Accepted publickey for temckee8 from 100.121.123.14 port 53226 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:08:07.846951+00:00 dragon sshd-session[1624]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:08:18.738013+00:00 dragon sshd-session[1720]: Accepted publickey for temckee8 from 100.121.123.14 port 39626 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:08:18.740517+00:00 dragon sshd-session[1720]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:09:00.272687+00:00 dragon sshd-session[1801]: Accepted publickey for temckee8 from 100.121.123.14 port 55928 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:09:00.276207+00:00 dragon sshd-session[1801]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:09:16.221114+00:00 dragon sshd-session[1903]: Accepted publickey for temckee8 from 100.121.123.14 port 55038 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:09:16.223626+00:00 dragon sshd-session[1903]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:09:26.628087+00:00 dragon sshd-session[1982]: Accepted publickey for temckee8 from 100.121.123.14 port 42576 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:09:26.631306+00:00 dragon sshd-session[1982]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:10:54.492466+00:00 dragon sshd-session[2060]: Accepted publickey for temckee8 from 100.121.123.14 port 33788 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:10:54.495868+00:00 dragon sshd-session[2060]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:10:56.267596+00:00 dragon sshd-session[2144]: Accepted publickey for temckee8 from 100.121.123.14 port 33802 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:10:56.270693+00:00 dragon sshd-session[2144]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:11:19.213593+00:00 dragon sshd-session[2216]: Accepted publickey for temckee8 from 100.121.123.14 port 49140 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:11:19.216380+00:00 dragon sshd-session[2216]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:11:30.634259+00:00 dragon sshd-session[2315]: Accepted publickey for temckee8 from 100.121.123.14 port 37432 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:11:30.637085+00:00 dragon sshd-session[2315]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:11:47.901393+00:00 dragon sshd-session[2372]: Accepted publickey for temckee8 from 100.121.123.14 port 46706 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:11:47.904074+00:00 dragon sshd-session[2372]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:12:18.510706+00:00 dragon sshd-session[2425]: Accepted publickey for temckee8 from 100.121.123.14 port 49438 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:12:18.512805+00:00 dragon sshd-session[2425]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:12:49.566148+00:00 dragon sshd-session[2489]: Accepted publickey for temckee8 from 100.121.123.14 port 36508 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:12:49.568642+00:00 dragon sshd-session[2489]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:13:20.175667+00:00 dragon sshd-session[2568]: Accepted publickey for temckee8 from 100.121.123.14 port 36000 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:13:20.176874+00:00 dragon sshd-session[2568]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:13:51.222015+00:00 dragon sshd-session[2631]: Accepted publickey for temckee8 from 100.121.123.14 port 48570 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:13:51.224670+00:00 dragon sshd-session[2631]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:14:21.843459+00:00 dragon sshd-session[2684]: Accepted publickey for temckee8 from 100.121.123.14 port 50568 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:14:21.845855+00:00 dragon sshd-session[2684]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:14:52.469475+00:00 dragon sshd-session[2744]: Accepted publickey for temckee8 from 100.121.123.14 port 41828 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:14:52.473445+00:00 dragon sshd-session[2744]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:15:23.094329+00:00 dragon sshd-session[2804]: Accepted publickey for temckee8 from 100.121.123.14 port 49020 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:15:23.097227+00:00 dragon sshd-session[2804]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:15:53.731941+00:00 dragon sshd-session[2864]: Accepted publickey for temckee8 from 100.121.123.14 port 49332 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:15:53.734432+00:00 dragon sshd-session[2864]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:16:24.353739+00:00 dragon sshd-session[2925]: Accepted publickey for temckee8 from 100.121.123.14 port 45406 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:16:24.356702+00:00 dragon sshd-session[2925]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:16:55.026620+00:00 dragon sshd-session[2989]: Accepted publickey for temckee8 from 100.121.123.14 port 44550 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:16:55.028520+00:00 dragon sshd-session[2989]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:17:25.689392+00:00 dragon sshd-session[3053]: Accepted publickey for temckee8 from 100.121.123.14 port 54672 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:17:25.691361+00:00 dragon sshd-session[3053]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:17:56.507322+00:00 dragon sshd-session[3120]: Accepted publickey for temckee8 from 100.121.123.14 port 34852 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:17:56.510282+00:00 dragon sshd-session[3120]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:18:27.152373+00:00 dragon sshd-session[3180]: Accepted publickey for temckee8 from 100.121.123.14 port 57760 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:18:27.155126+00:00 dragon sshd-session[3180]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:18:57.766737+00:00 dragon sshd-session[3241]: Accepted publickey for temckee8 from 100.121.123.14 port 58146 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:18:57.769058+00:00 dragon sshd-session[3241]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:19:28.383938+00:00 dragon sshd-session[3304]: Accepted publickey for temckee8 from 100.121.123.14 port 43118 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:19:28.386605+00:00 dragon sshd-session[3304]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:19:59.381174+00:00 dragon sshd-session[3366]: Accepted publickey for temckee8 from 100.121.123.14 port 38862 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:19:59.383319+00:00 dragon sshd-session[3366]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:20:30.016028+00:00 dragon sshd-session[3419]: Accepted publickey for temckee8 from 100.121.123.14 port 37546 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:20:30.019314+00:00 dragon sshd-session[3419]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+2026-10-05T00:21:01.078570+00:00 dragon sshd-session[3485]: Accepted publickey for temckee8 from 100.121.123.14 port 58610 ssh2: ED25519 SHA256:2WcJzGv8CpgQ3Ay5sMBoPjgYmrN5sQtaAGVMmLwe2cg
+2026-10-05T00:21:01.080826+00:00 dragon sshd-session[3485]: pam_unix(sshd:session): session opened for user temckee8(uid=1000) by temckee8(uid=0)
+
+##### DAEMON_RELOADS
+2026-10-05T00:07:40.262483+00:00 dragon apparmor.systemd[501]: Reloading AppArmor profiles
+2026-10-05T00:07:45.215729+00:00 dragon systemd[1]: Reloading...
+2026-10-05T00:07:45.584587+00:00 dragon systemd[1]: Reloading finished in 368 ms.
+2026-10-05T00:07:50.292612+00:00 dragon snapd[923]: backend.go:145: reloading profiles for snap-confine
+2026-10-05T01:26:25.425735+00:00 dragon systemd[1]: Reloading...
+2026-10-05T01:26:25.918454+00:00 dragon systemd[1]: Reloading finished in 491 ms.
+2026-10-05T20:31:40.980288+00:00 dragon apparmor.systemd[504]: Reloading AppArmor profiles
+2026-10-05T20:31:45.738465+00:00 dragon systemd[1]: Reloading...
+2026-10-05T20:31:46.186161+00:00 dragon systemd[1]: Reloading finished in 446 ms.
+2026-10-05T20:31:50.422886+00:00 dragon snapd[925]: backend.go:145: reloading profiles for snap-confine
+2026-10-07T01:47:46.815131+00:00 dragon apparmor.systemd[502]: Reloading AppArmor profiles
+2026-10-07T01:47:51.937589+00:00 dragon systemd[1]: Reloading...
+2026-10-07T01:47:52.310825+00:00 dragon systemd[1]: Reloading finished in 372 ms.
+2026-10-07T01:47:55.817049+00:00 dragon snapd[924]: backend.go:145: reloading profiles for snap-confine
+2026-10-07T01:48:22.384681+00:00 dragon systemd[1]: Reloading...
+2026-10-07T01:48:22.802879+00:00 dragon systemd[1]: Reloading finished in 417 ms.
+
+##### DATA_FILES
+-rw-r--r-- 1 temckee8 temckee8 441995264 2026-09-21 21:00:04.154673456 +0000 es_20260921_64d684c9.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-21 21:00:05.797630566 +0000 es_20260921_64d684c9.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 546938880 2026-09-23 21:00:05.103648247 +0000 es_20260923_b2856c52.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-23 21:00:07.202070545 +0000 es_20260923_b2856c52.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 654155776 2026-09-24 21:00:06.067111224 +0000 es_20260924_31c92a57.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-24 21:00:08.491807979 +0000 es_20260924_31c92a57.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 605577216 2026-09-25 21:00:05.828052874 +0000 es_20260925_c690ff8e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-25 21:00:08.048047714 +0000 es_20260925_c690ff8e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 633470976 2026-09-28 21:00:05.621150883 +0000 es_20260928_843a6ca0.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-28 21:00:07.894855353 +0000 es_20260928_843a6ca0.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 598822912 2026-09-29 21:00:05.311039030 +0000 es_20260929_6af08205.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-29 21:00:07.326787869 +0000 es_20260929_6af08205.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 700641280 2026-09-30 21:00:06.187397421 +0000 es_20260930_9ac5a21e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-09-30 21:00:08.555258144 +0000 es_20260930_9ac5a21e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 836493312 2026-10-01 21:00:07.391803574 +0000 es_20261001_fe280370.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-10-01 21:00:10.125177716 +0000 es_20261001_fe280370.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 695705600 2026-10-02 21:00:06.123117822 +0000 es_20261002_7e8d7b5e.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       438 2026-10-02 21:00:08.569664111 +0000 es_20261002_7e8d7b5e.sqlite3.manifest.json
+-rw-r--r-- 1 temckee8 temckee8 447324160 2026-10-06 21:00:11.296451959 +0000 es_20261006_2b6cc528.sqlite3
+-rw-r--r-- 1 temckee8 temckee8       528 2026-10-06 21:00:12.849658702 +0000 es_20261006_2b6cc528.sqlite3.manifest.json
+
+##### CPU_RESIZE_CHECK
+2
+MemTotal:        8070852 kB
+NAME            SIZE MOUNTPOINT
+sda     274877906944 /srv/dicks_laboratory
+sdb      68719476736
+├─sdb1   67529326080 /
+├─sdb13   1072693760 /boot
+├─sdb14      4194304
+└─sdb15    111149056 /boot/efi
+sdc      17179869184
+└─sdc1   17177772032 /mnt

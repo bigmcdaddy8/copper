@@ -1,0 +1,130 @@
+[
+ {
+  "jobId": "dd067591-692a-4d7d-b500-e5e5bd522c7d",
+  "name": "7dbb1f23-c1f6-47e6-876a-5c902ff94f64",
+  "runbook": "Start-Dragon",
+  "status": "Completed",
+  "provisioningState": "Succeeded",
+  "runOn": null,
+  "parameters": {},
+  "creationTime": "2026-10-05T00:06:06.3885955+00:00",
+  "startTime": "2026-10-05T00:06:47.8858904+00:00",
+  "endTime": "2026-10-05T00:08:29.5939336+00:00",
+  "lastModifiedTime": "2026-10-05T00:08:29.5939334+00:00",
+  "startedBy": "{scrubbed}",
+  "exception": "",
+  "streams": [
+   {
+    "time": "2026-10-05T00:07:05.6803776+00:00",
+    "type": "Output",
+    "text": "Start-Dragon: initial PowerState = PowerState/deallocated\r\n"
+   },
+   {
+    "time": "2026-10-05T00:08:29.3665021+00:00",
+    "type": "Output",
+    "text": "Start-Dragon: final PowerState = PowerState/running\r\n"
+   },
+   {
+    "time": "2026-10-05T00:08:29.4956327+00:00",
+    "type": "Output",
+    "text": "Start-Dragon: OK (PowerState/deallocated -> PowerState/running)\r\n"
+   }
+  ]
+ },
+ {
+  "jobId": "9f799457-041a-462f-977c-d56075dfc359",
+  "name": "a4d5080b-4c99-49c2-a8f2-d05c171b6717",
+  "runbook": "Stop-Dragon",
+  "status": "Completed",
+  "provisioningState": "Succeeded",
+  "runOn": null,
+  "parameters": {},
+  "creationTime": "2026-10-05T01:27:41.6657264+00:00",
+  "startTime": "2026-10-05T01:28:25.9659248+00:00",
+  "endTime": "2026-10-05T01:29:23.208251+00:00",
+  "lastModifiedTime": "2026-10-05T01:29:23.208251+00:00",
+  "startedBy": "{scrubbed}",
+  "exception": "",
+  "streams": [
+   {
+    "time": "2026-10-05T01:28:41.4032437+00:00",
+    "type": "Output",
+    "text": "Stop-Dragon: initial PowerState = PowerState/running\r\n"
+   },
+   {
+    "time": "2026-10-05T01:29:23.1107859+00:00",
+    "type": "Output",
+    "text": "Stop-Dragon: final PowerState = PowerState/deallocated\r\n"
+   },
+   {
+    "time": "2026-10-05T01:29:23.1530023+00:00",
+    "type": "Output",
+    "text": "Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)\r\n"
+   }
+  ]
+ },
+ {
+  "jobId": "496a6b1b-c300-4bc6-b6cf-e8f94c677641",
+  "name": "SCH_9fc4a295-14e8-4dec-8024-419ca37d2c71_3734bea8-2b92-4009-b59f-9e8a24327bdc_639268290000000000",
+  "runbook": "Start-Dragon",
+  "status": "Completed",
+  "provisioningState": "Succeeded",
+  "runOn": "",
+  "parameters": {},
+  "creationTime": "2026-10-05T20:30:02.7099452+00:00",
+  "startTime": "2026-10-05T20:30:39.1669688+00:00",
+  "endTime": "2026-10-05T20:32:15.9862922+00:00",
+  "lastModifiedTime": "2026-10-05T20:32:15.9862921+00:00",
+  "startedBy": "",
+  "exception": "",
+  "streams": [
+   {
+    "time": "2026-10-05T20:30:53.2026484+00:00",
+    "type": "Output",
+    "text": "Start-Dragon: initial PowerState = PowerState/deallocated\r\n"
+   },
+   {
+    "time": "2026-10-05T20:32:15.9035035+00:00",
+    "type": "Output",
+    "text": "Start-Dragon: final PowerState = PowerState/running\r\n"
+   },
+   {
+    "time": "2026-10-05T20:32:15.9372405+00:00",
+    "type": "Output",
+    "text": "Start-Dragon: OK (PowerState/deallocated -> PowerState/running)\r\n"
+   }
+  ]
+ },
+ {
+  "jobId": "030ddc03-a293-434d-94a2-060639329ab5",
+  "name": "SCH_fa4f56a7-3fac-4cfd-9216-86d2cf31919c_b9045025-11c4-40c7-b2c8-1c319f69f1f3_639269190000000000",
+  "runbook": "Stop-Dragon",
+  "status": "Completed",
+  "provisioningState": "Succeeded",
+  "runOn": "",
+  "parameters": {},
+  "creationTime": "2026-10-06T21:30:04.9682542+00:00",
+  "startTime": "2026-10-06T21:31:11.6968376+00:00",
+  "endTime": "2026-10-06T21:32:10.7727741+00:00",
+  "lastModifiedTime": "2026-10-06T21:32:10.772774+00:00",
+  "startedBy": "",
+  "exception": "",
+  "streams": [
+   {
+    "time": "2026-10-06T21:31:28.6838913+00:00",
+    "type": "Output",
+    "text": "Stop-Dragon: initial PowerState = PowerState/running\r\n"
+   },
+   {
+    "time": "2026-10-06T21:32:10.5495393+00:00",
+    "type": "Output",
+    "text": "Stop-Dragon: final PowerState = PowerState/deallocated\r\n"
+   },
+   {
+    "time": "2026-10-06T21:32:10.6270674+00:00",
+    "type": "Output",
+    "text": "Stop-Dragon: OK (PowerState/running -> PowerState/deallocated)\r\n"
+   }
+  ]
+ }
+]

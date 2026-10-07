@@ -1,0 +1,69 @@
+Source: Azure Monitor 1-min platform metrics, dragon (Standard_B2ms), data disk LUN 0 dragon-data1 StandardSSD_LRS 256 GiB 500 IOPS/100 MBps. Empty minutes left blank (Azure returns min=0 for unsampled minutes).
+== TD 2026-10-06 session 17:00->16:00 CT: minutes=1380
+ CPU mean 2.00%  1-min max 7.36% at 10-06 15:00
+ CPU credits min 110.2  first 110.2  last 883.4
+ available memory min 6.705 GiB
+ data-disk write IOPS (1-min avg) peak 334.1 at 10-06 15:01
+ data-disk IOPS-consumed max 59% at 10-06 15:01; minutes >=95%: 0
+ data-disk queue depth max 89.1 at 10-06 15:01; bandwidth-consumed max 4%
+ minutes with no sample: iops_consumed 252, write_iops 24, mem 73, credits 72
+== burst window 14:55-15:10 CT: minutes=16
+ CPU mean 2.69%  1-min max 7.36% at 10-06 15:00
+ CPU credits min 847.6  first 847.6  last 855.8
+ available memory min 6.705 GiB
+ data-disk write IOPS (1-min avg) peak 334.1 at 10-06 15:01
+ data-disk IOPS-consumed max 59% at 10-06 15:01; minutes >=95%: 0
+ data-disk queue depth max 89.1 at 10-06 15:01; bandwidth-consumed max 4%
+ minutes with no sample: iops_consumed 4, write_iops 0, mem 0, credits 0
+== whole production boot 10-05 15:31 -> 10-06 16:31 CT: minutes=1501
+ CPU mean 1.98%  1-min max 24.48% at 10-05 15:33
+ CPU credits min 60.8  first 60.8  last 900.9
+ available memory min 6.705 GiB
+ data-disk write IOPS (1-min avg) peak 334.1 at 10-06 15:01
+ data-disk IOPS-consumed max 59% at 10-06 15:01; minutes >=95%: 0
+ data-disk queue depth max 89.1 at 10-06 15:01; bandwidth-consumed max 4%
+ minutes with no sample: iops_consumed 275, write_iops 26, mem 82, credits 79
+== 14:50-15:15 CT per minute
+ ct           cpu_avg cpu_max  mem_min_GiB  wIOPS  iops%max  qd_max  wMB/s
+  10-06 14:50 2.07 3.37 6.729 135.6 24 35.0 0.99
+  10-06 14:51 2.75 4.17 - 11.2 2 0.0 -
+  10-06 14:52 2.34 3.70 6.717 152.1 - 39.1 1.06
+  10-06 14:53 2.26 3.65 6.720 7.9 26 0.0 0.38
+  10-06 14:54 2.48 3.85 6.729 9.5 1 0.0 0.59
+  10-06 14:55 3.06 3.92 6.726 168.7 30 42.8 1.75
+  10-06 14:56 3.17 4.74 6.726 191.1 34 47.9 -
+  10-06 14:57 2.52 3.83 6.728 13.8 2 0.0 1.42
+  10-06 14:58 2.87 4.36 6.721 15.3 19 0.0 0.71
+  10-06 14:59 3.39 4.14 6.717 179.5 15 42.2 1.88
+  10-06 15:00 6.55 7.36 6.705 181.9 32 46.0 3.91
+  10-06 15:01 3.43 5.46 6.706 334.1 59 89.1 -
+  10-06 15:02 2.31 3.62 6.713 10.1 - 0.0 3.06
+  10-06 15:03 2.04 3.26 6.720 7.6 1 0.0 0.32
+  10-06 15:04 1.96 3.20 6.726 6.3 - 0.0 0.24
+  10-06 15:05 1.98 3.18 6.729 6.2 1 0.0 0.20
+  10-06 15:06 2.02 3.35 6.732 5.5 - 0.0 0.25
+  10-06 15:07 2.20 3.45 6.707 107.6 0 29.0 0.70
+  10-06 15:08 1.91 3.24 6.709 25.7 23 5.3 0.30
+  10-06 15:09 1.83 3.03 6.711 3.5 0 0.0 0.14
+  10-06 15:10 1.81 3.07 6.713 2.7 - 0.0 0.12
+  10-06 15:11 1.81 3.09 6.714 1.8 0 0.0 0.07
+  10-06 15:12 1.87 3.12 6.717 2.9 0 0.0 0.13
+  10-06 15:13 1.91 3.27 6.719 2.2 - 0.0 0.09
+  10-06 15:14 1.79 3.09 6.722 1.8 0 0.0 0.10
+  10-06 15:15 1.83 3.01 6.724 2.8 0 0.0 0.10
+== finalization 15:58-16:12 CT per minute
+  10-06 15:58 cpu 1.8 wIOPS 1.88 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 15:59 cpu 1.88 wIOPS 2.04 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:00 cpu 1.76 wIOPS 2.46 iops% - qd 0.0 readIOPSmax 0.0
+  10-06 16:01 cpu 5.79 wIOPS 77.86 iops% 13.0 qd 20.2 readIOPSmax -
+  10-06 16:02 cpu 1.63 wIOPS 0.08 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:03 cpu 1.61 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:04 cpu 1.69 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:05 cpu 1.755 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:06 cpu 1.55 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax -
+  10-06 16:07 cpu 1.625 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:08 cpu 1.545 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:09 cpu 1.615 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax 0.0
+  10-06 16:10 cpu 1.72 wIOPS 0.0 iops% - qd 0.0 readIOPSmax 0.0
+  10-06 16:11 cpu 1.67 wIOPS 0.0 iops% 0.0 qd 0.0 readIOPSmax -
+  10-06 16:12 cpu 1.575 wIOPS 0.0 iops% - qd 0.0 readIOPSmax 0.0

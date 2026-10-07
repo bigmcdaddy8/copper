@@ -1,0 +1,177 @@
+######## 2026-10-07T01:51:40Z pre
+sidecars(pre): 0
+a97c6ba09853bb418d6f65d48cf1e53f3ae554535f9d874849cd3ff9ceef9bf3  /srv/dicks_laboratory/data/sessions/es_20261006_2b6cc528.sqlite3
+######## DatasetAudit (LaboratoryStore read_only=True)
+dataset 2b6cc528-8928-4c2b-a27d-77794fc61d26 long-horizon-es-2026-10-06
+accepted_trade_count 893077
+first/last dataset_sequence 1 893077
+first/last trade 2026-10-05 22:00:01.939000+00:00 2026-10-06 20:59:59.122000+00:00
+instrument_ids ('FUTURE:CME:ES:2026-12',)
+rejected 4 (('INVALID_DXLINK_TICK', 4),) ((<RejectionSourceKind.DXLINK_TIME_AND_SALE: 'DXLINK_TIME_AND_SALE'>, 4),)
+lifecycle_counts [('CAPTURE_STARTED', 1), ('CAPTURE_STOPPED', 1), ('SOURCE_CONNECTED', 1)]
+known_gap_count 0 suspected 0 known_gap_duration 0:00:00
+deferred 0 ()
+DATASET_AUDIT=PASS
+rc=0
+######## VWAP
+Dick's Laboratory -- Anchored VWAP Analysis
+
+Dataset:
+  2b6cc528-8928-4c2b-a27d-77794fc61d26
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-10-06
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-10-05 17:00:00.000 America/Chicago
+  UTC:     2026-10-05T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-10-05 17:00:01.939 America/Chicago
+  Last trade:  2026-10-06 15:59:59.122 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.939s
+  Session end (Chicago): 2026-10-06 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Canonical NEW-only:
+  Trades: 893,077
+  Volume: 1196726.0
+  VWAP:   7873.910063581805693199612944
+
+Effective tape:
+  Trades:              893,077
+  Corrections applied:  0
+  Cancels applied:      0
+  VWAP:                 7873.910063581805693199612944
+
+Label:
+  Captured-data developing session-open anchored VWAP
+rc=0
+######## VOLUME PROFILE
+Dick's Laboratory -- Volume Profile Analysis
+
+Dataset:
+  2b6cc528-8928-4c2b-a27d-77794fc61d26
+
+Instrument:
+  FUTURE:CME:ES:2026-12
+
+Trading date:
+  2026-10-06
+
+Anchor:
+  CME equity-index session open
+  Chicago: 2026-10-05 17:00:00.000 America/Chicago
+  UTC:     2026-10-05T22:00:00Z
+
+Retained dataset:
+  First trade: 2026-10-05 17:00:01.939 America/Chicago
+  Last trade:  2026-10-06 15:59:59.122 America/Chicago
+
+Coverage:
+  DATASET_BEGINS_AFTER_ANCHOR
+  Dataset begins after requested anchor: YES
+  Unobserved pre-capture interval: 0h 0m 1.939s
+  Session end (Chicago): 2026-10-06 16:00:00.000 America/Chicago
+  Dataset ends before session end: YES
+
+Selected Effective Tape:
+  Trades: 893,077
+  Volume: 1196726.0
+  Corrections applied: 0
+  Cancels applied:     0
+
+VWAP:
+  7873.910063581805693199612944
+
+Volume Profile:
+  Low:  7829.00
+  High: 7897.50
+  Occupied levels: 275
+  Tick size: 0.25
+
+Point of Control:
+  Price: 7874.50
+  Volume: 19628.0
+  Prints: 11086
+
+Value Area:
+  Target: 70.00%
+  Actual: 70.01393802758526178924833253%
+  VAL: 7864.25
+  VAH: 7890.25
+  Included levels: 105
+
+Top 10 Volume Levels (ranked by volume desc, then price asc):
+  7874.50   19628.0   (11086 prints)
+  7879.75   19523.0   (14987 prints)
+  7874.25   19231.0   (11393 prints)
+  7873.50   18701.0   (10499 prints)
+  7880.00   17569.0   (12640 prints)
+  7874.00   17542.0   (10500 prints)
+  7879.50   16656.0   (13157 prints)
+  7873.25   16529.0   (9286 prints)
+  7873.75   16490.0   (9474 prints)
+  7882.25   15388.0   (11898 prints)
+
+Canonical NEW-only comparison:
+  Differs from effective tape: no
+
+Interpretation Boundary:
+  Captured-data developing session-open Volume Profile.
+  Retained captured observations only; not a completed full-session profile.
+  Ordinary CME schedule only; holiday/early-close overrides not modeled.
+rc=0
+######## DEVELOPING PROFILE (15m, tail 40)
+rc=0
+12:15    18133  650301    837693.0   7872.6387   7893.00   7865.25   7896.75
+12:30    31622  681923    878779.0   7872.6923   7893.00   7865.50   7896.50
+12:45    18025  699948    902457.0   7872.8715   7893.00   7866.00   7896.50
+13:00    15948  715896    922189.0   7873.0228   7893.00   7866.25   7896.50
+13:15    14463  730359    940429.0   7873.2010   7893.00   7866.75   7896.50
+13:30    13262  743621    956601.0   7873.3220   7893.00   7867.00   7896.50
+13:45    13310  756931    973270.0   7873.4232   7879.75   7859.75   7890.25
+14:00    11906  768837    988948.0   7873.5451   7879.75   7860.25   7890.25
+14:15    13885  782722   1006646.0   7873.6760   7879.75   7860.75   7890.25
+14:30    13513  796235   1024792.0   7873.7655   7879.75   7861.25   7890.25
+14:45    16181  812416   1046493.0   7873.8350   7879.75   7861.75   7890.25
+15:00    60215  872631   1161145.0   7873.8613   7879.75   7863.50   7890.25
+15:15    11597  884228   1183269.0   7873.8689   7874.50   7863.75   7890.25
+15:30     4462  888690   1190055.0   7873.8865   7874.50   7864.00   7890.25
+15:45     1791  890481   1192777.0   7873.8930   7874.50   7864.00   7890.25
+16:00*    2596  893077   1196726.0   7873.9101   7874.50   7864.25   7890.25
+* terminal analytical cutoff; last retained trade was 15:59:59.122 CT
+
+Each row is cumulative from the requested anchor.
+This is not a rolling-window profile.
+Zero new retained trades in a row does not prove zero market activity.
+
+Terminal retained state:
+  Trades: 893,077
+  Volume: 1196726.0
+
+  Terminal exact VWAP:
+    7873.910063581805693199612944
+
+  POC: 7874.50
+  VAL: 7864.25
+  VAH: 7890.25
+
+Interpretation boundary:
+  - retained observations only
+  - cumulative from requested anchor
+  - not a rolling profile
+  - ordinary CME schedule only
+  - no claim of complete tape
+  - effective timeline is retrospective, not point-in-time feed knowledge
+######## 2026-10-07T01:58:12Z post
+sidecars(post): 0
+a97c6ba09853bb418d6f65d48cf1e53f3ae554535f9d874849cd3ff9ceef9bf3  /srv/dicks_laboratory/data/sessions/es_20261006_2b6cc528.sqlite3
