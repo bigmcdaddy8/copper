@@ -1,0 +1,33 @@
+# 0X-B deployment on dragon (Start-Dragon job 8dff1ce9-17cb-4fb3-adb6-05e26adf8500 created 2026-10-07T02:56:54Z, user-started); commands: git fetch; git merge --ff-only origin/master; uv sync --frozen --all-packages; install -m 0644 of the comment-corrected preflight unit; daemon-reload; systemd-analyze verify
+dicks-lab-preflight-gate.timer enabled=disabled active=inactive
+dicks-lab-launch-gate.timer enabled=disabled active=inactive
+dicks-lab-es-session.timer enabled=static active=inactive
+dicks-lab-es-session.service enabled=static active=inactive
+dicks timers scheduled: 0
+pre HEAD a27013b24dc6f010d00c93d5d730544c2cdcead9 porcelain=0
+ create mode 100644 docs/dicks_laboratory/evidence/0X-A/live_roll_check_and_chains_2026-10-07.txt
+ create mode 100644 docs/dicks_laboratory/evidence/0X-A/roll_schedule_replay_ES_Z6.txt
+ create mode 100644 scripts/dicks_lab_roll_check.py
+Checked 63 packages in 303ms
+post HEAD 25ec3eb60db5533d063fbf8f8ea2daed5f89c999
+origin/master 25ec3eb60db5533d063fbf8f8ea2daed5f89c999
+porcelain=0
+before: installed=c1d1762e6909d2c3 repo=1dcda41cc4d3e15b
+non-comment content identical
+/usr/lib/systemd/system/xfs_scrub_all.service:26: Support for option CPUAccounting= has been removed and it is ignored
+/usr/lib/systemd/system/system-xfs_scrub.slice:15: Support for option CPUAccounting= has been removed and it is ignored
+/usr/lib/systemd/system/walinuxagent.service:21: Support for option CPUAccounting= has been removed and it is ignored
+verify rc=0
+dicks-lab-es-session.service installed=3c77d99872bbb379 repo=3c77d99872bbb379
+dicks-lab-es-session.timer installed=78fb2b4f6639989d repo=78fb2b4f6639989d
+dicks-lab-launch-gate.service installed=80409538bdc789b6 repo=80409538bdc789b6
+dicks-lab-launch-gate.timer installed=05d9d2c7d4a48913 repo=05d9d2c7d4a48913
+dicks-lab-preflight-gate.service installed=1dcda41cc4d3e15b repo=1dcda41cc4d3e15b
+dicks-lab-preflight-gate.timer installed=12c3e2ddda3862f6 repo=12c3e2ddda3862f6
+--symbol /ESZ6
+PINNED_ES_SYMBOL = "/ESZ6"
+dicks-lab-preflight-gate.timer enabled=disabled active=inactive
+dicks-lab-launch-gate.timer enabled=disabled active=inactive
+dicks-lab-es-session.timer enabled=static active=inactive
+dicks-lab-es-session.service enabled=static active=inactive
+dicks timers scheduled: 0

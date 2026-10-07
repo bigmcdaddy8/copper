@@ -4742,3 +4742,26 @@ Full write-up: `FUTURES_CONTRACT_ROLL_0XA.md`; evidence: `evidence/0X-A/`.
 0X-A: READY FOR REVIEW
 NEXT: PO REVIEW BEFORE MARKET-PROFILE DEVELOPMENT
 ```
+
+## MM. 0X-B — Contract-Roll Production Policy Hardening (2026-10-07)
+
+PO: **0X-A PASS / ACCEPTED / CLOSED.** Policy correction: `ROLL_DUE` (on or
+after the CME customary roll) now **fails the production preflight closed**.
+Production captures the intended lead contract, not any still-tradeable one.
+
+ROLL_APPROACHING stays warn-only from roll − 14 days.
+
+Deployed to `dragon` (`25ec3eb`). A REST-only smoke shows:
+- `/ESZ6` live: CURRENT / PASS
+- TD 12-14 with `/ESZ6`: ROLL_DUE / FAIL
+- TD 12-14 with an explicit `/ESH7` pin: CURRENT / PASS
+
+**December roll deadline:** the explicit `/ESZ6 → /ESH7` pin change must be
+deployed before **Sun 2026-12-13 17:00 CT**. Warnings start TD 2026-11-30.
+Details: `FUTURES_CONTRACT_ROLL_0XA.md` §15, `evidence/0X-B/`,
+`contract_rolls/README.md`.
+
+```
+0X-B: PASS — CONTRACT-ROLL PRODUCTION POLICY READY
+NEXT: MARKET PROFILE / TPO DEVELOPMENT
+```

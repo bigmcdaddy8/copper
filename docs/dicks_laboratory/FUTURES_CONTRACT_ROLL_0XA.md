@@ -27,7 +27,7 @@ Code: `apps/dicks_laboratory/src/dicks_laboratory/futures_contracts.py`, CLI
 | Next contract | `/ESH7` → `/ESH27:XCME` → `FUTURE:CME:ES:2027-03`, expires 2027-03-19 | live metadata (`next-active-month: true`) |
 | Warning window opens | **TD 2026-11-30** (Mon) | this policy (§6) |
 | Deploy-by deadline | **before Sun 2026-12-13 17:00 CT** (the open of TD 2026-12-14) | session model |
-| Fail-closed date | **TD 2026-12-18** if `/ESZ6` is still pinned | this policy (§7) |
+| Fail-closed date | **TD 2026-12-14** (ROLL_DUE) if `/ESZ6` is still pinned; the Sunday 12-13 16:42 CT preflight refuses | 0X-B policy (§15) |
 
 **CME verification note.** cmegroup.com refuses automated fetches (HTTP
 403). The CME roll-dates page, as indexed by search, states the rule (Monday
@@ -155,7 +155,7 @@ consistency.
 | `METADATA_UNAVAILABLE` | FAIL | no/invalid metadata; the pin row lacks streamer/exchange/expiration or is internally inconsistent |
 | `PIN_STALE` | FAIL | pin not listed; not tradeable; closing-only; trading date ≥ expiration date |
 | `METADATA_CONFLICT` | FAIL | broker expiration ≠ exchange calendar; broker exchange ≠ product exchange |
-| `ROLL_DUE` | WARN | trading date ≥ customary roll date (and < expiration) |
+| `ROLL_DUE` | **FAIL** (0X-B; WARN in 0X-A) | trading date ≥ customary roll date (and < expiration) |
 | `ROLL_APPROACHING` | WARN | trading date ≥ roll − 14 calendar days |
 | `METADATA_CONFLICT` | WARN | before the window, broker active-month ≠ pin, or broker next-active ≠ exchange successor (the pin itself is still valid) |
 | `CURRENT` | OK | otherwise |
@@ -195,13 +195,13 @@ holiday-agnostic and deterministic). Rationale:
 |---|---|
 | CURRENT | PASS |
 | ROLL_APPROACHING | **PASS + warning lines** |
-| ROLL_DUE | **PASS + warning lines.** The old contract is still listed, tradeable and truthfully identified. Failing would only lose a day's data. The data is lower-value after the roll, and the warning says so daily. |
+| ROLL_DUE | **FAIL, closed (0X-B, PO decision).** Production captures the intended *lead* contract, not merely any still-tradeable one. (0X-A had proposed PASS + warning; superseded.) |
 | METADATA_CONFLICT (WARN) | PASS + warning lines |
 | PIN_STALE / PIN_INVALID / METADATA_UNAVAILABLE / METADATA_CONFLICT (FAIL) | **FAIL, closed.** No marker, so the launch gate does not start the collector. The pin is never changed. |
 
-"Well past customary roll" is fixed at the **expiration trading date**.
-The 12-18 trading date's session is truncated at 08:30 CT by the last trade,
-so a full-day capture of `/ESZ6` on TD 12-18 is impossible by definition.
+0X-B: the old pin fails from the **customary roll trading date** (ROLL_DUE).
+From the **expiration trading date** it is additionally `PIN_STALE`: the 12-18
+session is truncated at 08:30 CT by the last trade.
 
 ## 8. Human-approved roll workflow (not automated)
 
@@ -256,7 +256,7 @@ uv run --frozen python scripts/dicks_lab_roll_check.py chain {ES|MES|NQ|MNQ} [--
 ```
 
 The tool only calls REST `list_futures()` and never requests a quote token.
-`check` exits 1 on FAIL severity. The default trading date is the upcoming
+`check` exits 1 on FAIL severity, which since 0X-B includes ROLL_DUE. The exit status therefore equals production readiness: CURRENT / ROLL_APPROACHING exit 0, ROLL_DUE and all FAIL states exit 1. The output adds a `Production readiness (preflight policy)` line. The default trading date is the upcoming
 one. Live output (2026-10-07): `Roll state: CURRENT (OK)`, `Recommended
 production action: NONE`
 (`evidence/0X-A/live_roll_check_and_chains_2026-10-07.txt`).
@@ -267,6 +267,7 @@ The offline replay of the same metadata across the window is
 ```
 10-07 CURRENT · 11-27 CURRENT · 11-30 ROLL_APPROACHING · 12-11 ROLL_APPROACHING
 12-14 ROLL_DUE · 12-17 ROLL_DUE · 12-18 PIN_STALE (FAIL, exit 1)
+(0X-A capture; since 0X-B ROLL_DUE is also FAIL / exit 1 -- see evidence/0X-B/)
 ```
 
 ## 12. Preflight integration
@@ -320,8 +321,140 @@ quote token). Full repository: **1,326 passed**.
 - `es_contract.py` decade assumption (valid through 2029)
 
 ```
-0X-A: READY FOR REVIEW
+0X-A: READY FOR REVIEW  ->  PO 2026-10-07: PASS / ACCEPTED / CLOSED (see §15 for 0X-B)
 CONTRACT-ROLL FOUNDATION: implemented, read-only, test-covered; preflight integration not yet deployed
 PRODUCTION COLLECTION: DISARMED   DRAGON: DEALLOCATED
 NEXT: PO REVIEW (then contract-roll live readiness at a future arming)
+```
+
+## 15. 0X-B — Contract-Roll Production Policy Hardening & Deployment (2026-10-07)
+
+**PO decision:** 0X-A is PASS / ACCEPTED / CLOSED. The architecture, model,
+CLI, provenance model, 14-day warning, Human approval workflow and the
+no-silent-auto-roll principle are all accepted. **Policy correction:**
+`ROLL_DUE` stays the domain assessment state, but its production consequence
+is now **FAIL closed**.
+
+**Rationale.** The production objective is to capture the *intended lead* ES
+contract for the market-study dataset, not merely any still-tradeable ES
+contract. The CME customary roll marks the hand-over to the next quarterly
+lead month. Capturing `/ESZ6` for TD 2026-12-14…12-17 just because it is
+still tradeable would violate that policy.
+
+**Final state / severity / production-preflight table:**
+
+| State | Severity | Production preflight | CLI `check` exit |
+|---|---|---|---|
+| CURRENT | OK | PASS | 0 |
+| ROLL_APPROACHING (≥ roll − 14 calendar days) | WARN | **PASS + warning lines** | 0 |
+| METADATA_CONFLICT, warning-level (before the window: broker active / next-active disagrees, pin itself valid) | WARN | PASS + warning lines | 0 |
+| **ROLL_DUE** (≥ customary roll, < expiration) | **FAIL** | **FAIL** | 1 |
+| PIN_STALE (unlisted / untradeable / closing-only / ≥ expiration) | FAIL | FAIL | 1 |
+| PIN_INVALID (malformed / unknown root / month outside cycle) | FAIL | FAIL | 1 |
+| METADATA_UNAVAILABLE | FAIL | FAIL | 1 |
+| METADATA_CONFLICT, material (broker expiration ≠ CME calendar; exchange mismatch) | FAIL | FAIL | 1 |
+
+A harmless early broker discrepancy (warning-level) and a production-invalid
+identity conflict (FAIL) remain distinct. `RollSeverity` *is* the production
+consequence. The CLI exit status equals production readiness and prints
+`Production readiness (preflight policy): PASS | PASS + WARNING | FAIL`. On
+ROLL_DUE the recommended action reads `ROLL REQUIRED BEFORE PRODUCTION
+CAPTURE -- HUMAN APPROVAL: /ESZ6 -> /ESH7`. The successor is a
+recommendation, never selected or applied.
+
+**CME provenance.** December 2026 stays `CME_PUBLISHED` (roll 2026-12-14,
+expiry 2026-12-18) and is never silently replaced by the rule. March 2027 is
+currently `RULE_DERIVED` (roll 2027-03-15, expiry 2027-03-19). When approving
+the December roll, the Human verifies March on the CME page. Direct automated
+retrieval stays blocked (HTTP 403), which is acceptable. Adding verified March
+dates to `CME_EQUITY_INDEX_PUBLISHED` is part of that roll commit.
+
+**Production deadline.**
+
+```
+Current pin:          /ESZ6   (FUTURE:CME:ES:2026-12)
+Required successor:   /ESH7   (FUTURE:CME:ES:2027-03), subject to authoritative
+                      metadata verification at decision time
+Deploy the explicit pin change before:  Sunday 2026-12-13 17:00 CT
+  (that session open belongs to trading date 2026-12-14)
+The Sunday 2026-12-13 16:42 CT preflight REFUSES (PREFLIGHT_RESULT=FAIL,
+  roll_state=ROLL_DUE) if /ESZ6 is still pinned.
+```
+
+**Operational calendar.**
+
+| When | Expected |
+|---|---|
+| TD 2026-11-30 (Mon) | `ROLL_APPROACHING` appears (preflight PASS + warning) |
+| weekend 2026-12-05/06 | first preferred Human roll-review window: run `check` / `chain ES`, verify CME + broker metadata, approve, draft the provenance record |
+| weekend 2026-12-12/13 | final deployment window |
+| Sun 2026-12-13 before 17:00 CT | new production pin must be deployed (`git merge --ff-only`, `daemon-reload`), and preflight must show `/ESH7` CURRENT / PASS |
+| TD 2026-12-14 | the old `/ESZ6` pin fails preflight (`ROLL_DUE`) |
+| TD 2026-12-18 | `/ESZ6` expires (`PIN_STALE` as well) |
+
+**Human roll workflow (unchanged).** The warning appears → the Human reviews
+roll-check output → the Human verifies CME and broker metadata → the Human
+approves the successor → the provenance record is completed in
+`contract_rolls/` (see its README) → explicit production-pin commit (constant
++ unit `--symbol` + record) → deploy → preflight validates the new pin. There
+is no unattended roll and no code path changes `PINNED_ES_SYMBOL`.
+
+**Tests.** These are in addition to 0X-A:
+- the December transition table:
+  - 11-29 CURRENT/PASS
+  - 11-30 and 12-11 APPROACHING/PASS + warning
+  - 12-13 APPROACHING
+  - 12-14, 12-15 and 12-17 ROLL_DUE/FAIL
+  - 12-18 PIN_STALE/FAIL
+- the real Sunday 2026-12-13 22:42Z (16:42 CST) preflight, which resolves to
+  TD 2026-12-14:
+  - `/ESZ6` → `ROLL_DUE`, `PREFLIGHT_RESULT=FAIL`
+  - an explicit `/ESH7` pin with Dec-13 broker metadata → `CURRENT`,
+    `PREFLIGHT_RESULT=PASS`
+- CLI exit = production readiness
+- a warning-level early discrepancy stays WARN
+- December keeps `CME_PUBLISHED` provenance
+- the production pin (constant, source bytes, unit bytes) is unchanged after
+  assessment, CLI and preflight runs
+
+**Unit consistency.** The stale `/ESU6 -> /ESU26:XCME` header comment in
+`dicks-lab-preflight-gate.service` was corrected (comment lines only; the
+non-comment content is byte-identical) and installed on `dragon` so the
+installed copy equals git. All six units' installed sha256 equal the repo.
+`systemd-analyze verify` is clean for them. The es-session unit still pins
+`--symbol /ESZ6` = `PINNED_ES_SYMBOL`.
+
+**Deployment (2026-10-07Z, `evidence/0X-B/`).**
+- Start-Dragon job `8dff1ce9…` (user-started).
+- Gate timers verified still disabled.
+- `git fetch` + `merge --ff-only` from `a27013b` to `25ec3eb`.
+- `uv sync --frozen --all-packages`.
+- Clean tree.
+
+The REST-only readiness smoke on `dragon` used `list_futures()` only. There
+was no quote token, no gate marker and no capture.
+
+| Check | Result |
+|---|---|
+| live production preflight (TD 2026-10-07, `/ESZ6`) | `roll_state=CURRENT`, `PREFLIGHT_RESULT=PASS` |
+| live `check` | CURRENT (OK), readiness PASS, exit 0 |
+| 2026-11-30 `/ESZ6` (live metadata) | ROLL_APPROACHING (WARN), PASS + WARNING, exit 0 |
+| 2026-12-11 `/ESZ6` | ROLL_APPROACHING, PASS + WARNING, exit 0 |
+| 2026-12-14 `/ESZ6` (live and Dec-13-derived metadata) | ROLL_DUE (FAIL), FAIL, exit 1 |
+| 2026-12-14 `/ESH7` (Dec-13-derived metadata) | CURRENT (OK), PASS, exit 0 |
+| 2026-12-18 `/ESZ6` | PIN_STALE (FAIL), exit 1 |
+| 0X-B test files on deployed code | 107 passed |
+
+"Dec-13-derived metadata" means the live ES rows with only `active-month` /
+`next-active-month` advanced to `/ESH7` / `/ESM7`. That is the state
+Tastytrade's 4-business-day roll offset implies. It is not a real broker
+response.
+
+```
+0X-A: ACCEPTED / CLOSED
+0X-B: PASS — CONTRACT-ROLL PRODUCTION POLICY READY
+CURRENT PRODUCTION PIN: /ESZ6
+DECEMBER ROLL: HUMAN ACTION REQUIRED BEFORE 2026-12-13 17:00 CT
+PRODUCTION COLLECTION: DISARMED   DRAGON: DEALLOCATED
+NEXT: MARKET PROFILE / TPO DEVELOPMENT
 ```
