@@ -1,0 +1,91 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        9ac5a21e-a5c0-427c-91fc-af300539b711
+Instrument:     FUTURE:CME:ES:2026-12
+Trading date:   2026-09-30
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-09-30T13:30:00Z .. 2026-09-30T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  COMPLETE / NO KNOWN GAPS
+  Lifecycle: FINALIZED
+  Study window captured: YES
+
+Price increment: 0.25 (CME_ES_TICK_GRID)
+Eligible trades: 1,057,441
+
+Profile high:   7782.00
+Profile low:    7709.25
+Profile range:  72.75 (291 ticks)
+
+IB high:        7779.50   (periods AB)
+IB low:         7748.00
+IB range:       31.50 (126 ticks)
+Range extension above IB: 2.50 (10 ticks), first in period C
+Range extension below IB: 38.75 (155 ticks), first in period K
+
+TPO POC:        7767.25   (V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE)
+TPO VAL:        7751.75
+TPO VAH:        7778.25
+Value-area %:   603/858 TPOs = 70.28% (target 70%; V1_TWO_ROW_GREATER_SUM_TIE_ABOVE)
+Total TPOs:     858
+Periods present: ABCDEFGHIJKLM (13 of 13)
+
+Periods (Chicago):
+  A  08:30-09:00  high    7767.75  low    7748.00  trades 120,454
+  B  09:00-09:30  high    7779.50  low    7762.50  trades 118,018
+  C  09:30-10:00  high    7782.00  low    7760.25  trades 105,402
+  D  10:00-10:30  high    7777.00  low    7764.50  trades 89,447
+  E  10:30-11:00  high    7780.25  low    7766.00  trades 74,994
+  F  11:00-11:30  high    7778.50  low    7767.25  trades 53,248
+  G  11:30-12:00  high    7772.50  low    7763.75  trades 46,672
+  H  12:00-12:30  high    7772.25  low    7749.50  trades 63,580
+  I  12:30-13:00  high    7767.25  low    7756.75  trades 55,944
+  J  13:00-13:30  high    7764.75  low    7750.50  trades 54,071
+  K  13:30-14:00  high    7757.00  low    7747.25  trades 53,709
+  L  14:00-14:30  high    7756.00  low    7749.25  trades 44,404
+  M  14:30-15:00  high    7751.25  low    7709.25  trades 177,498
+
+DAY STRUCTURE FACTS:
+  Profile: 7709.25-7782.00, range 72.75 (291 ticks), midpoint 7745.625
+  IB: 7748.00-7779.50, range 31.50 (126 ticks), midpoint 7763.75
+  IB share of range (IB/profile): 0.4330   range multiple of IB (profile/IB): 2.3095
+  Extension above IB: 2.50 (10 ticks) = 0.0794 x IB; periods beyond IB high: CE (2); new post-IB highs: C
+  Extension below IB: 38.75 (155 ticks) = 1.2302 x IB; periods beyond IB low: KM (2); new post-IB lows: KM
+  Directional state: BOTH_SIDES   first extension: UP   last extension: DOWN
+  POC 7767.25 (at 0.7973 of range)   VAL 7751.75   VAH 7778.25   VA midpoint 7765.00 (at 0.7663)   IB midpoint at 0.7491
+  Profile high printed by C (first C); profile low printed by M (first M)
+  Longest run of higher lows: 4 periods; of lower highs: 9 periods
+  Upper tail: 7 rows; lower tail: 152 rows; interior one-TPO zones: 0
+  Periods without trades: none
+  Study-window terminal price: 7713.00 at 2026-09-30T19:59:59Z (period M); at 0.0515 of range; 69.00 below high, 3.75 above low
+    (last eligible trade before the window end -- not the CME settlement or Globex close)
+
+DAY-TYPE CANDIDATES (DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE):
+  Thresholds: NORMAL IB share >= 0.85; NORMAL_VARIATION 0.50 <= IB share < 0.85; TREND IB share < 0.50 and >= 2 new-extreme periods
+  Quality: UNQUALIFIED
+  Outcome: CANDIDATE -- NEUTRAL_DAY_CANDIDATE
+  NORMAL_DAY_CANDIDATE: NO
+    [NOT satisfied] directional_state: not BOTH_SIDES (IB contains the session, or a one-sided extension) -- BOTH_SIDES
+    [NOT satisfied] ib_share_wide: IB share >= 0.85 -- IB share = 31.50 / 72.75 = 0.4330
+    [not evaluated] ib_wide_vs_history: IB wide versus recent sessions (separates NON_TREND_DAY) -- requires historical context; not evaluated in V1
+  NORMAL_VARIATION_DAY_CANDIDATE: NO
+    [NOT satisfied] directional_state: UP_ONLY or DOWN_ONLY -- BOTH_SIDES
+    [NOT satisfied] ib_share_band: 0.50 <= IB share < 0.85 (range up to 2x IB) -- IB share = 31.50 / 72.75 = 0.4330
+  TREND_DAY_CANDIDATE: NO
+    [NOT satisfied] directional_state: UP_ONLY or DOWN_ONLY (no counter-extension) -- BOTH_SIDES
+    [satisfied    ] ib_share_narrow: IB share < 0.50 (range more than 2x IB) -- IB share = 31.50 / 72.75 = 0.4330
+    [NOT satisfied] persistent_new_extremes: >= 2 post-IB periods set a new extreme in the extension direction -- no single extension direction
+    [NOT satisfied] terminal_on_extension_side: study-window terminal price strictly beyond the profile midpoint on the extension side -- terminal 7713.00; no single extension direction
+  NEUTRAL_DAY_CANDIDATE: YES
+    [satisfied    ] both_sides_extension: extension above IB >= 1 tick AND extension below IB >= 1 tick -- above 10 ticks, below 155 ticks
+  Deferred (not evaluated): NON_TREND_DAY ('narrow IB' / 'narrow range' are absolute or historical judgements; the same-day profile cannot separate it from NORMAL_DAY (requires historical context)); NEUTRAL_EXTREME / NEUTRAL_CENTER (close 'near an extreme' / 'in the middle' is undefined; terminal-price facts are reported); DOUBLE_DISTRIBUTION_TREND_DAY (requires deterministic distribution segmentation (0Y-D candidate))
+  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.
+
+Boundary: derived facts and day-type CANDIDATES only -- no interpretation or signal.
+Ordinary CME schedule only; holiday/early-close overrides not modeled.

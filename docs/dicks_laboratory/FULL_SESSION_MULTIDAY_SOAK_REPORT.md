@@ -4821,3 +4821,51 @@ rows. An independent recompute matches. Evidence: `evidence/0Y-B/`.
 0Y-B: PASS — DETERMINISTIC MARKET PROFILE STRUCTURAL FEATURES COMPLETE
 NEXT: PO REVIEW BEFORE DAY-STRUCTURE / DAY-TYPE CLASSIFICATION
 ```
+
+## MP. 0Y-C — Deterministic Day-Structure / Day-Type Candidates (2026-10-08)
+
+PO: **0Y-B PASS / ACCEPTED / CLOSED.**
+
+0Y-C adds `tpo_day_structure.py`, a derived layer over the accepted profile
+and structure:
+- `DayStructureFacts`: range and IB ratios (zero denominators give None),
+  extensions, directional state `NO_EXTENSION / UP_ONLY / DOWN_ONLY /
+  BOTH_SIDES`, first and last extension direction, POC / value / IB location
+  percentiles, one-timeframing runs, and the study-window terminal price
+- `classify_day_type` under policy `V1_DIRECTIONAL_STATE_X_IB_SHARE`
+
+Four candidates were adopted: `NORMAL_DAY`, `NORMAL_VARIATION_DAY`,
+`TREND_DAY` (four conditions) and `NEUTRAL_DAY`. They are mutually exclusive by
+construction, and a test proves it. Direction is a separate field. Every
+condition is returned with its observed value.
+
+Three types were deferred, with reasons:
+- `NON_TREND_DAY` (needs historical context)
+- Neutral Extreme / Center ("near" is undefined)
+- Double Distribution (segmentation audit → 0Y-D candidate)
+
+Quality rules:
+- A study window that was not fully captured, or whose coverage is unverified,
+  is `NOT_CLASSIFIED`.
+- Gap evidence inside the window gives `QUALITY_QUALIFIED`.
+- An overnight gap outside the window leaves the result unqualified.
+
+CLI flag: `--day-structure`. Default and `--structure` outputs are
+byte-identical to the accepted evidence.
+
+Blind real-data study:
+
+| TD | Outcome |
+|---|---|
+| 09-30 | `NEUTRAL_DAY` |
+| 09-02 | `NORMAL_VARIATION_DAY` UP |
+| 09-08 | `NOT_CLASSIFIED` (lifecycle OPEN) |
+| 09-11 | `NOT_CLASSIFIED` (truncated) |
+| 09-07 | `NOT_CLASSIFIED` (holiday halt) |
+
+Surprises are documented, not tuned. Evidence: `evidence/0Y-C/`.
+
+```
+0Y-C: PASS — DETERMINISTIC DAY-STRUCTURE / DAY-TYPE CANDIDATE LAYER COMPLETE
+NEXT: PO REVIEW BEFORE OPENING-TYPE / CONTEXT DEVELOPMENT
+```

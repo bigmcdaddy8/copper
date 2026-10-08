@@ -1,0 +1,7 @@
+| TD | dataset | dataset quality | class. quality | IB | range | range/IB | IB share | ext above | ext below | state | new highs | new lows | tails up/low/interior zones | terminal @pct | candidate | direction | policy | DIAGNOSTIC (gate removed) | TPO peaks prom>=1/2/3/5 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-09-30 | 9ac5a21e | COMPLETE | UNQUALIFIED | 31.50 | 72.75 | 2.31 | 0.4330 | 2.50 | 38.75 | BOTH_SIDES | C | KM | 7/152/0 | 7713.00 @0.05 | NEUTRAL_DAY | - | V1_DIRECTIONAL_STATE_X_IB_SHARE | -- | 4/2/1/1 |
+| 2026-09-02 | 9c76e79c | INCOMPLETE | UNQUALIFIED | 39.50 | 48.25 | 1.22 | 0.8187 | 8.75 | 0.00 | UP_ONLY | CDE | - | 2/47/1 | 7678.25 @0.73 | NORMAL_VARIATION_DAY UP | UP | V1_DIRECTIONAL_STATE_X_IB_SHARE | -- | 2/1/1/1 |
+| 2026-09-08 | e3110b72 | COMPLETE | NOT_CLASSIFIABLE | 37.75 | 45.50 | 1.21 | 0.8297 | 0.00 | 7.75 | DOWN_ONLY | - | KM | 55/18/0 | 7681.00 @0.19 | NOT_CLASSIFIED | - | V1_DIRECTIONAL_STATE_X_IB_SHARE | NORMAL_VARIATION_DAY DOWN | 2/2/1/1 |
+| 2026-09-11 | 3716af9f | COMPLETE | NOT_CLASSIFIABLE | 22.25 | 28.75 | 1.29 | 0.7739 | 0.00 | 6.50 | DOWN_ONLY | - | C | 3/8/0 | 7666.25 @0.45 | NOT_CLASSIFIED | - | V1_DIRECTIONAL_STATE_X_IB_SHARE | NORMAL_VARIATION_DAY DOWN | 3/3/3/3 |
+| 2026-09-07 | 85eccb13 | COMPLETE | UNQUALIFIED | 8.50 | 13.75 | 1.62 | 0.6182 | 0.00 | 5.25 | DOWN_ONLY | - | CD | 6/4/0 | 7708.75 @0.38 | NOT_CLASSIFIED | - | V1_DIRECTIONAL_STATE_X_IB_SHARE | -- | 2/1/1/0 |

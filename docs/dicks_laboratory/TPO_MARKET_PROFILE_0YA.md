@@ -1,11 +1,13 @@
-# TPO / Market Profile Foundation (0Y-A) and Structural Facts (0Y-B)
+# TPO / Market Profile Foundation (0Y-A), Structural Facts (0Y-B) and Day Structure (0Y-C)
 
-Status: 0Y-A is accepted. 0Y-B adds structural facts (§13–§21). Everything
-here is deterministic. There is no interpretation: no opening type, day type,
-direction or signal (§12, §21).
+Status: 0Y-A and 0Y-B are accepted. 0Y-B adds structural facts (§13–§21).
+0Y-C adds day-structure facts and explained day-type CANDIDATES (§22–§32).
+Everything here is deterministic. There is no interpretation: no opening type,
+bias, initiative/responsive label, setup or signal (§12, §21, §32).
 
 Code: `apps/dicks_laboratory/src/dicks_laboratory/tpo_profile.py` (pure profile
-math), `tpo_analysis.py` (dataset orchestration, quality, rendering),
+math), `tpo_structure.py` (0Y-B), `tpo_day_structure.py` (0Y-C),
+`tpo_analysis.py` (dataset orchestration, quality, rendering),
 `scripts/dicks_lab_tpo_profile.py` (read-only CLI).
 
 ## 1. Inventory: what is reused, what stays distinct
@@ -395,9 +397,331 @@ still the shared tape load, which remains backlog.
 ## 21. Still deferred (interpretation)
 
 - day types: Normal, Normal Variation, Trend, Neutral, Non-Trend, Double
-  Distribution Trend
+  Distribution Trend (0Y-C later added candidates for four of them; see §26–§27)
 - opening types: Open Drive, Open Test Drive, Open Rejection Reverse, Open
   Auction In/Out of Range
 - initiative vs responsive activity, direction, signals, setups
 - AI commentary, overnight inventory and prior-day context
 - any meaning attached to excess, poor extremes or single prints
+
+## 22. Reference survey (day types)
+
+Sources consulted, all secondary or educational. The CBOT Market Profile
+manuals (Steidlmayer) and Dalton's *Mind Over Markets* are the primary lineage
+but were not available in full text. Even the type count differs across that
+lineage: Steidlmayer first defined three types, later four, and *Mind Over
+Markets* lists nine (Wikipedia, "Market profile").
+
+- LuxAlgo concept library: day-type taxonomy, profile-shape taxonomy
+- marketcalls.in: "Market Profile – different types of profile days"; "What
+  traders really need to understand about trend days"
+- Linn Software, DayTypes (RTX) indicator documentation. This is the only
+  *mechanical* classifier found with published parameters.
+- Wikipedia, "Market profile"
+- TradingView community scripts (e.g. "Daily Volume Profile Pro"), which
+  classify by volume-bin concentration rather than by IB extension
+
+| Type | Commonly agreed traits | Ambiguous / subjective traits | Quantitative thresholds found | Differences among sources |
+|---|---|---|---|---|
+| **Normal** | IB contains (nearly) the whole session; rotational trade inside it; most common type | "wide" IB; "little" extension | Linn: IB range ≥ **85 %** of day range, plus an **18-tick** minimum day range | LuxAlgo: IB "contains the whole session". Linn allows a small extension. |
+| **Normal Variation** | Extension beyond the IB on **one** side; less directional than a trend day | "meaningful" extension; "roughly doubling" | Linn: IB 50–84 % of day range (≈ range up to 2 × IB) | marketcalls: "range extension more than 2 times the Initial Range", which conflicts with "up to double" |
+| **Trend** | Narrow IB; one-directional extension; persistent new highs/lows ("one-timeframing"); little rotation; closes near the extreme | "narrow", "relentless", "near", "elongated", "little rotation" | none published | marketcalls: POC is irrelevant on a trend day. Some sources stress single prints early in the day. |
+| **Neutral** | Range extension on **both** sides of the IB | whether a token extension counts | none (no materiality threshold anywhere) | Close location splits it into Neutral Center vs Neutral Extreme. TradingView-style scripts reuse "Neutral" for an evenly spread *volume* distribution, which is a different concept. |
+| **Neutral Extreme / Center** | Neutral, closing near one extreme / in the middle | "near", "middle" | none | — |
+| **Non-Trend** | Narrow IB, no or negligible extension, narrow range, low participation; often before news | "narrow", "dull", "low volume" | Linn: a Normal-shaped day failing the **18-tick** minimum range (an absolute, instrument-specific constant) | Some list it as a "common addition", not canonical. |
+| **Double Distribution Trend** | Small IB; first balance, a fast one-directional move, then a second balance; the two separated by single prints | "distinct", "thin band", "bulge" | none; identified visually ("shapes are only clean in hindsight", LuxAlgo) | LuxAlgo treats it as a shape; marketcalls treats it as a trend-day form |
+
+Shared caveat (LuxAlgo): "mechanical definitions of extension multiples vary
+between authors", and a type is only certain at the close.
+
+None of the words *wide, narrow, small, large, significant, elongated,
+balanced, near* was converted to a constant silently. Each threshold below is
+either a published default (cited) or a named Laboratory proxy. Anything that
+could not be defended is deferred (§27).
+
+## 23. Day-structure primitive facts (DERIVED FACT)
+
+`build_day_structure_facts(profile, structure, terminal)` returns the frozen
+`DayStructureFacts`. It reads only the accepted 0Y-A profile and 0Y-B structure.
+
+| Fact | Definition |
+|---|---|
+| profile range, midpoint | high − low; (high + low) / 2 (may sit between grid prices) |
+| IB range, midpoint | from the 0Y-A `InitialBalance` (A + B) |
+| `ib_share_of_range` | IB range / profile range. **None** when the profile range = 0 |
+| `range_multiple_of_ib` | profile range / IB range. **None** when the IB range = 0 |
+| extension above / below | points and ticks, from 0Y-A |
+| extension above / below as multiple of IB | **None** when the IB range = 0 (from 0Y-B) |
+| `periods_extending_above_ib` / `_below_ib` | every post-IB period whose high > IB high (low < IB low); the count is its length |
+| `new_post_ib_high_periods` / `_low_periods` | 0Y-B: each period that beat every earlier high (IB high included) |
+| POC, VAL, VAH, value-area midpoint | from 0Y-A |
+| `poc_percentile`, `value_area_midpoint_percentile`, `ib_midpoint_percentile` | (price − low) / range; **None** when the range = 0 |
+| periods at profile high / low, first such period | the letters at the extreme (0Y-B) and the earliest of them |
+| `longest_higher_low_run` / `longest_lower_high_run` | longest chain of consecutive traded periods, each with a strictly higher low (lower high) than the previous one. A "one-timeframing" measurement; an empty period breaks the chain. |
+| `periods_without_trades` | window periods with no retained trade |
+| upper / lower extreme, interior one-TPO zones | the 0Y-B objects, by reference |
+| `terminal` (study-window terminal price) | below |
+
+**Study-window terminal price.** The last eligible trade in [08:30, 15:00) CT:
+in window and on grid. Equal timestamps resolve to the later tape position. The
+price is put on the grid scale. Also reported: its period, its percentile
+within the range, and its distance from the high and the low. It is **not**
+the CME settlement and not the Globex session close. No interpretation is
+attached.
+
+## 24. Directional structure (DERIVED FACT)
+
+`directional_state` is independent of any named type and stays valid if a
+naming rule changes:
+
+| State | Rule |
+|---|---|
+| `NO_EXTENSION` | extension above = 0 and below = 0 |
+| `UP_ONLY` | above > 0, below = 0 |
+| `DOWN_ONLY` | above = 0, below > 0 |
+| `BOTH_SIDES` | above > 0 and below > 0 (≥ 1 tick each) |
+
+- **First extension:** the direction of the first post-IB period beyond the IB.
+- **Last extension:** the direction of the last period that set a new post-IB
+  extreme.
+- Either is `BOTH_IN_SAME_PERIOD` when one period did both.
+- Magnitudes are the extension facts in §23.
+
+## 25. IB size context
+
+"Wide" and "narrow" IB are relative judgements. Two candidate frames were
+considered:
+
+1. **IB share of the final profile range (adopted).** It is the same-day
+   ratio that every reference implicitly uses ("contains the session", "range
+   roughly double the IB"), and the only one with published numbers (Linn
+   85 % / 50 %). It needs no history.
+2. **Historical context** (IB percentile vs recent days, ATR, average daily
+   range). This would be the only responsible way to say "narrow IB" or
+   "narrow range" in absolute terms. It is **not** built. No rolling
+   statistics were added. The types that inherently need it are deferred and
+   say so (§27).
+
+Linn's 18-tick minimum day range was **not** adopted. It is an absolute,
+instrument-specific constant with no stated rationale, and it is exactly the
+kind of fabricated threshold this phase avoids.
+
+## 26. Adopted candidate policies (`DICKS_LAB_DAY_TYPE_POLICY` / `V1_DIRECTIONAL_STATE_X_IB_SHARE`)
+
+Constants (`tpo_day_structure.py`):
+
+| Constant | Value | Source |
+|---|---|---|
+| `NORMAL_MIN_IB_SHARE` | 0.85 | Linn default |
+| `NORMAL_VARIATION_MIN_IB_SHARE` | 0.50 | Linn default; also the "range ≈ 2 × IB" boundary |
+| `TREND_MIN_NEW_EXTREME_PERIODS` | 2 | Laboratory: the minimal literal reading of "multiple periods" |
+
+A candidate is `YES` when every *evaluated* condition is satisfied. A
+condition whose dependency lies outside the same-day profile is recorded as
+`not evaluated` and does not block the match. It is printed, so the gap is
+visible.
+
+### NORMAL_DAY_CANDIDATE
+- **REFERENCE DESCRIPTION:** a wide IB that contains (nearly) the whole session,
+  with rotation inside it.
+- **LABORATORY V1 POLICY:**
+  1. `directional_state` ≠ `BOTH_SIDES`
+  2. IB share ≥ 0.85
+  3. *(not evaluated)* IB wide versus recent sessions
+- **DOES NOT CLAIM:** that the IB was absolutely wide. The same-day profile
+  cannot tell Normal from Non-Trend (§27). It also says nothing about rotation
+  quality, balance, or what comes next.
+
+### NORMAL_VARIATION_DAY_CANDIDATE (+ direction)
+- **REFERENCE DESCRIPTION:** a one-sided extension that takes over mid-session,
+  short of a trend day (range up to about 2 × IB).
+- **LABORATORY V1 POLICY:**
+  1. `UP_ONLY` or `DOWN_ONLY`
+  2. 0.50 ≤ IB share < 0.85
+
+  Direction is the extension side.
+- **DOES NOT CLAIM:** that the extension was "meaningful". An IB share of
+  0.84 is a 0.19 × IB extension, and the band admits it (see §31, 2026-09-02).
+  It makes no claim about who was active or why, and the direction is a
+  geometric side, not a bias.
+
+### TREND_DAY_CANDIDATE (+ direction)
+- **REFERENCE DESCRIPTION:** a narrow IB, relentless one-directional extension,
+  persistent new extremes, little rotation, closing near the extreme.
+- **LABORATORY V1 POLICY.** All four of these independently observable
+  conditions must hold:
+  1. `UP_ONLY` or `DOWN_ONLY` (no counter-extension)
+  2. IB share < 0.50 (range more than 2 × IB)
+  3. at least 2 post-IB periods each set a new extreme in that direction
+  4. the study-window terminal price is strictly beyond the profile midpoint
+     on the extension side (a Laboratory proxy for "closes toward the
+     extreme", deliberately weaker than "near")
+- **DOES NOT CLAIM:** one-timeframing, elongation, or single-print structure.
+  These are reported as facts (`longest_*_run`, tails, zones) but are not
+  conditions, because no reference gives a threshold. It does not claim a
+  close "near" the extreme or anything about continuation.
+
+### NEUTRAL_DAY_CANDIDATE
+- **REFERENCE DESCRIPTION:** range extension on both sides of the IB.
+- **LABORATORY V1 POLICY:** `BOTH_SIDES`, meaning at least 1 tick of extension
+  on each side. No reference gives a materiality threshold, so none was
+  invented. Both magnitudes are printed with the label.
+- **DOES NOT CLAIM:** Neutral Center or Neutral Extreme (§27), that both
+  extensions were material, or any balance or conflict meaning.
+
+### Mutual exclusivity (by construction)
+
+| `directional_state` | IB share ≥ 0.85 | 0.50 ≤ share < 0.85 | share < 0.50 |
+|---|---|---|---|
+| `NO_EXTENSION` (share is then exactly 1) | NORMAL | — | — |
+| `UP_ONLY` / `DOWN_ONLY` | NORMAL | NORMAL_VARIATION | TREND if conditions 3 and 4 hold, else **UNCLASSIFIED** |
+| `BOTH_SIDES` | NEUTRAL | NEUTRAL | NEUTRAL |
+
+- The cells are disjoint, so at most one candidate can be `YES`.
+- `test_v1_policies_are_mutually_exclusive_over_generated_days` checks this
+  over 400 seeded random profiles. That test also checks that every adopted
+  type, and `UNCLASSIFIED`, is reachable.
+- The resolver still supports `AMBIGUOUS`, which a later policy version that
+  overlaps would produce. That path is tested directly.
+- The boundaries are inclusive exactly as written above (tested at 0.85 and
+  0.50).
+
+## 27. Deferred day types and the segmentation audit
+
+| Type | Why deferred |
+|---|---|
+| `NON_TREND_DAY` | Its defining traits ("narrow IB", "narrow range", "low participation") are absolute or historical. Same-day it is indistinguishable from `NORMAL_DAY` (both have IB ≈ the whole range). The only numeric rule found is Linn's absolute 18-tick constant (§25). It needs historical context. |
+| `NEUTRAL_EXTREME` / `NEUTRAL_CENTER` | They split on the close being "near an extreme" or "in the middle"; neither is defined. The terminal-price percentile is reported so a later policy can use it. |
+| `DOUBLE_DISTRIBUTION_TREND_DAY` | Needs two distributions, a separator and migration. None of these is a primitive yet. |
+
+**Distribution segmentation audit.** Could the TPO row-count profile support
+deterministic segmentation as it is? On the real days in §31, I counted the
+local TPO-count peaks (plateaus collapsed) at minimum prominence 1 / 2 / 3 / 5
+TPOs:
+
+| TD | 1 | 2 | 3 | 5 | interior one-TPO zones |
+|---|---|---|---|---|---|
+| 2026-09-30 | 4 | 2 | 1 | 1 | 0 |
+| 2026-09-02 | 2 | 1 | 1 | 1 | 1 (51 rows) |
+| 2026-09-08 | 2 | 2 | 1 | 1 | 0 |
+| 2026-09-11 | 3 | 3 | 3 | 3 | 0 |
+| 2026-09-07 | 2 | 1 | 1 | 0 | 0 |
+
+- The number of "distributions" depends on a prominence parameter that no
+  reference supplies. It also depends on the row size (0.25-tick rows vs the
+  coarser rows used on most ES charts).
+- 2026-09-02 has a real 51-row interior single-print zone, yet only one peak
+  at prominence ≥ 2. This is concrete evidence that an interior zone alone
+  must not imply a double distribution.
+
+Segmentation is therefore its own piece of work: a row-size and prominence
+policy, separator rules, and migration measurement. It is recorded as a
+**0Y-D candidate**. The audit code is
+`evidence/0Y-C/day_structure_study.py::peaks` (evidence only, not library code).
+
+## 28. Quality behaviour (`classification_quality`)
+
+A named type is more sensitive to missing data than a profile, so V1 grades
+severity:
+
+| Condition | Grade | Named type |
+|---|---|---|
+| study window not fully captured (e.g. the 14:36 CT capture end) | `NOT_CLASSIFIABLE` | `NOT_CLASSIFIED` |
+| capture interval not recorded (e.g. lifecycle `OPEN`) | `NOT_CLASSIFIABLE` | `NOT_CLASSIFIED` |
+| gap evidence (KNOWN/SUSPECTED) overlapping the window | `QUALITY_QUALIFIED` | evaluated; banner `*** DAY-TYPE CLASSIFICATION IS QUALITY-QUALIFIED ***` and a `(quality-qualified)` suffix |
+| lifecycle not `FINALIZED` (with a recorded, covering capture interval) | `QUALITY_QUALIFIED` | as above |
+| gap only outside the window (e.g. overnight), window fully captured | `UNQUALIFIED` | evaluated normally; the dataset still reads `INCOMPLETE` |
+
+These intrinsic blockers also give `NOT_CLASSIFIED`, with reasons:
+- no IB
+- IB range = 0
+- profile range = 0
+- any window period with no retained trades (e.g. the Labor Day 12:00 CT
+  halt)
+
+In every `NOT_CLASSIFIED` case the day-structure facts are still returned.
+No candidate is evaluated, so no label can leak.
+
+## 29. Outcomes and ambiguity
+
+| Outcome | Meaning |
+|---|---|
+| `CANDIDATE` | exactly one adopted policy matched. `primary` and `direction` are set. |
+| `AMBIGUOUS` | more than one matched. No winner is forced; `matched` lists them. |
+| `UNCLASSIFIED` | evaluated, but no adopted policy matched (e.g. a one-sided narrow-IB day that failed persistence or reversed). |
+| `NOT_CLASSIFIED` | not evaluated (§28). |
+
+Direction is always a separate field (`direction = UP / DOWN`), never part of
+the type name.
+
+## 30. Data model, explainability and CLI
+
+The programmatic object is `TpoAnalysisResult.day_structure: DayTypeClassification`:
+- policy id/version and the three thresholds
+- `quality` (grade, reasons)
+- `outcome`, `primary`, `direction`
+- `candidates` — every evaluated policy, each a `DayTypeCandidate(day_type,
+  result, direction, conditions)`
+- `not_classified_reasons`
+- `deferred`
+- `facts`
+
+Each `Condition` holds a `name`, a `rule` (text of the policy rule), what was
+`observed` (with the actual numbers), and `satisfied` (True / False /
+None = not evaluated). `.satisfied`, `.failed` and `.not_evaluated` answer
+"why was it classified this way?" without parsing text. Everything is frozen,
+and recomputation is deterministic.
+
+CLI: `--day-structure` adds `DAY STRUCTURE FACTS:` and `DAY-TYPE CANDIDATES`.
+For every candidate, each condition is printed as `[satisfied]`,
+`[NOT satisfied]` or `[not evaluated]`, followed by its observed value. The
+deferred types follow. Default output and `--structure` output are
+byte-identical to the accepted 0Y-A and 0Y-B evidence on 2026-09-30.
+
+## 31. Real-data study set (applied blindly)
+
+Every locally available dataset whose profile exists was run. Thresholds were
+fixed before any real day was looked at, and none was changed afterwards. The
+other finalized datasets live on dragon, which this phase does not touch.
+
+| TD | dataset | dataset quality | classification quality | IB | range | range/IB | IB share | ext ↑ | ext ↓ | state | new highs | new lows | tails ↑/↓, interior zones | terminal (pct) | candidate | direction |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-09-30 | `9ac5a21e` | COMPLETE | UNQUALIFIED | 31.50 | 72.75 | 2.31 | 0.4330 | 2.50 | 38.75 | BOTH_SIDES | C | KM | 7/152, 0 | 7713.00 (0.05) | **NEUTRAL_DAY** | — |
+| 2026-09-02 | `9c76e79c` | INCOMPLETE (overnight gap) | UNQUALIFIED | 39.50 | 48.25 | 1.22 | 0.8187 | 8.75 | 0.00 | UP_ONLY | CDE | — | 2/47, 1 | 7678.25 (0.73) | **NORMAL_VARIATION_DAY** | UP |
+| 2026-09-08 | `e3110b72` | COMPLETE, lifecycle OPEN | NOT_CLASSIFIABLE | 37.75 | 45.50 | 1.21 | 0.8297 | 0.00 | 7.75 | DOWN_ONLY | — | KM | 55/18, 0 | 7681.00 (0.19) | NOT_CLASSIFIED | — |
+| 2026-09-11 | `3716af9f` | COMPLETE, capture ended 14:36 CT | NOT_CLASSIFIABLE | 22.25 | 28.75 | 1.29 | 0.7739 | 0.00 | 6.50 | DOWN_ONLY | — | C | 3/8, 0 | 7666.25 (0.45) | NOT_CLASSIFIED | — |
+| 2026-09-07 | `85eccb13` | COMPLETE (Labor Day) | UNQUALIFIED | 8.50 | 13.75 | 1.62 | 0.6182 | 0.00 | 5.25 | DOWN_ONLY | — | CD | 6/4, 0 | 7708.75 (0.38) | NOT_CLASSIFIED (H–M empty) | — |
+
+All rows use policy `V1_DIRECTIONAL_STATE_X_IB_SHARE`. A diagnostic re-run
+with the coverage gate removed would give `NORMAL_VARIATION_DAY DOWN` for
+09-08 and 09-11. **That is not a classification.** It is printed only in the
+evidence table, to show what the gate withholds.
+
+Surprises, documented rather than tuned:
+1. **09-30 is a `NEUTRAL_DAY` candidate on a 10-tick (0.08 × IB) upside
+   extension.** The downside was 155 ticks, and the terminal price sat at the
+   0.05 percentile. V1 has no materiality threshold, because no reference
+   gives one. Neutral Extreme is deferred. A reader may well see this day
+   differently. The facts needed to argue it are all printed.
+2. **09-02 is a `NORMAL_VARIATION_DAY` candidate with only a 0.22 × IB
+   extension.** The IB share was 0.8187, just under the 0.85 Normal boundary.
+   The Linn band admits small extensions that a "roughly doubling" description
+   would not.
+3. **09-08 has trades to 15:56 CT but is `NOT_CLASSIFIED`.** Its lifecycle is
+   `OPEN` with no recorded capture end, so coverage cannot be verified (§28).
+4. **Diversity cannot really be judged from two classifiable days.** They did
+   receive different labels, and the three blocked days were blocked for three
+   different, correct reasons. A larger blind study needs the finalized
+   datasets now on dragon. That is a PO decision.
+
+Evidence: `evidence/0Y-C/`.
+
+## 32. Still deferred
+
+- `NON_TREND_DAY`, `NEUTRAL_EXTREME` / `NEUTRAL_CENTER`,
+  `DOUBLE_DISTRIBUTION_TREND_DAY` (§27); distribution segmentation (0Y-D
+  candidate)
+- historical IB/range context (percentiles, ATR)
+- opening types, overnight inventory, prior-day value relationships
+- bias, initiative/responsive labelling, setups, entries/exits, AI
+  interpretation

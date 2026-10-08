@@ -1,0 +1,79 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        85eccb13-9432-4163-a078-f9bdbb2f5973
+Instrument:     FUTURE:CME:ES:2026-09
+Trading date:   2026-09-07
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-09-07T13:30:00Z .. 2026-09-07T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  COMPLETE / NO KNOWN GAPS
+  Lifecycle: FINALIZED
+  Study window captured: YES
+
+Price increment: 0.25 (CME_ES_TICK_GRID)
+Eligible trades: 32,132
+
+Profile high:   7717.25
+Profile low:    7703.50
+Profile range:  13.75 (55 ticks)
+
+IB high:        7717.25   (periods AB)
+IB low:         7708.75
+IB range:       8.50 (34 ticks)
+Range extension above IB: 0.00 (0 ticks)
+Range extension below IB: 5.25 (21 ticks), first in period C
+
+TPO POC:        7707.75   (V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE)
+TPO VAL:        7705.25
+TPO VAH:        7712.75
+Value-area %:   98/138 TPOs = 71.01% (target 70%; V1_TWO_ROW_GREATER_SUM_TIE_ABOVE)
+Total TPOs:     138
+Periods present: ABCDEFG (7 of 13)
+
+Periods (Chicago):
+  A  08:30-09:00  high    7717.25  low    7712.00  trades 5,856
+  B  09:00-09:30  high    7715.75  low    7708.75  trades 5,964
+  C  09:30-10:00  high    7712.00  low    7704.50  trades 5,541
+  D  10:00-10:30  high    7707.75  low    7703.50  trades 6,798
+  E  10:30-11:00  high    7708.50  low    7705.50  trades 3,756
+  F  11:00-11:30  high    7709.50  low    7706.50  trades 2,248
+  G  11:30-12:00  high    7710.25  low    7707.50  trades 1,969
+  H  12:00-12:30  high         --  low         --  trades 0
+  I  12:30-13:00  high         --  low         --  trades 0
+  J  13:00-13:30  high         --  low         --  trades 0
+  K  13:30-14:00  high         --  low         --  trades 0
+  L  14:00-14:30  high         --  low         --  trades 0
+  M  14:30-15:00  high         --  low         --  trades 0
+
+DAY STRUCTURE FACTS:
+  Profile: 7703.50-7717.25, range 13.75 (55 ticks), midpoint 7710.375
+  IB: 7708.75-7717.25, range 8.50 (34 ticks), midpoint 7713.00
+  IB share of range (IB/profile): 0.6182   range multiple of IB (profile/IB): 1.6176
+  Extension above IB: 0.00 (0 ticks) = 0.0000 x IB; periods beyond IB high: none (0); new post-IB highs: none
+  Extension below IB: 5.25 (21 ticks) = 0.6176 x IB; periods beyond IB low: CDEFG (5); new post-IB lows: CD
+  Directional state: DOWN_ONLY   first extension: DOWN   last extension: DOWN
+  POC 7707.75 (at 0.3091 of range)   VAL 7705.25   VAH 7712.75   VA midpoint 7709.00 (at 0.4000)   IB midpoint at 0.6909
+  Profile high printed by A (first A); profile low printed by D (first D)
+  Longest run of higher lows: 4 periods; of lower highs: 4 periods
+  Upper tail: 6 rows; lower tail: 4 rows; interior one-TPO zones: 0
+  Periods without trades: HIJKLM
+  Study-window terminal price: 7708.75 at 2026-09-07T16:59:59Z (period G); at 0.3818 of range; 8.50 below high, 5.25 above low
+    (last eligible trade before the window end -- not the CME settlement or Globex close)
+
+DAY-TYPE CANDIDATES (DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE):
+  Thresholds: NORMAL IB share >= 0.85; NORMAL_VARIATION 0.50 <= IB share < 0.85; TREND IB share < 0.50 and >= 2 new-extreme periods
+  Quality: UNQUALIFIED
+  Outcome: NOT_CLASSIFIED -- no named day type is claimed
+    - period(s) with no retained trades: HIJKLM
+    Day-structure facts above are still reported.
+  Deferred (not evaluated): NON_TREND_DAY ('narrow IB' / 'narrow range' are absolute or historical judgements; the same-day profile cannot separate it from NORMAL_DAY (requires historical context)); NEUTRAL_EXTREME / NEUTRAL_CENTER (close 'near an extreme' / 'in the middle' is undefined; terminal-price facts are reported); DOUBLE_DISTRIBUTION_TREND_DAY (requires deterministic distribution segmentation (0Y-D candidate))
+  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.
+
+Boundary: derived facts and day-type CANDIDATES only -- no interpretation or signal.
+Ordinary CME schedule only; holiday/early-close overrides not modeled.
