@@ -191,3 +191,51 @@ def test_cli_no_window_trades_exits_one(tmp_path):
     r = _run(str(path), "--trading-date", "2026-10-07")
     assert r.returncode == 1
     assert "No TPO profile, POC, Value Area or Initial Balance was calculated." in r.stdout
+
+
+# --- 0Y-B structure section ---------------------------------------------------------
+
+def test_structure_is_programmatic_and_clean_dataset_is_unqualified(tmp_path):
+    r = _analyze(*_build(tmp_path))
+    assert r.structure is not None and r.quality.structural_qualifications == ()
+    assert [(str(z.low), str(z.high), z.periods) for z in r.structure.zones] == [
+        ("100.00", "100.25", "A"), ("101.25", "101.50", "B")]
+    text = render_tpo_report(r, show_structure=True)
+    assert "QUALITY-QUALIFIED" not in text
+    assert "EXCESS_HIGH_CANDIDATE: YES   (rule: tail >= 2 one-TPO rows)" in text
+    assert "POOR_LOW_CANDIDATE:   NO" in text
+
+
+def test_known_gap_inside_window_qualifies_structure_prominently(tmp_path):
+    path, did = _build(tmp_path, gaps=[(_utc(2026, 10, 6, 13, 45), _utc(2026, 10, 6, 13, 46))])
+    r = _analyze(path, did)
+    text = render_tpo_report(r, show_structure=True)
+    assert "*** STRUCTURAL FEATURES ARE QUALITY-QUALIFIED ***" in text
+    assert "gap evidence (KNOWN/SUSPECTED) overlaps the study window: 1" in text
+    assert "EXCESS_HIGH_CANDIDATE: YES (quality-qualified)" in text
+    assert "INCOMPLETE" in text and "COMPLETE / NO KNOWN GAPS" not in text
+
+
+def test_gap_outside_window_keeps_dataset_incomplete_but_structure_unqualified(tmp_path):
+    r = _analyze(*_build(tmp_path, gaps=[_SEP29_GAP]))
+    assert r.quality.structural_qualifications == ()
+    assert "QUALITY:\n  INCOMPLETE" in render_tpo_report(r, show_structure=True)
+
+
+def test_truncated_capture_qualifies_structure(tmp_path):
+    r = _analyze(*_build(tmp_path, capture_end=_utc(2026, 10, 6, 19, 36)))
+    assert r.quality.structural_qualifications == ("STUDY WINDOW NOT FULLY CAPTURED",)
+    text = render_tpo_report(r, show_structure=True)
+    assert "*** STRUCTURAL FEATURES ARE QUALITY-QUALIFIED ***\n    - STUDY WINDOW NOT FULLY CAPTURED" in text
+
+
+def test_cli_structure_flag_and_default_output_unchanged(tmp_path):
+    path, _ = _build(tmp_path)
+    plain = _run(str(path))
+    structured = _run(str(path), "--structure")
+    assert plain.returncode == structured.returncode == 0
+    assert "STRUCTURE (" not in plain.stdout and "Str " not in plain.stdout
+    assert "STRUCTURE (DICKS_LAB_TPO_STRUCTURE_POLICY" in structured.stdout
+    assert structured.stdout == _run(str(path), "--structure").stdout
+    rows = {line.split()[0]: line for line in structured.stdout.splitlines() if line.startswith("  10")}
+    assert "TAIL" in rows["101.50"] and "TAIL" in rows["100.00"] and "TAIL" not in rows["100.75"]

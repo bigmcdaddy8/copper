@@ -35,6 +35,9 @@ def profile(
     compare_volume: bool = typer.Option(
         False, "--compare-volume-profile", help="Also show Volume Profile POC/VAL/VAH over the same trades."
     ),
+    structure: bool = typer.Option(
+        False, "--structure", help="Add structural facts (one-TPO zones, extremes, IB/period range facts)."
+    ),
 ) -> None:
     """Print a factual TPO profile (POC, value area, initial balance) for one study window."""
     window = _SESSIONS.get(session)
@@ -54,7 +57,7 @@ def profile(
         typer.echo(f"{label}: {exc}", err=True)
         raise typer.Exit(code=2) from exc
 
-    typer.echo(render_tpo_report(result, show_matrix=matrix, compare_volume=compare_volume))
+    typer.echo(render_tpo_report(result, show_matrix=matrix, compare_volume=compare_volume, show_structure=structure))
     if result.profile is None:
         raise typer.Exit(code=1)
 

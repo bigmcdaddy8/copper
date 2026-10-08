@@ -29,6 +29,7 @@ from dicks_laboratory.tpo_profile import (
     build_period_slots,
     build_tpo_profile,
 )
+from dicks_laboratory.tpo_structure import CandidateStatus, ProfileStructure, ZoneLocation, build_profile_structure
 from dicks_laboratory.value_area import ValueAreaResult, compute_value_area
 from dicks_laboratory.volume_profile import VolumeAtPriceProfile, build_volume_at_price_profile, price_grid_for_instrument
 
@@ -55,6 +56,21 @@ class TpoDatasetQuality:
     capture_ended_at: datetime | None
     study_window_captured: bool | None  # None = capture interval not recorded
 
+    @property
+    def structural_qualifications(self) -> tuple[str, ...]:
+        """0Y-B: reasons an apparent one-TPO zone or flat extreme could be a data artifact."""
+        reasons = []
+        if self.gaps_overlapping_study_window:
+            reasons.append(f"gap evidence (KNOWN/SUSPECTED) overlaps the study window: "
+                           f"{self.gaps_overlapping_study_window}")
+        if self.study_window_captured is False:
+            reasons.append("STUDY WINDOW NOT FULLY CAPTURED")
+        elif self.study_window_captured is None:
+            reasons.append("capture interval not recorded; study-window coverage unverified")
+        if self.lifecycle_state != "FINALIZED":
+            reasons.append(f"lifecycle {self.lifecycle_state or 'UNTRACKED'} (not FINALIZED)")
+        return tuple(reasons)
+
 
 @dataclass(frozen=True)
 class TpoAnalysisResult:
@@ -72,6 +88,7 @@ class TpoAnalysisResult:
     profile: TpoProfile | None
     volume_profile: VolumeAtPriceProfile | None  # same trades, same window
     volume_value_area: ValueAreaResult | None
+    structure: ProfileStructure | None = None  # 0Y-B derived structural facts
 
 
 def analyze_tpo_dataset(
@@ -107,6 +124,7 @@ def analyze_tpo_dataset(
         profile=profile,
         volume_profile=volume,
         volume_value_area=compute_value_area(volume) if volume else None,
+        structure=build_profile_structure(profile) if profile else None,
     )
 
 
@@ -173,11 +191,20 @@ def render_quality(quality: TpoDatasetQuality) -> list[str]:
     return lines
 
 
-def render_matrix(profile: TpoProfile) -> list[str]:
-    """Prices descending; letters chronological; marks for POC/VAH/VAL/IBH/IBL; '|' = in value area."""
+def render_matrix(profile: TpoProfile, structure: ProfileStructure | None = None) -> list[str]:
+    """Prices descending; letters chronological; marks for POC/VAH/VAL/IBH/IBL; '|' = in value area.
+
+    With `structure` (0Y-B), a column tags tail rows (TAIL) and interior one-TPO rows (SP).
+    """
     va, ib = profile.value_area, profile.initial_balance
     width = max(len(str(level.price)) for level in profile.levels)
-    lines = [f"  {'Price':>{width}}  TPO  {'Marks':<19}  Periods"]
+    tags: dict = {}
+    if structure is not None:
+        for zone in structure.zones:
+            tag = "SP" if zone.location is ZoneLocation.INTERIOR else "TAIL"
+            tags.update({price: tag for price, _ in zone.level_periods})
+    struct_head = f"{'Str':<4}  " if structure is not None else ""
+    lines = [f"  {'Price':>{width}}  TPO  {'Marks':<19}  {struct_head}Periods"]
     for level in reversed(profile.levels):
         marks = [tag for tag, hit in (
             ("POC", level.price == profile.poc),
@@ -187,11 +214,15 @@ def render_matrix(profile: TpoProfile) -> list[str]:
             ("IBL", ib is not None and level.price == ib.low),
         ) if hit]
         in_va = "|" if va.low <= level.price <= va.high else " "
-        lines.append(f"  {str(level.price):>{width}}  {level.tpo_count:>3}  {in_va} {' '.join(marks):<17}  {level.periods}")
+        struct = f"{tags.get(level.price, ''):<4}  " if structure is not None else ""
+        lines.append(f"  {str(level.price):>{width}}  {level.tpo_count:>3}  {in_va} {' '.join(marks):<17}  "
+                     f"{struct}{level.periods}")
     return lines
 
 
-def render_tpo_report(result: TpoAnalysisResult, show_matrix: bool = True, compare_volume: bool = False) -> str:
+def render_tpo_report(
+    result: TpoAnalysisResult, show_matrix: bool = True, compare_volume: bool = False, show_structure: bool = False
+) -> str:
     profile = result.profile
     lines = ["Dick's Laboratory -- TPO / Market Profile", ""]
     lines += [f"Dataset:        {result.dataset_id}",
@@ -257,10 +288,83 @@ def render_tpo_report(result: TpoAnalysisResult, show_matrix: bool = True, compa
                   f"  Volume: contract-volume distribution ({vp.total_volume} contracts; "
                   f"{vva.value_area_policy_version}).",
                   ""]
+    structure = result.structure if show_structure else None
+    if structure is not None:
+        lines += render_structure(structure, result.quality, inc)
     if show_matrix:
-        lines.append("TPO matrix ('|' = inside value area):")
-        lines += render_matrix(profile)
+        if structure is not None:
+            lines.append("TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):")
+        else:
+            lines.append("TPO matrix ('|' = inside value area):")
+        lines += render_matrix(profile, structure)
         lines.append("")
     lines += ["Boundary: derived facts only -- no interpretation, day type or signal.",
               "Ordinary CME schedule only; holiday/early-close overrides not modeled."]
     return "\n".join(lines)
+
+
+def _yn(value: bool | None) -> str:
+    return "--" if value is None else ("yes" if value else "no")
+
+
+def _opt(value: Decimal | None) -> str:
+    return "--" if value is None else str(value)
+
+
+def _ratio(value: Decimal | None) -> str:
+    return "undefined (IB range = 0)" if value is None else f"{value.quantize(Decimal('0.0001'))} x IB range"
+
+
+def render_structure(structure: ProfileStructure, quality: TpoDatasetQuality, inc: Decimal) -> list[str]:
+    """0Y-B structure section: raw facts first, then the two CANDIDATE labels; no interpretation."""
+    qualified = quality.structural_qualifications
+    lines = [f"STRUCTURE ({structure.policy_id} {structure.policy_version}):"]
+    if qualified:
+        lines.append("  *** STRUCTURAL FEATURES ARE QUALITY-QUALIFIED ***")
+        lines += [f"    - {reason}" for reason in qualified]
+        lines.append("    An apparent one-TPO zone or flat extreme may be an artifact of missing trades.")
+    lines.append(f"  One-TPO levels: {len(structure.one_tpo_levels)}")
+    lines.append(f"  One-TPO zones (single-print candidates), high to low: {len(structure.zones)}")
+    if structure.zones:
+        lines.append(f"    {'high':>10}  {'low':>10}  rows  ticks  {'span':>6}  periods  {'location':<14}  "
+                     f"{'vs IB':<14}  vs value area")
+    for z in reversed(structure.zones):
+        lines.append(f"    {str(z.high):>10}  {str(z.low):>10}  {z.level_count:>4}  {z.tick_count:>5}  "
+                     f"{str(z.span_points):>6}  {z.periods:<7}  {z.location.value:<14}  {z.ib_relation.value:<14}  "
+                     f"{z.value_relation.value}")
+    suffix = " (quality-qualified)" if qualified else ""
+    for ex, word in ((structure.upper, "HIGH"), (structure.lower, "LOW")):
+        lines += [
+            f"  {'Upper' if word == 'HIGH' else 'Lower'} extreme (PROFILE_{word}): {ex.price}",
+            f"    letters at extreme: {ex.letters_at_extreme} ({ex.tpo_count_at_extreme} TPO"
+            f"{'s' if ex.tpo_count_at_extreme != 1 else ''})",
+            f"    tail: {ex.tail_level_count} rows / {ex.tail_tick_count} ticks / span {ex.tail_span_points} pts"
+            + (f", to {ex.tail_inner_price}, periods {ex.tail_periods}, formed in final period: "
+               f"{_yn(ex.tail_formed_in_final_period)}" if ex.tail_level_count else ""),
+            f"    EXCESS_{word}_CANDIDATE: {ex.excess_candidate.value}"
+            + (suffix if ex.excess_candidate is CandidateStatus.YES else "")
+            + f"   (rule: tail >= {structure.excess_min_tail_levels} one-TPO rows)",
+            f"    POOR_{word}_CANDIDATE:   {ex.poor_candidate.value}"
+            + (suffix if ex.poor_candidate is CandidateStatus.YES else "")
+            + f"   (rule: >= {structure.poor_extreme_min_tpos} TPOs at the exact extreme)",
+        ]
+    ibx = structure.ib_extension
+    if ibx is None:
+        lines.append("  IB extension detail: not available (no Initial Balance)")
+    else:
+        lines += [
+            f"  IB extension detail (IB {ibx.ib_low}-{ibx.ib_high}, range {_ticks(ibx.ib_range, inc)}):",
+            f"    max above IB: {_ticks(ibx.max_extension_above, inc)} = {_ratio(ibx.extension_above_fraction_of_ib)}; "
+            f"new post-IB highs: {ibx.periods_new_post_ib_high or 'none'}",
+            f"    max below IB: {_ticks(ibx.max_extension_below, inc)} = {_ratio(ibx.extension_below_fraction_of_ib)}; "
+            f"new post-IB lows: {ibx.periods_new_post_ib_low or 'none'}",
+        ]
+    lines.append("  Period range facts ('--' = not applicable):")
+    lines.append(f"    P  {'high':>10}  {'low':>10}  newHigh  newLow  extIBH  extIBL  {'hiExt':>6}  {'loExt':>6}")
+    for p in structure.periods:
+        lines.append(
+            f"    {p.label}  {_opt(p.high):>10}  {_opt(p.low):>10}  {_yn(p.new_profile_high):<7}  "
+            f"{_yn(p.new_profile_low):<6}  {_yn(p.extended_ib_high):<6}  {_yn(p.extended_ib_low):<6}  "
+            f"{_opt(p.high_extension):>6}  {_opt(p.low_extension):>6}")
+    lines += ["  Facts and CANDIDATE labels only: no excess/poor/single-print interpretation, day type or signal.", ""]
+    return lines
