@@ -1,0 +1,399 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        b2856c52-17a5-43f4-941c-aa311e8558e9
+Instrument:     FUTURE:CME:ES:2026-12
+Trading date:   2026-09-23
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-09-23T13:30:00Z .. 2026-09-23T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  COMPLETE / NO KNOWN GAPS
+  Lifecycle: FINALIZED
+  Study window captured: YES
+
+Price increment: 0.25 (CME_ES_TICK_GRID)
+Eligible trades: 928,898
+
+Profile high:   7826.25
+Profile low:    7759.25
+Profile range:  67.00 (268 ticks)
+
+IB high:        7826.25   (periods AB)
+IB low:         7778.00
+IB range:       48.25 (193 ticks)
+Range extension above IB: 0.00 (0 ticks)
+Range extension below IB: 18.75 (75 ticks), first in period E
+
+TPO POC:        7778.25   (V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE)
+TPO VAL:        7764.75
+TPO VAH:        7793.75
+Value-area %:   575/813 TPOs = 70.73% (target 70%; V1_TWO_ROW_GREATER_SUM_TIE_ABOVE)
+Total TPOs:     813
+Periods present: ABCDEFGHIJKLM (13 of 13)
+
+Periods (Chicago):
+  A  08:30-09:00  high    7826.25  low    7799.25  trades 96,741
+  B  09:00-09:30  high    7805.50  low    7778.00  trades 127,877
+  C  09:30-10:00  high    7800.75  low    7781.00  trades 114,200
+  D  10:00-10:30  high    7797.50  low    7784.25  trades 59,451
+  E  10:30-11:00  high    7787.25  low    7776.50  trades 55,016
+  F  11:00-11:30  high    7781.50  low    7775.25  trades 38,182
+  G  11:30-12:00  high    7781.50  low    7764.25  trades 60,846
+  H  12:00-12:30  high    7774.00  low    7759.25  trades 68,702
+  I  12:30-13:00  high    7785.25  low    7764.75  trades 68,004
+  J  13:00-13:30  high    7784.75  low    7774.75  trades 42,911
+  K  13:30-14:00  high    7778.25  low    7770.25  trades 34,951
+  L  14:00-14:30  high    7778.25  low    7769.25  trades 39,622
+  M  14:30-15:00  high    7777.00  low    7761.00  trades 122,395
+
+STRUCTURE (DICKS_LAB_TPO_STRUCTURE_POLICY V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS):
+  One-TPO levels: 90
+  One-TPO zones (single-print candidates), high to low: 2
+          high         low  rows  ticks    span  periods  location        vs IB           vs value area
+       7826.25     7805.75    83     83   20.50  A        UPPER_EXTREME   INSIDE_IB       ABOVE_VAH
+       7760.75     7759.25     7      7    1.50  H        LOWER_EXTREME   BELOW_IB        BELOW_VAL
+  Upper extreme (PROFILE_HIGH): 7826.25
+    letters at extreme: A (1 TPO)
+    tail: 83 rows / 83 ticks / span 20.50 pts, to 7805.75, periods A, formed in final period: no
+    EXCESS_HIGH_CANDIDATE: YES   (rule: tail >= 2 one-TPO rows)
+    POOR_HIGH_CANDIDATE:   NO   (rule: >= 2 TPOs at the exact extreme)
+  Lower extreme (PROFILE_LOW): 7759.25
+    letters at extreme: H (1 TPO)
+    tail: 7 rows / 7 ticks / span 1.50 pts, to 7760.75, periods H, formed in final period: no
+    EXCESS_LOW_CANDIDATE: YES   (rule: tail >= 2 one-TPO rows)
+    POOR_LOW_CANDIDATE:   NO   (rule: >= 2 TPOs at the exact extreme)
+  IB extension detail (IB 7778.00-7826.25, range 48.25 (193 ticks)):
+    max above IB: 0.00 (0 ticks) = 0.0000 x IB range; new post-IB highs: none
+    max below IB: 18.75 (75 ticks) = 0.3886 x IB range; new post-IB lows: EFGH
+  Period range facts ('--' = not applicable):
+    P        high         low  newHigh  newLow  extIBH  extIBL   hiExt   loExt
+    A     7826.25     7799.25  --       --      --      --          --      --
+    B     7805.50     7778.00  no       yes     --      --          --      --
+    C     7800.75     7781.00  no       no      no      no        0.00    0.00
+    D     7797.50     7784.25  no       no      no      no        0.00    0.00
+    E     7787.25     7776.50  no       yes     no      yes       0.00    1.50
+    F     7781.50     7775.25  no       yes     no      yes       0.00    2.75
+    G     7781.50     7764.25  no       yes     no      yes       0.00   13.75
+    H     7774.00     7759.25  no       yes     no      yes       0.00   18.75
+    I     7785.25     7764.75  no       no      no      yes       0.00   13.25
+    J     7784.75     7774.75  no       no      no      yes       0.00    3.25
+    K     7778.25     7770.25  no       no      no      yes       0.00    7.75
+    L     7778.25     7769.25  no       no      no      yes       0.00    8.75
+    M     7777.00     7761.00  no       no      no      yes       0.00   17.00
+  Facts and CANDIDATE labels only: no excess/poor/single-print interpretation, day type or signal.
+
+DAY STRUCTURE FACTS:
+  Profile: 7759.25-7826.25, range 67.00 (268 ticks), midpoint 7792.75
+  IB: 7778.00-7826.25, range 48.25 (193 ticks), midpoint 7802.125
+  IB share of range (IB/profile): 0.7201   range multiple of IB (profile/IB): 1.3886
+  Extension above IB: 0.00 (0 ticks) = 0.0000 x IB; periods beyond IB high: none (0); new post-IB highs: none
+  Extension below IB: 18.75 (75 ticks) = 0.3886 x IB; periods beyond IB low: EFGHIJKLM (9); new post-IB lows: EFGH
+  Directional state: DOWN_ONLY   first extension: DOWN   last extension: DOWN
+  POC 7778.25 (at 0.2836 of range)   VAL 7764.75   VAH 7793.75   VA midpoint 7779.25 (at 0.2985)   IB midpoint at 0.6399
+  Profile high printed by A (first A); profile low printed by H (first H)
+  Longest run of higher lows: 3 periods; of lower highs: 6 periods
+  Upper tail: 83 rows; lower tail: 7 rows; interior one-TPO zones: 0
+  Periods without trades: none
+  Study-window terminal price: 7773.75 at 2026-09-23T19:59:59Z (period M); at 0.2164 of range; 52.50 below high, 14.50 above low
+    (last eligible trade before the window end -- not the CME settlement or Globex close)
+
+DAY-TYPE CANDIDATES (DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE):
+  Thresholds: NORMAL IB share >= 0.85; NORMAL_VARIATION 0.50 <= IB share < 0.85; TREND IB share < 0.50 and >= 2 new-extreme periods
+  Quality: UNQUALIFIED
+  Outcome: CANDIDATE -- NORMAL_VARIATION_DAY_CANDIDATE, direction DOWN
+  NORMAL_DAY_CANDIDATE: NO
+    [satisfied    ] directional_state: not BOTH_SIDES (IB contains the session, or a one-sided extension) -- DOWN_ONLY
+    [NOT satisfied] ib_share_wide: IB share >= 0.85 -- IB share = 48.25 / 67.00 = 0.7201
+    [not evaluated] ib_wide_vs_history: IB wide versus recent sessions (separates NON_TREND_DAY) -- requires historical context; not evaluated in V1
+  NORMAL_VARIATION_DAY_CANDIDATE: YES (direction DOWN)
+    [satisfied    ] directional_state: UP_ONLY or DOWN_ONLY -- DOWN_ONLY
+    [satisfied    ] ib_share_band: 0.50 <= IB share < 0.85 (range up to 2x IB) -- IB share = 48.25 / 67.00 = 0.7201
+  TREND_DAY_CANDIDATE: NO
+    [satisfied    ] directional_state: UP_ONLY or DOWN_ONLY (no counter-extension) -- DOWN_ONLY
+    [NOT satisfied] ib_share_narrow: IB share < 0.50 (range more than 2x IB) -- IB share = 48.25 / 67.00 = 0.7201
+    [satisfied    ] persistent_new_extremes: >= 2 post-IB periods set a new extreme in the extension direction -- new extreme periods: EFGH (4)
+    [satisfied    ] terminal_on_extension_side: study-window terminal price strictly beyond the profile midpoint on the extension side -- terminal 7773.75 vs midpoint 7792.75
+  NEUTRAL_DAY_CANDIDATE: NO
+    [NOT satisfied] both_sides_extension: extension above IB >= 1 tick AND extension below IB >= 1 tick -- above 0 ticks, below 75 ticks
+  Deferred (not evaluated): NON_TREND_DAY ('narrow IB' / 'narrow range' are absolute or historical judgements; the same-day profile cannot separate it from NORMAL_DAY (requires historical context)); NEUTRAL_EXTREME / NEUTRAL_CENTER (close 'near an extreme' / 'in the middle' is undefined; terminal-price facts are reported); DOUBLE_DISTRIBUTION_TREND_DAY (requires deterministic distribution segmentation (0Y-D candidate))
+  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.
+
+TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):
+    Price  TPO  Marks                Str   Periods
+  7826.25    1    IBH                TAIL  A
+  7826.00    1                       TAIL  A
+  7825.75    1                       TAIL  A
+  7825.50    1                       TAIL  A
+  7825.25    1                       TAIL  A
+  7825.00    1                       TAIL  A
+  7824.75    1                       TAIL  A
+  7824.50    1                       TAIL  A
+  7824.25    1                       TAIL  A
+  7824.00    1                       TAIL  A
+  7823.75    1                       TAIL  A
+  7823.50    1                       TAIL  A
+  7823.25    1                       TAIL  A
+  7823.00    1                       TAIL  A
+  7822.75    1                       TAIL  A
+  7822.50    1                       TAIL  A
+  7822.25    1                       TAIL  A
+  7822.00    1                       TAIL  A
+  7821.75    1                       TAIL  A
+  7821.50    1                       TAIL  A
+  7821.25    1                       TAIL  A
+  7821.00    1                       TAIL  A
+  7820.75    1                       TAIL  A
+  7820.50    1                       TAIL  A
+  7820.25    1                       TAIL  A
+  7820.00    1                       TAIL  A
+  7819.75    1                       TAIL  A
+  7819.50    1                       TAIL  A
+  7819.25    1                       TAIL  A
+  7819.00    1                       TAIL  A
+  7818.75    1                       TAIL  A
+  7818.50    1                       TAIL  A
+  7818.25    1                       TAIL  A
+  7818.00    1                       TAIL  A
+  7817.75    1                       TAIL  A
+  7817.50    1                       TAIL  A
+  7817.25    1                       TAIL  A
+  7817.00    1                       TAIL  A
+  7816.75    1                       TAIL  A
+  7816.50    1                       TAIL  A
+  7816.25    1                       TAIL  A
+  7816.00    1                       TAIL  A
+  7815.75    1                       TAIL  A
+  7815.50    1                       TAIL  A
+  7815.25    1                       TAIL  A
+  7815.00    1                       TAIL  A
+  7814.75    1                       TAIL  A
+  7814.50    1                       TAIL  A
+  7814.25    1                       TAIL  A
+  7814.00    1                       TAIL  A
+  7813.75    1                       TAIL  A
+  7813.50    1                       TAIL  A
+  7813.25    1                       TAIL  A
+  7813.00    1                       TAIL  A
+  7812.75    1                       TAIL  A
+  7812.50    1                       TAIL  A
+  7812.25    1                       TAIL  A
+  7812.00    1                       TAIL  A
+  7811.75    1                       TAIL  A
+  7811.50    1                       TAIL  A
+  7811.25    1                       TAIL  A
+  7811.00    1                       TAIL  A
+  7810.75    1                       TAIL  A
+  7810.50    1                       TAIL  A
+  7810.25    1                       TAIL  A
+  7810.00    1                       TAIL  A
+  7809.75    1                       TAIL  A
+  7809.50    1                       TAIL  A
+  7809.25    1                       TAIL  A
+  7809.00    1                       TAIL  A
+  7808.75    1                       TAIL  A
+  7808.50    1                       TAIL  A
+  7808.25    1                       TAIL  A
+  7808.00    1                       TAIL  A
+  7807.75    1                       TAIL  A
+  7807.50    1                       TAIL  A
+  7807.25    1                       TAIL  A
+  7807.00    1                       TAIL  A
+  7806.75    1                       TAIL  A
+  7806.50    1                       TAIL  A
+  7806.25    1                       TAIL  A
+  7806.00    1                       TAIL  A
+  7805.75    1                       TAIL  A
+  7805.50    2                             AB
+  7805.25    2                             AB
+  7805.00    2                             AB
+  7804.75    2                             AB
+  7804.50    2                             AB
+  7804.25    2                             AB
+  7804.00    2                             AB
+  7803.75    2                             AB
+  7803.50    2                             AB
+  7803.25    2                             AB
+  7803.00    2                             AB
+  7802.75    2                             AB
+  7802.50    2                             AB
+  7802.25    2                             AB
+  7802.00    2                             AB
+  7801.75    2                             AB
+  7801.50    2                             AB
+  7801.25    2                             AB
+  7801.00    2                             AB
+  7800.75    3                             ABC
+  7800.50    3                             ABC
+  7800.25    3                             ABC
+  7800.00    3                             ABC
+  7799.75    3                             ABC
+  7799.50    3                             ABC
+  7799.25    3                             ABC
+  7799.00    2                             BC
+  7798.75    2                             BC
+  7798.50    2                             BC
+  7798.25    2                             BC
+  7798.00    2                             BC
+  7797.75    2                             BC
+  7797.50    3                             BCD
+  7797.25    3                             BCD
+  7797.00    3                             BCD
+  7796.75    3                             BCD
+  7796.50    3                             BCD
+  7796.25    3                             BCD
+  7796.00    3                             BCD
+  7795.75    3                             BCD
+  7795.50    3                             BCD
+  7795.25    3                             BCD
+  7795.00    3                             BCD
+  7794.75    3                             BCD
+  7794.50    3                             BCD
+  7794.25    3                             BCD
+  7794.00    3                             BCD
+  7793.75    3  | VAH                      BCD
+  7793.50    3  |                          BCD
+  7793.25    3  |                          BCD
+  7793.00    3  |                          BCD
+  7792.75    3  |                          BCD
+  7792.50    3  |                          BCD
+  7792.25    3  |                          BCD
+  7792.00    3  |                          BCD
+  7791.75    3  |                          BCD
+  7791.50    3  |                          BCD
+  7791.25    3  |                          BCD
+  7791.00    3  |                          BCD
+  7790.75    3  |                          BCD
+  7790.50    3  |                          BCD
+  7790.25    3  |                          BCD
+  7790.00    3  |                          BCD
+  7789.75    3  |                          BCD
+  7789.50    3  |                          BCD
+  7789.25    3  |                          BCD
+  7789.00    3  |                          BCD
+  7788.75    3  |                          BCD
+  7788.50    3  |                          BCD
+  7788.25    3  |                          BCD
+  7788.00    3  |                          BCD
+  7787.75    3  |                          BCD
+  7787.50    3  |                          BCD
+  7787.25    4  |                          BCDE
+  7787.00    4  |                          BCDE
+  7786.75    4  |                          BCDE
+  7786.50    4  |                          BCDE
+  7786.25    4  |                          BCDE
+  7786.00    4  |                          BCDE
+  7785.75    4  |                          BCDE
+  7785.50    4  |                          BCDE
+  7785.25    5  |                          BCDEI
+  7785.00    5  |                          BCDEI
+  7784.75    6  |                          BCDEIJ
+  7784.50    6  |                          BCDEIJ
+  7784.25    6  |                          BCDEIJ
+  7784.00    5  |                          BCEIJ
+  7783.75    5  |                          BCEIJ
+  7783.50    5  |                          BCEIJ
+  7783.25    5  |                          BCEIJ
+  7783.00    5  |                          BCEIJ
+  7782.75    5  |                          BCEIJ
+  7782.50    5  |                          BCEIJ
+  7782.25    5  |                          BCEIJ
+  7782.00    5  |                          BCEIJ
+  7781.75    5  |                          BCEIJ
+  7781.50    7  |                          BCEFGIJ
+  7781.25    7  |                          BCEFGIJ
+  7781.00    7  |                          BCEFGIJ
+  7780.75    6  |                          BEFGIJ
+  7780.50    6  |                          BEFGIJ
+  7780.25    6  |                          BEFGIJ
+  7780.00    6  |                          BEFGIJ
+  7779.75    6  |                          BEFGIJ
+  7779.50    6  |                          BEFGIJ
+  7779.25    6  |                          BEFGIJ
+  7779.00    6  |                          BEFGIJ
+  7778.75    6  |                          BEFGIJ
+  7778.50    6  |                          BEFGIJ
+  7778.25    8  | POC                      BEFGIJKL
+  7778.00    8  | IBL                      BEFGIJKL
+  7777.75    7  |                          EFGIJKL
+  7777.50    7  |                          EFGIJKL
+  7777.25    7  |                          EFGIJKL
+  7777.00    8  |                          EFGIJKLM
+  7776.75    8  |                          EFGIJKLM
+  7776.50    8  |                          EFGIJKLM
+  7776.25    7  |                          FGIJKLM
+  7776.00    7  |                          FGIJKLM
+  7775.75    7  |                          FGIJKLM
+  7775.50    7  |                          FGIJKLM
+  7775.25    7  |                          FGIJKLM
+  7775.00    6  |                          GIJKLM
+  7774.75    6  |                          GIJKLM
+  7774.50    5  |                          GIKLM
+  7774.25    5  |                          GIKLM
+  7774.00    6  |                          GHIKLM
+  7773.75    6  |                          GHIKLM
+  7773.50    6  |                          GHIKLM
+  7773.25    6  |                          GHIKLM
+  7773.00    6  |                          GHIKLM
+  7772.75    6  |                          GHIKLM
+  7772.50    6  |                          GHIKLM
+  7772.25    6  |                          GHIKLM
+  7772.00    6  |                          GHIKLM
+  7771.75    6  |                          GHIKLM
+  7771.50    6  |                          GHIKLM
+  7771.25    6  |                          GHIKLM
+  7771.00    6  |                          GHIKLM
+  7770.75    6  |                          GHIKLM
+  7770.50    6  |                          GHIKLM
+  7770.25    6  |                          GHIKLM
+  7770.00    5  |                          GHILM
+  7769.75    5  |                          GHILM
+  7769.50    5  |                          GHILM
+  7769.25    5  |                          GHILM
+  7769.00    4  |                          GHIM
+  7768.75    4  |                          GHIM
+  7768.50    4  |                          GHIM
+  7768.25    4  |                          GHIM
+  7768.00    4  |                          GHIM
+  7767.75    4  |                          GHIM
+  7767.50    4  |                          GHIM
+  7767.25    4  |                          GHIM
+  7767.00    4  |                          GHIM
+  7766.75    4  |                          GHIM
+  7766.50    4  |                          GHIM
+  7766.25    4  |                          GHIM
+  7766.00    4  |                          GHIM
+  7765.75    4  |                          GHIM
+  7765.50    4  |                          GHIM
+  7765.25    4  |                          GHIM
+  7765.00    4  |                          GHIM
+  7764.75    4  | VAL                      GHIM
+  7764.50    3                             GHM
+  7764.25    3                             GHM
+  7764.00    2                             HM
+  7763.75    2                             HM
+  7763.50    2                             HM
+  7763.25    2                             HM
+  7763.00    2                             HM
+  7762.75    2                             HM
+  7762.50    2                             HM
+  7762.25    2                             HM
+  7762.00    2                             HM
+  7761.75    2                             HM
+  7761.50    2                             HM
+  7761.25    2                             HM
+  7761.00    2                             HM
+  7760.75    1                       TAIL  H
+  7760.50    1                       TAIL  H
+  7760.25    1                       TAIL  H
+  7760.00    1                       TAIL  H
+  7759.75    1                       TAIL  H
+  7759.50    1                       TAIL  H
+  7759.25    1                       TAIL  H
+
+Boundary: derived facts and day-type CANDIDATES only -- no interpretation or signal.
+Ordinary CME schedule only; holiday/early-close overrides not modeled.

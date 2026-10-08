@@ -1,0 +1,20 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        bb8cce1f-5c8c-478f-81c9-1ce1b4ef2de5
+Instrument:     FUTURE:CME:ES:2026-09
+Trading date:   2026-09-01
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-09-01T13:30:00Z .. 2026-09-01T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  COMPLETE / NO KNOWN GAPS
+  Lifecycle: FINALIZED
+  Study window captured: NO -- STUDY WINDOW NOT FULLY CAPTURED (capture 2026-08-31T22:00:00Z .. 2026-09-01T01:32:56Z)
+
+No retained trades fall inside the study window.
+No TPO profile, POC, Value Area or Initial Balance was calculated.

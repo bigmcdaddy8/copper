@@ -718,6 +718,9 @@ Evidence: `evidence/0Y-C/`.
 
 ## 32. Still deferred
 
+(0Y-D blind validation of the V1 policies over a 22-dataset corpus:
+`MARKET_PROFILE_VALIDATION_0YD.md`. V1 is unchanged.)
+
 - `NON_TREND_DAY`, `NEUTRAL_EXTREME` / `NEUTRAL_CENTER`,
   `DOUBLE_DISTRIBUTION_TREND_DAY` (§27); distribution segmentation (0Y-D
   candidate)

@@ -4869,3 +4869,52 @@ Surprises are documented, not tuned. Evidence: `evidence/0Y-C/`.
 0Y-C: PASS — DETERMINISTIC DAY-STRUCTURE / DAY-TYPE CANDIDATE LAYER COMPLETE
 NEXT: PO REVIEW BEFORE OPENING-TYPE / CONTEXT DEVELOPMENT
 ```
+
+## MQ. 0Y-D — Blind Multi-Day Day-Type Validation (2026-10-08)
+
+PO record:
+- 0Y-C: **PASS / ACCEPTED / CLOSED**
+- Day-structure fact layer: **accepted**
+- V1 named policies: **provisional candidates**
+
+Corpus:
+- Dragon was started with `az vm start`. The guest timers stayed
+  static/disabled and inactive, no collector or token ran, and dragon was
+  deallocated afterwards.
+- 13 finalized datasets were copied read-only to `~/secure/mp_corpus/`. Each
+  matched its manifest sha256 on dragon and locally.
+- Together with 9 pre-existing local datasets, that gives a 22-dataset corpus
+  (`MARKET_PROFILE_CORPUS_0YD.md`). No database is in Git.
+
+Blind run: frozen V1, records hash-frozen before analysis.
+
+| Eligibility | Days |
+|---|---|
+| ELIGIBLE | 12 |
+| QUALITY_QUALIFIED | 0 |
+| NOT_CLASSIFIED | 5 |
+| NO_PROFILE | 5 |
+
+Distribution over the 12 eligible days:
+
+| Outcome | Count |
+|---|---|
+| NORMAL_VARIATION_DAY | 6 |
+| NEUTRAL_DAY | 5 |
+| TREND_DAY | 1 |
+| NORMAL_DAY | 0 |
+| UNCLASSIFIED | 0 |
+
+Assessment:
+- **NEUTRAL** is structurally over-permissive: 3 of 5 had a counter-extension
+  of at most 10 ticks.
+- **NORMAL_VARIATION** and **TREND** are plausible but need more evidence.
+- **NORMAL** has insufficient evidence: no day reached IB share 0.85.
+
+Hypotheses H1–H4 are proposed for a future pre-registered experiment. No
+threshold changed. Evidence: `evidence/0Y-D/`.
+
+```
+0Y-D: PASS — BLIND MULTI-DAY DAY-TYPE VALIDATION COMPLETE
+NEXT: PO POLICY REVIEW BEFORE OPENING-TYPE DEVELOPMENT
+```

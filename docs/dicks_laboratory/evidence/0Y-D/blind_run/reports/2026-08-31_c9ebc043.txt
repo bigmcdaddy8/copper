@@ -1,0 +1,217 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        c9ebc043-beaa-4931-a5d6-29064f7a6e3c
+Instrument:     FUTURE:CME:ES:2026-09
+Trading date:   2026-08-31
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-08-31T13:30:00Z .. 2026-08-31T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  INCOMPLETE
+  KNOWN_GAP=4
+  SUSPECTED_GAP=0
+  Known-gap duration: 21.068s
+  Gaps overlapping study window: 3
+  The source tape is NOT complete; the profile is computed from retained trades only
+  and no gap is filled.
+  Lifecycle: INTERRUPTED
+  Study window captured: NO -- STUDY WINDOW NOT FULLY CAPTURED (capture 2026-08-30T22:00:00Z .. 2026-08-31T13:48:13Z)
+
+Price increment: 0.25 (CME_ES_TICK_GRID)
+Eligible trades: 63,232
+
+Profile high:   7704.25
+Profile low:    7682.50
+Profile range:  21.75 (87 ticks)
+
+IB high:        7704.25   (periods A)
+IB low:         7682.50
+IB range:       21.75 (87 ticks)
+Range extension above IB: 0.00 (0 ticks)
+Range extension below IB: 0.00 (0 ticks)
+
+TPO POC:        7693.25   (V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE)
+TPO VAL:        7688.75
+TPO VAH:        7704.25
+Value-area %:   63/88 TPOs = 71.59% (target 70%; V1_TWO_ROW_GREATER_SUM_TIE_ABOVE)
+Total TPOs:     88
+Periods present: A (1 of 13)
+
+Periods (Chicago):
+  A  08:30-09:00  high    7704.25  low    7682.50  trades 63,232
+  B  09:00-09:30  high         --  low         --  trades 0
+  C  09:30-10:00  high         --  low         --  trades 0
+  D  10:00-10:30  high         --  low         --  trades 0
+  E  10:30-11:00  high         --  low         --  trades 0
+  F  11:00-11:30  high         --  low         --  trades 0
+  G  11:30-12:00  high         --  low         --  trades 0
+  H  12:00-12:30  high         --  low         --  trades 0
+  I  12:30-13:00  high         --  low         --  trades 0
+  J  13:00-13:30  high         --  low         --  trades 0
+  K  13:30-14:00  high         --  low         --  trades 0
+  L  14:00-14:30  high         --  low         --  trades 0
+  M  14:30-15:00  high         --  low         --  trades 0
+
+STRUCTURE (DICKS_LAB_TPO_STRUCTURE_POLICY V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS):
+  *** STRUCTURAL FEATURES ARE QUALITY-QUALIFIED ***
+    - gap evidence (KNOWN/SUSPECTED) overlaps the study window: 3
+    - STUDY WINDOW NOT FULLY CAPTURED
+    - lifecycle INTERRUPTED (not FINALIZED)
+    An apparent one-TPO zone or flat extreme may be an artifact of missing trades.
+  One-TPO levels: 88
+  One-TPO zones (single-print candidates), high to low: 1
+          high         low  rows  ticks    span  periods  location        vs IB           vs value area
+       7704.25     7682.50    88     88   21.75  A        ENTIRE_PROFILE  INSIDE_IB       OVERLAPPING_BOUNDARY
+  Upper extreme (PROFILE_HIGH): 7704.25
+    letters at extreme: A (1 TPO)
+    tail: 88 rows / 88 ticks / span 21.75 pts, to 7682.50, periods A, formed in final period: no
+    EXCESS_HIGH_CANDIDATE: NOT_CLASSIFIED   (rule: tail >= 2 one-TPO rows)
+    POOR_HIGH_CANDIDATE:   NOT_CLASSIFIED   (rule: >= 2 TPOs at the exact extreme)
+  Lower extreme (PROFILE_LOW): 7682.50
+    letters at extreme: A (1 TPO)
+    tail: 88 rows / 88 ticks / span 21.75 pts, to 7704.25, periods A, formed in final period: no
+    EXCESS_LOW_CANDIDATE: NOT_CLASSIFIED   (rule: tail >= 2 one-TPO rows)
+    POOR_LOW_CANDIDATE:   NOT_CLASSIFIED   (rule: >= 2 TPOs at the exact extreme)
+  IB extension detail (IB 7682.50-7704.25, range 21.75 (87 ticks)):
+    max above IB: 0.00 (0 ticks) = 0.0000 x IB range; new post-IB highs: none
+    max below IB: 0.00 (0 ticks) = 0.0000 x IB range; new post-IB lows: none
+  Period range facts ('--' = not applicable):
+    P        high         low  newHigh  newLow  extIBH  extIBL   hiExt   loExt
+    A     7704.25     7682.50  --       --      --      --          --      --
+    B          --          --  --       --      --      --          --      --
+    C          --          --  --       --      --      --          --      --
+    D          --          --  --       --      --      --          --      --
+    E          --          --  --       --      --      --          --      --
+    F          --          --  --       --      --      --          --      --
+    G          --          --  --       --      --      --          --      --
+    H          --          --  --       --      --      --          --      --
+    I          --          --  --       --      --      --          --      --
+    J          --          --  --       --      --      --          --      --
+    K          --          --  --       --      --      --          --      --
+    L          --          --  --       --      --      --          --      --
+    M          --          --  --       --      --      --          --      --
+  Facts and CANDIDATE labels only: no excess/poor/single-print interpretation, day type or signal.
+
+DAY STRUCTURE FACTS:
+  Profile: 7682.50-7704.25, range 21.75 (87 ticks), midpoint 7693.375
+  IB: 7682.50-7704.25, range 21.75 (87 ticks), midpoint 7693.375
+  IB share of range (IB/profile): 1.0000   range multiple of IB (profile/IB): 1.0000
+  Extension above IB: 0.00 (0 ticks) = 0.0000 x IB; periods beyond IB high: none (0); new post-IB highs: none
+  Extension below IB: 0.00 (0 ticks) = 0.0000 x IB; periods beyond IB low: none (0); new post-IB lows: none
+  Directional state: NO_EXTENSION   first extension: none   last extension: none
+  POC 7693.25 (at 0.4943 of range)   VAL 7688.75   VAH 7704.25   VA midpoint 7696.50 (at 0.6437)   IB midpoint at 0.5000
+  Profile high printed by A (first A); profile low printed by A (first A)
+  Longest run of higher lows: 1 periods; of lower highs: 1 periods
+  Upper tail: 88 rows; lower tail: 88 rows; interior one-TPO zones: 0
+  Periods without trades: BCDEFGHIJKLM
+  Study-window terminal price: 7688.25 at 2026-08-31T13:47:35Z (period A); at 0.2644 of range; 16.00 below high, 5.75 above low
+    (last eligible trade before the window end -- not the CME settlement or Globex close)
+
+DAY-TYPE CANDIDATES (DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE):
+  Thresholds: NORMAL IB share >= 0.85; NORMAL_VARIATION 0.50 <= IB share < 0.85; TREND IB share < 0.50 and >= 2 new-extreme periods
+  Quality: NOT_CLASSIFIABLE
+  Outcome: NOT_CLASSIFIED -- no named day type is claimed
+    - STUDY WINDOW NOT FULLY CAPTURED
+    - period(s) with no retained trades: BCDEFGHIJKLM
+    Day-structure facts above are still reported.
+  Deferred (not evaluated): NON_TREND_DAY ('narrow IB' / 'narrow range' are absolute or historical judgements; the same-day profile cannot separate it from NORMAL_DAY (requires historical context)); NEUTRAL_EXTREME / NEUTRAL_CENTER (close 'near an extreme' / 'in the middle' is undefined; terminal-price facts are reported); DOUBLE_DISTRIBUTION_TREND_DAY (requires deterministic distribution segmentation (0Y-D candidate))
+  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.
+
+TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):
+    Price  TPO  Marks                Str   Periods
+  7704.25    1  | VAH IBH            TAIL  A
+  7704.00    1  |                    TAIL  A
+  7703.75    1  |                    TAIL  A
+  7703.50    1  |                    TAIL  A
+  7703.25    1  |                    TAIL  A
+  7703.00    1  |                    TAIL  A
+  7702.75    1  |                    TAIL  A
+  7702.50    1  |                    TAIL  A
+  7702.25    1  |                    TAIL  A
+  7702.00    1  |                    TAIL  A
+  7701.75    1  |                    TAIL  A
+  7701.50    1  |                    TAIL  A
+  7701.25    1  |                    TAIL  A
+  7701.00    1  |                    TAIL  A
+  7700.75    1  |                    TAIL  A
+  7700.50    1  |                    TAIL  A
+  7700.25    1  |                    TAIL  A
+  7700.00    1  |                    TAIL  A
+  7699.75    1  |                    TAIL  A
+  7699.50    1  |                    TAIL  A
+  7699.25    1  |                    TAIL  A
+  7699.00    1  |                    TAIL  A
+  7698.75    1  |                    TAIL  A
+  7698.50    1  |                    TAIL  A
+  7698.25    1  |                    TAIL  A
+  7698.00    1  |                    TAIL  A
+  7697.75    1  |                    TAIL  A
+  7697.50    1  |                    TAIL  A
+  7697.25    1  |                    TAIL  A
+  7697.00    1  |                    TAIL  A
+  7696.75    1  |                    TAIL  A
+  7696.50    1  |                    TAIL  A
+  7696.25    1  |                    TAIL  A
+  7696.00    1  |                    TAIL  A
+  7695.75    1  |                    TAIL  A
+  7695.50    1  |                    TAIL  A
+  7695.25    1  |                    TAIL  A
+  7695.00    1  |                    TAIL  A
+  7694.75    1  |                    TAIL  A
+  7694.50    1  |                    TAIL  A
+  7694.25    1  |                    TAIL  A
+  7694.00    1  |                    TAIL  A
+  7693.75    1  |                    TAIL  A
+  7693.50    1  |                    TAIL  A
+  7693.25    1  | POC                TAIL  A
+  7693.00    1  |                    TAIL  A
+  7692.75    1  |                    TAIL  A
+  7692.50    1  |                    TAIL  A
+  7692.25    1  |                    TAIL  A
+  7692.00    1  |                    TAIL  A
+  7691.75    1  |                    TAIL  A
+  7691.50    1  |                    TAIL  A
+  7691.25    1  |                    TAIL  A
+  7691.00    1  |                    TAIL  A
+  7690.75    1  |                    TAIL  A
+  7690.50    1  |                    TAIL  A
+  7690.25    1  |                    TAIL  A
+  7690.00    1  |                    TAIL  A
+  7689.75    1  |                    TAIL  A
+  7689.50    1  |                    TAIL  A
+  7689.25    1  |                    TAIL  A
+  7689.00    1  |                    TAIL  A
+  7688.75    1  | VAL                TAIL  A
+  7688.50    1                       TAIL  A
+  7688.25    1                       TAIL  A
+  7688.00    1                       TAIL  A
+  7687.75    1                       TAIL  A
+  7687.50    1                       TAIL  A
+  7687.25    1                       TAIL  A
+  7687.00    1                       TAIL  A
+  7686.75    1                       TAIL  A
+  7686.50    1                       TAIL  A
+  7686.25    1                       TAIL  A
+  7686.00    1                       TAIL  A
+  7685.75    1                       TAIL  A
+  7685.50    1                       TAIL  A
+  7685.25    1                       TAIL  A
+  7685.00    1                       TAIL  A
+  7684.75    1                       TAIL  A
+  7684.50    1                       TAIL  A
+  7684.25    1                       TAIL  A
+  7684.00    1                       TAIL  A
+  7683.75    1                       TAIL  A
+  7683.50    1                       TAIL  A
+  7683.25    1                       TAIL  A
+  7683.00    1                       TAIL  A
+  7682.75    1                       TAIL  A
+  7682.50    1    IBL                TAIL  A
+
+Boundary: derived facts and day-type CANDIDATES only -- no interpretation or signal.
+Ordinary CME schedule only; holiday/early-close overrides not modeled.

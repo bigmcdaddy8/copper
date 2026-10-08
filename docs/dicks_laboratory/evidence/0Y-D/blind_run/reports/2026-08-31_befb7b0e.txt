@@ -1,0 +1,187 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        befb7b0e-9a69-4001-ac2b-90405e0c28ed
+Instrument:     FUTURE:CME:ES:2026-09
+Trading date:   2026-08-31
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-08-31T13:30:00Z .. 2026-08-31T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  COMPLETE / NO KNOWN GAPS
+  Lifecycle: FINALIZED
+  Study window captured: NO -- STUDY WINDOW NOT FULLY CAPTURED (capture 2026-08-31T19:32:55Z .. 2026-08-31T21:00:00Z)
+
+Price increment: 0.25 (CME_ES_TICK_GRID)
+Eligible trades: 113,290
+
+Profile high:   7708.25
+Profile low:    7689.75
+Profile range:  18.50 (74 ticks)
+
+Initial Balance: not available (no trades in the first 60 minutes)
+
+TPO POC:        7699.00   (V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE)
+TPO VAL:        7695.00
+TPO VAH:        7708.00
+Value-area %:   53/75 TPOs = 70.67% (target 70%; V1_TWO_ROW_GREATER_SUM_TIE_ABOVE)
+Total TPOs:     75
+Periods present: M (1 of 13)
+
+Periods (Chicago):
+  A  08:30-09:00  high         --  low         --  trades 0
+  B  09:00-09:30  high         --  low         --  trades 0
+  C  09:30-10:00  high         --  low         --  trades 0
+  D  10:00-10:30  high         --  low         --  trades 0
+  E  10:30-11:00  high         --  low         --  trades 0
+  F  11:00-11:30  high         --  low         --  trades 0
+  G  11:30-12:00  high         --  low         --  trades 0
+  H  12:00-12:30  high         --  low         --  trades 0
+  I  12:30-13:00  high         --  low         --  trades 0
+  J  13:00-13:30  high         --  low         --  trades 0
+  K  13:30-14:00  high         --  low         --  trades 0
+  L  14:00-14:30  high         --  low         --  trades 0
+  M  14:30-15:00  high    7708.25  low    7689.75  trades 113,290
+
+STRUCTURE (DICKS_LAB_TPO_STRUCTURE_POLICY V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS):
+  *** STRUCTURAL FEATURES ARE QUALITY-QUALIFIED ***
+    - STUDY WINDOW NOT FULLY CAPTURED
+    An apparent one-TPO zone or flat extreme may be an artifact of missing trades.
+  One-TPO levels: 75
+  One-TPO zones (single-print candidates), high to low: 1
+          high         low  rows  ticks    span  periods  location        vs IB           vs value area
+       7708.25     7689.75    75     75   18.50  M        ENTIRE_PROFILE  NO_IB           OVERLAPPING_BOUNDARY
+  Upper extreme (PROFILE_HIGH): 7708.25
+    letters at extreme: M (1 TPO)
+    tail: 75 rows / 75 ticks / span 18.50 pts, to 7689.75, periods M, formed in final period: yes
+    EXCESS_HIGH_CANDIDATE: NOT_CLASSIFIED   (rule: tail >= 2 one-TPO rows)
+    POOR_HIGH_CANDIDATE:   NOT_CLASSIFIED   (rule: >= 2 TPOs at the exact extreme)
+  Lower extreme (PROFILE_LOW): 7689.75
+    letters at extreme: M (1 TPO)
+    tail: 75 rows / 75 ticks / span 18.50 pts, to 7708.25, periods M, formed in final period: yes
+    EXCESS_LOW_CANDIDATE: NOT_CLASSIFIED   (rule: tail >= 2 one-TPO rows)
+    POOR_LOW_CANDIDATE:   NOT_CLASSIFIED   (rule: >= 2 TPOs at the exact extreme)
+  IB extension detail: not available (no Initial Balance)
+  Period range facts ('--' = not applicable):
+    P        high         low  newHigh  newLow  extIBH  extIBL   hiExt   loExt
+    A          --          --  --       --      --      --          --      --
+    B          --          --  --       --      --      --          --      --
+    C          --          --  --       --      --      --          --      --
+    D          --          --  --       --      --      --          --      --
+    E          --          --  --       --      --      --          --      --
+    F          --          --  --       --      --      --          --      --
+    G          --          --  --       --      --      --          --      --
+    H          --          --  --       --      --      --          --      --
+    I          --          --  --       --      --      --          --      --
+    J          --          --  --       --      --      --          --      --
+    K          --          --  --       --      --      --          --      --
+    L          --          --  --       --      --      --          --      --
+    M     7708.25     7689.75  --       --      --      --          --      --
+  Facts and CANDIDATE labels only: no excess/poor/single-print interpretation, day type or signal.
+
+DAY STRUCTURE FACTS:
+  Profile: 7689.75-7708.25, range 18.50 (74 ticks), midpoint 7699.00
+  Initial Balance: not available
+  POC 7699.00 (at 0.5000 of range)   VAL 7695.00   VAH 7708.00   VA midpoint 7701.50 (at 0.6351)
+  Profile high printed by M (first M); profile low printed by M (first M)
+  Longest run of higher lows: 1 periods; of lower highs: 1 periods
+  Upper tail: 75 rows; lower tail: 75 rows; interior one-TPO zones: 0
+  Periods without trades: ABCDEFGHIJKL
+  Study-window terminal price: 7698.00 at 2026-08-31T19:59:59Z (period M); at 0.4459 of range; 10.25 below high, 8.25 above low
+    (last eligible trade before the window end -- not the CME settlement or Globex close)
+
+DAY-TYPE CANDIDATES (DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE):
+  Thresholds: NORMAL IB share >= 0.85; NORMAL_VARIATION 0.50 <= IB share < 0.85; TREND IB share < 0.50 and >= 2 new-extreme periods
+  Quality: NOT_CLASSIFIABLE
+  Outcome: NOT_CLASSIFIED -- no named day type is claimed
+    - STUDY WINDOW NOT FULLY CAPTURED
+    - no Initial Balance (no trades in the first 60 minutes)
+    - period(s) with no retained trades: ABCDEFGHIJKL
+    Day-structure facts above are still reported.
+  Deferred (not evaluated): NON_TREND_DAY ('narrow IB' / 'narrow range' are absolute or historical judgements; the same-day profile cannot separate it from NORMAL_DAY (requires historical context)); NEUTRAL_EXTREME / NEUTRAL_CENTER (close 'near an extreme' / 'in the middle' is undefined; terminal-price facts are reported); DOUBLE_DISTRIBUTION_TREND_DAY (requires deterministic distribution segmentation (0Y-D candidate))
+  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.
+
+TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):
+    Price  TPO  Marks                Str   Periods
+  7708.25    1                       TAIL  M
+  7708.00    1  | VAH                TAIL  M
+  7707.75    1  |                    TAIL  M
+  7707.50    1  |                    TAIL  M
+  7707.25    1  |                    TAIL  M
+  7707.00    1  |                    TAIL  M
+  7706.75    1  |                    TAIL  M
+  7706.50    1  |                    TAIL  M
+  7706.25    1  |                    TAIL  M
+  7706.00    1  |                    TAIL  M
+  7705.75    1  |                    TAIL  M
+  7705.50    1  |                    TAIL  M
+  7705.25    1  |                    TAIL  M
+  7705.00    1  |                    TAIL  M
+  7704.75    1  |                    TAIL  M
+  7704.50    1  |                    TAIL  M
+  7704.25    1  |                    TAIL  M
+  7704.00    1  |                    TAIL  M
+  7703.75    1  |                    TAIL  M
+  7703.50    1  |                    TAIL  M
+  7703.25    1  |                    TAIL  M
+  7703.00    1  |                    TAIL  M
+  7702.75    1  |                    TAIL  M
+  7702.50    1  |                    TAIL  M
+  7702.25    1  |                    TAIL  M
+  7702.00    1  |                    TAIL  M
+  7701.75    1  |                    TAIL  M
+  7701.50    1  |                    TAIL  M
+  7701.25    1  |                    TAIL  M
+  7701.00    1  |                    TAIL  M
+  7700.75    1  |                    TAIL  M
+  7700.50    1  |                    TAIL  M
+  7700.25    1  |                    TAIL  M
+  7700.00    1  |                    TAIL  M
+  7699.75    1  |                    TAIL  M
+  7699.50    1  |                    TAIL  M
+  7699.25    1  |                    TAIL  M
+  7699.00    1  | POC                TAIL  M
+  7698.75    1  |                    TAIL  M
+  7698.50    1  |                    TAIL  M
+  7698.25    1  |                    TAIL  M
+  7698.00    1  |                    TAIL  M
+  7697.75    1  |                    TAIL  M
+  7697.50    1  |                    TAIL  M
+  7697.25    1  |                    TAIL  M
+  7697.00    1  |                    TAIL  M
+  7696.75    1  |                    TAIL  M
+  7696.50    1  |                    TAIL  M
+  7696.25    1  |                    TAIL  M
+  7696.00    1  |                    TAIL  M
+  7695.75    1  |                    TAIL  M
+  7695.50    1  |                    TAIL  M
+  7695.25    1  |                    TAIL  M
+  7695.00    1  | VAL                TAIL  M
+  7694.75    1                       TAIL  M
+  7694.50    1                       TAIL  M
+  7694.25    1                       TAIL  M
+  7694.00    1                       TAIL  M
+  7693.75    1                       TAIL  M
+  7693.50    1                       TAIL  M
+  7693.25    1                       TAIL  M
+  7693.00    1                       TAIL  M
+  7692.75    1                       TAIL  M
+  7692.50    1                       TAIL  M
+  7692.25    1                       TAIL  M
+  7692.00    1                       TAIL  M
+  7691.75    1                       TAIL  M
+  7691.50    1                       TAIL  M
+  7691.25    1                       TAIL  M
+  7691.00    1                       TAIL  M
+  7690.75    1                       TAIL  M
+  7690.50    1                       TAIL  M
+  7690.25    1                       TAIL  M
+  7690.00    1                       TAIL  M
+  7689.75    1                       TAIL  M
+
+Boundary: derived facts and day-type CANDIDATES only -- no interpretation or signal.
+Ordinary CME schedule only; holiday/early-close overrides not modeled.

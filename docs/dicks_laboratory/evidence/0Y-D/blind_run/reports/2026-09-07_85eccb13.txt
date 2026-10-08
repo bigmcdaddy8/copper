@@ -1,0 +1,174 @@
+Dick's Laboratory -- TPO / Market Profile
+
+Dataset:        85eccb13-9432-4163-a078-f9bdbb2f5973
+Instrument:     FUTURE:CME:ES:2026-09
+Trading date:   2026-09-07
+
+Profile window: US_CASH_PROFILE (US_CASH_PROFILE_V1)
+                08:30-15:00 America/Chicago, [start, end)
+                UTC 2026-09-07T13:30:00Z .. 2026-09-07T20:00:00Z
+                Laboratory cash-study window; not the CME Globex session.
+Period size:    30 minutes
+Source tape:    EFFECTIVE_TAPE (corrections 0, cancels 0)
+
+QUALITY:
+  COMPLETE / NO KNOWN GAPS
+  Lifecycle: FINALIZED
+  Study window captured: YES
+
+Price increment: 0.25 (CME_ES_TICK_GRID)
+Eligible trades: 32,132
+
+Profile high:   7717.25
+Profile low:    7703.50
+Profile range:  13.75 (55 ticks)
+
+IB high:        7717.25   (periods AB)
+IB low:         7708.75
+IB range:       8.50 (34 ticks)
+Range extension above IB: 0.00 (0 ticks)
+Range extension below IB: 5.25 (21 ticks), first in period C
+
+TPO POC:        7707.75   (V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE)
+TPO VAL:        7705.25
+TPO VAH:        7712.75
+Value-area %:   98/138 TPOs = 71.01% (target 70%; V1_TWO_ROW_GREATER_SUM_TIE_ABOVE)
+Total TPOs:     138
+Periods present: ABCDEFG (7 of 13)
+
+Periods (Chicago):
+  A  08:30-09:00  high    7717.25  low    7712.00  trades 5,856
+  B  09:00-09:30  high    7715.75  low    7708.75  trades 5,964
+  C  09:30-10:00  high    7712.00  low    7704.50  trades 5,541
+  D  10:00-10:30  high    7707.75  low    7703.50  trades 6,798
+  E  10:30-11:00  high    7708.50  low    7705.50  trades 3,756
+  F  11:00-11:30  high    7709.50  low    7706.50  trades 2,248
+  G  11:30-12:00  high    7710.25  low    7707.50  trades 1,969
+  H  12:00-12:30  high         --  low         --  trades 0
+  I  12:30-13:00  high         --  low         --  trades 0
+  J  13:00-13:30  high         --  low         --  trades 0
+  K  13:30-14:00  high         --  low         --  trades 0
+  L  14:00-14:30  high         --  low         --  trades 0
+  M  14:30-15:00  high         --  low         --  trades 0
+
+STRUCTURE (DICKS_LAB_TPO_STRUCTURE_POLICY V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS):
+  One-TPO levels: 10
+  One-TPO zones (single-print candidates), high to low: 2
+          high         low  rows  ticks    span  periods  location        vs IB           vs value area
+       7717.25     7716.00     6      6    1.25  A        UPPER_EXTREME   INSIDE_IB       ABOVE_VAH
+       7704.25     7703.50     4      4    0.75  D        LOWER_EXTREME   BELOW_IB        BELOW_VAL
+  Upper extreme (PROFILE_HIGH): 7717.25
+    letters at extreme: A (1 TPO)
+    tail: 6 rows / 6 ticks / span 1.25 pts, to 7716.00, periods A, formed in final period: no
+    EXCESS_HIGH_CANDIDATE: YES   (rule: tail >= 2 one-TPO rows)
+    POOR_HIGH_CANDIDATE:   NO   (rule: >= 2 TPOs at the exact extreme)
+  Lower extreme (PROFILE_LOW): 7703.50
+    letters at extreme: D (1 TPO)
+    tail: 4 rows / 4 ticks / span 0.75 pts, to 7704.25, periods D, formed in final period: no
+    EXCESS_LOW_CANDIDATE: YES   (rule: tail >= 2 one-TPO rows)
+    POOR_LOW_CANDIDATE:   NO   (rule: >= 2 TPOs at the exact extreme)
+  IB extension detail (IB 7708.75-7717.25, range 8.50 (34 ticks)):
+    max above IB: 0.00 (0 ticks) = 0.0000 x IB range; new post-IB highs: none
+    max below IB: 5.25 (21 ticks) = 0.6176 x IB range; new post-IB lows: CD
+  Period range facts ('--' = not applicable):
+    P        high         low  newHigh  newLow  extIBH  extIBL   hiExt   loExt
+    A     7717.25     7712.00  --       --      --      --          --      --
+    B     7715.75     7708.75  no       yes     --      --          --      --
+    C     7712.00     7704.50  no       yes     no      yes       0.00    4.25
+    D     7707.75     7703.50  no       yes     no      yes       0.00    5.25
+    E     7708.50     7705.50  no       no      no      yes       0.00    3.25
+    F     7709.50     7706.50  no       no      no      yes       0.00    2.25
+    G     7710.25     7707.50  no       no      no      yes       0.00    1.25
+    H          --          --  --       --      --      --          --      --
+    I          --          --  --       --      --      --          --      --
+    J          --          --  --       --      --      --          --      --
+    K          --          --  --       --      --      --          --      --
+    L          --          --  --       --      --      --          --      --
+    M          --          --  --       --      --      --          --      --
+  Facts and CANDIDATE labels only: no excess/poor/single-print interpretation, day type or signal.
+
+DAY STRUCTURE FACTS:
+  Profile: 7703.50-7717.25, range 13.75 (55 ticks), midpoint 7710.375
+  IB: 7708.75-7717.25, range 8.50 (34 ticks), midpoint 7713.00
+  IB share of range (IB/profile): 0.6182   range multiple of IB (profile/IB): 1.6176
+  Extension above IB: 0.00 (0 ticks) = 0.0000 x IB; periods beyond IB high: none (0); new post-IB highs: none
+  Extension below IB: 5.25 (21 ticks) = 0.6176 x IB; periods beyond IB low: CDEFG (5); new post-IB lows: CD
+  Directional state: DOWN_ONLY   first extension: DOWN   last extension: DOWN
+  POC 7707.75 (at 0.3091 of range)   VAL 7705.25   VAH 7712.75   VA midpoint 7709.00 (at 0.4000)   IB midpoint at 0.6909
+  Profile high printed by A (first A); profile low printed by D (first D)
+  Longest run of higher lows: 4 periods; of lower highs: 4 periods
+  Upper tail: 6 rows; lower tail: 4 rows; interior one-TPO zones: 0
+  Periods without trades: HIJKLM
+  Study-window terminal price: 7708.75 at 2026-09-07T16:59:59Z (period G); at 0.3818 of range; 8.50 below high, 5.25 above low
+    (last eligible trade before the window end -- not the CME settlement or Globex close)
+
+DAY-TYPE CANDIDATES (DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE):
+  Thresholds: NORMAL IB share >= 0.85; NORMAL_VARIATION 0.50 <= IB share < 0.85; TREND IB share < 0.50 and >= 2 new-extreme periods
+  Quality: UNQUALIFIED
+  Outcome: NOT_CLASSIFIED -- no named day type is claimed
+    - period(s) with no retained trades: HIJKLM
+    Day-structure facts above are still reported.
+  Deferred (not evaluated): NON_TREND_DAY ('narrow IB' / 'narrow range' are absolute or historical judgements; the same-day profile cannot separate it from NORMAL_DAY (requires historical context)); NEUTRAL_EXTREME / NEUTRAL_CENTER (close 'near an extreme' / 'in the middle' is undefined; terminal-price facts are reported); DOUBLE_DISTRIBUTION_TREND_DAY (requires deterministic distribution segmentation (0Y-D candidate))
+  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.
+
+TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):
+    Price  TPO  Marks                Str   Periods
+  7717.25    1    IBH                TAIL  A
+  7717.00    1                       TAIL  A
+  7716.75    1                       TAIL  A
+  7716.50    1                       TAIL  A
+  7716.25    1                       TAIL  A
+  7716.00    1                       TAIL  A
+  7715.75    2                             AB
+  7715.50    2                             AB
+  7715.25    2                             AB
+  7715.00    2                             AB
+  7714.75    2                             AB
+  7714.50    2                             AB
+  7714.25    2                             AB
+  7714.00    2                             AB
+  7713.75    2                             AB
+  7713.50    2                             AB
+  7713.25    2                             AB
+  7713.00    2                             AB
+  7712.75    2  | VAH                      AB
+  7712.50    2  |                          AB
+  7712.25    2  |                          AB
+  7712.00    3  |                          ABC
+  7711.75    2  |                          BC
+  7711.50    2  |                          BC
+  7711.25    2  |                          BC
+  7711.00    2  |                          BC
+  7710.75    2  |                          BC
+  7710.50    2  |                          BC
+  7710.25    3  |                          BCG
+  7710.00    3  |                          BCG
+  7709.75    3  |                          BCG
+  7709.50    4  |                          BCFG
+  7709.25    4  |                          BCFG
+  7709.00    4  |                          BCFG
+  7708.75    4  | IBL                      BCFG
+  7708.50    4  |                          CEFG
+  7708.25    4  |                          CEFG
+  7708.00    4  |                          CEFG
+  7707.75    5  | POC                      CDEFG
+  7707.50    5  |                          CDEFG
+  7707.25    4  |                          CDEF
+  7707.00    4  |                          CDEF
+  7706.75    4  |                          CDEF
+  7706.50    4  |                          CDEF
+  7706.25    3  |                          CDE
+  7706.00    3  |                          CDE
+  7705.75    3  |                          CDE
+  7705.50    3  |                          CDE
+  7705.25    2  | VAL                      CD
+  7705.00    2                             CD
+  7704.75    2                             CD
+  7704.50    2                             CD
+  7704.25    1                       TAIL  D
+  7704.00    1                       TAIL  D
+  7703.75    1                       TAIL  D
+  7703.50    1                       TAIL  D
+
+Boundary: derived facts and day-type CANDIDATES only -- no interpretation or signal.
+Ordinary CME schedule only; holiday/early-close overrides not modeled.
