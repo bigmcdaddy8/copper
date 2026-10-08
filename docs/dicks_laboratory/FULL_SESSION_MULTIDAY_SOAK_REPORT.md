@@ -4793,3 +4793,31 @@ datasets:
 0Y-A: PASS — DETERMINISTIC TPO / MARKET PROFILE FOUNDATION COMPLETE
 NEXT: PO REVIEW BEFORE DEVELOPING MARKET-PROFILE STRUCTURAL FEATURES
 ```
+
+## MO. 0Y-B — Deterministic Market Profile Structural Features (2026-10-07)
+
+PO: **0Y-A PASS / ACCEPTED / CLOSED.**
+
+0Y-B adds `tpo_structure.py`, a derived layer over the unchanged TPO profile.
+It reports:
+- one-TPO rows and contiguous `OneTpoZone`s (tick-grid adjacency; location;
+  position vs IB and vs value area)
+- facts for the upper and lower extremes (letters and count at the extreme,
+  tail rows/ticks/points, whether the final period formed the tail)
+- IB-extension detail (amounts, fraction of IB range, every new post-IB
+  high/low period)
+- period range facts
+
+Two reference-surveyed CANDIDATE labels were adopted under policy
+`V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS`. The output is
+quality-qualified when gaps overlap the window, the window was not fully
+captured, or the lifecycle is not FINALIZED. It is enabled with `--structure`;
+default output is byte-identical to 0Y-A.
+
+Real-data smoke on TD 2026-09-30: upper C tail of 7 rows, lower M tail of 152
+rows. An independent recompute matches. Evidence: `evidence/0Y-B/`.
+
+```
+0Y-B: PASS — DETERMINISTIC MARKET PROFILE STRUCTURAL FEATURES COMPLETE
+NEXT: PO REVIEW BEFORE DAY-STRUCTURE / DAY-TYPE CLASSIFICATION
+```

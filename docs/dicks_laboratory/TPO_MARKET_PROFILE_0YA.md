@@ -1,8 +1,8 @@
-# TPO / Market Profile Foundation (0Y-A)
+# TPO / Market Profile Foundation (0Y-A) and Structural Facts (0Y-B)
 
-Status: 0Y-A. Deterministic TPO facts only. No interpretation (opening type, day
-type, single prints, excess, poor highs/lows, signals) — those are deferred
-until PO review (§12).
+Status: 0Y-A is accepted. 0Y-B adds structural facts (§13–§21). Everything
+here is deterministic. There is no interpretation: no opening type, day type,
+direction or signal (§12, §21).
 
 Code: `apps/dicks_laboratory/src/dicks_laboratory/tpo_profile.py` (pure profile
 math), `tpo_analysis.py` (dataset orchestration, quality, rendering),
@@ -199,3 +199,205 @@ database's sha256 is unchanged.
 - developing (intraperiod) TPO, holiday/early-close windows, and price
   increments coarser than the tick (the grid accepts any `PriceGrid`, but
   aggregation into coarser rows is not built yet)
+
+---
+
+# 0Y-B — Structural facts
+
+Code: `tpo_structure.py`, a pure derived layer over `TpoProfile` that never
+alters it. It is rendered by `tpo_analysis.render_structure` and enabled with
+`--structure` on the same CLI. 0Y-A output without `--structure` is
+byte-identical to the accepted 0Y-A evidence; this was verified on the
+2026-09-30 real dataset.
+
+Three kinds of statement are kept apart throughout:
+
+| Kind | Meaning | Examples |
+|---|---|---|
+| **OBSERVED FACT** | Mechanically true of the TPO matrix | one-TPO rows, zone bounds and letters, extreme letters and count, tail length, IB-extension amounts and periods |
+| **LABORATORY STRUCTURAL POLICY** | A versioned threshold applied to facts; labelled `CANDIDATE` | `EXCESS_*_CANDIDATE`, `POOR_*_CANDIDATE` |
+| **MARKET INTERPRETATION** | Meaning attributed to structure. **Not implemented.** | "unfinished auction", "must repair", "rejection", "will return", bullish/bearish, day type |
+
+## 13. Reference survey (terminology)
+
+Sources consulted, all secondary or educational. The CBOT's original Market
+Profile manuals and Dalton's *Mind Over Markets* are the primary lineage; they
+were not available here in full text and are cited only through these:
+
+- LuxAlgo concept library: single prints, excess, poor high/low
+- NexusFi: single prints / poor highs and lows / value area
+- marketcalls.in Market Profile glossary
+- ATAS: "Analyzing TPO: 5 important elements in Jim Dalton's opinion"
+- Exocharts: single-print/tail settings
+- TradingView TPO documentation and community scripts
+
+| Term | Mechanical definition found | Agreement |
+|---|---|---|
+| **Single prints** | Price levels where only one period's letter appears (one TPO). Several sources reserve the term for the profile *interior* and call extreme single prints *tails*. | Broad on "one TPO"; **differs** on whether extremes count as single prints. |
+| **Tail** (buying tail at the low, selling tail at the high) | Single prints at a profile extreme. Several sources require **at least two** single-print levels. | Broad on location; the minimum length is usually 2. Some tools make it configurable. |
+| **Excess** | A tail at a session extreme; the "classic teaching threshold" is a tail of **≥ 2** single-print levels. Dalton's usage is broader (it can also be a gap or a fast move away). | Agreement on the ≥ 2 tail form. The broader Dalton sense is interpretive. |
+| **Poor high / poor low** | A "flat" extreme: **two or more TPOs at the same extreme price**, with no tail. | Broad. Some variants use "at or *near* the extreme" or add volume. |
+
+Material disagreements and how they are handled:
+
+1. **Interior vs extreme single prints.** The data model keeps them as
+   distinct geometric objects (§14), so either convention can be applied later.
+2. **Row size.** "Two single-print levels" depends on the profile row size.
+   ES charts are often drawn with coarser rows than the 0.25 tick. At tick
+   rows, ≥ 2 rows is only 0.25 points of span. The threshold is therefore tied
+   to the policy version and to V1's tick rows. A coarser row size would need
+   a new policy version.
+3. **"Near" the extreme** (poor extremes). Not adopted; V1 uses the exact
+   extreme price only.
+4. **Tails formed in the final period.** Some teaching discounts a tail made
+   by the last period, since the session clock ended it. This is not encoded
+   in the label. It is reported as a raw fact (`tail_formed_in_final_period`).
+5. **What the structures mean** (rejection, unfinished business, repair).
+   This is interpretation and is excluded.
+
+## 14. Raw primitives and one-TPO zones (OBSERVED FACT)
+
+- Every profile row keeps its TPO count, its period letters and its position:
+  the rows run in ascending order from `PROFILE_LOW` to `PROFILE_HIGH` on the
+  instrument `PriceGrid`.
+- **One-TPO levels:** rows with exactly one TPO.
+- **`OneTpoZone`:** a maximal run of *adjacent grid rows* that each have
+  exactly one TPO.
+  - Adjacency is integer row order on the profile grid; there is no
+    floating-point comparison.
+  - A row with ≥ 2 TPOs, or a 0-TPO row (a price jump between non-overlapping
+    periods), ends the run.
+  - Each zone reports: low, high, `level_count` (rows), `tick_count` (equal to
+    rows, because V1 rows are instrument ticks), `span_points` (high − low, 0
+    for a one-row zone), period letters (a zone may be made of more than one
+    period), and the per-row `(price, letter)`.
+- **Location (purely geometric):**
+  - `UPPER_EXTREME` touches `PROFILE_HIGH`.
+  - `LOWER_EXTREME` touches `PROFILE_LOW`.
+  - `INTERIOR` touches neither.
+  - `ENTIRE_PROFILE` touches both, which only happens when every row is
+    one-TPO.
+- **vs Initial Balance:** `ABOVE_IB` / `BELOW_IB` (entirely beyond),
+  `INSIDE_IB` (within `[IBL, IBH]`), `OVERLAPPING_IB`, or `NO_IB`.
+- **vs value area:** `ABOVE_VAH` / `BELOW_VAL`, `INSIDE_VALUE` (within
+  `[VAL, VAH]`), or `OVERLAPPING_BOUNDARY`.
+- **Terminology policy:** the internal object is `OneTpoZone`. Human-facing
+  output says "One-TPO zones (single-print candidates)". An interior zone is
+  what most references call *single prints*. An extreme zone is a *tail* (see
+  §15). The word "single prints" is never used as a stored label.
+
+## 15. Extreme structure and tail measurement (OBSERVED FACT)
+
+The same facts are reported for each extreme (`HIGH` and `LOW`):
+- the extreme price
+- the letters at the exact extreme price and their count (one period vs several)
+- the **tail**: the run of one-TPO rows contiguous *inward from the extreme*.
+  It is 0 if the extreme row has ≥ 2 TPOs. Reported as rows, ticks, span in
+  points, the innermost tail price, and the tail's period letters.
+- `tail_formed_in_final_period`, which is true when the last study period
+  (`M`) contributes to the tail
+
+## 16. Candidate labels (LABORATORY STRUCTURAL POLICY)
+
+Policy `DICKS_LAB_TPO_STRUCTURE_POLICY` / `V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS`:
+
+| Label | Rule (V1) | Basis |
+|---|---|---|
+| `EXCESS_HIGH_CANDIDATE` / `EXCESS_LOW_CANDIDATE` | tail at that extreme ≥ **2** one-TPO rows (`EXCESS_MIN_TAIL_LEVELS = 2`) | The common "≥ 2 single-print tail" threshold |
+| `POOR_HIGH_CANDIDATE` / `POOR_LOW_CANDIDATE` | ≥ **2** distinct periods at the *exact* extreme price (`POOR_EXTREME_MIN_TPOS = 2`) | The common "flat extreme, ≥ 2 TPOs at the same extreme price" |
+
+- Values are `YES`, `NO` or `NOT_CLASSIFIED`. `NOT_CLASSIFIED` applies when
+  fewer than two periods traded, so there was no auction across time.
+- By construction the two labels never both say `YES` for one extreme:
+  ≥ 2 TPOs at the extreme means the tail is 0.
+- A one-row tail (one TPO at the extreme, then a multi-TPO row) is **neither**.
+  It is reported as such and not forced into either label.
+- The word `CANDIDATE` is deliberate. A `YES` means only that the structure
+  meets the threshold. It does not claim an unfinished auction, a required
+  repair, or any future price behaviour.
+- The raw facts are always printed next to each label.
+
+## 17. IB-extension detail and period range facts (OBSERVED FACT)
+
+**`IbExtensionDetail`** reports:
+- IB high/low/range
+- maximum extension above and below, in points and ticks
+- each extension as a fraction of the IB range, which is mathematical only. If
+  the IB range is 0, the fraction is `None`, rendered "undefined (IB range = 0)",
+  and `ib_range_is_zero` is set.
+- every post-IB period that set a new high or low beyond all earlier highs or
+  lows, with the IB counting as earlier
+
+**`PeriodStructure`** (for every period A–M) reports:
+- high and low
+- `new_profile_high` / `new_profile_low` relative to all earlier periods (none
+  for A, which has no earlier period)
+- for post-IB periods only: `extended_ib_high` / `extended_ib_low` and the
+  extension amounts
+- `None` (rendered `--`) wherever a fact does not apply, such as IB periods or
+  periods with no trades
+
+There are no trend, initiative or responsive labels.
+
+## 18. Quality qualification
+
+Structural facts are more sensitive to missing trades than POC or value area,
+because one missing burst can manufacture a one-TPO zone or a flat extreme.
+The 0Y-A `QUALITY:` block is unchanged.
+`TpoDatasetQuality.structural_qualifications` lists the reasons structure is
+qualified:
+- gap evidence (KNOWN or SUSPECTED) overlapping the study window
+- `STUDY WINDOW NOT FULLY CAPTURED`
+- capture interval not recorded
+- lifecycle not FINALIZED
+
+If any reason applies, the structure section opens with
+**`*** STRUCTURAL FEATURES ARE QUALITY-QUALIFIED ***`** followed by the
+reasons, and every `YES` candidate is suffixed `(quality-qualified)`. Facts are
+still computed, nothing is filled, and nothing is suppressed.
+
+A known gap *outside* the window (e.g. the 2026-09-29 overnight gap) keeps the
+dataset `INCOMPLETE` but does not qualify the cash-window structure. The
+overlap count is reported separately.
+
+## 19. Data model (for later consumers)
+
+`ProfileStructure` contains:
+- `one_tpo_levels`
+- `zones: tuple[OneTpoZone]`
+- `upper` and `lower: ExtremeStructure`
+- `ib_extension: IbExtensionDetail | None`
+- `periods: tuple[PeriodStructure]`
+- the policy id/version and thresholds
+
+All of these are frozen dataclasses. `TpoAnalysisResult.structure` carries it.
+Day-type work, replay, Market Study State and the tutor are meant to consume
+these objects, not CLI text.
+
+## 20. Text output (`--structure`)
+
+`--structure` adds a `STRUCTURE` section after the period table:
+- the qualification banner, if any
+- the zone table, high to low: bounds, rows, ticks, span, periods, location,
+  vs IB and vs value area
+- the upper and lower extreme facts with both candidate labels and their rules
+- the IB-extension detail
+- the period range-fact table
+
+The matrix gains a `Str` column: `TAIL` marks rows in an extreme one-TPO run
+and `SP` marks interior one-TPO zone rows. Without `--structure`, the matrix
+and the whole report are unchanged from 0Y-A.
+
+Performance: building the structure is linear in profile rows (hundreds) and
+adds negligible time. The roughly 2-minute runtime on a 1.4M-trade dataset is
+still the shared tape load, which remains backlog.
+
+## 21. Still deferred (interpretation)
+
+- day types: Normal, Normal Variation, Trend, Neutral, Non-Trend, Double
+  Distribution Trend
+- opening types: Open Drive, Open Test Drive, Open Rejection Reverse, Open
+  Auction In/Out of Range
+- initiative vs responsive activity, direction, signals, setups
+- AI commentary, overnight inventory and prior-day context
+- any meaning attached to excess, poor extremes or single prints
