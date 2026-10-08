@@ -38,6 +38,9 @@ def profile(
     structure: bool = typer.Option(
         False, "--structure", help="Add structural facts (one-TPO zones, extremes, IB/period range facts)."
     ),
+    day_structure: bool = typer.Option(
+        False, "--day-structure", help="Add day-structure facts and explained day-type CANDIDATES (0Y-C)."
+    ),
 ) -> None:
     """Print a factual TPO profile (POC, value area, initial balance) for one study window."""
     window = _SESSIONS.get(session)
@@ -57,7 +60,8 @@ def profile(
         typer.echo(f"{label}: {exc}", err=True)
         raise typer.Exit(code=2) from exc
 
-    typer.echo(render_tpo_report(result, show_matrix=matrix, compare_volume=compare_volume, show_structure=structure))
+    typer.echo(render_tpo_report(result, show_matrix=matrix, compare_volume=compare_volume, show_structure=structure,
+                                  show_day_structure=day_structure))
     if result.profile is None:
         raise typer.Exit(code=1)
 

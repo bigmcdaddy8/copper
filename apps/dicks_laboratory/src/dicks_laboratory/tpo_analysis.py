@@ -29,6 +29,15 @@ from dicks_laboratory.tpo_profile import (
     build_period_slots,
     build_tpo_profile,
 )
+from dicks_laboratory.tpo_day_structure import (
+    ClassificationOutcome,
+    DayTypeClassification,
+    QualityGrade,
+    build_day_structure_facts,
+    classification_quality,
+    classify_day_type,
+    study_window_terminal,
+)
 from dicks_laboratory.tpo_structure import CandidateStatus, ProfileStructure, ZoneLocation, build_profile_structure
 from dicks_laboratory.value_area import ValueAreaResult, compute_value_area
 from dicks_laboratory.volume_profile import VolumeAtPriceProfile, build_volume_at_price_profile, price_grid_for_instrument
@@ -89,6 +98,7 @@ class TpoAnalysisResult:
     volume_profile: VolumeAtPriceProfile | None  # same trades, same window
     volume_value_area: ValueAreaResult | None
     structure: ProfileStructure | None = None  # 0Y-B derived structural facts
+    day_structure: DayTypeClassification | None = None  # 0Y-C day-structure facts + day-type candidates
 
 
 def analyze_tpo_dataset(
@@ -108,6 +118,13 @@ def analyze_tpo_dataset(
     grid = price_grid_for_instrument(context.instrument)
     profile = build_tpo_profile(selected, grid, resolved, period_minutes, window)
     volume = build_volume_at_price_profile(selected, grid, VwapSourceMode.EFFECTIVE_TAPE).profile
+    quality = _dataset_quality(store, dataset_id, start_utc, end_utc)
+    structure = build_profile_structure(profile) if profile else None
+    day_structure = None
+    if profile is not None:
+        facts = build_day_structure_facts(profile, structure, study_window_terminal(selected, profile, grid))
+        day_structure = classify_day_type(facts, classification_quality(
+            quality.study_window_captured, quality.gaps_overlapping_study_window, quality.lifecycle_state))
 
     return TpoAnalysisResult(
         dataset_id=dataset_id,
@@ -120,11 +137,12 @@ def analyze_tpo_dataset(
         source_mode=VwapSourceMode.EFFECTIVE_TAPE,
         applied_correction_count=context.tape.applied_correction_count,
         applied_cancel_count=context.tape.applied_cancel_count,
-        quality=_dataset_quality(store, dataset_id, start_utc, end_utc),
+        quality=quality,
         profile=profile,
         volume_profile=volume,
         volume_value_area=compute_value_area(volume) if volume else None,
-        structure=build_profile_structure(profile) if profile else None,
+        structure=structure,
+        day_structure=day_structure,
     )
 
 
@@ -221,7 +239,11 @@ def render_matrix(profile: TpoProfile, structure: ProfileStructure | None = None
 
 
 def render_tpo_report(
-    result: TpoAnalysisResult, show_matrix: bool = True, compare_volume: bool = False, show_structure: bool = False
+    result: TpoAnalysisResult,
+    show_matrix: bool = True,
+    compare_volume: bool = False,
+    show_structure: bool = False,
+    show_day_structure: bool = False,
 ) -> str:
     profile = result.profile
     lines = ["Dick's Laboratory -- TPO / Market Profile", ""]
@@ -291,6 +313,8 @@ def render_tpo_report(
     structure = result.structure if show_structure else None
     if structure is not None:
         lines += render_structure(structure, result.quality, inc)
+    if show_day_structure and result.day_structure is not None:
+        lines += render_day_structure(result.day_structure, inc)
     if show_matrix:
         if structure is not None:
             lines.append("TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):")
@@ -298,7 +322,10 @@ def render_tpo_report(
             lines.append("TPO matrix ('|' = inside value area):")
         lines += render_matrix(profile, structure)
         lines.append("")
-    lines += ["Boundary: derived facts only -- no interpretation, day type or signal.",
+    boundary = ("derived facts and day-type CANDIDATES only -- no interpretation or signal."
+                if show_day_structure and result.day_structure is not None
+                else "derived facts only -- no interpretation, day type or signal.")
+    lines += [f"Boundary: {boundary}",
               "Ordinary CME schedule only; holiday/early-close overrides not modeled."]
     return "\n".join(lines)
 
@@ -367,4 +394,89 @@ def render_structure(structure: ProfileStructure, quality: TpoDatasetQuality, in
             f"{_yn(p.new_profile_low):<6}  {_yn(p.extended_ib_high):<6}  {_yn(p.extended_ib_low):<6}  "
             f"{_opt(p.high_extension):>6}  {_opt(p.low_extension):>6}")
     lines += ["  Facts and CANDIDATE labels only: no excess/poor/single-print interpretation, day type or signal.", ""]
+    return lines
+
+
+def _p4(value: Decimal | None, undefined: str = "undefined") -> str:
+    return undefined if value is None else str(value.quantize(Decimal("0.0001")))
+
+
+def render_day_structure(day: DayTypeClassification, inc: Decimal) -> list[str]:
+    """0Y-C: day-structure facts first, then every evaluated candidate with its conditions."""
+    f = day.facts
+    lines = ["DAY STRUCTURE FACTS:",
+             f"  Profile: {f.profile_low}-{f.profile_high}, range {_ticks(f.profile_range, inc)}, "
+             f"midpoint {f.profile_midpoint}"]
+    if f.ib_range is None:
+        lines.append("  Initial Balance: not available")
+    else:
+        lines += [
+            f"  IB: {f.ib_low}-{f.ib_high}, range {_ticks(f.ib_range, inc)}, midpoint {f.ib_midpoint}",
+            f"  IB share of range (IB/profile): {_p4(f.ib_share_of_range, 'undefined (profile range = 0)')}   "
+            f"range multiple of IB (profile/IB): {_p4(f.range_multiple_of_ib, 'undefined (IB range = 0)')}",
+            f"  Extension above IB: {_ticks(f.extension_above, inc)} = "
+            f"{_p4(f.extension_above_multiple_of_ib, 'undefined')} x IB; "
+            f"periods beyond IB high: {f.periods_extending_above_ib or 'none'} "
+            f"({len(f.periods_extending_above_ib)}); new post-IB highs: {f.new_post_ib_high_periods or 'none'}",
+            f"  Extension below IB: {_ticks(f.extension_below, inc)} = "
+            f"{_p4(f.extension_below_multiple_of_ib, 'undefined')} x IB; "
+            f"periods beyond IB low: {f.periods_extending_below_ib or 'none'} "
+            f"({len(f.periods_extending_below_ib)}); new post-IB lows: {f.new_post_ib_low_periods or 'none'}",
+            f"  Directional state: {f.directional_state.value}   first extension: "
+            f"{f.first_extension_direction.value if f.first_extension_direction else 'none'}   last extension: "
+            f"{f.last_extension_direction.value if f.last_extension_direction else 'none'}",
+        ]
+    lines += [
+        f"  POC {f.poc} (at {_p4(f.poc_percentile)} of range)   VAL {f.value_area_low}   VAH {f.value_area_high}   "
+        f"VA midpoint {f.value_area_midpoint} (at {_p4(f.value_area_midpoint_percentile)})"
+        + ("" if f.ib_midpoint is None else f"   IB midpoint at {_p4(f.ib_midpoint_percentile)}"),
+        f"  Profile high printed by {f.periods_at_profile_high} (first {f.first_period_at_profile_high}); "
+        f"profile low printed by {f.periods_at_profile_low} (first {f.first_period_at_profile_low})",
+        f"  Longest run of higher lows: {f.longest_higher_low_run} periods; "
+        f"of lower highs: {f.longest_lower_high_run} periods",
+        f"  Upper tail: {f.upper_extreme.tail_level_count} rows; lower tail: {f.lower_extreme.tail_level_count} rows; "
+        f"interior one-TPO zones: {len(f.interior_one_tpo_zones)}",
+        f"  Periods without trades: {f.periods_without_trades or 'none'}",
+    ]
+    t = f.terminal
+    if t is None:
+        lines.append("  Study-window terminal price: none")
+    else:
+        lines.append(f"  Study-window terminal price: {t.price} at {_utc(t.timestamp_utc)} (period {t.period_label}); "
+                     f"at {_p4(t.percentile_in_range)} of range; {t.distance_from_high} below high, "
+                     f"{t.distance_from_low} above low")
+        lines.append("    (last eligible trade before the window end -- not the CME settlement or Globex close)")
+    lines.append("")
+
+    lines.append(f"DAY-TYPE CANDIDATES ({day.policy_id} {day.policy_version}):")
+    lines.append(f"  Thresholds: NORMAL IB share >= {day.normal_min_ib_share}; NORMAL_VARIATION "
+                 f"{day.normal_variation_min_ib_share} <= IB share < {day.normal_min_ib_share}; TREND IB share < "
+                 f"{day.normal_variation_min_ib_share} and >= {day.trend_min_new_extreme_periods} new-extreme periods")
+    q = day.quality
+    if q.grade is QualityGrade.QUALITY_QUALIFIED:
+        lines.append("  *** DAY-TYPE CLASSIFICATION IS QUALITY-QUALIFIED ***")
+        lines += [f"    - {reason}" for reason in q.reasons]
+    lines.append(f"  Quality: {q.grade.value}")
+    if day.outcome is ClassificationOutcome.NOT_CLASSIFIED:
+        lines.append("  Outcome: NOT_CLASSIFIED -- no named day type is claimed")
+        lines += [f"    - {reason}" for reason in day.not_classified_reasons]
+        lines.append("    Day-structure facts above are still reported.")
+    else:
+        if day.outcome is ClassificationOutcome.CANDIDATE:
+            label = f"{day.primary.value}_CANDIDATE" + (f", direction {day.direction.value}" if day.direction else "")
+            if q.grade is QualityGrade.QUALITY_QUALIFIED:
+                label += " (quality-qualified)"
+        elif day.outcome is ClassificationOutcome.AMBIGUOUS:
+            label = "several policies matched: " + ", ".join(c.day_type.value for c in day.matched)
+        else:
+            label = "no adopted policy matched"
+        lines.append(f"  Outcome: {day.outcome.value} -- {label}")
+        for c in day.candidates:
+            lines.append(f"  {c.day_type.value}_CANDIDATE: {c.result.value}"
+                         + (f" (direction {c.direction.value})" if c.direction else ""))
+            for cond in c.conditions:
+                mark = {True: "satisfied    ", False: "NOT satisfied", None: "not evaluated"}[cond.satisfied]
+                lines.append(f"    [{mark}] {cond.name}: {cond.rule} -- {cond.observed}")
+    lines.append("  Deferred (not evaluated): " + "; ".join(f"{d.name} ({d.reason})" for d in day.deferred))
+    lines += ["  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.", ""]
     return lines

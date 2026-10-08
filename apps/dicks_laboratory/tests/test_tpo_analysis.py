@@ -16,6 +16,7 @@ from dicks_laboratory.models import DatasetIdentity, DatasetKind, InstrumentIden
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType
 from dicks_laboratory.store import LaboratoryStore
 from dicks_laboratory.tpo_analysis import QualityStatus, analyze_tpo_dataset, render_tpo_report
+from dicks_laboratory.tpo_day_structure import ClassificationOutcome, DayType, DirectionalState, QualityGrade
 
 _REPO = Path(__file__).resolve().parents[3]
 _SCRIPT = "scripts/dicks_lab_tpo_profile.py"
@@ -28,7 +29,7 @@ def _utc(*args):
     return datetime(*args, tzinfo=timezone.utc)
 
 
-def _build(tmp_path, *, trading_day=6, gaps=(), suspected=(), capture_end=None, name="tpo.sqlite3"):
+def _build(tmp_path, *, trading_day=6, gaps=(), suspected=(), capture_end=None, name="tpo.sqlite3", extra=()):
     """A FINALIZED ES dataset for trading date 2026-10-<day> (CDT: cash open 13:30Z)."""
     dataset_id = uuid5(_NS, f"{name}-{trading_day}")
     open_ = _utc(2026, 10, trading_day, 13, 30)
@@ -39,6 +40,7 @@ def _build(tmp_path, *, trading_day=6, gaps=(), suspected=(), capture_end=None, 
         (open_ + timedelta(minutes=31), "100.50", 1),             # B
         (open_ + timedelta(minutes=32), "101.50", 1),             # B
         (_utc(2026, 10, trading_day, 20, 0), "120.00", 1),        # 15:00 CT -- excluded
+        *extra,
     ]
     trades = tuple(
         TradeObservation(uuid5(dataset_id, str(i)), dataset_id, i + 1, _ES, ts, D(price), D(size))
@@ -239,3 +241,69 @@ def test_cli_structure_flag_and_default_output_unchanged(tmp_path):
     assert structured.stdout == _run(str(path), "--structure").stdout
     rows = {line.split()[0]: line for line in structured.stdout.splitlines() if line.startswith("  10")}
     assert "TAIL" in rows["101.50"] and "TAIL" in rows["100.00"] and "TAIL" not in rows["100.75"]
+
+
+# --- 0Y-C day structure --------------------------------------------------------------
+
+def _full_day():
+    """Periods C..M each trade 100.50-101.00 inside the IB (100.00-101.50): no extension."""
+    open_ = _utc(2026, 10, 6, 13, 30)
+    return tuple((open_ + timedelta(minutes=30 * i + m), price, 1)
+                 for i in range(2, 13) for m, price in ((5, "100.50"), (6, "101.00")))
+
+
+def test_day_structure_is_programmatic_and_partial_window_is_not_classified(tmp_path):
+    r = _analyze(*_build(tmp_path))
+    day = r.day_structure
+    assert day.facts.periods_without_trades == "CDEFGHIJKLM" and day.facts.ib_range == D("1.50")
+    assert (day.facts.terminal.price, day.facts.terminal.period_label) == (D("101.50"), "B")
+    assert (day.outcome, day.candidates) == (ClassificationOutcome.NOT_CLASSIFIED, ())
+    assert day.quality.grade is QualityGrade.UNQUALIFIED
+
+
+def test_full_clean_day_is_classified_and_rendered_with_conditions(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day()))
+    day = r.day_structure
+    assert (day.outcome, day.primary, day.facts.directional_state) == (
+        ClassificationOutcome.CANDIDATE, DayType.NORMAL_DAY, DirectionalState.NO_EXTENSION)
+    text = render_tpo_report(r, show_day_structure=True)
+    for needle in ("DAY STRUCTURE FACTS:", "Directional state: NO_EXTENSION", "Study-window terminal price: 101.00",
+                   "Outcome: CANDIDATE -- NORMAL_DAY_CANDIDATE", "[satisfied    ] ib_share_wide",
+                   "[not evaluated] ib_wide_vs_history", "TREND_DAY_CANDIDATE: NO", "Deferred (not evaluated): NON_TREND_DAY"):
+        assert needle in text, needle
+    assert "QUALITY-QUALIFIED" not in text
+
+
+def test_gap_inside_window_qualifies_named_day_type(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day(), gaps=[(_utc(2026, 10, 6, 15, 0), _utc(2026, 10, 6, 15, 1))]))
+    assert r.day_structure.quality.grade is QualityGrade.QUALITY_QUALIFIED
+    text = render_tpo_report(r, show_day_structure=True)
+    assert "*** DAY-TYPE CLASSIFICATION IS QUALITY-QUALIFIED ***" in text
+    assert "NORMAL_DAY_CANDIDATE (quality-qualified)" in text
+
+
+def test_overnight_gap_outside_window_leaves_classification_unqualified(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day(), gaps=[_SEP29_GAP]))
+    assert r.quality.status is QualityStatus.INCOMPLETE
+    assert (r.day_structure.quality.grade, r.day_structure.primary) == (QualityGrade.UNQUALIFIED, DayType.NORMAL_DAY)
+
+
+def test_truncated_capture_is_not_classified(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day(), capture_end=_utc(2026, 10, 6, 19, 36)))
+    day = r.day_structure
+    assert (day.outcome, day.not_classified_reasons) == (
+        ClassificationOutcome.NOT_CLASSIFIED, ("STUDY WINDOW NOT FULLY CAPTURED",))
+    text = render_tpo_report(r, show_day_structure=True)
+    assert "Outcome: NOT_CLASSIFIED -- no named day type is claimed\n    - STUDY WINDOW NOT FULLY CAPTURED" in text
+    assert "_CANDIDATE: YES" not in text and "DAY STRUCTURE FACTS:" in text
+
+
+def test_cli_day_structure_flag_leaves_default_and_structure_output_unchanged(tmp_path):
+    path, _ = _build(tmp_path, extra=_full_day())
+    plain, structured, day = _run(str(path)), _run(str(path), "--structure"), _run(str(path), "--day-structure")
+    assert plain.returncode == structured.returncode == day.returncode == 0
+    assert "DAY STRUCTURE" not in plain.stdout + structured.stdout
+    assert "Boundary: derived facts only -- no interpretation, day type or signal." in plain.stdout
+    assert day.stdout.startswith(plain.stdout.split("TPO matrix")[0])
+    assert "Outcome: CANDIDATE -- NORMAL_DAY_CANDIDATE" in day.stdout
+    assert day.stdout == _run(str(path), "--day-structure").stdout
