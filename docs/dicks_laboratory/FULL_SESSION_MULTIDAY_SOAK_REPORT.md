@@ -4765,3 +4765,31 @@ Details: `FUTURES_CONTRACT_ROLL_0XA.md` §15, `evidence/0X-B/`,
 0X-B: PASS — CONTRACT-ROLL PRODUCTION POLICY READY
 NEXT: MARKET PROFILE / TPO DEVELOPMENT
 ```
+
+## MN. 0Y-A — Deterministic TPO / Market Profile Foundation (2026-10-07)
+
+PO: **0X-B PASS / ACCEPTED / CLOSED.**
+
+0Y-A adds deterministic TPO facts over the normalized tape. The study window
+is `US_CASH_PROFILE`, 08:30–15:00 CT `[start, end)`, which is a Laboratory
+study window, not the Globex session. Periods are 30 minutes, A–M. The profile
+reports:
+- one TPO per period per price, with contiguous low..high occupancy
+- the TPO POC: nearest the range midpoint, then the lower price
+- a two-row 70% value area
+- IB facts and range-extension facts
+- a text matrix
+- a `QUALITY:` block that never hides gaps
+
+Nothing is interpreted. Design: `TPO_MARKET_PROFILE_0YA.md`. Evidence:
+`evidence/0Y-A/`. The primary dataset `2b6cc528…` (TD 10-06) is only on
+dragon, which stays deallocated, so the real-data smoke used local finalized
+datasets:
+- TD 2026-09-30 `9ac5a21e…` (`/ESZ6`, complete): POC 7767.25, VA
+  7751.75–7778.25 (70.28%), 858 TPOs. An independent stdlib recompute matches.
+- TD 2026-09-02 (`KNOWN_GAP=1`): computed and shown `INCOMPLETE`.
+
+```
+0Y-A: PASS — DETERMINISTIC TPO / MARKET PROFILE FOUNDATION COMPLETE
+NEXT: PO REVIEW BEFORE DEVELOPING MARKET-PROFILE STRUCTURAL FEATURES
+```

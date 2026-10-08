@@ -1,0 +1,2 @@
+periods 13 total_tpos 858 poc 7767.25 poc_tpos 9
+high 7782.00 low 7709.25 ib_high 7779.50 ib_low 7748.00
