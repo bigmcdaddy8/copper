@@ -1,0 +1,20 @@
+2026-08-31  c9ebc043-beaa-4931-a5d6-29064f7a6e3c  FUTURE:CME:ES:2026-09
+
+OVERNIGHT CONTEXT (OVERNIGHT_CONTEXT_V1):
+  Window [08-30 22:00:00.000Z, 08-31 13:30:00.000Z) = [17:00 CT previous session evening, 08:30 CT cash open)
+  *** OVERNIGHT FACTS ARE QUALITY-QUALIFIED ***
+    - capture began 0:00:00.000177 after 17:00 CT (overnight window starts late)
+    - KNOWN_GAP overlaps the overnight window: 1
+    - lifecycle INTERRUPTED (not FINALIZED)
+  Overnight quality: QUALITY_QUALIFIED   (capture starts late yes; ends early no; KNOWN_GAP 1, SUSPECTED_GAP 0; lifecycle INTERRUPTED; contract FUTURE:CME:ES:2026-09, consistent yes)
+  First print 7723.50 at 08-30 22:00:00.599Z; Globex open none -- capture began after 17:00 CT; the first retained trade is not the Globex open
+  ON high 7723.50 at 08-30 22:00:00.599Z; ON low 7683.75 at 08-31 02:35:37.695Z; range 39.75 pts = 159 ticks; HIGH_FIRST
+  ON terminal 7701.25 at 08-31 13:29:59.999Z (last eligible trade before 08:30 CT)
+  Brackets with trades: 31 x 30 min
+    - no cash open print: cash-open comparisons not computed
+    - prior context NO_PRIOR_PROFILE: prior-relative facts not computed
+  Facts only: no inventory label, acceptance/rejection, bias or signal.
+
+OPENING PATH DETAIL (OPENING_PATH_FACTS_V1):
+  Quality (kept separate): CURRENT_OPEN NOT_AVAILABLE; PRIOR_DAY NO_PRIOR_PROFILE; OVERNIGHT QUALITY_QUALIFIED
+  No opening path facts are computed (no trustworthy cash open).

@@ -1,0 +1,68 @@
+2026-09-29  6af08205-90f9-4735-809f-c7b8a62bda65  FUTURE:CME:ES:2026-12
+
+OVERNIGHT CONTEXT (OVERNIGHT_CONTEXT_V1):
+  Window [09-28 22:00:00.000Z, 09-29 13:30:00.000Z) = [17:00 CT previous session evening, 08:30 CT cash open)
+  *** OVERNIGHT FACTS ARE QUALITY-QUALIFIED ***
+    - capture began 0:00:00.000256 after 17:00 CT (overnight window starts late)
+    - KNOWN_GAP overlaps the overnight window: 1
+  Overnight quality: QUALITY_QUALIFIED   (capture starts late yes; ends early no; KNOWN_GAP 1, SUSPECTED_GAP 0; lifecycle FINALIZED; contract FUTURE:CME:ES:2026-12, consistent yes)
+  First print 7746.75 at 09-28 22:00:01.340Z; Globex open none -- capture began after 17:00 CT; the first retained trade is not the Globex open
+  ON high 7770.75 at 09-29 11:49:38.921Z; ON low 7716.00 at 09-29 05:35:16.548Z; range 54.75 pts = 219 ticks; LOW_FIRST
+  ON terminal 7757.50 at 09-29 13:29:59.984Z (last eligible trade before 08:30 CT)
+  Brackets with trades: 31 x 30 min
+  Cash open vs overnight: INSIDE_OVERNIGHT_RANGE; open - ONH -53 ticks, open - ONL 166 ticks; percentile in ON range 0.7580
+    - no Globex open print: capture began after 17:00 CT; the first retained trade is not the Globex open
+  Gap FIRST_OVERNIGHT_PRINT_VS_PRIOR_TERMINAL: 7746.75 - 7746.50 = 0.25 pts = 1 ticks, UP
+  Gap CASH_OPEN_VS_PRIOR_TERMINAL: 7757.50 - 7746.50 = 11.00 pts = 44 ticks, UP
+  Gap CASH_OPEN_VS_OVERNIGHT_TERMINAL: 7757.50 - 7757.50 = 0.00 pts = 0 ticks, NONE
+  ON vs prior (signed, ON - prior): ONH - prior high -62 ticks (-15.50 pts); ONL - prior low -40 ticks (-10.00 pts); ONH - VAH -28 ticks (-7.00 pts); ONL - VAL -121 ticks (-30.25 pts)
+    overlaps prior value yes, prior range yes; inside prior value no, prior range no
+    excursion above prior high 0 ticks (0 pts), below prior low 40 ticks (10.00 pts), above VAH 0 ticks (0 pts), below VAL 121 ticks (30.25 pts)
+  Overnight occupancy vs prior references (time / brackets+TPO rows / volume kept separate):
+    reference       price      sec above    sec below   sec at   observed  frac up frac dn  brk up/dn/span  rows up/dn/at  rng up/dn  term-ref  vol up/dn/at
+    PRIOR_TERMINAL  7746.50     19459.565    35942.141  396.954  55798.660  0.3487  0.6441  7/14/10          382/707/10         97/122          +44  115621.0/161736.0/1791.0
+    PRIOR_POC       7759.25      2500.345    53199.018   99.297  55798.660  0.0448  0.9534  0/28/3           81/1015/3          46/173           -7  26837.0/251423.0/888.0
+    PRIOR_VAH       7777.75         0.000    55798.660    0.000  55798.660  0.0000  1.0000  0/31/0           0/1099/0          0/247          -81  0/279148.0/0
+    PRIOR_VAL       7746.25     19856.519    35565.879  376.262  55798.660  0.3559  0.6374  7/14/10          392/697/10         98/121          +45  117412.0/160287.0/1449.0
+    PRIOR_TERMINAL = last eligible prior-day trade before 15:00 CT; it is NOT the CME settlement.
+  Facts only: no inventory label, acceptance/rejection, bias or signal.
+
+OPENING PATH DETAIL (OPENING_PATH_FACTS_V1):
+  Quality (kept separate): CURRENT_OPEN UNQUALIFIED; PRIOR_DAY AVAILABLE / UNQUALIFIED; OVERNIGHT QUALITY_QUALIFIED
+  Multi-scale opening facts (from 08:30:00 CT; observational scales, not thresholds):
+    scale  high       low        last       up  dn  dominant c/d        crosses  first-cross   last-cross    open->last   sec>open    sec<open   sec=open  longest-up  longest-dn
+    30s    7758.50    7751.75    7752.00     4  23  DOWN     0.1739            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250     29.460     0.290      0.222s     29.068s
+    1m     7758.50    7750.00    7750.25     4  30  DOWN     0.1333            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250     59.460     0.290      0.222s     59.068s
+    3m     7758.50    7747.25    7747.25     4  41  DOWN     0.0976            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250    179.460     0.290      0.222s    179.068s
+    5m     7758.50    7740.75    7743.25     4  67  DOWN     0.0597            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250    299.460     0.290      0.222s    299.068s
+    15m    7758.50    7739.00    7740.50     4  74  DOWN     0.0541            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250    899.460     0.290      0.222s    899.068s
+    30m    7758.50    7734.75    7736.25     4  91  DOWN     0.0440            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250   1799.460     0.290      0.222s   1799.068s
+    60m    7758.50    7734.75    7742.00     4  91  DOWN     0.0440            3  13:30:00.146Z  13:30:00.932Z      0.932s      0.250   3599.460     0.290      0.222s   3599.068s
+  Scale comparison: dominance 30s DOWN (0.1739), 1m DOWN (0.1333), 3m DOWN (0.0976), 5m DOWN (0.0597); A-period DOWN (0.0440); A/B overlap 1.0000; A-only rows 46; one-timeframing run from A: higher lows 2, lower highs 8
+  Grace-instant diagnostics (DIAGNOSTIC ONLY; no grace period is preferred):
+    + 1s  7757.00   -2t  side DOWN held DOWN  5m cross no -- fav 67 ctr 0  15m cross no -- fav 74 ctr 0  30m cross no -- fav 91 ctr 0
+    + 5s  7755.75   -7t  side DOWN held DOWN  5m cross no -- fav 67 ctr 0  15m cross no -- fav 74 ctr 0  30m cross no -- fav 91 ctr 0
+    +15s  7754.75   -11t  side DOWN held DOWN  5m cross no -- fav 67 ctr 0  15m cross no -- fav 74 ctr 0  30m cross no -- fav 91 ctr 0
+    +30s  7752.00   -22t  side DOWN held DOWN  5m cross no -- fav 67 ctr 0  15m cross no -- fav 74 ctr 0  30m cross no -- fav 91 ctr 0
+    +60s  7750.25   -29t  side DOWN held DOWN  5m cross no -- fav 67 ctr 0  15m cross no -- fav 74 ctr 0  30m cross no -- fav 91 ctr 0
+  Overnight references (min distance ticks / touched / crossed, per horizon; first touch / first cross over 60 min):
+    OVERNIGHT_HIGH 7770.75   open-53t  5m 49/no/no  15m 49/no/no  30m 49/no/no  60m 49/no/no  touch --  cross --
+    OVERNIGHT_LOW  7716.00   open+166t  5m 99/no/no  15m 92/no/no  30m 75/no/no  60m 75/no/no  touch --  cross --
+  Reference encounters in the first 30 min (reach = touch or trade beyond; a touch is not a 'test'):
+    PRIOR_HIGH     7786.25   UP   of open (+115t): not reached; min distance 111 ticks
+    PRIOR_VAH      7777.75   UP   of open (+81t): not reached; min distance 77 ticks
+    PRIOR_POC      7759.25   UP   of open (+7t): not reached; min distance 3 ticks
+    PRIOR_VAL      7746.25   DOWN of open (-45t): reached 13:33:13.303Z (beyond 0t, touch 13:33:13.303Z); opposite before 4t; open crossed after no -- (+--); opposite excursion after cross: --
+    PRIOR_LOW      7726.00   DOWN of open (-126t): not reached; min distance 35 ticks
+    OVERNIGHT_HIGH 7770.75   UP   of open (+53t): not reached; min distance 49 ticks
+    OVERNIGHT_LOW  7716.00   DOWN of open (-166t): not reached; min distance 75 ticks
+    first reference reached: PRIOR_VAL
+  Event sequence, first 30 min (3 open crosses; first/last shown):
+    13:30:00.000Z  OPEN                                      7757.50
+    13:30:00.007Z  WINDOW_HIGH_FIRST_REACHED                 7758.50
+    13:30:00.146Z  OPEN_CROSS_FIRST                          7757.25
+    13:30:00.932Z  OPEN_CROSS_LAST                           7757.25
+    13:33:13.303Z  REFERENCE_TOUCH            PRIOR_VAL      7746.25
+    13:33:14.883Z  REFERENCE_CROSS            PRIOR_VAL      7746.00
+    13:59:58.443Z  WINDOW_LOW_FIRST_REACHED                  7734.75
+  Facts only: no opening type, preferred scale, tolerance, bias or signal.

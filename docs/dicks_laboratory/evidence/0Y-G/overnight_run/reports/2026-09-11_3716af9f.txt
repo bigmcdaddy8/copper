@@ -1,0 +1,48 @@
+2026-09-11  3716af9f-28bf-4611-b56c-cbeb8a4f0fff  FUTURE:CME:ES:2026-09
+
+OVERNIGHT CONTEXT (OVERNIGHT_CONTEXT_V1):
+  Window [09-10 22:00:00.000Z, 09-11 13:30:00.000Z) = [17:00 CT previous session evening, 08:30 CT cash open)
+  *** OVERNIGHT FACTS ARE QUALITY-QUALIFIED ***
+    - capture began 0:00:00.000314 after 17:00 CT (overnight window starts late)
+  Overnight quality: QUALITY_QUALIFIED   (capture starts late yes; ends early no; KNOWN_GAP 0, SUSPECTED_GAP 0; lifecycle FINALIZED; contract FUTURE:CME:ES:2026-09, consistent yes)
+  First print 7601.25 at 09-10 22:00:01.300Z; Globex open none -- capture began after 17:00 CT; the first retained trade is not the Globex open
+  ON high 7683.50 at 09-11 13:00:37.456Z; ON low 7594.25 at 09-11 00:00:06.067Z; range 89.25 pts = 357 ticks; LOW_FIRST
+  ON terminal 7665.00 at 09-11 13:29:59.998Z (last eligible trade before 08:30 CT)
+  Brackets with trades: 31 x 30 min
+  Cash open vs overnight: INSIDE_OVERNIGHT_RANGE; open - ONH -74 ticks, open - ONL 283 ticks; percentile in ON range 0.7927
+    - prior context NO_PRIOR_PROFILE: prior-relative facts not computed
+  Gap CASH_OPEN_VS_OVERNIGHT_TERMINAL: 7665.00 - 7665.00 = 0.00 pts = 0 ticks, NONE
+  Facts only: no inventory label, acceptance/rejection, bias or signal.
+
+OPENING PATH DETAIL (OPENING_PATH_FACTS_V1):
+  Quality (kept separate): CURRENT_OPEN UNQUALIFIED; PRIOR_DAY NO_PRIOR_PROFILE; OVERNIGHT QUALITY_QUALIFIED
+  Multi-scale opening facts (from 08:30:00 CT; observational scales, not thresholds):
+    scale  high       low        last       up  dn  dominant c/d        crosses  first-cross   last-cross    open->last   sec>open    sec<open   sec=open  longest-up  longest-dn
+    30s    7665.50    7661.25    7662.50     2  15  DOWN     0.1333            1  13:30:00.043Z  13:30:00.043Z      0.043s      0.021     29.955     0.024      0.040s     29.957s
+    1m     7665.50    7661.25    7663.50     2  15  DOWN     0.1333            1  13:30:00.043Z  13:30:00.043Z      0.043s      0.021     59.955     0.024      0.040s     59.957s
+    3m     7669.00    7659.75    7665.50    16  21  DOWN     0.7619           16  13:30:00.043Z  13:32:54.860Z    174.860s     37.365    136.191     6.444     30.374s     97.313s
+    5m     7676.50    7659.75    7675.50    46  21  UP       0.4565           16  13:30:00.043Z  13:32:54.860Z    174.860s    157.021    136.191     6.788    125.140s     97.313s
+    15m    7677.75    7659.75    7672.25    51  21  UP       0.4118           22  13:30:00.043Z  13:40:35.061Z    635.061s    749.487    141.493     9.020    451.780s     97.313s
+    30m    7682.00    7659.75    7681.00    68  21  UP       0.3088           26  13:30:00.043Z  13:52:57.555Z   1377.555s   1649.474    141.497     9.029    742.481s     97.313s
+    60m    7682.00    7659.75    7675.00    68  21  UP       0.3088           38  13:30:00.043Z  14:17:47.029Z   2867.029s   3434.368    150.204    15.428   1177.523s     97.313s
+  Scale comparison: dominance 30s DOWN (0.1333), 1m DOWN (0.1333), 3m DOWN (0.7619), 5m UP (0.4565); A-period UP (0.3088); A/B overlap 1.0000; A-only rows 3; one-timeframing run from A: higher lows 2, lower highs 3
+  Grace-instant diagnostics (DIAGNOSTIC ONLY; no grace period is preferred):
+    + 1s  7662.75   -9t  side DOWN held DOWN  5m cross yes 13:31:37.356Z fav 21 ctr 46  15m cross yes 13:31:37.356Z fav 21 ctr 51  30m cross yes 13:31:37.356Z fav 21 ctr 68
+    + 5s  7663.00   -8t  side DOWN held DOWN  5m cross yes 13:31:37.356Z fav 21 ctr 46  15m cross yes 13:31:37.356Z fav 21 ctr 51  30m cross yes 13:31:37.356Z fav 21 ctr 68
+    +15s  7663.25   -7t  side DOWN held DOWN  5m cross yes 13:31:37.356Z fav 21 ctr 46  15m cross yes 13:31:37.356Z fav 21 ctr 51  30m cross yes 13:31:37.356Z fav 21 ctr 68
+    +30s  7662.50   -10t  side DOWN held DOWN  5m cross yes 13:31:37.356Z fav 21 ctr 46  15m cross yes 13:31:37.356Z fav 21 ctr 51  30m cross yes 13:31:37.356Z fav 21 ctr 68
+    +60s  7663.50   -6t  side DOWN held DOWN  5m cross yes 13:31:37.356Z fav 21 ctr 46  15m cross yes 13:31:37.356Z fav 21 ctr 51  30m cross yes 13:31:37.356Z fav 21 ctr 68
+  Overnight references (min distance ticks / touched / crossed, per horizon; first touch / first cross over 60 min):
+    OVERNIGHT_HIGH 7683.50   open-74t  5m 28/no/no  15m 23/no/no  30m 6/no/no  60m 6/no/no  touch --  cross --
+    OVERNIGHT_LOW  7594.25   open+283t  5m 262/no/no  15m 262/no/no  30m 262/no/no  60m 262/no/no  touch --  cross --
+  Reference encounters in the first 30 min (reach = touch or trade beyond; a touch is not a 'test'):
+    OVERNIGHT_HIGH 7683.50   UP   of open (+74t): not reached; min distance 6 ticks
+    OVERNIGHT_LOW  7594.25   DOWN of open (-283t): not reached; min distance 262 ticks
+    first reference reached: none
+  Event sequence, first 30 min (26 open crosses; first/last shown):
+    13:30:00.000Z  OPEN                                      7665.00
+    13:30:00.043Z  OPEN_CROSS_FIRST                          7664.75
+    13:31:19.318Z  WINDOW_LOW_FIRST_REACHED                  7659.75
+    13:52:57.555Z  OPEN_CROSS_LAST                           7665.25
+    13:59:58.362Z  WINDOW_HIGH_FIRST_REACHED                 7682.00
+  Facts only: no opening type, preferred scale, tolerance, bias or signal.

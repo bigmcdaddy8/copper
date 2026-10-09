@@ -1,0 +1,13 @@
+2026-08-31  befb7b0e-9a69-4001-ac2b-90405e0c28ed  FUTURE:CME:ES:2026-09
+
+OVERNIGHT CONTEXT (OVERNIGHT_CONTEXT_V1):
+  Window [08-30 22:00:00.000Z, 08-31 13:30:00.000Z) = [17:00 CT previous session evening, 08:30 CT cash open)
+  *** OVERNIGHT FACTS NOT AVAILABLE ***
+    - no eligible trade in the overnight window [17:00, 08:30) CT
+    - capture began 21:32:55.472338 after 17:00 CT (overnight window starts late)
+  Overnight quality: NOT_AVAILABLE   (capture starts late yes; ends early no; KNOWN_GAP 0, SUSPECTED_GAP 0; lifecycle FINALIZED; contract FUTURE:CME:ES:2026-09, consistent yes)
+  No overnight facts are computed.
+
+OPENING PATH DETAIL (OPENING_PATH_FACTS_V1):
+  Quality (kept separate): CURRENT_OPEN NOT_AVAILABLE; PRIOR_DAY NO_PRIOR_PROFILE; OVERNIGHT NOT_AVAILABLE
+  No opening path facts are computed (no trustworthy cash open).

@@ -1141,7 +1141,9 @@ code.
   OPEN_AUCTION_OUT_OF_RANGE. Feasibility is assessed in
   `MARKET_PROFILE_OPENING_0YF.md`.
 - **Overnight inventory** (long/short/neutral), overnight high/low
-  relationships and the overnight profile.
+  relationships and the overnight profile. *(0Y-G delivered the overnight
+  facts as continuous measures, §51–§64; the labels and the overnight
+  profile remain deferred.)*
   - LuxAlgo lists the overnight range as an opening reference. None of the
     surveyed *definitions* of the six types requires it.
   - It is the documented **next dependency** for a later classifier: it is
@@ -1150,3 +1152,267 @@ code.
 - **Session VWAP as an opening reference** (LuxAlgo).
 - **Holiday calendar:** closures are explicit input until one exists.
 - **Acceptance, rejection, failed auction, confidence, bias and signals.**
+
+## 51. Reference survey (overnight context) (0Y-G)
+
+Sources are secondary and educational. Dalton's *Mind Over Markets* and
+*Markets in Profile* are the lineage; neither was available here in full text.
+- marketcalls.in, "Understanding Overnight Trading Inventory" and "Trading
+  inventory imbalances and inventory adjustments"
+- NexusFi, "Overnight inventory / Globex sessions" (search summary only; the
+  page refused automated fetch, HTTP 403)
+- LuxAlgo concept library, "Overnight & ETH Levels" and "RTH vs ETH"
+- TradingView open-source script "Overnight inventory" (its description)
+- Bookmap blog, "Why overnight price action matters"
+- amtjoy (Substack), "Let's talk about overnight sessions"
+
+| Concept | REFERENCE DESCRIPTION (sources) | OBSERVED FACT (0Y-G) | LABORATORY POLICY | INTERPRETATION (excluded) |
+|---|---|---|---|---|
+| Overnight high / low | Highest / lowest price of the extended session, fixed once RTH begins (LuxAlgo, Bookmap). | ONH / ONL over [17:00, 08:30) CT and the time each was first reached (§54). | The window in §52. | "liquidity pool", "stops above ONH" |
+| Overnight range | Everything between the regular close and the next regular open (LuxAlgo). | ONH − ONL in ticks and points; HIGH_FIRST / LOW_FIRST. | The window starts at the Globex open (17:00 CT), not the 15:00 cash close: the 15:00–16:00 Globex hour belongs to the prior trading date. | — |
+| Inventory long / short / neutral | Net positioning of the overnight session relative to a reference (marketcalls, NexusFi, TradingView, LuxAlgo). | Time, TPO-bracket rows and volume above / below / at each prior reference, reported separately (§55). | **No label.** No threshold. | "counter-auction ~75% of the time", "squeezed in the first 30 minutes", "structural bias" |
+| Overnight range extension relative to prior day | Overnight that trades beyond the prior high or out of value (amtjoy statistics; LuxAlgo). | ONH/ONL vs prior high/low/VAH/VAL; overlaps; excursions beyond each (§54). | — | "accepted", "rejected", "initiative", "responsive" |
+| Overnight reference tests at the cash open | "The open either rotates inside the overnight range or breaks an overnight extreme" (LuxAlgo). | Open vs ONH/ONL and its percentile; ONH/ONL touch/cross per horizon; reach → open cross facts (§57, §60). | A touch is a trade at the exact tick; no "near". | "test", "poke", "fade", "holds" |
+
+**Which reference "inventory" is measured against.** The sources do not
+agree, and the references are not interchangeable:
+
+| Reference | Sources | Available to the Laboratory? |
+|---|---|---|
+| Prior **settlement** | marketcalls ("closing price of the regular market session, often referred to as the settlement price"); NexusFi ("relative to the prior day's settlement price") | **No.** The Laboratory records trades, not CME settlement. |
+| Prior **close** | TradingView script ("volume traded above & below a close"; an earlier version used "a range above & below a previous close") | Partly: the prior *cash terminal* (last eligible trade before 15:00 CT) is measured. It is not the settlement and not the 16:00 Globex close. |
+| **Overnight midpoint** | LuxAlgo (inventory corrected "back toward the overnight midpoint") | Derivable from ONH/ONL; not used as an inventory reference in 0Y-G. |
+| Prior POC / prior value | No surveyed source uses them for inventory; Dalton-style preparation compares overnight to prior value. | Yes: prior POC, VAH and VAL are measured (§55). |
+| None stated | Bookmap, amtjoy | — |
+
+**Which quantity.** Also disputed:
+- "positions held at a price higher than the settlement" (marketcalls, a
+  price-location description with no metric);
+- "the majority of overnight *volume*" above or below settlement (NexusFi,
+  TradingView current version);
+- the *range* above / below the close (TradingView earlier version).
+
+**No numeric threshold appears in any source.** marketcalls says "no specific
+formulas"; the TradingView script reports a signed number. 0Y-G therefore
+measures time, TPO rows and volume separately against four named references
+and adopts no label.
+
+## 52. Overnight window (LABORATORY POLICY `OVERNIGHT_CONTEXT_V1`)
+
+- **Start:** `resolve_anchor(SESSION_OPEN, trading_date)` = 17:00
+  America/Chicago on the previous session evening (Sunday 17:00 for a Monday).
+- **End:** `resolve_anchor(US_CASH_OPEN, trading_date)` = 08:30
+  America/Chicago on the trading date (the 0Y-F cash open instant).
+- **Membership:** [start, end). Canonical timestamps are UTC; presentation is
+  America/Chicago. Neither bound is computed by subtracting hours.
+- **Tape:** the trading date's scoped effective tape (the same
+  `prepare_scoped_dataset` output used by the cash profile), filtered to the
+  window; only on-grid trades are eligible.
+- **DST:** a US DST change happens at 02:00 on a Sunday, while the Globex
+  session is closed, so every window is exactly 15 h 30 min of elapsed time
+  (tested for CDT, CST, and both Mondays after a change).
+- **Globex open print:** the first eligible trade, claimed as the Globex open
+  only when the capture began at or before 17:00 CT **and** the trade is
+  within `GLOBEX_OPEN_MAX_DELAY` = 60 s of 17:00 CT. This is a data-coverage
+  bound with the same value as the cash-open bound; it is not a market
+  concept. Otherwise the first print is still reported, under its own name.
+
+## 53. Overnight quality (LABORATORY POLICY)
+
+`OvernightQuality.grade`:
+
+| Grade | When |
+|---|---|
+| `NOT_AVAILABLE` | no eligible trade in the window. Nothing is computed; no price is invented. |
+| `QUALITY_QUALIFIED` | facts computed, but one of: capture start or end not recorded (each stated separately, so a recorded late start is never hidden); **capture began after 17:00 CT** (by any amount: a trade before the start cannot be ruled out); capture ended before 08:30 CT; a KNOWN_GAP or SUSPECTED_GAP overlaps the window; lifecycle not FINALIZED. |
+| `AVAILABLE` | none of the above. |
+
+- Each reason is listed. Contract consistency is recorded (a dataset holds one
+  instrument; scoping rejects a mixed dataset). Cross-day contract identity is
+  the prior context's job (CONTRACT_CHANGED).
+- **Independence:** an overnight gap qualifies the overnight facts and never
+  the cash-opening facts (0Y-F §48 is unchanged), and an opening-window gap
+  does not qualify the overnight facts.
+- The cash-opening grade is named `UNQUALIFIED` and the overnight grade
+  `AVAILABLE`. Both mean "no evidence of incompleteness".
+
+## 54. Core overnight facts and the prior cash profile (OBSERVED FACT)
+
+`OvernightSession` (prior-independent):
+- first print and timestamp; Globex open price and delay, or the reason none
+  is claimed;
+- ONH and ONL (first reached), range in ticks and points, HIGH_FIRST /
+  LOW_FIRST / NO_RANGE;
+- terminal = the last eligible trade before 08:30 CT, with its timestamp;
+- 30-minute brackets from 17:00 CT (every trade, not only price changes);
+- volume at each tick.
+
+`OvernightContext` (joined):
+- **Cash open vs overnight:** ABOVE / AT ONH / INSIDE / AT ONL / BELOW;
+  open − ONH and open − ONL in ticks; percentile = (open − ONL) / (ONH − ONL),
+  undefined when the range is 0.
+- **Overnight vs prior** (only when the prior context is AVAILABLE, i.e. the
+  same contract): ONH − prior high, ONL − prior low, ONH − VAH, ONL − VAL
+  (signed ticks and points); overlaps prior value / range; inside prior value
+  / range; excursions above prior high, below prior low, above VAH and below
+  VAL (each max(0, ·)).
+- **Gaps, kept separate** (to − from; ticks, points, UP/DOWN/NONE):
+
+| Gap | From | To |
+|---|---|---|
+| `GLOBEX_OPEN_VS_PRIOR_TERMINAL` | prior cash terminal | Globex open print (only when claimed, §52) |
+| `FIRST_OVERNIGHT_PRINT_VS_PRIOR_TERMINAL` | prior cash terminal | first overnight print |
+| `CASH_OPEN_VS_PRIOR_TERMINAL` | prior cash terminal | cash open (= the 0Y-F gap) |
+| `CASH_OPEN_VS_OVERNIGHT_TERMINAL` | overnight terminal | cash open |
+
+No word such as accepted, rejected, initiative or responsive is attached.
+
+## 55. Inventory measures — continuous occupancy (OBSERVED FACT)
+
+`OvernightOccupancy`, per reference: `PRIOR_TERMINAL`, `PRIOR_POC`,
+`PRIOR_VAH`, `PRIOR_VAL` (prior context AVAILABLE only).
+
+| Family | Facts | Definition |
+|---|---|---|
+| Time | seconds above / below / at; observed; fraction above / below | The last traded price holds until the next price change, from the first overnight print to 08:30:00 CT (the 0Y-F opening-zone occupancy rule). A gap is not filled: the last price simply carries, which is one reason a gap qualifies the facts. |
+| TPO brackets | brackets traded; entirely above / entirely below / touching or spanning; TPO rows above / below / at | 30-minute brackets from 17:00 CT. A bracket's rows are every tick from its low to its high (TPO semantics). |
+| Range | ONH − reference and reference − ONL (each ≥ 0); overnight terminal − reference | ticks |
+| Volume | contracts at ticks strictly above / below / at | trade sizes, separately |
+
+No family is weighted, combined or turned into LONG / SHORT / NEUTRAL.
+`PRIOR_TERMINAL` is never called "settlement".
+
+## 56. Overnight TPO profile — deferred
+
+An `OVERNIGHT_PROFILE_V1` (overnight POC / VAH / VAL) was not built. The 0Y-A
+`StudyWindow` and period builder assume a same-date window that the 60-minute
+IB tiles. An overnight window crosses midnight, has 31 periods (beyond the
+A–Z, a–z lettering rules' design) and has no IB. Supporting it would change
+accepted 0Y-A code, which 0Y-G must not alter. The bracket facts in §55
+already give a TPO-style description without a POC or value area.
+
+## 57. Overnight extremes as opening references (OBSERVED FACT)
+
+ONH and ONL are added as `ReferenceInteraction`s
+(`OpeningPathFacts.overnight_reference_interactions`), computed by the same
+function and horizons (5/15/30/60 min) as the 0Y-F prior references: open
+offset, minimum distance, touched, first touch, crossed, first cross. The
+accepted `OpeningAuctionFacts.reference_interactions` set is unchanged
+(tested). A touch is a trade at the exact tick; it is not a "test".
+
+## 58. Multi-scale opening facts and open-cross persistence (OBSERVED FACT)
+
+`OpeningScaleFacts` at fixed observational horizons from 08:30:00 CT: 30 s,
+1, 3, 5, 15, 30 and 60 min. The 60-minute row equals the accepted 0Y-F
+60-minute window (tested).
+
+| Fact | Definition |
+|---|---|
+| high, low, last; up / down excursion | ticks from the open print |
+| dominant; counter/dominant | as 0Y-F; undefined when both excursions are 0 |
+| open crosses; first / last cross | the 0Y-F strict side-change rule |
+| open → last cross | last cross − open print |
+| seconds above / below / at the open | last-traded-price time |
+| longest UP / DOWN residence | A residence runs from the first trade strictly on a side to the next cross (or the horizon end). Trades at the open inside a residence do not interrupt it, consistent with the cross rule. |
+
+These are scales of observation, not thresholds. **OpeningScaleFacts !=
+Open Drive.**
+
+## 59. Grace-instant diagnostics (DIAGNOSTIC ONLY)
+
+For each instant open print + 1, 5, 15, 30 and 60 s:
+- the last traded price at or before the instant, its offset, and its side
+  (UP / DOWN / NONE = at the open);
+- the **held side**: the side of the last trade strictly off the open (the
+  side the cross rule keeps); NONE if no trade has left the open yet;
+- for each opening window [08:30, 08:30 + 5 / 15 / 30 min): whether a later
+  trade printed strictly on the other side of the open, when, and the maximum
+  excursion beyond the open on the held side (favourable) and on the other
+  side (counter), from the grace instant on. With no held side, the first
+  side change is reported and favourable/counter are undefined.
+
+No grace period is selected or preferred. **GraceDiagnostic is not a grace
+policy.**
+
+## 60. Reference encounters and the event sequence (OBSERVED FACT)
+
+**`ReferenceEncounter`** (the "OpeningProbeFacts" object), for each prior
+reference (high, VAH, POC, VAL, low; prior AVAILABLE) and each overnight
+extreme (overnight available), over the first 30 minutes:
+- side of the reference relative to the open (UP / DOWN; NONE when it is the
+  open tick, which is then never a "first reach");
+- **reach** = the first trade at or beyond the reference coming from the
+  open's side. A jump over the tick reaches it without a touch, so the exact
+  first touch is reported separately along with how far beyond the reaching
+  trade printed;
+- excursion toward the reference before the reach; maximum excursion beyond
+  the open on the other side before the reach;
+- whether the open was crossed afterwards (a trade strictly on the opposite
+  side of the open from the reference), when, and the delay from the reach;
+- the maximum excursion beyond the open on that opposite side within
+  [cross, cross + 5 / 15 / 30 min);
+- if never reached: the minimum distance only. No "near" exists (§18 of the
+  0Y-G request).
+
+`OpeningPathFacts.first_reference_reached` is the earliest reach. Ties are
+broken by the fixed order prior high, VAH, POC, VAL, low, ONH, ONL.
+
+**`OpeningReferenceSequence`** (first 30 minutes, programmatic): OPEN,
+OPEN_CROSS_FIRST, OPEN_CROSS_LAST (if different), REFERENCE_TOUCH and
+REFERENCE_CROSS (first occurrence per reference), and
+WINDOW_HIGH_FIRST_REACHED / WINDOW_LOW_FIRST_REACHED. Repeated open crosses are
+deduplicated to first and last, and the total count is kept. Events at the
+same instant are ordered by event kind, then by reference order.
+
+**ReferenceEncounter (OpeningProbeFacts) != Open Test Drive.** The chain
+"reach a reference → cross the open → excursion on the other side" is
+represented exactly; no label is attached.
+
+## 61. Quality propagation
+
+`OpeningPathFacts.quality: ContextQuality` keeps three trust statements apart:
+- `CURRENT_OPEN`: the 0Y-F `OpeningQualityGrade` and reasons;
+- `PRIOR_DAY`: the `ContextOutcome`, the prior's 0Y-C quality grade, and the
+  reasons;
+- `OVERNIGHT`: the `OvernightQualityGrade` and reasons (None when not built).
+
+They are never merged. A later classifier must read each one.
+
+## 62. Prospective-validation requirement
+
+The research corpus has now been inspected in 0Y-D, 0Y-E, 0Y-F and 0Y-G. Any
+future opening-type policy threshold — maximum counter excursion, minimum
+directional excursion, grace time, minimum reference proximity, maximum open
+crossings, minimum A/B overlap, any inventory split — must be
+**pre-registered**, then tested **prospectively on unseen future dates**. A
+threshold is not validated because it organises the current corpus well.
+
+## 63. Data model and CLI
+
+- `TpoAnalysisResult.overnight: OvernightSession` (prior-independent; built
+  with the cash profile).
+- `overnight_context(current, candidates, closures)` → `OvernightContext`.
+- `opening_path_facts(current, candidates, closures)` → `OpeningPathFacts`.
+  It wraps the unchanged `OpeningAuctionFacts` (equal to
+  `opening_auction_facts(...)`; tested).
+- Policies: `OVERNIGHT_CONTEXT_V1`, `OPENING_PATH_FACTS_V1`.
+  `OPENING_AUCTION_FACTS_V1` is unchanged.
+- **CLI:** `dicks_lab_tpo_profile.py DB [--opening-facts] [--overnight-facts]
+  [--opening-path-detail] [--prior-database PRIOR_DB] [--closure ...]`. The new
+  sections print after the opening facts and before the full matrix. Without
+  the new flags, output is unchanged (tested).
+- **Corpus study:** `scripts/dicks_lab_mp_overnight_study.py OUT_DIR DBS...`.
+
+Explicitly: **OvernightContext != trading bias. OpeningProbeFacts != Open
+Test Drive. OpeningScaleFacts != Open Drive.**
+
+## 64. Deferred
+
+- Opening-type labels (all six). Feasibility is in
+  `MARKET_PROFILE_OVERNIGHT_0YG.md`.
+- Inventory labels (LONG / SHORT / NEUTRAL) and any inventory threshold.
+- `OVERNIGHT_PROFILE_V1` (§56).
+- Settlement price as a reference: it requires a new data source.
+- Overnight midpoint as an inventory reference (LuxAlgo); derivable when
+  wanted.
+- Session VWAP as a reference; a holiday calendar.

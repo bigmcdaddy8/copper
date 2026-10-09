@@ -5020,3 +5020,59 @@ Feasibility of future opening-type labels:
 0Y-F: PASS — OPENING AUCTION FACT / PRIOR-CONTEXT FOUNDATION COMPLETE
 NEXT: PO REVIEW BEFORE OPENING-TYPE POLICY DESIGN
 ```
+
+## MT. 0Y-G — Overnight Context & Multi-Scale Opening Path (2026-10-09)
+
+PO record:
+- 0Y-F: **PASS / ACCEPTED / CLOSED**
+- `OPENING_AUCTION_FACTS_V1`: **accepted** (unchanged by 0Y-G)
+
+What 0Y-G adds (factual foundation only):
+- **`OVERNIGHT_CONTEXT_V1`:**
+  - the overnight window [17:00 CT previous evening, 08:30 CT), taken from
+    the session anchors;
+  - overnight quality (AVAILABLE / QUALITY_QUALIFIED / NOT_AVAILABLE);
+  - ONH/ONL/range/terminal and the Globex open print;
+  - overnight vs the prior range and value;
+  - four separately named gaps;
+  - continuous occupancy vs the prior terminal / POC / VAH / VAL, with time,
+    TPO-bracket rows and volume kept apart.
+
+  No inventory label.
+- **`OPENING_PATH_FACTS_V1`:**
+  - ONH/ONL as opening references;
+  - 30 s–60 min observational scales, with open-cross persistence and
+    single-side residence;
+  - grace-instant diagnostics (DIAGNOSTIC ONLY);
+  - reference encounters (reach → open cross → opposite excursion);
+  - an ordered 30-minute event sequence;
+  - CURRENT_OPEN / PRIOR_DAY / OVERNIGHT quality kept separate.
+- The overnight TPO profile is deferred: it would require changing accepted
+  0Y-A code.
+- Design: `TPO_MARKET_PROFILE_0YA.md` §51–§64.
+
+Corpus study (`MARKET_PROFILE_OVERNIGHT_0YG.md`, `evidence/0Y-G/`):
+- 17 profiled days, 7 AVAILABLE pairs and 15 available opens.
+- Overnight facts exist on 16 days, all QUALITY_QUALIFIED. The capture
+  begins 0.18–0.36 ms after 17:00 CT, so no Globex open print is claimed.
+  The capture-start bound is a PO data-coverage decision.
+- The cash open was inside the overnight range on 15 of 15 days. Cash open
+  minus overnight terminal was within ±1 tick on 15 of 15.
+- Days with the open uncrossed: 0 of 15 at tick resolution; 1–3 of 15 at
+  grace instants of +1 s to +60 s; 0 of 15 at A-period granularity.
+- Overnight and opening-path facts took 7.9 s once the tape was loaded
+  (about 25 min). Database hashes are unchanged.
+
+| Type | 0Y-G assessment |
+|---|---|
+| Open Drive | READY FOR POLICY DESIGN (scale decision; outcome is scale-determined) |
+| Open Test Drive | READY FOR POLICY DESIGN (exact reference-reach variant); "toward without touching" too subjective |
+| Open Rejection Reverse | REFERENCE DEFINITION TOO SUBJECTIVE (retained) |
+| Open Auction (In / Out of Range) | READY FOR POLICY DESIGN |
+
+Any future threshold must be pre-registered and validated prospectively.
+
+```
+0Y-G: PASS — OVERNIGHT CONTEXT / MULTI-SCALE OPENING FOUNDATION COMPLETE
+NEXT: PO REVIEW BEFORE OPENING-TYPE V1 POLICY DESIGN
+```
