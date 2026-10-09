@@ -16,6 +16,7 @@ from dicks_laboratory.models import DatasetIdentity, DatasetKind, InstrumentIden
 from dicks_laboratory.quality import DatasetQualityEvent, DatasetQualityEvidenceType
 from dicks_laboratory.store import LaboratoryStore
 from dicks_laboratory.tpo_analysis import QualityStatus, analyze_tpo_dataset, render_tpo_report
+from dicks_laboratory.tpo_day_strength import DAY_STRUCTURE_STRENGTH_V1, DAY_TYPE_V1, DominantExtension, StrengthScope
 from dicks_laboratory.tpo_day_structure import ClassificationOutcome, DayType, DirectionalState, QualityGrade
 
 _REPO = Path(__file__).resolve().parents[3]
@@ -307,3 +308,36 @@ def test_cli_day_structure_flag_leaves_default_and_structure_output_unchanged(tm
     assert day.stdout.startswith(plain.stdout.split("TPO matrix")[0])
     assert "Outcome: CANDIDATE -- NORMAL_DAY_CANDIDATE" in day.stdout
     assert day.stdout == _run(str(path), "--day-structure").stdout
+
+
+# --- 0Y-E day structure strength ------------------------------------------------------------
+
+def test_day_strength_is_programmatic_beside_the_v1_label(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day()))
+    s = r.day_strength
+    assert (s.policy_id, s.day_type_policy, s.day_type, s.scope) == (
+        DAY_STRUCTURE_STRENGTH_V1, DAY_TYPE_V1, r.day_structure.primary, StrengthScope.FULL_STUDY_WINDOW)
+    assert (s.dominant_extension, s.counter_to_dominant, s.terminal_price) == (DominantExtension.NONE, None, D("101.00"))
+    assert s.extension_above_ticks == r.day_structure.facts.extension_above_ticks == 0
+
+
+def test_day_strength_partial_window_is_raw_facts_only(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day(), capture_end=_utc(2026, 10, 6, 19, 36)))
+    assert (r.day_strength.scope, r.day_strength.scope_reasons) == (
+        StrengthScope.RAW_FACTS_ONLY, ("STUDY WINDOW NOT FULLY CAPTURED",))
+    text = render_tpo_report(r, show_day_strength=True)
+    assert "*** RAW FACTS ONLY -- NOT A FULL-DAY STRENGTH ASSESSMENT ***\n    - STUDY WINDOW NOT FULLY CAPTURED" in text
+
+
+def test_cli_day_strength_flag_leaves_other_output_unchanged(tmp_path):
+    path, _ = _build(tmp_path, extra=_full_day())
+    plain, day = _run(str(path)), _run(str(path), "--structure", "--day-structure")
+    strength = _run(str(path), "--day-strength")
+    both = _run(str(path), "--structure", "--day-structure", "--day-strength")
+    assert plain.returncode == day.returncode == strength.returncode == both.returncode == 0
+    assert "STRENGTH" not in plain.stdout + day.stdout
+    assert strength.stdout.startswith(plain.stdout.split("TPO matrix")[0])
+    assert "DAY STRUCTURE STRENGTH:" in strength.stdout and "V1 day type:              NORMAL_DAY" in strength.stdout
+    head, _, tail = both.stdout.partition("DAY STRUCTURE STRENGTH:")
+    assert day.stdout == head + "TPO matrix" + tail.split("TPO matrix", 1)[1]
+    assert strength.stdout == _run(str(path), "--day-strength").stdout

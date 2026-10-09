@@ -1,0 +1,31 @@
+2026-09-24  31c92a57-242c-4b25-a983-0086c811ed9a  FUTURE:CME:ES:2026-12
+
+DAY STRUCTURE STRENGTH:
+  Scope:                    FULL_STUDY_WINDOW
+  V1 day type:              NEUTRAL_DAY
+  Directional state:        BOTH_SIDES
+  Dominant extension:       UP
+  IB range:                 112 ticks   IB share of range: 0.4807
+  Extension above IB:       102 ticks (25.50 pts)
+  Extension below IB:       19 ticks (4.75 pts)
+  Above / IB:               0.9107
+  Below / IB:               0.1696
+  Dominant / IB:            0.9107   (102 ticks)
+  Counter / IB:             0.1696   (19 ticks)
+  Counter / dominant:       0.1863   (= smaller / larger)
+  Dominant / total ext.:    0.8430
+  New-high periods:         2 (FG); max consecutive 2
+  New-low periods:          1 (D); max consecutive 1
+  Higher-low run max:       5   lower-high run max: 4
+  First / last extension:   DOWN / UP
+  Terminal price:           7765.50 at 2026-09-24T19:59:59Z (last eligible trade; not the settlement)
+  Terminal percentile:      0.6910
+  From high:                72 ticks = 0.3090 x range
+  From low:                 161 ticks = 0.6910 x range
+  Upper tail:               11 rows / 11 ticks   lower tail: 6 rows / 6 ticks
+  Interior one-TPO zones:   0 (0 rows)
+  Percentiles (0 = low):    POC 0.6824   IB midpoint 0.3219   value midpoint 0.6223
+  Policy:
+    DAY_TYPE_V1
+    DAY_STRUCTURE_STRENGTH_V1
+  Measurements only: no score, weighting or interpretation. A V1 label is not a trading conclusion.

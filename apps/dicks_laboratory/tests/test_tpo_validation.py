@@ -208,3 +208,22 @@ def test_cli_run_then_analyze_and_refuse_tampered_records(tmp_path):
     assert a.returncode == 0 and "## 12. Mechanical inspection shortlist" in (out / "validation_report.md").read_text()
     (out / "records.jsonl").write_text((out / "records.jsonl").read_text().replace("NEUTRAL_DAY", "TREND_DAY"))
     assert _cli("analyze", str(out)).returncode == 2
+
+
+def test_cli_strength_reproduces_frozen_records_and_leaves_them_untouched(tmp_path):
+    dbs = [_db(tmp_path, n, rg)[0] for n, rg in (("a", NORMAL), ("b", NEUTRAL), ("c", NV_DOWN))]
+    frozen = tmp_path / "frozen"
+    assert _cli("run", str(frozen), *map(str, dbs[:2])).returncode == 0
+    snapshot = {p.name: p.read_bytes() for p in frozen.iterdir() if p.is_file()}
+    out = tmp_path / "strength"
+    r = _cli("strength", str(frozen), str(out), *map(str, dbs[:2]))
+    assert r.returncode == 0, r.stderr
+    assert {p.name: p.read_bytes() for p in frozen.iterdir() if p.is_file()} == snapshot
+    assert (out / "reproduction.tsv").read_text().count("\tIDENTICAL") == 2
+    lines = [json.loads(x) for x in (out / "strength_records.jsonl").read_text().splitlines()]
+    assert sorted(x["strength"]["day_type"] for x in lines) == ["NEUTRAL_DAY", "NORMAL_DAY"]
+    report = (out / "strength_report.md").read_text()
+    assert "reproduced the frozen V1 record byte-for-byte: 2/2" in report and "## Eligible days (2)" in report
+    assert "DAY_STRUCTURE_STRENGTH_V1" in next((out / "reports").iterdir()).read_text()
+    # A database the frozen run never classified cannot be reproduced -> exit 3.
+    assert _cli("strength", str(frozen), str(tmp_path / "s2"), str(dbs[2])).returncode == 3

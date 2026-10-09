@@ -1,0 +1,33 @@
+2026-09-07  85eccb13-9432-4163-a078-f9bdbb2f5973  FUTURE:CME:ES:2026-09
+
+DAY STRUCTURE STRENGTH:
+  *** RAW FACTS ONLY -- NOT A FULL-DAY STRENGTH ASSESSMENT ***
+    - period(s) with no retained trades: HIJKLM
+  Scope:                    RAW_FACTS_ONLY
+  V1 day type:              NOT_CLASSIFIED
+  Directional state:        DOWN_ONLY
+  Dominant extension:       DOWN
+  IB range:                 34 ticks   IB share of range: 0.6182
+  Extension above IB:       0 ticks (0.00 pts)
+  Extension below IB:       21 ticks (5.25 pts)
+  Above / IB:               0.0000
+  Below / IB:               0.6176
+  Dominant / IB:            0.6176   (21 ticks)
+  Counter / IB:             0.0000   (0 ticks)
+  Counter / dominant:       0.0000   (= smaller / larger)
+  Dominant / total ext.:    1.0000
+  New-high periods:         0 (none); max consecutive 0
+  New-low periods:          2 (CD); max consecutive 2
+  Higher-low run max:       4   lower-high run max: 4
+  First / last extension:   DOWN / DOWN
+  Terminal price:           7708.75 at 2026-09-07T16:59:59Z (last eligible trade; not the settlement)
+  Terminal percentile:      0.3818
+  From high:                34 ticks = 0.6182 x range
+  From low:                 21 ticks = 0.3818 x range
+  Upper tail:               6 rows / 6 ticks   lower tail: 4 rows / 4 ticks
+  Interior one-TPO zones:   0 (0 rows)
+  Percentiles (0 = low):    POC 0.3091   IB midpoint 0.6909   value midpoint 0.4000
+  Policy:
+    DAY_TYPE_V1
+    DAY_STRUCTURE_STRENGTH_V1
+  Measurements only: no score, weighting or interpretation. A V1 label is not a trading conclusion.

@@ -38,6 +38,7 @@ from dicks_laboratory.tpo_day_structure import (
     classify_day_type,
     study_window_terminal,
 )
+from dicks_laboratory.tpo_day_strength import DayStructureStrength, StrengthScope, build_day_structure_strength
 from dicks_laboratory.tpo_structure import CandidateStatus, ProfileStructure, ZoneLocation, build_profile_structure
 from dicks_laboratory.value_area import ValueAreaResult, compute_value_area
 from dicks_laboratory.volume_profile import VolumeAtPriceProfile, build_volume_at_price_profile, price_grid_for_instrument
@@ -99,6 +100,7 @@ class TpoAnalysisResult:
     volume_value_area: ValueAreaResult | None
     structure: ProfileStructure | None = None  # 0Y-B derived structural facts
     day_structure: DayTypeClassification | None = None  # 0Y-C day-structure facts + day-type candidates
+    day_strength: DayStructureStrength | None = None  # 0Y-E continuous strength / asymmetry facts
 
 
 def analyze_tpo_dataset(
@@ -120,11 +122,12 @@ def analyze_tpo_dataset(
     volume = build_volume_at_price_profile(selected, grid, VwapSourceMode.EFFECTIVE_TAPE).profile
     quality = _dataset_quality(store, dataset_id, start_utc, end_utc)
     structure = build_profile_structure(profile) if profile else None
-    day_structure = None
+    day_structure = day_strength = None
     if profile is not None:
         facts = build_day_structure_facts(profile, structure, study_window_terminal(selected, profile, grid))
         day_structure = classify_day_type(facts, classification_quality(
             quality.study_window_captured, quality.gaps_overlapping_study_window, quality.lifecycle_state))
+        day_strength = build_day_structure_strength(day_structure, profile.price_increment)
 
     return TpoAnalysisResult(
         dataset_id=dataset_id,
@@ -143,6 +146,7 @@ def analyze_tpo_dataset(
         volume_value_area=compute_value_area(volume) if volume else None,
         structure=structure,
         day_structure=day_structure,
+        day_strength=day_strength,
     )
 
 
@@ -244,6 +248,7 @@ def render_tpo_report(
     compare_volume: bool = False,
     show_structure: bool = False,
     show_day_structure: bool = False,
+    show_day_strength: bool = False,
 ) -> str:
     profile = result.profile
     lines = ["Dick's Laboratory -- TPO / Market Profile", ""]
@@ -315,6 +320,8 @@ def render_tpo_report(
         lines += render_structure(structure, result.quality, inc)
     if show_day_structure and result.day_structure is not None:
         lines += render_day_structure(result.day_structure, inc)
+    if show_day_strength and result.day_strength is not None:
+        lines += render_day_strength(result.day_strength)
     if show_matrix:
         if structure is not None:
             lines.append("TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):")
@@ -323,7 +330,7 @@ def render_tpo_report(
         lines += render_matrix(profile, structure)
         lines.append("")
     boundary = ("derived facts and day-type CANDIDATES only -- no interpretation or signal."
-                if show_day_structure and result.day_structure is not None
+                if (show_day_structure or show_day_strength) and result.day_structure is not None
                 else "derived facts only -- no interpretation, day type or signal.")
     lines += [f"Boundary: {boundary}",
               "Ordinary CME schedule only; holiday/early-close overrides not modeled."]
@@ -479,4 +486,70 @@ def render_day_structure(day: DayTypeClassification, inc: Decimal) -> list[str]:
                 lines.append(f"    [{mark}] {cond.name}: {cond.rule} -- {cond.observed}")
     lines.append("  Deferred (not evaluated): " + "; ".join(f"{d.name} ({d.reason})" for d in day.deferred))
     lines += ["  CANDIDATE labels are Laboratory policy outputs, not market interpretation, bias or signal.", ""]
+    return lines
+
+
+def render_day_strength(s: DayStructureStrength) -> list[str]:
+    """0Y-E: the V1 label restated beside continuous strength facts; numbers only, no interpretation."""
+    label = (s.day_type.value + (f" {s.day_type_direction.value}" if s.day_type_direction else "")
+             if s.day_type is not None else s.day_type_outcome.value)
+    lines = ["DAY STRUCTURE STRENGTH:"]
+    if s.scope is StrengthScope.RAW_FACTS_ONLY:
+        lines.append("  *** RAW FACTS ONLY -- NOT A FULL-DAY STRENGTH ASSESSMENT ***")
+        lines += [f"    - {reason}" for reason in s.scope_reasons]
+    elif s.scope is StrengthScope.QUALITY_QUALIFIED:
+        lines.append("  *** STRENGTH FACTS ARE QUALITY-QUALIFIED ***")
+        lines += [f"    - {reason}" for reason in s.scope_reasons]
+    lines += [f"  Scope:                    {s.scope.value}",
+              f"  V1 day type:              {label}"]
+    if s.extension_above_ticks is None:
+        lines.append("  Initial Balance:          not available -- extension facts undefined")
+    else:
+        lines += [
+            f"  Directional state:        {s.directional_state.value}",
+            f"  Dominant extension:       {s.dominant_extension.value}",
+            f"  IB range:                 {s.ib_range_ticks} ticks   IB share of range: {_p4(s.ib_share_of_range)}",
+            f"  Extension above IB:       {s.extension_above_ticks} ticks ({s.extension_above_points} pts)",
+            f"  Extension below IB:       {s.extension_below_ticks} ticks ({s.extension_below_points} pts)",
+            f"  Above / IB:               {_p4(s.extension_above_per_ib)}",
+            f"  Below / IB:               {_p4(s.extension_below_per_ib)}",
+            f"  Dominant / IB:            {_p4(s.dominant_per_ib)}   ({s.dominant_extension_ticks} ticks)",
+            f"  Counter / IB:             {_p4(s.counter_per_ib)}   ({s.counter_extension_ticks} ticks)",
+            f"  Counter / dominant:       {_p4(s.counter_to_dominant, 'undefined (no extension)')}"
+            "   (= smaller / larger)",
+            f"  Dominant / total ext.:    {_p4(s.dominant_share_of_total, 'undefined (no extension)')}",
+        ]
+    lines += [
+        f"  New-high periods:         {s.new_high_period_count} ({s.new_high_periods or 'none'}); "
+        f"max consecutive {s.max_consecutive_new_high_periods}",
+        f"  New-low periods:          {s.new_low_period_count} ({s.new_low_periods or 'none'}); "
+        f"max consecutive {s.max_consecutive_new_low_periods}",
+        f"  Higher-low run max:       {s.longest_higher_low_run}   lower-high run max: {s.longest_lower_high_run}",
+        f"  First / last extension:   {s.first_extension_direction.value if s.first_extension_direction else 'none'}"
+        f" / {s.last_extension_direction.value if s.last_extension_direction else 'none'}",
+    ]
+    if s.terminal_price is None:
+        lines.append("  Terminal:                 none")
+    else:
+        lines += [
+            f"  Terminal price:           {s.terminal_price} at {_utc(s.terminal_timestamp_utc)} "
+            "(last eligible trade; not the settlement)",
+            f"  Terminal percentile:      {_p4(s.terminal_percentile)}",
+            f"  From high:                {s.terminal_from_high_ticks} ticks = "
+            f"{_p4(s.terminal_from_high_per_range)} x range",
+            f"  From low:                 {s.terminal_from_low_ticks} ticks = "
+            f"{_p4(s.terminal_from_low_per_range)} x range",
+        ]
+    lines += [
+        f"  Upper tail:               {s.upper_tail_rows} rows / {s.upper_tail_ticks} ticks   "
+        f"lower tail: {s.lower_tail_rows} rows / {s.lower_tail_ticks} ticks",
+        f"  Interior one-TPO zones:   {s.interior_one_tpo_zone_count} ({s.interior_one_tpo_rows} rows)",
+        f"  Percentiles (0 = low):    POC {_p4(s.poc_percentile)}   IB midpoint {_p4(s.ib_midpoint_percentile)}   "
+        f"value midpoint {_p4(s.value_area_midpoint_percentile)}",
+        "  Policy:",
+        f"    {s.day_type_policy}",
+        f"    {s.policy_id}",
+        "  Measurements only: no score, weighting or interpretation. A V1 label is not a trading conclusion.",
+        "",
+    ]
     return lines
