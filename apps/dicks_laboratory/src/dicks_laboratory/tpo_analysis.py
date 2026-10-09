@@ -50,6 +50,15 @@ from dicks_laboratory.tpo_opening import (
     render_early_matrix,
     render_opening_facts,
 )
+from dicks_laboratory.tpo_opening_path import OpeningPathFacts, build_opening_path_facts, render_opening_path
+from dicks_laboratory.tpo_overnight import (
+    OvernightContext,
+    OvernightSession,
+    build_overnight_context,
+    build_overnight_session,
+    overnight_window_utc,
+    render_overnight_facts,
+)
 from dicks_laboratory.tpo_structure import CandidateStatus, ProfileStructure, ZoneLocation, build_profile_structure
 from dicks_laboratory.value_area import ValueAreaResult, compute_value_area
 from dicks_laboratory.volume_profile import VolumeAtPriceProfile, build_volume_at_price_profile, price_grid_for_instrument
@@ -114,6 +123,7 @@ class TpoAnalysisResult:
     day_structure: DayTypeClassification | None = None  # 0Y-C day-structure facts + day-type candidates
     day_strength: DayStructureStrength | None = None  # 0Y-E continuous strength / asymmetry facts
     opening: CashOpenSession | None = None  # 0Y-F current-day opening facts (prior-independent)
+    overnight: OvernightSession | None = None  # 0Y-G overnight [17:00, 08:30) CT facts (prior-independent)
 
 
 def analyze_tpo_dataset(
@@ -141,10 +151,15 @@ def analyze_tpo_dataset(
         day_structure = classify_day_type(facts, classification_quality(
             quality.study_window_captured, quality.gaps_overlapping_study_window, quality.lifecycle_state))
         day_strength = build_day_structure_strength(day_structure, profile.price_increment)
-    opening = None
+    opening = overnight = None
     if profile is not None and window == US_CASH_PROFILE:
         opening = build_cash_open_session(selected, profile, day_structure.facts, grid, quality.capture_started_at,
                                           quality.capture_ended_at, quality.gap_intervals, quality.lifecycle_state)
+        on_start, on_end = overnight_window_utc(resolved)
+        overnight = build_overnight_session(
+            select_trades_from_anchor(context.scoped_effective, on_start, on_end), grid, resolved,
+            context.instrument.canonical_id, quality.capture_started_at, quality.capture_ended_at,
+            quality.gap_intervals, quality.lifecycle_state)
 
     return TpoAnalysisResult(
         dataset_id=dataset_id,
@@ -165,6 +180,7 @@ def analyze_tpo_dataset(
         day_structure=day_structure,
         day_strength=day_strength,
         opening=opening,
+        overnight=overnight,
     )
 
 
@@ -253,6 +269,28 @@ def opening_auction_facts(
     return build_opening_auction_facts(current.opening, build_prior_context(current, candidates, closures))
 
 
+def overnight_context(
+    current: TpoAnalysisResult, candidates=(), closures: frozenset[date] = frozenset()
+) -> OvernightContext | None:
+    """0Y-G: the overnight session joined to the cash open and the same prior context as 0Y-F."""
+    if current.opening is None or current.overnight is None:
+        return None
+    prior = build_prior_context(current, candidates, closures)
+    return build_overnight_context(current.overnight, current.opening, prior)
+
+
+def opening_path_facts(
+    current: TpoAnalysisResult, candidates=(), closures: frozenset[date] = frozenset()
+) -> OpeningPathFacts | None:
+    """0Y-G: multi-scale / encounter facts over the accepted OPENING_AUCTION_FACTS_V1 facts."""
+    opening = opening_auction_facts(current, candidates, closures)
+    if opening is None:
+        return None
+    overnight = (None if current.overnight is None
+                 else build_overnight_context(current.overnight, current.opening, opening.prior))
+    return build_opening_path_facts(opening, overnight)
+
+
 # --- text rendering -------------------------------------------------------------
 
 def _ct(ts: datetime) -> str:
@@ -324,6 +362,8 @@ def render_tpo_report(
     show_day_structure: bool = False,
     show_day_strength: bool = False,
     opening: OpeningAuctionFacts | None = None,
+    overnight: OvernightContext | None = None,
+    opening_path: OpeningPathFacts | None = None,
 ) -> str:
     profile = result.profile
     lines = ["Dick's Laboratory -- TPO / Market Profile", ""]
@@ -400,6 +440,10 @@ def render_tpo_report(
     if opening is not None:
         lines += render_opening_facts(opening)
         lines += render_early_matrix(opening, profile)
+    if overnight is not None:
+        lines += render_overnight_facts(overnight)
+    if opening_path is not None:
+        lines += render_opening_path(opening_path)
     if show_matrix:
         if structure is not None:
             lines.append("TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):")

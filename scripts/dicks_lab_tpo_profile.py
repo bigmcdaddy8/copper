@@ -12,7 +12,13 @@ import typer
 
 from dicks_laboratory.analysis import LaboratoryAnalysisError, open_dataset_store, resolve_dataset_id
 from dicks_laboratory.cli_support import parse_trading_date_argument
-from dicks_laboratory.tpo_analysis import analyze_tpo_dataset, opening_auction_facts, render_tpo_report
+from dicks_laboratory.tpo_analysis import (
+    analyze_tpo_dataset,
+    opening_auction_facts,
+    opening_path_facts,
+    overnight_context,
+    render_tpo_report,
+)
 from dicks_laboratory.tpo_profile import DEFAULT_PERIOD_MINUTES, US_CASH_PROFILE
 
 app = typer.Typer(add_completion=False)
@@ -47,8 +53,17 @@ def profile(
     opening_facts: bool = typer.Option(
         False, "--opening-facts", help="Add opening-auction facts and prior-trading-date context (0Y-F)."
     ),
+    overnight_facts: bool = typer.Option(
+        False, "--overnight-facts", help="Add overnight [17:00, 08:30) CT context and occupancy facts (0Y-G)."
+    ),
+    opening_path_detail: bool = typer.Option(
+        False, "--opening-path-detail",
+        help="Add multi-scale opening, grace-diagnostic and reference-encounter facts (0Y-G).",
+    ),
     prior_database: Path | None = typer.Option(
-        None, "--prior-database", help="Dataset holding the prior trading date (for --opening-facts context)."
+        None, "--prior-database",
+        help="Dataset holding the prior trading date (context for --opening-facts / --overnight-facts / "
+        "--opening-path-detail).",
     ),
     closures: list[str] = typer.Option(
         [], "--closure", help="YYYY-MM-DD full CME closure to skip when finding the prior trading date (repeatable)."
@@ -68,7 +83,7 @@ def profile(
         finally:
             store.close()
         priors = []
-        if opening_facts and prior_database is not None:
+        if (opening_facts or overnight_facts or opening_path_detail) and prior_database is not None:
             prior_store = open_dataset_store(prior_database)
             try:
                 priors.append(analyze_tpo_dataset(prior_store, resolve_dataset_id(prior_store, None),
@@ -80,12 +95,13 @@ def profile(
         typer.echo(f"{label}: {exc}", err=True)
         raise typer.Exit(code=2) from exc
 
-    opening = None
-    if opening_facts:
-        closure_dates = frozenset(parse_trading_date_argument(c) for c in closures)
-        opening = opening_auction_facts(result, priors, closure_dates)
+    closure_dates = frozenset(parse_trading_date_argument(c) for c in closures)
+    opening = opening_auction_facts(result, priors, closure_dates) if opening_facts else None
+    overnight = overnight_context(result, priors, closure_dates) if overnight_facts else None
+    path = opening_path_facts(result, priors, closure_dates) if opening_path_detail else None
     typer.echo(render_tpo_report(result, show_matrix=matrix, compare_volume=compare_volume, show_structure=structure,
-                                  show_day_structure=day_structure, show_day_strength=day_strength, opening=opening))
+                                  show_day_structure=day_structure, show_day_strength=day_strength, opening=opening,
+                                  overnight=overnight, opening_path=path))
     if result.profile is None:
         raise typer.Exit(code=1)
 
