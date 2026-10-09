@@ -351,3 +351,9 @@ harder actual-disk replay together support the decision.
 - per-checkpoint production timestamps
 - live commit-latency-during-checkpoint telemetry
 - collector memory peak ~1.2 GiB (informational; ample capacity)
+- **test maintenance:** `tests/test_wal_persistence.py::test_checkpoint_force_bound_overrides_busy`
+  is intermittent and load-sensitive. 0Y-D measured 23 pass / 7 fail
+  isolated under a 7 GB copy load against 30 / 30 isolated idle
+  (`MARKET_PROFILE_VALIDATION_0YD.md` §15). It is not reliably reproducible
+  idle. The fix is a separate maintenance item, deliberately not done in
+  0Y-D or 0Y-E. The root cause has not been investigated.

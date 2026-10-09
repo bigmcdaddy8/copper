@@ -8,6 +8,9 @@ quality gate changed. Nothing here is a trading claim.
 - Raw evidence: `evidence/0Y-D/`
 - Code: `tpo_validation.py` (records and diagnostics),
   `scripts/dicks_lab_mp_validation.py` (`run`, then `analyze`)
+- Follow-up (0Y-E): continuous strength facts beside these frozen labels.
+  This was a derived report; the records here were not changed. See
+  `evidence/0Y-E/` and `TPO_MARKET_PROFILE_0YA.md` §33–§39.
 
 ## 1. Method (blind, two-stage)
 

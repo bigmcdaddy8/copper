@@ -719,7 +719,8 @@ Evidence: `evidence/0Y-C/`.
 ## 32. Still deferred
 
 (0Y-D blind validation of the V1 policies over a 22-dataset corpus:
-`MARKET_PROFILE_VALIDATION_0YD.md`. V1 is unchanged.)
+`MARKET_PROFILE_VALIDATION_0YD.md`. V1 is unchanged. 0Y-E adds continuous
+strength facts beside the frozen label: §33–§39.)
 
 - `NON_TREND_DAY`, `NEUTRAL_EXTREME` / `NEUTRAL_CENTER`,
   `DOUBLE_DISTRIBUTION_TREND_DAY` (§27); distribution segmentation (0Y-D
@@ -728,3 +729,168 @@ Evidence: `evidence/0Y-C/`.
 - opening types, overnight inventory, prior-day value relationships
 - bias, initiative/responsive labelling, setups, entries/exits, AI
   interpretation
+
+## 33. Why `DAY_TYPE_V1` stays frozen (0Y-E)
+
+0Y-D applied the V1 rules blindly to 12 eligible days
+(`MARKET_PROFILE_VALIDATION_0YD.md`). The results:
+
+| V1 label | Days | Assessment |
+|---|---|---|
+| NORMAL_VARIATION | 6 | plausible but needs more evidence |
+| NEUTRAL | 5 | **structurally over-permissive**; 3 of 5 have a counter-extension ≤ 10 ticks |
+| TREND | 1 | plausible but needs more evidence |
+| NORMAL | 0 | insufficient evidence |
+
+The quality gates and the fact layer were robust.
+
+The PO kept V1 as the **provisional reference classification** and did not
+tune it. The reasons:
+- 12 days, now inspected, cannot validate a new threshold. A threshold chosen
+  to "fix" known days would only describe those days.
+- Historical 0Y-C / 0Y-D results must stay reproducible. Changing V1 in place
+  would silently relabel them.
+- The weakness 0Y-D exposed is one of **resolution**, not just thresholds. One
+  label cannot say how one-sided, extended or persistent a day was. That is
+  continuous evidence, so it is reported as numbers beside the label (§34).
+
+Frozen means:
+- `tpo_day_structure.py` is byte-identical to the accepted 0Y-C commit
+  (sha256 `8d745aab…`). A test asserts this.
+- The 0.50 / 0.85 thresholds, the 1-tick-per-side NEUTRAL rule and the
+  2-period TREND rule are unchanged.
+- Every 0Y-D frozen record re-analysed in 0Y-E reproduced byte-for-byte
+  (§39).
+
+## 34. Taxonomy versus structural strength
+
+```
+named candidate (DAY_TYPE_V1)  +  continuous evidence (DAY_STRUCTURE_STRENGTH_V1)
+```
+
+The label answers "which V1 rule matched". The strength vector answers "what
+did the day measure". They are independent:
+- strength is computed from the same `DayStructureFacts` whatever the label
+  is;
+- strength never feeds back into the label;
+- there is no composite score. No weighting model has been validated, so
+  the result stays a vector of inspectable facts for a later human or AI
+  reader.
+
+**A V1 candidate label is not a trading conclusion.** Neither the label nor
+any strength number is a bias, signal, setup or forecast.
+
+## 35. `DAY_STRUCTURE_STRENGTH_V1` fact definitions (DERIVED FACT)
+
+Conventions:
+- Ticks are grid rows (ES 0.25).
+- "/ IB" divides by the IB range.
+- A ratio with a zero denominator is **None (undefined)**, never 0 or ∞.
+- With no Initial Balance, every extension fact is None.
+
+| Group | Fact | Definition |
+|---|---|---|
+| Asymmetry | `extension_above_ticks` / `_points`; `extension_below_…` | 0Y-C IB extension (max high − IB high; IB low − min low), ≥ 0 |
+| | `extension_above_per_ib`, `extension_below_per_ib` | extension / IB range |
+| | `dominant_extension` | UP if above > below; DOWN if below > above; TIE if equal and > 0; NONE if both 0 |
+| | `dominant_extension_ticks`, `counter_extension_ticks` | max, min of the two sides (on a TIE both equal the common value) |
+| | `dominant_per_ib`, `counter_per_ib` | / IB range |
+| | `counter_to_dominant` | counter / dominant. This is also smaller / larger, so it is reported once. 0 on a one-sided day; undefined when there is no extension |
+| | `dominant_share_of_total` | larger / (above + below); undefined when there is no extension |
+| Terminal | `terminal_price`, `terminal_timestamp_utc` | study-window terminal (§23): the last eligible trade before 15:00 CT, **not** the CME settlement |
+| | `terminal_percentile` | (terminal − low) / range |
+| | `terminal_from_high_ticks` / `_low_ticks`; `…_per_range` | distance to each extreme; / profile range |
+| Persistence | `new_high_periods`, `new_low_periods` (+ counts) | 0Y-C post-IB periods that set a new extreme |
+| | `max_consecutive_new_high_periods` / `_low_` | longest run of chronologically adjacent letters in those sets |
+| | `longest_higher_low_run`, `longest_lower_high_run` | 0Y-C traded-period runs |
+| | `first_extension_direction`, `last_extension_direction` | 0Y-C |
+| Context | `upper_tail_rows` / `_ticks`, `lower_tail_…` | 0Y-B extreme one-TPO run |
+| | `interior_one_tpo_zone_count`, `interior_one_tpo_rows` | 0Y-B interior zones; rows summed |
+| | `poc_percentile`, `ib_midpoint_percentile`, `value_area_midpoint_percentile` | 0Y-C location in the profile range |
+
+There are no labels such as BALANCED, UNBALANCED or TOKEN_COUNTER_EXTENSION.
+Each would need a hidden threshold.
+
+## 36. Quality behaviour
+
+The 0Y-C quality gates are reused unchanged. `scope` says what the vector
+represents:
+
+| `scope` | When | Meaning |
+|---|---|---|
+| `FULL_STUDY_WINDOW` | V1 evaluated, quality UNQUALIFIED | a full-day measurement |
+| `QUALITY_QUALIFIED` | V1 evaluated, gap evidence / lifecycle reasons | full window; `scope_reasons` lists the qualifications |
+| `RAW_FACTS_ONLY` | V1 NOT_CLASSIFIED (partial window, unknown coverage, empty period, zero/no IB) | **not a full-day assessment**; `scope_reasons` = the V1 `not_classified_reasons` |
+
+A partial study window still exposes its raw facts. It is labelled
+`RAW_FACTS_ONLY`, and the text output leads with
+`*** RAW FACTS ONLY -- NOT A FULL-DAY STRENGTH ASSESSMENT ***`, so it cannot
+pass as a full-day strength assessment.
+
+## 37. Policy versioning
+
+| Policy key | What | Where |
+|---|---|---|
+| `DAY_TYPE_V1` | named reference taxonomy = `DICKS_LAB_DAY_TYPE_POLICY` / `V1_DIRECTIONAL_STATE_X_IB_SHARE` | `tpo_day_structure.py` (frozen) |
+| `DAY_STRUCTURE_STRENGTH_V1` | continuous measurements | `tpo_day_strength.py` |
+
+- `DAY_TYPE_POLICY_KEYS` maps the classifier's exact (id, version) stamp to
+  `DAY_TYPE_V1`. An unknown stamp is refused, not guessed.
+- A future change gets a **new key** (e.g. `DAY_TYPE_V2`) that coexists with
+  V1. V1 results stay reproducible for replay and research.
+- The same applies to the strength vector: adding, removing or redefining a
+  fact means `DAY_STRUCTURE_STRENGTH_V2`.
+
+## 38. Research hypotheses and prospective validation
+
+The 0Y-D hypotheses (`MARKET_PROFILE_VALIDATION_0YD.md` §10) are
+**RESEARCH HYPOTHESES, NOT PRODUCTION POLICY**. None is implemented in the
+classifier.
+- **H1:** NEUTRAL needs both extensions ≥ X × IB.
+- **H2:** NORMAL_VARIATION needs extension ≥ Y × IB.
+- **H3:** a token counter-extension does not block the dominant side.
+- **H4:** NORMAL needs historical IB context or H3.
+
+The strength vector makes each one measurable without adopting it:
+- H1 and H3 read `counter_per_ib`;
+- H2 reads `dominant_per_ib`.
+
+The existing offline what-if script (`evidence/0Y-D/hypothesis_whatif.py`)
+counts a fixed illustrative grid (0.10 / 0.25 / 0.50 / 1.00) written in the
+script. None of those values is an accepted default. It reads the frozen
+records only, never touches the classifier, and its output is a what-if count,
+not validation. The optional helper was not expanded in 0Y-E.
+
+**Prospective-validation principle.** The 0Y-D corpus has been inspected. A
+future threshold policy (e.g. `DAY_TYPE_V2`) should be:
+1. **pre-registered**: rule and thresholds written and committed first;
+2. **evaluated on unseen future trading dates**, with the 0Y-D two-stage
+   blind method (frozen records, then analysis).
+
+A threshold is **not** validated because it improves the labels of the
+existing 12 eligible days.
+
+## 39. Data model, CLI and corpus report
+
+- Programmatic: `TpoAnalysisResult.day_strength: DayStructureStrength`, built
+  by `build_day_structure_strength(day_structure, price_increment)`.
+  - The chain `TpoProfile → ProfileStructure → DayStructureFacts →
+    DayTypeClassification → DayStructureStrength` can be consumed without
+    parsing text.
+  - Every strength value is read or derived from `DayStructureFacts`.
+    Nothing is re-measured from trades, and the added cost once the profile is
+    loaded is negligible.
+  - `strength_to_json` gives one exact line (Decimals as strings).
+- CLI: `--day-strength` adds the `DAY STRUCTURE STRENGTH:` section. It
+  restates the V1 label, lists the numeric facts and prints both policy keys.
+  - There is no interpretive language.
+  - Default, `--structure` and `--day-structure` output are unchanged.
+- Corpus report:
+  - Command: `scripts/dicks_lab_mp_validation.py strength FROZEN_DIR OUT_DIR
+    DBS...`.
+  - It verifies the frozen records' sha256 and re-analyses each database.
+  - It requires every rebuilt V1 record to equal the frozen 0Y-D line
+    byte-for-byte; otherwise it exits 3.
+  - It then writes the strength vector beside the frozen label.
+  - The 0Y-D `blind_run/` is only read.
+  - Evidence: `evidence/0Y-E/` (§33).

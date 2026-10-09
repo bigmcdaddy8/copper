@@ -4918,3 +4918,50 @@ threshold changed. Evidence: `evidence/0Y-D/`.
 0Y-D: PASS — BLIND MULTI-DAY DAY-TYPE VALIDATION COMPLETE
 NEXT: PO POLICY REVIEW BEFORE OPENING-TYPE DEVELOPMENT
 ```
+
+## MR. 0Y-E — Day-Type Strength, Asymmetry & Policy Versioning (2026-10-08)
+
+PO record:
+- 0Y-D: **PASS / ACCEPTED / CLOSED**
+- V1 taxonomy: **preserved as the provisional reference classification**
+
+What 0Y-E adds:
+- `DAY_STRUCTURE_STRENGTH_V1`, a vector of continuous facts beside the frozen
+  `DAY_TYPE_V1` label:
+  - extension asymmetry: dominant/counter, ratios to IB, counter/dominant,
+    dominant share of total;
+  - terminal location;
+  - directional persistence;
+  - 0Y-B context.
+- No score, no new threshold, no interpretation.
+- `tpo_day_structure.py` is byte-identical to 0Y-C (sha256 `8d745aab…`,
+  pinned by a test).
+- Design: `TPO_MARKET_PROFILE_0YA.md` §33–§39.
+
+Frozen corpus:
+- The 22 corpus databases were re-analysed. All 22 rebuilt V1 records equal
+  the frozen 0Y-D lines byte-for-byte.
+- The 0Y-D `blind_run/` is untouched (sha256 `b15fef0c…`), and the database
+  hashes are unchanged.
+- 24 min 14 s wall time, dominated by the tape load.
+- Evidence: `evidence/0Y-E/`.
+
+| 2026-09-30 (V1 NEUTRAL_DAY, BOTH_SIDES) | Value |
+|---|---|
+| above / below IB | 10 / 155 ticks (0.0794 / 1.2302 × IB) |
+| dominant | DOWN |
+| counter / dominant | 0.0645 |
+| terminal percentile | 0.0515 |
+
+The most two-sided NEUTRAL (09-28) has counter/dominant 0.3359.
+
+Not done here:
+- H1–H4 stay research hypotheses, not production policy.
+- A future V2 must be pre-registered and evaluated on unseen dates.
+- The flaky WAL test is recorded as maintenance backlog
+  (`WAL_PERSISTENCE_0W5B.md` §15), not fixed.
+
+```
+0Y-E: PASS — DAY-TYPE STRENGTH / ASYMMETRY LAYER COMPLETE
+NEXT: OPENING-TYPE / OPENING-AUCTION DEVELOPMENT (after PO review)
+```
