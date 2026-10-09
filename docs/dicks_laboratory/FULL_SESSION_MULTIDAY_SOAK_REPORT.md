@@ -4965,3 +4965,58 @@ Not done here:
 0Y-E: PASS — DAY-TYPE STRENGTH / ASYMMETRY LAYER COMPLETE
 NEXT: OPENING-TYPE / OPENING-AUCTION DEVELOPMENT (after PO review)
 ```
+
+## MS. 0Y-F — Opening Auction Facts & Prior-Day Context (2026-10-09)
+
+PO record:
+- 0Y-E: **PASS / ACCEPTED / CLOSED**
+- `DAY_TYPE_V1`: **preserved**
+- `DAY_STRUCTURE_STRENGTH_V1`: **accepted**
+
+What 0Y-F adds (`OPENING_AUCTION_FACTS_V1`, a factual foundation only):
+- **Cash open:** the first eligible on-grid trade at or after 08:30:00 CT,
+  within 60 s; otherwise NOT_AVAILABLE.
+- **Prior trading-date context:** the previous weekday, with explicit
+  closures. Outcomes cover no prior, contract change (never stitched),
+  incomplete prior and multiple datasets.
+- **Location and gap facts** against the prior range and value.
+- **Opening windows** (5/15/30/60 min) with exact tick-grid touch and cross
+  definitions, plus path ordering.
+- **A-extreme follow-through, reference interactions, and prior value/range
+  entry and exit facts.**
+- **A/B overlap and one-timeframing.**
+- **A stringent opening-window quality policy.**
+- No opening-type label exists in code.
+- Design: `TPO_MARKET_PROFILE_0YA.md` §40–§50.
+
+Corpus study (`MARKET_PROFILE_OPENING_0YF.md`, `evidence/0Y-F/`):
+
+| Corpus result | Count |
+|---|---|
+| Profiled days | 17 |
+| AVAILABLE pairs | 7 |
+| NO_PRIOR_PROFILE | 7 |
+| PRIOR_PROFILE_INCOMPLETE (09-08, after Labor Day) | 1 |
+| CURRENT_OPEN_INCOMPLETE (08-31 ×2) | 2 |
+
+- Opening facts took 2.2 s for the whole corpus once the tape was loaded
+  (24 min, dominated by the tape load). Database hashes are unchanged.
+- **Key finding:** on all 15 available opens, the open is re-crossed within
+  1 s, so the literal Open Drive rule holds on 0 of 15 days at tick
+  resolution.
+
+Feasibility of future opening-type labels:
+
+| Type | Assessment |
+|---|---|
+| Open Auction (In / Out of Range) | READY FOR POLICY DESIGN |
+| Open Drive | READY FOR POLICY DESIGN, given a mandatory explicit scale decision |
+| Open Test Drive | NEEDS MORE FACTS (overnight extremes, probe segmentation) |
+| Open Rejection Reverse | REFERENCE DEFINITION TOO SUBJECTIVE |
+
+- Overnight inventory is deferred and is the documented next dependency.
+
+```
+0Y-F: PASS — OPENING AUCTION FACT / PRIOR-CONTEXT FOUNDATION COMPLETE
+NEXT: PO REVIEW BEFORE OPENING-TYPE POLICY DESIGN
+```

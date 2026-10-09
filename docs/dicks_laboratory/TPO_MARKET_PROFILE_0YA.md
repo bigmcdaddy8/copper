@@ -894,3 +894,259 @@ existing 12 eligible days.
   - It then writes the strength vector beside the frozen label.
   - The 0Y-D `blind_run/` is only read.
   - Evidence: `evidence/0Y-E/` (§33).
+
+## 40. Reference survey (opening types) (0Y-F)
+
+Sources consulted are secondary and educational. The primary lineage is
+Steidlmayer (CBOT) and Dalton, *Mind Over Markets* (1990), which codified the
+opening classifications. That book was not available here in full text.
+- LuxAlgo concept library, "Open Types"
+- marketcalls.in, "Market Profile open type and confidence"
+- ATAS, "Open Drive" (open types overview)
+- Reverend's Crowstack, "Five easy tapes: Open-Rejection-Reverse"
+- futures.io / NexusFi "Opening Types", OAIR and OAOR articles, known from
+  search summaries only (the pages refused automated fetch)
+
+Kinds of statement:
+- **REFERENCE DESCRIPTION**: what a source says (this table).
+- **OBSERVED FACT**: what 0Y-F measures (§42–§47).
+- **LABORATORY POLICY**: the few explicit choices in §41 and §48.
+- **MARKET INTERPRETATION**: "confidence", "other-timeframe participation";
+  excluded.
+
+| Type | Mechanical description (sources) | Prior-day context used | Time horizon implied | Reference levels | Subjective words |
+|---|---|---|---|---|---|
+| **Open Drive** | A move away from the opening print that "never trades back through it" (LuxAlgo). Auctions "one-sided right from the beginning" (marketcalls). Moves "without significant rollbacks" (ATAS). | Usually opens outside prior value, often outside the prior range (marketcalls, ATAS). LuxAlgo does not require it. | first 30–60 min ("give the label half an hour"). marketcalls: the first-30-min extreme typically holds all day. | opening price; prior value and range | persistent, strong, focused, significant |
+| **Open Test Drive** | A probe "to one side that finds no business", then a reversal through the open and a drive the other way (LuxAlgo). Tests "a key reference level (VA, POC, prior high/low) in the reverse direction" (marketcalls). ATAS: an initial focused move "then sharply reverses". | the reference tested is usually prior-day (VAH/VAL/POC/high/low) | opening period | prior high/low, VAH/VAL, POC, open | finds no business, conviction, test, sharply |
+| **Open Rejection Reverse** | An early run "gets rejected and trades back through the open" (LuxAlgo). Tests a reference, rejects and auctions back (marketcalls). Crowstack: "typically within the first period (30 minutes)". NexusFi (via search): may happen without hitting any reference. | marketcalls/ATAS: opening relative to prior value. Others: none required. | first period (30 min) | open; optionally a reference | rejected, strongly, falls back |
+| **Open Auction** | "Quiet rotation on both sides of the open, most often inside the prior day's value" (LuxAlgo). "Price rotates around the day open" (marketcalls). | **In Range**: opens inside the prior range (and value). **Out of Range**: opens above/below the prior range. | not stated | open; prior value and range | quiet, little conviction, rotates |
+
+**Where the sources disagree**
+- **Test Drive vs Rejection Reverse.** These are the least stable pair.
+  - LuxAlgo and marketcalls: a test drive probes and then drives *away from*
+    the probe; a rejection-reverse is a run that fails *back through the open*.
+  - ATAS describes OTD in words others use for ORR ("moves in a focused manner
+    then sharply reverses").
+  - Whether ORR requires a reference touch differs: marketcalls yes, NexusFi no.
+- **Location requirement for a drive.** Some sources require an open outside
+  value or range; LuxAlgo does not.
+- **Horizon.** Ranges from "first period" to "30–60 minutes". No source
+  states a minute count as a definition.
+- **Open-auction split.** In Range / Out of Range is keyed to the prior
+  *range* (marketcalls, OAIR/OAOR). LuxAlgo keys open-auction to prior *value*.
+- **Numbers.** No source gives a numeric threshold for anything ("Numeric
+  thresholds: none"; "classification involves judgment", LuxAlgo).
+
+None of the words *immediate, strong, aggressive, quick, near, test, drive,
+rejection, conviction, significant, material* was converted into a constant.
+
+## 41. Cash open (LABORATORY POLICY `OPENING_AUCTION_FACTS_V1`)
+
+- **Cash open instant:** 08:30:00 America/Chicago on the trading date, through
+  the existing `AnchorKind.US_CASH_OPEN` resolver.
+  - UTC is derived, never hard-coded: 13:30Z under CDT, 14:30Z under CST.
+  - It equals the US_CASH_PROFILE window start (asserted).
+- **`cash_open_price`:** the first eligible (effective-tape, on-grid) trade at
+  or after 08:30:00 CT. Ties at one timestamp are broken by tape position.
+  - `cash_open_timestamp` and `delay_from_08_30` are kept.
+  - **Maximum tolerated delay: 60 s.** This is a data-coverage bound, not a
+    market concept. If the first eligible trade is later than that, no open
+    price is claimed. The opening facts are `NOT_AVAILABLE` and the context
+    outcome is `CURRENT_OPEN_INCOMPLETE`. No 08:30 price is ever invented.
+- **Price path:** the cash-window tape reduced to price changes, i.e. the
+  first trade at each new tick.
+  - This keeps every first-reach time, high, low, last price, touch and
+    crossing exactly, without the full tape.
+  - It is stored on the session object (`CashOpenSession.path`), so later
+    classifiers never re-read raw trades.
+
+## 42. Prior trading-date context
+
+`prior_trading_date(d, closures)` is the previous weekday not in `closures`.
+- It is never the previous calendar day: Monday → Friday, including across
+  DST changes.
+- No holiday calendar is modelled. Full CME closures (e.g. Good Friday,
+  Thanksgiving) must be supplied explicitly (`--closure`).
+- Early-close days such as Labor Day are trading dates. Their truncated
+  profile then reports as `PRIOR_PROFILE_INCOMPLETE`.
+
+`build_prior_context(current, candidates)` selects the dataset for exactly
+that date:
+
+| Outcome | When | Prior-relative facts |
+|---|---|---|
+| `AVAILABLE` | one dataset, same contract, prior V1 classification evaluated | computed. `prior.quality_grade` (UNQUALIFIED / QUALITY_QUALIFIED) and its reasons travel with them. |
+| `NO_PRIOR_PROFILE` | no dataset for that date, or it has no study-window profile | none |
+| `CONTRACT_CHANGED` | the prior dataset is another contract | none; no prices carried, **no stitching or back-adjustment**, no continuous ES |
+| `PRIOR_PROFILE_INCOMPLETE` | the prior day's V1 classification was NOT_CLASSIFIED (window not captured, coverage unknown, empty periods, no/zero IB) | none. Raw references are shown, labelled incomplete. |
+| `MULTIPLE_PRIOR_DATASETS` | more than one dataset for that date | none (no silent choice) |
+| `CURRENT_OPEN_INCOMPLETE` | the current day's opening facts are NOT_AVAILABLE | none |
+
+The prior context exposes:
+- range, TPO POC/VAH/VAL, IB high/low and the study-window terminal (last
+  eligible trade, not the settlement);
+- V1 day type and direction;
+- `DayStructureStrength`;
+- the prior classification quality and dataset quality status.
+
+So `CURRENT_DAY_QUALITY` (§48) and `PRIOR_DAY_QUALITY` are independent and
+both explicit.
+
+## 43. Opening location and gap (OBSERVED FACT)
+
+All comparisons are exact tick-grid comparisons. Distances are signed `open −
+reference`, in ticks and points.
+- **Range:** `ABOVE_PRIOR_RANGE` (> high), `AT_PRIOR_HIGH` (= high),
+  `INSIDE_PRIOR_RANGE`, `AT_PRIOR_LOW` (= low), `BELOW_PRIOR_RANGE`.
+- **Value:** the same five, against VAH / VAL.
+- **Gap:** `open − prior terminal` in points and ticks; direction UP / DOWN /
+  NONE.
+  - `BEYOND_PRIOR_RANGE` if the open is strictly outside the prior range,
+    else `WITHIN_PRIOR_RANGE`.
+  - Not "accepted" or "rejected".
+
+## 44. Opening windows, revisits and crossings (OBSERVED FACT)
+
+Windows are half-open `[08:30, 08:30 + N)` for N = 5, 15, 30 and 60 min,
+measured from the open print. With 30-minute periods, 30 min is period A and
+60 min is A+B (the IB).
+
+Per window:
+- high, low, range, last price;
+- excursion up (`high − open`) and down (`open − low`);
+- larger / smaller excursion, dominant UP / DOWN / TIE / NONE, and
+  counter / dominant (undefined when both are 0);
+- first direction away from the open, and the first trade above / below it;
+- time of high and low (first reached) and their order (HIGH_FIRST /
+  LOW_FIRST / NO_RANGE);
+- traded above / below the open;
+- first revisit of the open, first open cross and the number of crosses;
+- "up first, then crossed below" and "down first, then crossed above".
+
+Tick-grid definitions (module docstring):
+
+| Term | Definition |
+|---|---|
+| **away** | a trade at any other tick |
+| **touch** | a trade at exactly the reference tick |
+| **cross** | a change of *strict* side relative to the reference; trades at the reference keep the previous side |
+| **revisit** (of the open) | a touch after price first left the open tick |
+
+**Path ordering.** The first above- and below-open trades and the
+high/low-first order are raw ordered events. No "material" extreme is
+defined.
+
+**A-extreme follow-through** (for the period-A high and low, through the end
+of the IB):
+- when the extreme was first reached;
+- the largest later move back from it;
+- whether price later traded strictly on the other side of the open, when,
+  and how long after;
+- how far beyond the open it went.
+
+Not labelled rejection.
+
+## 45. Reference interactions (OBSERVED FACT)
+
+References: prior high, low, VAH, VAL and POC (when context is AVAILABLE),
+and the cash open (always). For each horizon (5/15/30/60 min) the facts are:
+- the open's offset;
+- the minimum distance in ticks;
+- touched, with the first touch;
+- crossed, with the first cross.
+
+A touch is not declared a "test".
+
+## 46. Prior value / range entry and exit (OBSERVED FACT)
+
+Zones are inclusive `[VAL, VAH]` and `[prior low, prior high]`, over the whole
+study window. An open exactly at a boundary counts as inside.
+- **Open outside the zone:** first entry.
+- **Open inside the zone:** first exit above, first exit below, first return
+  after the first exit, and the time to return.
+- **Occupancy during A** (both cases):
+  - **trade-time:** the seconds for which the last traded price was inside
+    the zone, from the open print to the end of A, with the observed seconds
+    alongside;
+  - **TPO:** A-range rows inside the zone, against A rows.
+
+None of this is called acceptance, rejection or a failed auction.
+
+## 47. Early TPO and one-timeframing (OBSERVED FACT)
+
+**Early TPO**
+- A high, low, range and rows; B high, low and rows.
+- **A/B overlap** = rows printed by both A and B. **Overlap ratio** =
+  overlap rows / rows of the smaller of A and B. It is in [0, 1]: 0 when A
+  and B do not overlap, 1 when the smaller period lies inside the larger.
+- A+B combined high, low and range.
+- A-only rows of the A+B profile (above B, below B); whether B exceeded A's
+  high or low.
+- A-only rows at the close: in total, and contiguous from the day high / day
+  low.
+- High overlap is not called "auction"; low overlap is not called "drive".
+
+**One-timeframing**
+- The first period whose low is above the previous period's low, and the
+  first period whose high is below the previous period's high.
+- Runs from A: consecutive periods each with a higher low, and each with a
+  lower high (A counts as 1).
+- The longest such runs, by reference to the 0Y-C facts.
+
+## 48. Opening quality policy (LABORATORY POLICY)
+
+The opening window for quality is `[08:30, 09:30)` (the IB).
+
+| Grade | When |
+|---|---|
+| `NOT_AVAILABLE` | the recorded capture interval does not cover the opening window, or there is no eligible trade within 60 s of 08:30:00 CT. No window, crossing or reference fact is computed. |
+| `QUALITY_QUALIFIED` | any of: the capture interval was not recorded (opening coverage unverified); a KNOWN_GAP or SUSPECTED_GAP overlaps the opening window (counted separately); the lifecycle is not FINALIZED |
+| `UNQUALIFIED` | otherwise |
+
+- Overnight gaps do not affect the grade.
+- Gaps later in the study window are counted (`gaps_later_in_study_window`)
+  because they can affect the full-window entry/exit facts. They do not
+  qualify the opening.
+- A future classifier must not issue an unqualified opening type when
+  `known_gaps_in_opening_window > 0`.
+- The prior day's quality is separate (§42).
+
+## 49. Data model and CLI
+
+- **Data model:**
+  - `TpoAnalysisResult.opening: CashOpenSession` holds the current-day facts
+    and needs no prior day.
+  - `opening_auction_facts(current, candidates, closures)` →
+    `OpeningAuctionFacts`, which holds the session, `PriorContext`, location,
+    gap, `ReferenceInteraction`s and the value/range `ZoneInteraction`s.
+  - Everything is frozen and deterministic.
+  - Once the tape is loaded, all opening facts for the 22-dataset corpus are
+    computed in well under a second (evidence `timings.tsv`).
+- **CLI:** `dicks_lab_tpo_profile.py DB --opening-facts [--prior-database
+  PRIOR_DB] [--closure YYYY-MM-DD ...]`.
+  - It adds `OPENING AUCTION FACTS` and an A/B-only early TPO matrix, with
+    the open and the prior references (pH, pVAH, pPOC, pVAL, pL) marked.
+  - Default, `--structure`, `--day-structure` and `--day-strength` output are
+    unchanged.
+- **Corpus study:** `scripts/dicks_lab_mp_opening_study.py OUT_DIR DBS...`
+  writes per-day reports and `opening_study.md`.
+
+**OpeningAuctionFacts != OpeningType.** No opening-type label exists in
+code.
+
+## 50. Deferred
+
+- **Opening-type labels:** OPEN_DRIVE, OPEN_TEST_DRIVE,
+  OPEN_REJECTION_REVERSE, OPEN_AUCTION, OPEN_AUCTION_IN_RANGE and
+  OPEN_AUCTION_OUT_OF_RANGE. Feasibility is assessed in
+  `MARKET_PROFILE_OPENING_0YF.md`.
+- **Overnight inventory** (long/short/neutral), overnight high/low
+  relationships and the overnight profile.
+  - LuxAlgo lists the overnight range as an opening reference. None of the
+    surveyed *definitions* of the six types requires it.
+  - It is the documented **next dependency** for a later classifier: it is
+    needed for Dalton-style preparation and for distinguishing a test of the
+    overnight extreme from a test of a prior-day reference.
+- **Session VWAP as an opening reference** (LuxAlgo).
+- **Holiday calendar:** closures are explicit input until one exists.
+- **Acceptance, rejection, failed auction, confidence, bias and signals.**
