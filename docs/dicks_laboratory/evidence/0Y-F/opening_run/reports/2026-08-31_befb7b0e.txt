@@ -1,0 +1,13 @@
+2026-08-31  befb7b0e-9a69-4001-ac2b-90405e0c28ed  FUTURE:CME:ES:2026-09
+
+OPENING AUCTION FACTS (OPENING_AUCTION_FACTS_V1):
+  *** OPENING FACTS NOT AVAILABLE ***
+    - opening window [08:30, 09:30) CT not fully captured
+    - first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)
+  Current-day opening quality: NOT_AVAILABLE   (opening window to 14:30:00.000Z; KNOWN_GAP 0, SUSPECTED_GAP 0; gaps later in the study window 0; study window truncated no)
+  Cash open (08:30:00 CT = 13:30:00.000Z): none -- first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)
+  Prior context: CURRENT_OPEN_INCOMPLETE   expected prior trading date 2026-08-28
+    - opening window [08:30, 09:30) CT not fully captured
+    - first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)
+    prior dataset 5a5fbbce-045b-4da2-b57b-ce1a2e2b76b4  contract FUTURE:CME:ES:2026-09 vs current FUTURE:CME:ES:2026-09 (same contract: yes)
+  No opening-window, crossing or reference facts are computed.

@@ -1,0 +1,105 @@
+2026-08-31  c9ebc043-beaa-4931-a5d6-29064f7a6e3c  FUTURE:CME:ES:2026-09
+
+OPENING AUCTION FACTS (OPENING_AUCTION_FACTS_V1):
+  *** OPENING FACTS NOT AVAILABLE ***
+    - opening window [08:30, 09:30) CT not fully captured
+    - KNOWN_GAP overlaps the opening window: 3
+    - lifecycle INTERRUPTED (not FINALIZED)
+  Current-day opening quality: NOT_AVAILABLE   (opening window to 14:30:00.000Z; KNOWN_GAP 3, SUSPECTED_GAP 0; gaps later in the study window 0; study window truncated yes)
+  Cash open (08:30:00 CT = 13:30:00.000Z): 7701.25 at 13:30:00.000Z, delay 0.000s (max 60s; first eligible on-grid trade)
+  Prior context: CURRENT_OPEN_INCOMPLETE   expected prior trading date 2026-08-28
+    - opening window [08:30, 09:30) CT not fully captured
+    - KNOWN_GAP overlaps the opening window: 3
+    - lifecycle INTERRUPTED (not FINALIZED)
+    prior dataset 5a5fbbce-045b-4da2-b57b-ce1a2e2b76b4  contract FUTURE:CME:ES:2026-09 vs current FUTURE:CME:ES:2026-09 (same contract: yes)
+  No opening-window, crossing or reference facts are computed.
+
+  Early TPO matrix (A/B letters only; p* = prior-day reference):
+      7704.25  A
+      7704.00  A
+      7703.75  A
+      7703.50  A
+      7703.25  A
+      7703.00  A
+      7702.75  A
+      7702.50  A
+      7702.25  A
+      7702.00  A
+      7701.75  A
+      7701.50  A
+      7701.25  A   OPEN
+      7701.00  A
+      7700.75  A
+      7700.50  A
+      7700.25  A
+      7700.00  A
+      7699.75  A
+      7699.50  A
+      7699.25  A
+      7699.00  A
+      7698.75  A
+      7698.50  A
+      7698.25  A
+      7698.00  A
+      7697.75  A
+      7697.50  A
+      7697.25  A
+      7697.00  A
+      7696.75  A
+      7696.50  A
+      7696.25  A
+      7696.00  A
+      7695.75  A
+      7695.50  A
+      7695.25  A
+      7695.00  A
+      7694.75  A
+      7694.50  A
+      7694.25  A
+      7694.00  A
+      7693.75  A
+      7693.50  A
+      7693.25  A
+      7693.00  A
+      7692.75  A
+      7692.50  A
+      7692.25  A
+      7692.00  A
+      7691.75  A
+      7691.50  A
+      7691.25  A
+      7691.00  A
+      7690.75  A
+      7690.50  A
+      7690.25  A
+      7690.00  A
+      7689.75  A
+      7689.50  A
+      7689.25  A
+      7689.00  A
+      7688.75  A
+      7688.50  A
+      7688.25  A
+      7688.00  A
+      7687.75  A
+      7687.50  A
+      7687.25  A
+      7687.00  A
+      7686.75  A
+      7686.50  A
+      7686.25  A
+      7686.00  A
+      7685.75  A
+      7685.50  A
+      7685.25  A
+      7685.00  A
+      7684.75  A
+      7684.50  A
+      7684.25  A
+      7684.00  A
+      7683.75  A
+      7683.50  A
+      7683.25  A
+      7683.00  A
+      7682.75  A
+      7682.50  A

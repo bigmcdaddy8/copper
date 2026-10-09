@@ -1,0 +1,59 @@
+2026-09-07  85eccb13-9432-4163-a078-f9bdbb2f5973  FUTURE:CME:ES:2026-09
+
+OPENING AUCTION FACTS (OPENING_AUCTION_FACTS_V1):
+  Current-day opening quality: UNQUALIFIED   (opening window to 14:30:00.000Z; KNOWN_GAP 0, SUSPECTED_GAP 0; gaps later in the study window 0; study window truncated no)
+  Cash open (08:30:00 CT = 13:30:00.000Z): 7714.75 at 13:30:00.161Z, delay 0.161s (max 60s; first eligible on-grid trade)
+  Prior context: NO_PRIOR_PROFILE   expected prior trading date 2026-09-04
+    - no dataset for prior trading date 2026-09-04
+  Opening windows (from the open print; [08:30, 08:30+N)):
+     N  high       low        rng  last       up  dn  dominant c/d     first  hi-time        lo-time        order       revisit        crosses  1st-cross
+     5  7717.25    7714.00     13  7714.50    10   3  UP       0.3000   UP     13:32:02.769Z  13:30:10.139Z  LOW_FIRST   13:30:00.163Z        7  13:30:00.988Z
+    15  7717.25    7712.00     21  7713.25    10  11  DOWN     0.9091   UP     13:32:02.769Z  13:40:13.863Z  HIGH_FIRST  13:30:00.163Z        9  13:30:00.988Z
+    30  7717.25    7712.00     21  7713.50    10  11  DOWN     0.9091   UP     13:32:02.769Z  13:40:13.863Z  HIGH_FIRST  13:30:00.163Z        9  13:30:00.988Z
+    60  7717.25    7708.75     34  7710.00    10  24  DOWN     0.4167   UP     13:32:02.769Z  14:20:09.379Z  HIGH_FIRST  13:30:00.163Z       13  13:30:00.988Z
+  Path order (60 min): first above open 13:30:00.161Z, first below open 13:30:00.988Z; up first then crossed below: yes; down first then crossed above: no
+  A_HIGH 7717.25 at 13:32:02.769Z: max move away 34 ticks; crossed open after: yes at 13:34:57.262Z (+174.493s); beyond open on the other side 24 ticks (to 14:30:00.000Z)
+  A_LOW 7712.00 at 13:40:13.863Z: max move away 15 ticks; crossed open after: yes at 14:00:59.918Z (+1246.055s); beyond open on the other side 4 ticks (to 14:30:00.000Z)
+  Reference interactions (min distance ticks / touched / crossed, per horizon; first touch / first cross over 60 min):
+    CASH_OPEN  7714.75   open+0t  5m 0/yes/yes  15m 0/yes/yes  30m 0/yes/yes  60m 0/yes/yes  touch 13:30:00.161Z  cross 13:30:00.988Z
+  Early TPO: A 7712.00-7717.25 (21 ticks, 22 rows); B 7708.75-7715.75 (29 rows); A/B overlap 16 rows = 0.7273 of the smaller; A+B 7708.75-7717.25 (34 ticks); A-only vs B: 6 above, 0 below; B beyond A: high no, low yes
+    A-only rows at the close: 6 (contiguous at day high 6, at day low 0)
+  One-timeframing: first higher low E, first lower high B; run from A: higher lows 1, lower highs 4; longest: 4 / 4
+  Facts only: no opening type, acceptance/rejection, bias or signal.
+
+  Early TPO matrix (A/B letters only; p* = prior-day reference):
+      7717.25  A
+      7717.00  A
+      7716.75  A
+      7716.50  A
+      7716.25  A
+      7716.00  A
+      7715.75  AB
+      7715.50  AB
+      7715.25  AB
+      7715.00  AB
+      7714.75  AB  OPEN
+      7714.50  AB
+      7714.25  AB
+      7714.00  AB
+      7713.75  AB
+      7713.50  AB
+      7713.25  AB
+      7713.00  AB
+      7712.75  AB
+      7712.50  AB
+      7712.25  AB
+      7712.00  AB
+      7711.75  B
+      7711.50  B
+      7711.25  B
+      7711.00  B
+      7710.75  B
+      7710.50  B
+      7710.25  B
+      7710.00  B
+      7709.75  B
+      7709.50  B
+      7709.25  B
+      7709.00  B
+      7708.75  B

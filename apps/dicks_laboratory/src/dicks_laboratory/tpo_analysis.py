@@ -39,6 +39,17 @@ from dicks_laboratory.tpo_day_structure import (
     study_window_terminal,
 )
 from dicks_laboratory.tpo_day_strength import DayStructureStrength, StrengthScope, build_day_structure_strength
+from dicks_laboratory.tpo_opening import (
+    CashOpenSession,
+    ContextOutcome,
+    OpeningAuctionFacts,
+    PriorContext,
+    build_cash_open_session,
+    build_opening_auction_facts,
+    prior_trading_date,
+    render_early_matrix,
+    render_opening_facts,
+)
 from dicks_laboratory.tpo_structure import CandidateStatus, ProfileStructure, ZoneLocation, build_profile_structure
 from dicks_laboratory.value_area import ValueAreaResult, compute_value_area
 from dicks_laboratory.volume_profile import VolumeAtPriceProfile, build_volume_at_price_profile, price_grid_for_instrument
@@ -65,6 +76,7 @@ class TpoDatasetQuality:
     capture_started_at: datetime | None
     capture_ended_at: datetime | None
     study_window_captured: bool | None  # None = capture interval not recorded
+    gap_intervals: tuple[tuple[str, datetime, datetime], ...] = ()  # (KNOWN_GAP|SUSPECTED_GAP, start, end)
 
     @property
     def structural_qualifications(self) -> tuple[str, ...]:
@@ -101,6 +113,7 @@ class TpoAnalysisResult:
     structure: ProfileStructure | None = None  # 0Y-B derived structural facts
     day_structure: DayTypeClassification | None = None  # 0Y-C day-structure facts + day-type candidates
     day_strength: DayStructureStrength | None = None  # 0Y-E continuous strength / asymmetry facts
+    opening: CashOpenSession | None = None  # 0Y-F current-day opening facts (prior-independent)
 
 
 def analyze_tpo_dataset(
@@ -128,6 +141,10 @@ def analyze_tpo_dataset(
         day_structure = classify_day_type(facts, classification_quality(
             quality.study_window_captured, quality.gaps_overlapping_study_window, quality.lifecycle_state))
         day_strength = build_day_structure_strength(day_structure, profile.price_increment)
+    opening = None
+    if profile is not None and window == US_CASH_PROFILE:
+        opening = build_cash_open_session(selected, profile, day_structure.facts, grid, quality.capture_started_at,
+                                          quality.capture_ended_at, quality.gap_intervals, quality.lifecycle_state)
 
     return TpoAnalysisResult(
         dataset_id=dataset_id,
@@ -147,6 +164,7 @@ def analyze_tpo_dataset(
         structure=structure,
         day_structure=day_structure,
         day_strength=day_strength,
+        opening=opening,
     )
 
 
@@ -176,7 +194,63 @@ def _dataset_quality(store: LaboratoryStore, dataset_id: UUID, start: datetime, 
         capture_started_at=started,
         capture_ended_at=ended,
         study_window_captured=None if started is None or ended is None else (started <= start and ended >= end),
+        gap_intervals=tuple(sorted((e.evidence_type.value, e.interval_start, e.interval_end)
+                                   for e in events if e.evidence_type in gap_types)),
     )
+
+
+# --- 0Y-F prior trading-date context ---------------------------------------------------------
+
+def build_prior_context(
+    current: TpoAnalysisResult, candidates, closures: frozenset[date] = frozenset()
+) -> PriorContext:
+    """Select the prior trading date's dataset from `candidates` (any analysed results) explicitly.
+
+    Never the previous calendar day, never a stitched contract: a different contract is
+    CONTRACT_CHANGED, an incomplete prior study window is PRIOR_PROFILE_INCOMPLETE.
+    """
+    expected = prior_trading_date(current.trading_date, closures)
+    contract = current.instrument.canonical_id
+    found = [r for r in candidates if r.trading_date == expected and r.dataset_id != current.dataset_id]
+    if not found:
+        return PriorContext(ContextOutcome.NO_PRIOR_PROFILE, (f"no dataset for prior trading date {expected}",),
+                            expected, contract)
+    if len(found) > 1:
+        return PriorContext(ContextOutcome.MULTIPLE_PRIOR_DATASETS,
+                            (f"{len(found)} datasets for prior trading date {expected}; none chosen",), expected, contract)
+    prior = found[0]
+    ident = dict(expected_prior_date=expected, current_contract=contract, prior_trading_date=prior.trading_date,
+                 prior_dataset_id=str(prior.dataset_id), prior_contract=prior.instrument.canonical_id,
+                 same_contract=prior.instrument.canonical_id == contract, dataset_quality=prior.quality.status.value)
+    if prior.profile is None:
+        return PriorContext(ContextOutcome.NO_PRIOR_PROFILE, ("prior dataset has no study-window profile",), **ident)
+    if not ident["same_contract"]:
+        return PriorContext(ContextOutcome.CONTRACT_CHANGED,
+                            (f"prior contract {prior.instrument.canonical_id} != current {contract}; "
+                             "no stitching or back-adjustment",), **ident)
+    day, pr = prior.day_structure, prior.profile
+    ib = pr.initial_balance
+    refs = dict(
+        profile_high=pr.profile_high, profile_low=pr.profile_low, poc=pr.poc, value_area_high=pr.value_area.high,
+        value_area_low=pr.value_area.low, ib_high=ib.high if ib else None, ib_low=ib.low if ib else None,
+        terminal_price=day.facts.terminal.price if day.facts.terminal else None, day_type_outcome=day.outcome.value,
+        day_type=day.primary.value if day.primary else None,
+        day_type_direction=day.direction.value if day.direction else None, strength=prior.day_strength,
+        quality_grade=day.quality.grade)
+    if day.outcome is ClassificationOutcome.NOT_CLASSIFIED:
+        return PriorContext(ContextOutcome.PRIOR_PROFILE_INCOMPLETE,
+                            tuple(f"prior: {r}" for r in day.not_classified_reasons),
+                            quality_reasons=day.not_classified_reasons, **ident, **refs)
+    return PriorContext(ContextOutcome.AVAILABLE, tuple(f"prior quality-qualified: {r}" for r in day.quality.reasons),
+                        quality_reasons=day.quality.reasons, **ident, **refs)
+
+
+def opening_auction_facts(
+    current: TpoAnalysisResult, candidates=(), closures: frozenset[date] = frozenset()
+) -> OpeningAuctionFacts | None:
+    if current.opening is None:
+        return None
+    return build_opening_auction_facts(current.opening, build_prior_context(current, candidates, closures))
 
 
 # --- text rendering -------------------------------------------------------------
@@ -249,6 +323,7 @@ def render_tpo_report(
     show_structure: bool = False,
     show_day_structure: bool = False,
     show_day_strength: bool = False,
+    opening: OpeningAuctionFacts | None = None,
 ) -> str:
     profile = result.profile
     lines = ["Dick's Laboratory -- TPO / Market Profile", ""]
@@ -322,6 +397,9 @@ def render_tpo_report(
         lines += render_day_structure(result.day_structure, inc)
     if show_day_strength and result.day_strength is not None:
         lines += render_day_strength(result.day_strength)
+    if opening is not None:
+        lines += render_opening_facts(opening)
+        lines += render_early_matrix(opening, profile)
     if show_matrix:
         if structure is not None:
             lines.append("TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):")

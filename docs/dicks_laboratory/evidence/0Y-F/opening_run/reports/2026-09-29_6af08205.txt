@@ -1,0 +1,134 @@
+2026-09-29  6af08205-90f9-4735-809f-c7b8a62bda65  FUTURE:CME:ES:2026-12
+
+OPENING AUCTION FACTS (OPENING_AUCTION_FACTS_V1):
+  Current-day opening quality: UNQUALIFIED   (opening window to 14:30:00.000Z; KNOWN_GAP 0, SUSPECTED_GAP 0; gaps later in the study window 0; study window truncated no)
+  Cash open (08:30:00 CT = 13:30:00.000Z): 7757.50 at 13:30:00.000Z, delay 0.000s (max 60s; first eligible on-grid trade)
+  Prior context: AVAILABLE   expected prior trading date 2026-09-28
+    prior dataset 843a6ca0-3cf3-4878-b53c-a848e72bece5  contract FUTURE:CME:ES:2026-12 vs current FUTURE:CME:ES:2026-12 (same contract: yes)
+    prior range 7726.00-7786.25   value 7746.25-7777.75   POC 7759.25   IB 7758.75-7775.25   terminal 7746.50
+    prior V1 day type NEUTRAL_DAY; prior quality UNQUALIFIED; dataset COMPLETE / NO KNOWN GAPS
+  Open location: INSIDE_PRIOR_RANGE; INSIDE_PRIOR_VALUE
+    open - prior high -115 ticks; open - prior low 126 ticks
+    open - VAH -81 ticks (-20.25 pts); open - VAL 45 ticks (11.25 pts); open - POC -7 ticks (-1.75 pts)
+  Gap (open - prior terminal): 11.00 pts = 44 ticks, UP, WITHIN_PRIOR_RANGE
+  Opening windows (from the open print; [08:30, 08:30+N)):
+     N  high       low        rng  last       up  dn  dominant c/d     first  hi-time        lo-time        order       revisit        crosses  1st-cross
+     5  7758.50    7740.75     71  7743.25     4  67  DOWN     0.0597   UP     13:30:00.007Z  13:34:03.894Z  HIGH_FIRST  13:30:00.002Z        3  13:30:00.146Z
+    15  7758.50    7739.00     78  7740.50     4  74  DOWN     0.0541   UP     13:30:00.007Z  13:44:26.740Z  HIGH_FIRST  13:30:00.002Z        3  13:30:00.146Z
+    30  7758.50    7734.75     95  7736.25     4  91  DOWN     0.0440   UP     13:30:00.007Z  13:59:58.443Z  HIGH_FIRST  13:30:00.002Z        3  13:30:00.146Z
+    60  7758.50    7734.75     95  7742.00     4  91  DOWN     0.0440   UP     13:30:00.007Z  13:59:58.443Z  HIGH_FIRST  13:30:00.002Z        3  13:30:00.146Z
+  Path order (60 min): first above open 13:30:00.002Z, first below open 13:30:00.146Z; up first then crossed below: yes; down first then crossed above: no
+  A_HIGH 7758.50 at 13:30:00.007Z: max move away 95 ticks; crossed open after: yes at 13:30:00.146Z (+0.139s); beyond open on the other side 91 ticks (to 14:30:00.000Z)
+  A_LOW 7734.75 at 13:59:58.443Z: max move away 49 ticks; crossed open after: no; beyond open on the other side 0 ticks (to 14:30:00.000Z)
+  Reference interactions (min distance ticks / touched / crossed, per horizon; first touch / first cross over 60 min):
+    PRIOR_HIGH 7786.25   open-115t  5m 111/no/no  15m 111/no/no  30m 111/no/no  60m 111/no/no  touch --  cross --
+    PRIOR_LOW  7726.00   open+126t  5m 59/no/no  15m 52/no/no  30m 35/no/no  60m 35/no/no  touch --  cross --
+    PRIOR_VAH  7777.75   open-81t  5m 77/no/no  15m 77/no/no  30m 77/no/no  60m 77/no/no  touch --  cross --
+    PRIOR_VAL  7746.25   open+45t  5m 0/yes/yes  15m 0/yes/yes  30m 0/yes/yes  60m 0/yes/yes  touch 13:33:13.303Z  cross 13:33:14.883Z
+    PRIOR_POC  7759.25   open-7t  5m 3/no/no  15m 3/no/no  30m 3/no/no  60m 3/no/no  touch --  cross --
+    CASH_OPEN  7757.50   open+0t  5m 0/yes/yes  15m 0/yes/yes  30m 0/yes/yes  60m 0/yes/yes  touch 13:30:00.000Z  cross 13:30:00.146Z
+  PRIOR_VALUE 7746.25-7777.75: opened inside; first exit above --, below 13:33:14.883Z; first return 13:33:14.884Z (+0.001s); inside during A 312.666s of 1800.000s; A rows inside 50/96
+  PRIOR_RANGE 7726.00-7786.25: opened inside; first exit above --, below 15:12:33.494Z; first return 15:12:34.416Z (+0.922s); inside during A 1800.000s of 1800.000s; A rows inside 96/96
+  Early TPO: A 7734.75-7758.50 (95 ticks, 96 rows); B 7735.25-7747.00 (48 rows); A/B overlap 48 rows = 1.0000 of the smaller; A+B 7734.75-7758.50 (95 ticks); A-only vs B: 46 above, 2 below; B beyond A: high no, low no
+    A-only rows at the close: 46 (contiguous at day high 46, at day low 0)
+  One-timeframing: first higher low B, first lower high B; run from A: higher lows 2, lower highs 8; longest: 5 / 8
+  Facts only: no opening type, acceptance/rejection, bias or signal.
+
+  Early TPO matrix (A/B letters only; p* = prior-day reference):
+      7758.50  A
+      7758.25  A
+      7758.00  A
+      7757.75  A
+      7757.50  A   OPEN
+      7757.25  A
+      7757.00  A
+      7756.75  A
+      7756.50  A
+      7756.25  A
+      7756.00  A
+      7755.75  A
+      7755.50  A
+      7755.25  A
+      7755.00  A
+      7754.75  A
+      7754.50  A
+      7754.25  A
+      7754.00  A
+      7753.75  A
+      7753.50  A
+      7753.25  A
+      7753.00  A
+      7752.75  A
+      7752.50  A
+      7752.25  A
+      7752.00  A
+      7751.75  A
+      7751.50  A
+      7751.25  A
+      7751.00  A
+      7750.75  A
+      7750.50  A
+      7750.25  A
+      7750.00  A
+      7749.75  A
+      7749.50  A
+      7749.25  A
+      7749.00  A
+      7748.75  A
+      7748.50  A
+      7748.25  A
+      7748.00  A
+      7747.75  A
+      7747.50  A
+      7747.25  A
+      7747.00  AB
+      7746.75  AB
+      7746.50  AB
+      7746.25  AB  pVAL
+      7746.00  AB
+      7745.75  AB
+      7745.50  AB
+      7745.25  AB
+      7745.00  AB
+      7744.75  AB
+      7744.50  AB
+      7744.25  AB
+      7744.00  AB
+      7743.75  AB
+      7743.50  AB
+      7743.25  AB
+      7743.00  AB
+      7742.75  AB
+      7742.50  AB
+      7742.25  AB
+      7742.00  AB
+      7741.75  AB
+      7741.50  AB
+      7741.25  AB
+      7741.00  AB
+      7740.75  AB
+      7740.50  AB
+      7740.25  AB
+      7740.00  AB
+      7739.75  AB
+      7739.50  AB
+      7739.25  AB
+      7739.00  AB
+      7738.75  AB
+      7738.50  AB
+      7738.25  AB
+      7738.00  AB
+      7737.75  AB
+      7737.50  AB
+      7737.25  AB
+      7737.00  AB
+      7736.75  AB
+      7736.50  AB
+      7736.25  AB
+      7736.00  AB
+      7735.75  AB
+      7735.50  AB
+      7735.25  AB
+      7735.00  A
+      7734.75  A
+    outside the A+B range: pH 7786.25; pVAH 7777.75; pPOC 7759.25; pL 7726.00

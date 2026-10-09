@@ -341,3 +341,29 @@ def test_cli_day_strength_flag_leaves_other_output_unchanged(tmp_path):
     head, _, tail = both.stdout.partition("DAY STRUCTURE STRENGTH:")
     assert day.stdout == head + "TPO matrix" + tail.split("TPO matrix", 1)[1]
     assert strength.stdout == _run(str(path), "--day-strength").stdout
+
+
+# --- 0Y-F opening auction facts -------------------------------------------------------------
+
+def test_opening_session_is_programmatic(tmp_path):
+    r = _analyze(*_build(tmp_path, extra=_full_day()))
+    o = r.opening
+    assert (o.cash_open.price, o.cash_open.timestamp_utc, o.quality.grade.value) == (
+        D("100.00"), _utc(2026, 10, 6, 13, 31), "UNQUALIFIED")
+    assert o.window(5).excursion_up_ticks == 4 and o.early_tpo.ab_overlap_rows == 3
+
+
+def test_cli_opening_facts_with_prior_database_and_other_output_unchanged(tmp_path):
+    path, _ = _build(tmp_path, extra=_full_day())
+    prior, _ = _build(tmp_path, trading_day=5, name="prior.sqlite3")
+    plain = _run(str(path))
+    strength = _run(str(path), "--day-strength")
+    alone = _run(str(path), "--opening-facts")
+    paired = _run(str(path), "--opening-facts", "--prior-database", str(prior))
+    assert plain.returncode == strength.returncode == alone.returncode == paired.returncode == 0
+    assert "OPENING AUCTION FACTS" not in plain.stdout + strength.stdout
+    assert alone.stdout.startswith(plain.stdout.split("TPO matrix")[0])
+    assert "Prior context: NO_PRIOR_PROFILE   expected prior trading date 2026-10-05" in alone.stdout
+    assert "Prior context: PRIOR_PROFILE_INCOMPLETE" in paired.stdout  # the prior fixture trades only A and B
+    assert "Cash open (08:30:00 CT = 13:30:00.000Z): 100.00 at 13:31:00.000Z, delay 60.000s" in alone.stdout
+    assert paired.stdout == _run(str(path), "--opening-facts", "--prior-database", str(prior)).stdout

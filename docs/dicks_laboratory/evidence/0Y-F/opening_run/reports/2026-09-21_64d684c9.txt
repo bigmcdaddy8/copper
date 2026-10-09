@@ -1,0 +1,156 @@
+2026-09-21  64d684c9-c22b-4a87-8224-a2a9f7b17e40  FUTURE:CME:ES:2026-12
+
+OPENING AUCTION FACTS (OPENING_AUCTION_FACTS_V1):
+  Current-day opening quality: UNQUALIFIED   (opening window to 14:30:00.000Z; KNOWN_GAP 0, SUSPECTED_GAP 0; gaps later in the study window 0; study window truncated no)
+  Cash open (08:30:00 CT = 13:30:00.000Z): 7760.50 at 13:30:00.000Z, delay 0.000s (max 60s; first eligible on-grid trade)
+  Prior context: NO_PRIOR_PROFILE   expected prior trading date 2026-09-18
+    - no dataset for prior trading date 2026-09-18
+  Opening windows (from the open print; [08:30, 08:30+N)):
+     N  high       low        rng  last       up  dn  dominant c/d     first  hi-time        lo-time        order       revisit        crosses  1st-cross
+     5  7764.50    7758.25     25  7761.75    16   9  UP       0.5625   DOWN   13:30:02.913Z  13:31:43.764Z  HIGH_FIRST  13:31:24.803Z        9  13:30:00.003Z
+    15  7766.25    7758.25     32  7766.00    23   9  UP       0.3913   DOWN   13:44:59.214Z  13:31:43.764Z  LOW_FIRST   13:31:24.803Z        9  13:30:00.003Z
+    30  7775.00    7758.25     67  7774.75    58   9  UP       0.1552   DOWN   13:59:57.229Z  13:31:43.764Z  LOW_FIRST   13:31:24.803Z        9  13:30:00.003Z
+    60  7791.00    7758.25    131  7788.00    122   9  UP       0.0738   DOWN   14:28:37.674Z  13:31:43.764Z  LOW_FIRST   13:31:24.803Z        9  13:30:00.003Z
+  Path order (60 min): first above open 13:30:00.003Z, first below open 13:30:00.002Z; up first then crossed below: no; down first then crossed above: yes
+  A_HIGH 7775.00 at 13:59:57.229Z: max move away 29 ticks; crossed open after: no; beyond open on the other side 0 ticks (to 14:30:00.000Z)
+  A_LOW 7758.25 at 13:31:43.764Z: max move away 131 ticks; crossed open after: yes at 13:32:54.814Z (+71.050s); beyond open on the other side 122 ticks (to 14:30:00.000Z)
+  Reference interactions (min distance ticks / touched / crossed, per horizon; first touch / first cross over 60 min):
+    CASH_OPEN  7760.50   open+0t  5m 0/yes/yes  15m 0/yes/yes  30m 0/yes/yes  60m 0/yes/yes  touch 13:30:00.000Z  cross 13:30:00.003Z
+  Early TPO: A 7758.25-7775.00 (67 ticks, 68 rows); B 7767.75-7791.00 (94 rows); A/B overlap 30 rows = 0.4412 of the smaller; A+B 7758.25-7791.00 (131 ticks); A-only vs B: 0 above, 38 below; B beyond A: high yes, low no
+    A-only rows at the close: 38 (contiguous at day high 0, at day low 38)
+  One-timeframing: first higher low B, first lower high L; run from A: higher lows 12, lower highs 1; longest: 12 / 2
+  Facts only: no opening type, acceptance/rejection, bias or signal.
+
+  Early TPO matrix (A/B letters only; p* = prior-day reference):
+      7791.00  B
+      7790.75  B
+      7790.50  B
+      7790.25  B
+      7790.00  B
+      7789.75  B
+      7789.50  B
+      7789.25  B
+      7789.00  B
+      7788.75  B
+      7788.50  B
+      7788.25  B
+      7788.00  B
+      7787.75  B
+      7787.50  B
+      7787.25  B
+      7787.00  B
+      7786.75  B
+      7786.50  B
+      7786.25  B
+      7786.00  B
+      7785.75  B
+      7785.50  B
+      7785.25  B
+      7785.00  B
+      7784.75  B
+      7784.50  B
+      7784.25  B
+      7784.00  B
+      7783.75  B
+      7783.50  B
+      7783.25  B
+      7783.00  B
+      7782.75  B
+      7782.50  B
+      7782.25  B
+      7782.00  B
+      7781.75  B
+      7781.50  B
+      7781.25  B
+      7781.00  B
+      7780.75  B
+      7780.50  B
+      7780.25  B
+      7780.00  B
+      7779.75  B
+      7779.50  B
+      7779.25  B
+      7779.00  B
+      7778.75  B
+      7778.50  B
+      7778.25  B
+      7778.00  B
+      7777.75  B
+      7777.50  B
+      7777.25  B
+      7777.00  B
+      7776.75  B
+      7776.50  B
+      7776.25  B
+      7776.00  B
+      7775.75  B
+      7775.50  B
+      7775.25  B
+      7775.00  AB
+      7774.75  AB
+      7774.50  AB
+      7774.25  AB
+      7774.00  AB
+      7773.75  AB
+      7773.50  AB
+      7773.25  AB
+      7773.00  AB
+      7772.75  AB
+      7772.50  AB
+      7772.25  AB
+      7772.00  AB
+      7771.75  AB
+      7771.50  AB
+      7771.25  AB
+      7771.00  AB
+      7770.75  AB
+      7770.50  AB
+      7770.25  AB
+      7770.00  AB
+      7769.75  AB
+      7769.50  AB
+      7769.25  AB
+      7769.00  AB
+      7768.75  AB
+      7768.50  AB
+      7768.25  AB
+      7768.00  AB
+      7767.75  AB
+      7767.50  A
+      7767.25  A
+      7767.00  A
+      7766.75  A
+      7766.50  A
+      7766.25  A
+      7766.00  A
+      7765.75  A
+      7765.50  A
+      7765.25  A
+      7765.00  A
+      7764.75  A
+      7764.50  A
+      7764.25  A
+      7764.00  A
+      7763.75  A
+      7763.50  A
+      7763.25  A
+      7763.00  A
+      7762.75  A
+      7762.50  A
+      7762.25  A
+      7762.00  A
+      7761.75  A
+      7761.50  A
+      7761.25  A
+      7761.00  A
+      7760.75  A
+      7760.50  A   OPEN
+      7760.25  A
+      7760.00  A
+      7759.75  A
+      7759.50  A
+      7759.25  A
+      7759.00  A
+      7758.75  A
+      7758.50  A
+      7758.25  A
