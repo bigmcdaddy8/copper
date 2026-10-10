@@ -116,7 +116,9 @@ class OvernightSession:
     # None unless the session is available
     first_price: Decimal | None = None
     first_utc: datetime | None = None
-    globex_open_price: Decimal | None = None  # first eligible trade within GLOBEX_OPEN_MAX_DELAY of 17:00 CT
+    # claimed only when the capture start is recorded at/before 17:00 CT and the first eligible trade is
+    # within GLOBEX_OPEN_MAX_DELAY of 17:00 CT; otherwise None (first_price is still reported)
+    globex_open_price: Decimal | None = None
     globex_open_utc: datetime | None = None
     globex_open_delay: timedelta | None = None
     globex_open_unavailable_reason: str | None = None
@@ -133,6 +135,11 @@ class OvernightSession:
     @property
     def available(self) -> bool:
         return self.quality.grade is not OvernightQualityGrade.NOT_AVAILABLE
+
+    @property
+    def globex_open_boundary_proven(self) -> bool:
+        """Capture is recorded as starting at or before 17:00:00 CT (no tolerance)."""
+        return self.quality.capture_begins_after_window_start is False
 
     @property
     def high_tick(self) -> int | None:
@@ -170,6 +177,8 @@ def build_overnight_session(
     late_capture = quality.capture_begins_after_window_start
     if late_capture:
         g_reason = "capture began after 17:00 CT; the first retained trade is not the Globex open"
+    elif late_capture is None:  # no tolerance: coverage at 17:00:00 CT must be demonstrable
+        g_reason = "capture start not recorded; exact Globex-open boundary coverage not proven"
     elif first.timestamp_utc - start > GLOBEX_OPEN_MAX_DELAY:
         g_reason = f"first eligible trade {first.timestamp_utc - start} after 17:00 CT (> {GLOBEX_OPEN_MAX_DELAY})"
     else:

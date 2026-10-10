@@ -16,6 +16,7 @@ from dicks_laboratory.tpo_analysis import (
     analyze_tpo_dataset,
     opening_auction_facts,
     opening_path_facts,
+    opening_type_classification,
     overnight_context,
     render_tpo_report,
 )
@@ -60,10 +61,14 @@ def profile(
         False, "--opening-path-detail",
         help="Add multi-scale opening, grace-diagnostic and reference-encounter facts (0Y-G).",
     ),
+    opening_types: bool = typer.Option(
+        False, "--opening-types",
+        help="Add explained OPENING_TYPE_V1 opening-type CANDIDATES (0Y-H; needs --prior-database for prior context).",
+    ),
     prior_database: Path | None = typer.Option(
         None, "--prior-database",
         help="Dataset holding the prior trading date (context for --opening-facts / --overnight-facts / "
-        "--opening-path-detail).",
+        "--opening-path-detail / --opening-types).",
     ),
     closures: list[str] = typer.Option(
         [], "--closure", help="YYYY-MM-DD full CME closure to skip when finding the prior trading date (repeatable)."
@@ -83,7 +88,7 @@ def profile(
         finally:
             store.close()
         priors = []
-        if (opening_facts or overnight_facts or opening_path_detail) and prior_database is not None:
+        if (opening_facts or overnight_facts or opening_path_detail or opening_types) and prior_database is not None:
             prior_store = open_dataset_store(prior_database)
             try:
                 priors.append(analyze_tpo_dataset(prior_store, resolve_dataset_id(prior_store, None),
@@ -99,9 +104,10 @@ def profile(
     opening = opening_auction_facts(result, priors, closure_dates) if opening_facts else None
     overnight = overnight_context(result, priors, closure_dates) if overnight_facts else None
     path = opening_path_facts(result, priors, closure_dates) if opening_path_detail else None
+    types = opening_type_classification(result, priors, closure_dates) if opening_types else None
     typer.echo(render_tpo_report(result, show_matrix=matrix, compare_volume=compare_volume, show_structure=structure,
                                   show_day_structure=day_structure, show_day_strength=day_strength, opening=opening,
-                                  overnight=overnight, opening_path=path))
+                                  overnight=overnight, opening_path=path, opening_types=types))
     if result.profile is None:
         raise typer.Exit(code=1)
 

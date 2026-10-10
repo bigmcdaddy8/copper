@@ -51,6 +51,11 @@ from dicks_laboratory.tpo_opening import (
     render_opening_facts,
 )
 from dicks_laboratory.tpo_opening_path import OpeningPathFacts, build_opening_path_facts, render_opening_path
+from dicks_laboratory.tpo_opening_type import (
+    OpeningTypeClassification,
+    classify_opening_type,
+    render_opening_types,
+)
 from dicks_laboratory.tpo_overnight import (
     OvernightContext,
     OvernightSession,
@@ -291,6 +296,14 @@ def opening_path_facts(
     return build_opening_path_facts(opening, overnight)
 
 
+def opening_type_classification(
+    current: TpoAnalysisResult, candidates=(), closures: frozenset[date] = frozenset()
+) -> OpeningTypeClassification | None:
+    """0Y-H: OPENING_TYPE_V1 candidate set over the 0Y-G opening path facts."""
+    facts = opening_path_facts(current, candidates, closures)
+    return None if facts is None else classify_opening_type(facts)
+
+
 # --- text rendering -------------------------------------------------------------
 
 def _ct(ts: datetime) -> str:
@@ -364,6 +377,7 @@ def render_tpo_report(
     opening: OpeningAuctionFacts | None = None,
     overnight: OvernightContext | None = None,
     opening_path: OpeningPathFacts | None = None,
+    opening_types: OpeningTypeClassification | None = None,
 ) -> str:
     profile = result.profile
     lines = ["Dick's Laboratory -- TPO / Market Profile", ""]
@@ -444,6 +458,8 @@ def render_tpo_report(
         lines += render_overnight_facts(overnight)
     if opening_path is not None:
         lines += render_opening_path(opening_path)
+    if opening_types is not None:
+        lines += render_opening_types(opening_types)
     if show_matrix:
         if structure is not None:
             lines.append("TPO matrix ('|' = inside value area; TAIL = extreme one-TPO run; SP = interior one-TPO zone):")
@@ -454,6 +470,8 @@ def render_tpo_report(
     boundary = ("derived facts and day-type CANDIDATES only -- no interpretation or signal."
                 if (show_day_structure or show_day_strength) and result.day_structure is not None
                 else "derived facts only -- no interpretation, day type or signal.")
+    if opening_types is not None:
+        boundary = "derived facts and opening-type CANDIDATES (OPENING_TYPE_V1) -- no interpretation or signal."
     lines += [f"Boundary: {boundary}",
               "Ordinary CME schedule only; holiday/early-close overrides not modeled."]
     return "\n".join(lines)
