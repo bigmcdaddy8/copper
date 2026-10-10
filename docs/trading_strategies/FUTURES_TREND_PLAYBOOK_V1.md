@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-02  
+**Document revision:** V1-draft-03  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-02, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-03, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -56,7 +56,7 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Primary chart | 5-minute | Agreed; V1-CONTEXT-01 |
 | Analytical instrument | ES for charts, VWAP, and Volume Profile; NES for execution | Agreed; V1-INSTRUMENT-03 |
 | Session VWAP anchor | 08:30 America/Chicago, resetting each RTH session | Agreed; V1-CONTEXT-04 |
-| Session focus | RTH beginning 08:30 Chicago; overnight context only | Agreed; V1-SESSION-01 |
+| Session focus | RTH analytical window 08:30–15:00 Chicago; overnight context only | Agreed; V1-SESSION-01/04 |
 | Initial observation | 08:30–08:50 Chicago | Agreed; V1-SESSION-02 |
 | Regime architecture | Score from -6 through +6; reassess as auction develops | Agreed architecture; V1-REGIME-01 |
 | Proposed trade permission | +4 to +6 long; -4 to -6 short | Proposed thresholds; V1-REGIME-03 |
@@ -123,7 +123,7 @@ Use NinjaTrader Desktop on the Windows 11 computer `weasel`. Record whether each
 
 **Status: Agreed.**
 
-Concentrate on the RTH auction beginning at **08:30 America/Chicago** and its subsequent session. Overnight high, low, and profile are context references. This playbook does not authorize overnight-session entries.
+Concentrate on the RTH auction during the analytical window **08:30–15:00 America/Chicago**. Overnight high, low, and profile are context references. This playbook does not authorize overnight-session entries.
 
 Use Chicago local time for the human-facing journal and examples, with the date and timezone identified. Proposed research convention: retain timezone-aware UTC timestamps as well, so Dick's Laboratory can reconstruct events consistently.
 
@@ -140,6 +140,23 @@ Call this the **initial observation range**, not the standard Initial Balance. S
 **Status: Agreed prohibition; exact cutoff open.**
 
 Close all positions and remove outstanding entry orders before the chosen end-of-session cutoff. Do not carry a V1 position overnight. The exact latest-entry time, flatten time, and holiday/early-close handling must be decided under OD-01. Do not infer the cutoff from the earlier draft's Eastern-time wording.
+
+### V1-SESSION-04 — Analytical sessions and calendar policy
+
+**Status: Agreed on 2026-10-10.**
+
+| Reference | Accepted definition (America/Chicago) |
+| --- | --- |
+| Current RTH analytical session | 08:30–15:00 |
+| Prior-day high/low and Volume Profile | Most recent completed RTH session |
+| Overnight high/low and contextual profile | 17:00 on the preceding calendar day through 08:30; Sunday evening for Monday |
+| Holidays and shortened cash sessions | Observe/review only during initial V1 training; no V1 training entries |
+
+The prior-session reference is the most recent completed session, not necessarily the preceding calendar date. Keep prior-session, overnight, and developing current-RTH profile observations distinct.
+
+The analytical window follows the normal US cash-equity session [S2]. It does not set the latest entry or mandatory flatten times. Those remain open under OD-01. Calendar exceptions require identifying the applicable US cash-session schedule and verifying futures/platform availability; the accepted no-entry policy does not imply that all markets share the same holiday hours.
+
+**Proposed implementation detail, not yet accepted:** represent data windows as half-open intervals, including the start and excluding the endpoint, to avoid double counting observations exactly at 08:30. Final timestamp/bin-boundary handling and treatment of incomplete or shortened prior-session data still need a reproducible calculation policy.
 
 ### V1-INSTRUMENT-03 — ES analysis with NES execution
 
@@ -176,7 +193,7 @@ Price structure remains part of the assessment. Use Volume Profile rather than T
 
 VWAP provides auction location and context; crossing it alone is not an entry signal. Volume Profile informs location, acceptance, and value migration. Raw breakout volume does not gate entry. ATR is descriptive evidence, not the mechanical initial-stop or trailing-stop algorithm.
 
-The analytical source is ES and the session VWAP anchor is the 08:30 RTH open, both accepted on 2026-10-10. Profile session boundaries, value-area calculation, price-row size, exact contract selection, VWAP calculation details, and ATR period/settings remain open under OD-04 and OD-05.
+The analytical source is ES and the session VWAP anchor is the 08:30 RTH open, both accepted on 2026-10-10. Analytical RTH, prior-session, and overnight windows and the holiday/shortened-session no-entry policy were accepted on 2026-10-10 (V1-SESSION-04). Value-area calculation, price-row size, exact contract selection, timestamp boundary handling, VWAP calculation details, and ATR period/settings remain open under OD-04 and OD-05.
 
 ### V1-CONTEXT-04 — RTH session VWAP anchor
 
@@ -184,7 +201,7 @@ The analytical source is ES and the session VWAP anchor is the 08:30 RTH open, b
 
 Anchor the ES session VWAP at **08:30 America/Chicago**, resetting at each RTH session open. Overnight information remains separate context; overnight volume is not included in this RTH-anchored VWAP.
 
-Use the named timezone rather than a fixed UTC offset. The session endpoint, holiday handling, price/volume inputs, and platform calculation method still require decisions under OD-04 and OD-05. This anchor choice does not define the future VWAP Wave deviation-band formula or settings.
+Use the named timezone rather than a fixed UTC offset. The analytical session endpoint and holiday/shortened-session no-entry policy are defined in V1-SESSION-04. Price/volume inputs, timestamp boundary handling, and platform calculation method still require decisions under OD-04 and OD-05. This anchor choice does not define the future VWAP Wave deviation-band formula or settings.
 
 ## 5. Observation and regime assessment
 
@@ -525,10 +542,10 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-16 is close
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
-| OD-01 | Exact end of trading window, latest entry, flatten deadline, holiday/early-close treatment | SESSION-03, EXIT-02 |
+| OD-01 | RTH analytical window and holiday/shortened-session no-entry policy accepted; latest entry, flatten deadline, and operational calendar procedure remain open | SESSION-03, EXIT-02 |
 | OD-02 | Final six score factors, thresholds, measurable lookbacks/tolerances, insufficient-data policy | REGIME-01, REGIME-03 |
 | OD-03 | Score refresh cadence, freshness, and intrabar updates | REGIME-02 |
-| OD-04 | ES analysis / NES execution accepted; exact expiries, rollover alignment, cross-instrument level handling, and prior/overnight/RTH boundaries remain open | INSTRUMENT-01, CONTEXT-02/03 |
+| OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
 | OD-05 | 08:30 Chicago ES VWAP anchor accepted; calculation details, value-area percentage/method, profile row size, ATR settings remain open | CONTEXT-03 |
 | OD-06 | Meaningful swing/consolidation definition and reference selection | ENTRY-01 |
 | OD-07 | Trigger price source, rounding/buffer, order type, protective workflow, fills/rejections/disconnection response | ENTRY-02, STOP-02 |
@@ -548,8 +565,8 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-16 is close
 
 | Term | Meaning in this document |
 | --- | --- |
-| RTH | The daytime session used for the playbook; starts 08:30 Chicago; exact endpoint pending |
-| Overnight | Context period preceding the RTH open; precise profile boundaries pending |
+| RTH | Accepted analytical window: 08:30–15:00 Chicago; entry and flatten cutoffs are separate |
+| Overnight | Context window: preceding calendar day 17:00 through current day 08:30 Chicago; Sunday evening for Monday |
 | VAH / VAL | Upper/lower boundaries of the selected Volume Profile value area |
 | VPOC | Price row with the greatest traded volume under the selected profile settings |
 | Developing value | Current-session VAH/VAL/VPOC as accumulated trading changes the profile |
@@ -590,6 +607,7 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-03 | 2026-10-10 | Accepted RTH analytical window, prior-session references, overnight window, and holiday/shortened-session observation-only policy. Added V1-SESSION-04; further resolved OD-01/04 without choosing entry/flatten cutoffs or calculation settings. |
 | V1-draft-02 | 2026-10-10 | Accepted 5-minute ES analysis, NES execution, and 08:30 Chicago session VWAP anchor. Added V1-INSTRUMENT-03 and V1-CONTEXT-04; closed OD-16; partially resolved OD-04/05. No score, entry, stop, or exit mechanics changed. |
 | V1-draft-01 | 2026-10-03 | Initial study draft. Preserves agreed single-lot mechanics, dynamic scoring architecture, intrabar breakout entry, structural stops, confirmed-pivot two-tick trailing, gross loss-R cutoff, and separate process review. Marks proposals and unresolved details explicitly. |
 
@@ -612,3 +630,5 @@ These topics are discussion/research items, not V1 permissions:
 **Historical inputs:** `gemini_playbook.md` and `blw_review.md`. Neither is the canonical V1 specification. In particular, claims that psychology guarantees profitability, that random-entry profitability is established, or that a pyramid is automatically risk-free are not accepted V1 rules.
 
 **[S1] Contract specifications:** CME Group, [FAQ: E-nano Equity Index Futures](https://www.cmegroup.com/articles/faqs/faq-e-nano-equity-index-futures.html), questions 3 and 5; accessed 2026-10-03. Used here to verify NES multiplier, tick increment, and tick value. Strategy scoring and trailing rules are our design decisions, not CME recommendations.
+
+**[S2] Cash-session calendar:** NYSE, [Holidays & Trading Hours](https://www.nyse.com/trade/hours-calendars), accessed 2026-10-10. Normal core hours of 09:30–16:00 Eastern correspond to 08:30–15:00 Chicago. Our overnight window and observation-only holiday policy are local design decisions, not rules prescribed by NYSE.
