@@ -491,7 +491,7 @@ def render_player_view(s: MarketStudySnapshot, sha: str | None = None) -> str:
              f"  market cutoff    {_ct(c.market_time_cutoff_utc)}   knowledge cutoff {_ct(c.knowledge_time_cutoff_utc)}"
              + (f"  source_order <= {c.knowledge_source_order_cutoff}" if c.knowledge_source_order_cutoff else ""),
              f"  trading date {d.trading_date}  {d.instrument_id}  snapshot {(sha or snapshot_sha256(s))[:16]}",
-             "", f"DATA / QUALITY  [{marker(None, s.dataset_quality.status.value) if s.dataset_quality.status.value != 'AVAILABLE' else 'AVAILABLE'}]",
+             "", f"DATA / QUALITY  [{s.dataset_quality.status.value}]",
              f"  capture {d.capture_status.value}  lifecycle {d.lifecycle_as_of}  connection {d.connection_as_of.value}",
              f"  known: accepted {d.counts.accepted_known:,}  corrections {d.counts.corrections_known}  cancels "
              f"{d.counts.cancels_known}  rejected {d.counts.rejected_known}  known gaps {s.dataset_quality.known_gap_count}"]
@@ -520,7 +520,7 @@ def render_player_view(s: MarketStudySnapshot, sha: str | None = None) -> str:
                      + (f"  IB {ib.low}-{ib.high}" if ib else "")
                      + f"  last price vs TPO value {rel['last_price_vs_developing_tpo_value_area'] or '--'}")
     pc = s.prior_day.context
-    lines += ["", f"PRIOR DAY  [{marker(None, s.prior_day.status.value) if s.prior_day.status.value != 'AVAILABLE' else 'AVAILABLE'}]"]
+    lines += ["", f"PRIOR DAY  [{s.prior_day.status.value}]"]
     if pc is not None and pc.usable:
         lines.append(f"  {pc.prior_trading_date}: high {pc.profile_high} low {pc.profile_low} VAH {pc.value_area_high} "
                      f"VAL {pc.value_area_low} POC {pc.poc} terminal {pc.terminal_price}"

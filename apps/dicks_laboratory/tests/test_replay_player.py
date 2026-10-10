@@ -230,7 +230,8 @@ def test_player_view_markers_and_no_interpretation(session):
     assert pos == sorted(pos)
     assert "[DEVELOPING" in text and "IB [COMPLETE]" in text and "DAY TYPE (DAY_TYPE_V1)  [NOT_YET_DETERMINED]" in text
     assert "OPENING TYPE (OPENING_TYPE_V1)  [COMPLETE" in text
-    assert not [w for w in FORBIDDEN if w in text.lower()]
+    assert not [w for w in FORBIDDEN if w in text.lower()] and "[--" not in text
+    assert "DATA / QUALITY  [QUALITY_QUALIFIED]" in text and "PRIOR DAY  [AVAILABLE]" in text
     early = render_player_view(session.snapshot("07:00"))
     assert "cash open [NOT_YET_AVAILABLE]" in early and "OVERNIGHT  [DEVELOPING" in early
     assert not [w for w in FORBIDDEN if w in render_delta(session.compare("09:29:59", "09:30")).lower()]
