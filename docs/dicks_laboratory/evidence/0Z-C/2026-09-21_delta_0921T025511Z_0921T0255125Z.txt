@@ -1,0 +1,10 @@
+CHANGES 2026-09-20 21:55:11 CDT -> 2026-09-20 21:55:12 CDT
+  snapshots 96dd34e22d9dc6a8 -> 87667ede20309bb7   delta 5b6b6ae2d79e29cc
+  newly known source records: 0 (with market time before the earlier cutoff: 0; corrections 0, cancels 0)
+  LIFECYCLE
+    [LIFECYCLE_CHANGED] /current_dataset/connection_as_of: CONNECTED -> DISCONNECTED
+  QUALITY
+    [QUALITY_CHANGED] /dataset_quality/completeness: COMPLETE / NO KNOWN GAPS -> INCOMPLETE
+    [QUALITY_CHANGED] /dataset_quality/known_gap_count: 0 -> 1
+    [QUALITY_CHANGED] /dataset_quality/active_interruption: null -> {end_utc=2026-09-21T02:55:12.500000Z, evidence_type=ACTIVE_INTERRUPTION, start_utc=2026-09-21T02:55:11.948328Z}  (first knowable at 2026-09-21T02:55:11.948328Z (SOURCE_DISCONNECTED observed))
+Deterministic differences only; no market interpretation.

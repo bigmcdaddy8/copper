@@ -1,0 +1,47 @@
+CHANGES 2026-09-30 14:59:00 CDT -> 2026-09-30 15:00:00 CDT
+  snapshots 72ad6a632633a449 -> 4d5ef8b34eb3caed   delta f3dd6c7a5e101e75
+  newly known source records: 55,416 (with market time before the earlier cutoff: 0; corrections 0, cancels 0)
+  SOURCE_EVIDENCE
+    [OBSERVATION_ADDED] /current_dataset/counts/accepted_known: 1264743 -> 1320159
+  QUALITY
+    [QUALITY_CHANGED] /quality_matrix/cash_tpo/status: AVAILABLE -> QUALITY_QUALIFIED
+    [QUALITY_CHANGED] /quality_matrix/day_strength/status: NOT_AVAILABLE -> QUALITY_QUALIFIED
+    [QUALITY_CHANGED] /quality_matrix/day_type/status: NOT_AVAILABLE -> QUALITY_QUALIFIED
+    [QUALITY_CHANGED] /quality_matrix/tpo_structure/status: NOT_AVAILABLE -> QUALITY_QUALIFIED
+    [QUALITY_CHANGED] /quality_matrix/volume_profile/status: AVAILABLE -> QUALITY_QUALIFIED
+  MATURITY
+    [COMPONENT_MATURED] /maturity/volume_profile: DEVELOPING -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/tpo: DEVELOPING -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/tpo_structure: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/day_type: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/day_strength: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/study_window_terminal: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+  VWAP
+    [VALUE_CHANGED] /vwap/SESSION_OPEN/study/vwap: 7758.417238550085721283370071 -> 7755.417964420965318429980759
+    [VALUE_CHANGED] /vwap/US_CASH_OPEN/study/vwap: 7760.931551498108828660028683 -> 7757.043775529951687482288866
+  PRICE
+    [VALUE_CHANGED] /prices/last_known_price: 7726.5 -> 7712.75
+    [VALUE_CHANGED] /prices/last_known_utc: 2026-09-30T19:58:59.900000Z -> 2026-09-30T19:59:59.887000Z
+  VOLUME_PROFILE
+    [VALUE_CHANGED] /volume_profile/value_area_low: 7754.50 -> 7752.25
+    [VALUE_CHANGED] /volume_profile/profile_low: 7722.75 -> 7709.25
+    [VALUE_CHANGED] /volume_profile/total_volume: 1315058.0 -> 1446830.0
+  TPO
+    [VALUE_WITHDRAWN] /tpo/current_period: M -> null
+    [VALUE_CHANGED] /tpo/profile/value_area/low: 7753.75 -> 7751.75
+    [VALUE_CHANGED] /tpo/profile/profile_low: 7722.75 -> 7709.25
+  TERMINAL
+    [VALUE_AVAILABLE] /prices/study_window_terminal_price: null -> 7712.75
+  DAY_STRENGTH
+    [VALUE_AVAILABLE] /day_strength/strength/dominant_extension: null -> DOWN
+  RELATIONS
+    [RELATION_CHANGED] /relations/last_price_vs_prior_value_area: INSIDE -> BELOW
+  TPO_STRUCTURE
+    [CANDIDATE_AVAILABLE] /tpo_structure/structure/upper/excess_candidate: null -> YES
+    [CANDIDATE_AVAILABLE] /tpo_structure/structure/upper/poor_candidate: null -> NO
+    [CANDIDATE_AVAILABLE] /tpo_structure/structure/lower/excess_candidate: null -> YES
+    [CANDIDATE_AVAILABLE] /tpo_structure/structure/lower/poor_candidate: null -> NO
+  DAY_TYPE
+    [CANDIDATE_AVAILABLE] /day_type/classification/outcome: null -> CANDIDATE
+    [CANDIDATE_AVAILABLE] /day_type/classification/primary: null -> NEUTRAL_DAY
+Deterministic differences only; no market interpretation.

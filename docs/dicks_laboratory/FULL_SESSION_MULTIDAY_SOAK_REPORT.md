@@ -5226,3 +5226,47 @@ Formal proof (`MARKET_REPLAY_0ZB.md`, `evidence/0Z-B/`), 2026-09-30:
 MARKET_STUDY_SNAPSHOT_V1: READY FOR DOWNSTREAM REPLAY
 NEXT: PO REVIEW BEFORE REPLAY PLAYER / TUTOR EVIDENCE INTEGRATION
 ```
+
+## MX. 0Z-C — Replay Evidence Player / Tutor Evidence Interface (2026-10-10)
+
+PO record: 0Z-B **PASS / ACCEPTED / CLOSED**; MARKET_STUDY_SNAPSHOT_V1 accepted for
+downstream use.
+
+What 0Z-C adds (`REPLAY_EVIDENCE_PLAYER.md`); replay semantics unchanged:
+- `ReplaySession`: prepare once; seek by ISO or `HH:MM` Chicago; milestones;
+  +Nm / +Ns / next stepping; snapshot cache.
+- `MarketStudyDelta` (`MARKET_STUDY_DELTA_V1`): typed `ChangeKind` changes
+  (observation / late observation added, value available / changed / withdrawn,
+  relation changed, component matured, quality / lifecycle changed with
+  first-knowable times, candidate available / removed, correction / cancel known
+  / applied, rejection, reconstruction anomaly); canonical JSON +
+  `market_study_delta_sha256`.
+- `TutorEvidenceSession`: `state_at`, `changes_between`, `timeline`; no AI.
+- Player view with explicit DEVELOPING / COMPLETE / NOT_YET_DETERMINED /
+  NOT_YET_AVAILABLE / QUALITY_QUALIFIED / NOT_AVAILABLE markers; facts only.
+- CLI `scripts/dicks_lab_replay.py`: `--at HH:MM`, `--compare T1 T2|+5m|next`,
+  `--milestones`, `--view player|summary`.
+- Drysdale VWAP Wave evidence-readiness inventory: VWAP, VWAP relations and
+  change, IB, Volume Profile, prior value, value migration available now; VWAP
+  deviation bands, band position, breakout, acceptance, backtest, first sign of
+  strength / weakness, rejection need policy definitions; VWAP crossing paths,
+  time outside value, 5-minute price action and volatility need implementation.
+
+Real-data proof (`MARKET_REPLAY_PLAYER_0ZC.md`, `evidence/0Z-C/`):
+- 09-30 12:14:00 → 12:14:01: 750 earlier-market-time trades newly known (max
+  lag 20.293 s), volume +938, snapshot hash changed.
+- 09-30 09:29 → 09:30: OPENING_TYPE_V1 NOT_YET_DETERMINED → candidates; 14:59 →
+  15:00: day type / strength / structure / terminal mature.
+- 09-21: a real disconnect appears as an active interruption at 21:55:11.948 CT
+  and as a fixed KNOWN_GAP at the 21:55:13.502 reconnect, never earlier.
+- 10-02: the real CANCEL becomes known with TARGET_SOURCE_EVENT_NOT_FOUND;
+  nothing implies the uncaptured original.
+- 08-31 (interrupted): unavailable components rendered with reasons.
+- All 8 deltas deterministic; database sha256 unchanged; peak 3.86 GB.
+
+```
+0Z-C: PASS — REPLAY EVIDENCE PLAYER / TUTOR INTERFACE COMPLETE
+AI TUTOR: NOT YET IMPLEMENTED
+DRYSDALE VWAP CURRICULUM: EVIDENCE DEPENDENCIES AUDITED
+NEXT: PO REVIEW BEFORE AI TUTOR FOUNDATION
+```

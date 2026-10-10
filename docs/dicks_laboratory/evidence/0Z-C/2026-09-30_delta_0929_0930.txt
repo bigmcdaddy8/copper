@@ -1,0 +1,29 @@
+CHANGES 2026-09-30 09:29:00 CDT -> 2026-09-30 09:30:00 CDT
+  snapshots ecd0fba45d75962b -> 81e89c49f26da7c1   delta 57365a39babf4093
+  newly known source records: 3,850 (with market time before the earlier cutoff: 0; corrections 0, cancels 0)
+  SOURCE_EVIDENCE
+    [OBSERVATION_ADDED] /current_dataset/counts/accepted_known: 497893 -> 501743
+  QUALITY
+    [QUALITY_CHANGED] /quality_matrix/cash_opening/status: AVAILABLE -> QUALITY_QUALIFIED
+    [QUALITY_CHANGED] /quality_matrix/opening_type/status: NOT_AVAILABLE -> QUALITY_QUALIFIED
+  MATURITY
+    [COMPONENT_MATURED] /maturity/opening_facts: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/opening_type: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/initial_balance: DEVELOPING -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /cash_opening/windows/60min/maturity: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+  VWAP
+    [VALUE_CHANGED] /vwap/SESSION_OPEN/study/vwap: 7755.983270935293984979363540 -> 7756.060376959084881696036298
+    [VALUE_CHANGED] /vwap/US_CASH_OPEN/study/vwap: 7764.351038816406921256824100 -> 7764.366908391490246533328135
+  PRICE
+    [VALUE_CHANGED] /prices/last_known_price: 7764.25 -> 7766.0
+    [VALUE_CHANGED] /prices/last_known_utc: 2026-09-30T14:28:59.969000Z -> 2026-09-30T14:29:59.969000Z
+  VOLUME_PROFILE
+    [VALUE_CHANGED] /volume_profile/total_volume: 302604.0 -> 307788.0
+  TPO
+    [VALUE_WITHDRAWN] /tpo/current_period: B -> null
+  RELATIONS
+    [RELATION_CHANGED] /relations/last_price_vs_cash_vwap: BELOW -> ABOVE
+  OPENING_TYPE
+    [CANDIDATE_AVAILABLE] /opening_type/matched/OPEN_AUCTION_IN_RANGE: null -> OPEN_AUCTION_IN_RANGE (QUALITY_QUALIFIED)  (OPENING_TYPE_V1 (frozen); a candidate, not an interpretation)
+    [CANDIDATE_AVAILABLE] /opening_type/matched/OPEN_TEST_DRIVE DOWN: null -> OPEN_TEST_DRIVE DOWN (QUALITY_QUALIFIED)  (OPENING_TYPE_V1 (frozen); a candidate, not an interpretation)
+Deterministic differences only; no market interpretation.

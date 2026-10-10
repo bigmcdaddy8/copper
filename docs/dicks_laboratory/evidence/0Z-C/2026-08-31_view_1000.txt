@@ -1,0 +1,47 @@
+REPLAY TIME
+  market cutoff    2026-08-31 10:00:00 CDT   knowledge cutoff 2026-08-31 10:00:00 CDT
+  trading date 2026-08-31  FUTURE:CME:ES:2026-09  snapshot 6f35b6f40139c302
+
+DATA / QUALITY  [QUALITY_QUALIFIED]
+  capture STOPPED  lifecycle INTERRUPTED  connection STOPPED
+  known: accepted 216,519  corrections 0  cancels 0  rejected 9  known gaps 4
+  ! KNOWN_GAP evidence known: 4
+  ! CASH_PROFILE window not captured through the clock
+  ! OPENING window not captured through the clock
+  ! OVERNIGHT window not captured through the clock
+
+CURRENT PRICE / RANGE
+  last known 7688.25 at 2026-08-31 08:47:35 CDT
+  cash range so far 7682.50 - 7704.25   overnight range 7683.75 - 7723.50
+
+VWAP
+  SESSION_OPEN  [DEVELOPING, QUALITY_QUALIFIED] 7697.92  last price BELOW
+  US_CASH_OPEN  [DEVELOPING, QUALITY_QUALIFIED] 7691.38  last price BELOW
+
+VOLUME PROFILE  [DEVELOPING, QUALITY_QUALIFIED]
+  POC 7690.00  VAL 7685.50  VAH 7693.00  volume 80604.0  last price vs value INSIDE
+
+TPO  [DEVELOPING, QUALITY_QUALIFIED]   IB [COMPLETE]
+  periods ABC  current --
+  TPO POC 7693.25  VAL 7688.75  VAH 7704.25  IB 7682.50-7704.25  last price vs TPO value BELOW
+
+PRIOR DAY  [NOT_AVAILABLE]
+  prior dataset has no study-window profile
+
+OVERNIGHT  [COMPLETE, QUALITY_QUALIFIED]  Globex open claimed no
+  high 7723.50  low 7683.75  range 159 ticks  last 7701.25
+
+CASH OPEN / OPENING FACTS  [NOT_AVAILABLE]
+  cash open [COMPLETE] 7701.25  vs prior range --  vs prior value --  gap -- ticks
+  windows 5m [NOT_AVAILABLE]  15m [NOT_AVAILABLE]  30m [NOT_AVAILABLE]  60m [NOT_AVAILABLE]
+
+OPENING TYPE (OPENING_TYPE_V1)  [NOT_AVAILABLE]
+  opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; KNOWN_GAP overlaps the opening window: 3; lifecycle INTERRUPTED (not FINALIZED)
+
+DAY TYPE (DAY_TYPE_V1)  [NOT_YET_DETERMINED]
+
+NOT-YET-DETERMINED / NOT-YET-AVAILABLE ITEMS
+  tpo_structure, day_type, day_strength, study_window_terminal
+
+Markers: DEVELOPING = window in progress; COMPLETE = market window ended (later receipts may still
+revise it); NOT_YET_DETERMINED = final-study item before its window ends. Facts only; no interpretation.

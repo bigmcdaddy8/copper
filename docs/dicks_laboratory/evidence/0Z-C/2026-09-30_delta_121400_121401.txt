@@ -1,0 +1,21 @@
+CHANGES 2026-09-30 12:14:00 CDT -> 2026-09-30 12:14:01 CDT
+  snapshots 2b942cb5eda1c5b3 -> 6246c5d114657a35   delta da2deac1eeb47bf8
+  newly known source records: 754 (with market time before the earlier cutoff: 750, max receipt lag 20.293056 s; corrections 0, cancels 0)
+  EVIDENCE
+    [LATE_OBSERVATION_ADDED] /evidence/newly_known_records_with_market_time_before_earlier_cutoff: 0 -> 750  (max receipt lag 20.293056 s; history revised by newly received evidence)
+  SOURCE_EVIDENCE
+    [OBSERVATION_ADDED] /current_dataset/counts/accepted_known: 890628 -> 891382
+  VWAP
+    [VALUE_CHANGED] /vwap/SESSION_OPEN/study/vwap: 7762.669315042901559935414137 -> 7762.670534069081254338800185
+    [VALUE_CHANGED] /vwap/US_CASH_OPEN/study/vwap: 7768.450408093376330584172826 -> 7768.445387238018989169406641
+  PRICE
+    [VALUE_CHANGED] /prices/last_known_price: 7765.0 -> 7763.75
+    [VALUE_CHANGED] /prices/last_known_utc: 2026-09-30T17:13:39.839000Z -> 2026-09-30T17:14:00.724000Z
+  VOLUME_PROFILE
+    [VALUE_CHANGED] /volume_profile/total_volume: 805943.0 -> 806881.0
+  TPO
+    [VALUE_CHANGED] /tpo/profile/value_area/low: 7764.25 -> 7763.75
+    [VALUE_CHANGED] /tpo/profile/value_area/high: 7777.25 -> 7776.75
+  RELATIONS
+    [RELATION_CHANGED] /relations/last_price_vs_developing_volume_value_area: INSIDE -> BELOW
+Deterministic differences only; no market interpretation.

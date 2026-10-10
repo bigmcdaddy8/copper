@@ -1,0 +1,40 @@
+CHANGES 2026-08-31 08:45:00 CDT -> 2026-08-31 09:30:00 CDT
+  snapshots d0cf002786e858fd -> e4832aaeccd93683   delta 99f7dd69aa07eb44
+  newly known source records: 11,601 (with market time before the earlier cutoff: 0; corrections 0, cancels 0)
+  SOURCE_EVIDENCE
+    [OBSERVATION_ADDED] /current_dataset/counts/accepted_known: 204918 -> 216519
+  LIFECYCLE
+    [LIFECYCLE_CHANGED] /current_dataset/capture_status: RUNNING -> STOPPED
+    [LIFECYCLE_CHANGED] /current_dataset/lifecycle_as_of: OPEN_AS_OF -> INTERRUPTED
+    [LIFECYCLE_CHANGED] /current_dataset/connection_as_of: CONNECTED -> STOPPED
+    [LIFECYCLE_CHANGED] /current_dataset/closing_summary_maturity: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+  QUALITY
+    [QUALITY_CHANGED] /quality_matrix/cash_opening/status: QUALITY_QUALIFIED -> NOT_AVAILABLE
+  MATURITY
+    [COMPONENT_MATURED] /maturity/closing_summary: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/opening_facts: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/opening_type: NOT_YET_DETERMINED -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /maturity/initial_balance: DEVELOPING -> WINDOW_COMPLETE
+    [COMPONENT_MATURED] /cash_opening/windows/5min/maturity: WINDOW_COMPLETE -> NOT_AVAILABLE
+    [COMPONENT_MATURED] /cash_opening/windows/15min/maturity: WINDOW_COMPLETE -> NOT_AVAILABLE
+    [COMPONENT_MATURED] /cash_opening/windows/30min/maturity: NOT_YET_DETERMINED -> NOT_AVAILABLE
+    [COMPONENT_MATURED] /cash_opening/windows/60min/maturity: NOT_YET_DETERMINED -> NOT_AVAILABLE
+  VWAP
+    [VALUE_CHANGED] /vwap/SESSION_OPEN/study/vwap: 7698.596596185721730884525410 -> 7697.921735304340109593498340
+    [VALUE_CHANGED] /vwap/US_CASH_OPEN/study/vwap: 7692.488955454559365866348376 -> 7691.380489801994938216465684
+  PRICE
+    [VALUE_CHANGED] /prices/last_known_price: 7686.0 -> 7688.25
+    [VALUE_CHANGED] /prices/last_known_utc: 2026-08-31T13:44:59.862000Z -> 2026-08-31T13:47:35.894000Z
+  VOLUME_PROFILE
+    [VALUE_CHANGED] /volume_profile/value_area_low: 7686.00 -> 7685.50
+    [VALUE_CHANGED] /volume_profile/value_area_high: 7693.50 -> 7693.00
+    [VALUE_CHANGED] /volume_profile/profile_low: 7685.25 -> 7682.50
+    [VALUE_CHANGED] /volume_profile/total_volume: 65349.0 -> 80604.0
+  TPO
+    [VALUE_CHANGED] /tpo/periods_reached: A -> AB
+    [VALUE_WITHDRAWN] /tpo/current_period: A -> null
+    [VALUE_CHANGED] /tpo/profile/poc: 7694.75 -> 7693.25
+    [VALUE_CHANGED] /tpo/profile/value_area/low: 7690.75 -> 7688.75
+    [VALUE_CHANGED] /tpo/profile/profile_low: 7685.25 -> 7682.50
+    [VALUE_CHANGED] /tpo/profile/initial_balance/low: 7685.25 -> 7682.50
+Deterministic differences only; no market interpretation.

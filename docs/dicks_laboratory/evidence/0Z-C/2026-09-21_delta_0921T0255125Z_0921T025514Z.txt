@@ -1,0 +1,15 @@
+CHANGES 2026-09-20 21:55:12 CDT -> 2026-09-20 21:55:14 CDT
+  snapshots 87667ede20309bb7 -> 6f2a4296c694d427   delta 98b129f77aa2efa7
+  newly known source records: 7 (with market time before the earlier cutoff: 0; corrections 0, cancels 0)
+  SOURCE_EVIDENCE
+    [OBSERVATION_ADDED] /current_dataset/counts/accepted_known: 40259 -> 40266
+  LIFECYCLE
+    [LIFECYCLE_CHANGED] /current_dataset/connection_as_of: DISCONNECTED -> CONNECTED
+  QUALITY
+    [QUALITY_CHANGED] /dataset_quality/active_interruption: {end_utc=2026-09-21T02:55:12.500000Z, evidence_type=ACTIVE_INTERRUPTION, start_utc=2026-09-21T02:55:11.948328Z} -> null
+    [QUALITY_CHANGED] /dataset_quality/gaps/KNOWN_GAP/2026-09-21T02:55:11.948328Z: null -> {end_utc=2026-09-21T02:55:13.502084Z, evidence_type=KNOWN_GAP, start_utc=2026-09-21T02:55:11.948328Z}  (first knowable at 2026-09-21T02:55:13.502084Z (interval closed at reconnect / close))
+  VWAP
+    [VALUE_CHANGED] /vwap/SESSION_OPEN/study/vwap: 7734.956098944619270866782266 -> 7734.957176644335523640333041
+  PRICE
+    [VALUE_CHANGED] /prices/last_known_utc: 2026-09-21T02:55:08.839000Z -> 2026-09-21T02:55:13.895000Z
+Deterministic differences only; no market interpretation.

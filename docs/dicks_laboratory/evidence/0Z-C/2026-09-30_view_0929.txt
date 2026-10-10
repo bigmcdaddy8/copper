@@ -1,0 +1,44 @@
+REPLAY TIME
+  market cutoff    2026-09-30 09:29:00 CDT   knowledge cutoff 2026-09-30 09:29:00 CDT
+  trading date 2026-09-30  FUTURE:CME:ES:2026-12  snapshot ecd0fba45d75962b
+
+DATA / QUALITY  [QUALITY_QUALIFIED]
+  capture RUNNING  lifecycle OPEN_AS_OF  connection CONNECTED
+  known: accepted 497,893  corrections 0  cancels 0  rejected 5  known gaps 0
+  ! OVERNIGHT window not captured through the clock
+
+CURRENT PRICE / RANGE
+  last known 7764.25 at 2026-09-30 09:28:59 CDT
+  cash range so far 7748.00 - 7779.50   overnight range 7719.50 - 7771.25
+
+VWAP
+  SESSION_OPEN  [DEVELOPING, QUALITY_QUALIFIED] 7755.98  last price ABOVE
+  US_CASH_OPEN  [DEVELOPING] 7764.35  last price BELOW
+
+VOLUME PROFILE  [DEVELOPING]
+  POC 7773.00  VAL 7756.75  VAH 7779.25  volume 302604.0  last price vs value INSIDE
+
+TPO  [DEVELOPING]   IB [DEVELOPING]
+  periods AB  current B
+  TPO POC 7763.75  VAL 7758.75  VAH 7779.25  IB 7748.00-7779.50  last price vs TPO value INSIDE
+
+PRIOR DAY  [AVAILABLE]
+  2026-09-29: high 7758.50 low 7712.25 VAH 7741.75 VAL 7718.25 POC 7735.25 terminal 7732.50  last price vs prior value ABOVE
+
+OVERNIGHT  [COMPLETE, QUALITY_QUALIFIED]  Globex open claimed no
+  high 7771.25  low 7719.50  range 207 ticks  last 7751.75
+
+CASH OPEN / OPENING FACTS  [NOT_YET_DETERMINED]
+  cash open [COMPLETE] 7751.75  vs prior range INSIDE_PRIOR_RANGE  vs prior value ABOVE_PRIOR_VALUE  gap 77 ticks
+  windows 5m [COMPLETE]  15m [COMPLETE]  30m [COMPLETE]  60m [NOT_YET_DETERMINED]
+
+OPENING TYPE (OPENING_TYPE_V1)  [NOT_YET_DETERMINED]
+  NOT_YET_DETERMINED: OPENING_TYPE_V1 is evaluated at 09:30 CT
+
+DAY TYPE (DAY_TYPE_V1)  [NOT_YET_DETERMINED]
+
+NOT-YET-DETERMINED / NOT-YET-AVAILABLE ITEMS
+  closing_summary, opening_facts, opening_type, tpo_structure, day_type, day_strength, study_window_terminal, opening window 60m
+
+Markers: DEVELOPING = window in progress; COMPLETE = market window ended (later receipts may still
+revise it); NOT_YET_DETERMINED = final-study item before its window ends. Facts only; no interpretation.

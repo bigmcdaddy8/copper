@@ -1,0 +1,15 @@
+CHANGES 2026-10-02 02:40:03 CDT -> 2026-10-02 02:40:05 CDT
+  snapshots 1439d51543311a10 -> c371414dc8991699   delta a7c844acc1e9bdca
+  newly known source records: 4 (with market time before the earlier cutoff: 0; corrections 0, cancels 1)
+  SOURCE_EVIDENCE
+    [OBSERVATION_ADDED] /current_dataset/counts/accepted_known: 105301 -> 105304
+    [CANCEL_KNOWN] /current_dataset/counts/cancels_known: 0 -> 1
+    [RECONSTRUCTION_ANOMALY_KNOWN] /current_dataset/counts/reconstruction_anomalies: 0 -> 1
+  VWAP
+    [VALUE_CHANGED] /vwap/SESSION_OPEN/study/vwap: 7739.214590485532123589995096 -> 7739.214832766625253383901131
+  PRICE
+    [VALUE_CHANGED] /prices/last_known_price: 7746.75 -> 7746.5
+    [VALUE_CHANGED] /prices/last_known_utc: 2026-10-02T07:40:03.207000Z -> 2026-10-02T07:40:05.546000Z
+  OVERNIGHT
+    [VALUE_CHANGED] /overnight/developing/last_price: 7746.75 -> 7746.50
+Deterministic differences only; no market interpretation.

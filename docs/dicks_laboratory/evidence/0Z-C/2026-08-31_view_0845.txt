@@ -1,0 +1,45 @@
+REPLAY TIME
+  market cutoff    2026-08-31 08:45:00 CDT   knowledge cutoff 2026-08-31 08:45:00 CDT
+  trading date 2026-08-31  FUTURE:CME:ES:2026-09  snapshot d0cf002786e858fd
+
+DATA / QUALITY  [QUALITY_QUALIFIED]
+  capture RUNNING  lifecycle OPEN_AS_OF  connection CONNECTED
+  known: accepted 204,918  corrections 0  cancels 0  rejected 9  known gaps 4
+  ! KNOWN_GAP evidence known: 4
+  ! OVERNIGHT window not captured through the clock
+
+CURRENT PRICE / RANGE
+  last known 7686.0 at 2026-08-31 08:44:59 CDT
+  cash range so far 7685.25 - 7704.25   overnight range 7683.75 - 7723.50
+
+VWAP
+  SESSION_OPEN  [DEVELOPING, QUALITY_QUALIFIED] 7698.60  last price BELOW
+  US_CASH_OPEN  [DEVELOPING, QUALITY_QUALIFIED] 7692.49  last price BELOW
+
+VOLUME PROFILE  [DEVELOPING, QUALITY_QUALIFIED]
+  POC 7690.00  VAL 7686.00  VAH 7693.50  volume 65349.0  last price vs value INSIDE
+
+TPO  [DEVELOPING, QUALITY_QUALIFIED]   IB [DEVELOPING]
+  periods A  current A
+  TPO POC 7694.75  VAL 7690.75  VAH 7704.25  IB 7685.25-7704.25  last price vs TPO value BELOW
+
+PRIOR DAY  [NOT_AVAILABLE]
+  prior dataset has no study-window profile
+
+OVERNIGHT  [COMPLETE, QUALITY_QUALIFIED]  Globex open claimed no
+  high 7723.50  low 7683.75  range 159 ticks  last 7701.25
+
+CASH OPEN / OPENING FACTS  [NOT_YET_DETERMINED]
+  cash open [COMPLETE] 7701.25  vs prior range --  vs prior value --  gap -- ticks
+  windows 5m [COMPLETE]  15m [COMPLETE]  30m [NOT_YET_DETERMINED]  60m [NOT_YET_DETERMINED]
+
+OPENING TYPE (OPENING_TYPE_V1)  [NOT_YET_DETERMINED]
+  NOT_YET_DETERMINED: OPENING_TYPE_V1 is evaluated at 09:30 CT
+
+DAY TYPE (DAY_TYPE_V1)  [NOT_YET_DETERMINED]
+
+NOT-YET-DETERMINED / NOT-YET-AVAILABLE ITEMS
+  closing_summary, opening_facts, opening_type, tpo_structure, day_type, day_strength, study_window_terminal, opening window 30m, opening window 60m
+
+Markers: DEVELOPING = window in progress; COMPLETE = market window ended (later receipts may still
+revise it); NOT_YET_DETERMINED = final-study item before its window ends. Facts only; no interpretation.
