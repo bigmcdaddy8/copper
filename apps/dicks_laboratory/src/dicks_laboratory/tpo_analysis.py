@@ -148,12 +148,36 @@ def analyze_tpo_dataset(
     resolved = context.resolved_trading_date
     build_period_slots(resolved, period_minutes, window)  # validate before any work
     start_utc, end_utc = window.bounds_utc(resolved)
-    selected = select_trades_from_anchor(context.scoped_effective, start_utc, end_utc)
+    return derive_tpo_analysis(
+        dataset_id, context.instrument, resolved, context.scoped_effective,
+        _dataset_quality(store, dataset_id, start_utc, end_utc),
+        context.tape.applied_correction_count, context.tape.applied_cancel_count, period_minutes, window)
 
-    grid = price_grid_for_instrument(context.instrument)
+
+def derive_tpo_analysis(
+    dataset_id: UUID,
+    instrument: InstrumentIdentity,
+    trading_date: date,
+    scoped_effective: tuple,
+    quality: TpoDatasetQuality,
+    applied_correction_count: int,
+    applied_cancel_count: int,
+    period_minutes: int = DEFAULT_PERIOD_MINUTES,
+    window: StudyWindow = US_CASH_PROFILE,
+) -> TpoAnalysisResult:
+    """The TPO-family derivation over an already scoped effective tape and its quality evidence.
+
+    Pure: `analyze_tpo_dataset` calls it with the full retained tape; replay (0Z-B) calls it with
+    the tape and quality evidence known at a cutoff. One derivation path for both.
+    """
+    resolved = trading_date
+    build_period_slots(resolved, period_minutes, window)
+    start_utc, end_utc = window.bounds_utc(resolved)
+    selected = select_trades_from_anchor(scoped_effective, start_utc, end_utc)
+
+    grid = price_grid_for_instrument(instrument)
     profile = build_tpo_profile(selected, grid, resolved, period_minutes, window)
     volume = build_volume_at_price_profile(selected, grid, VwapSourceMode.EFFECTIVE_TAPE).profile
-    quality = _dataset_quality(store, dataset_id, start_utc, end_utc)
     structure = build_profile_structure(profile) if profile else None
     day_structure = day_strength = None
     if profile is not None:
@@ -167,21 +191,21 @@ def analyze_tpo_dataset(
                                           quality.capture_ended_at, quality.gap_intervals, quality.lifecycle_state)
         on_start, on_end = overnight_window_utc(resolved)
         overnight = build_overnight_session(
-            select_trades_from_anchor(context.scoped_effective, on_start, on_end), grid, resolved,
-            context.instrument.canonical_id, quality.capture_started_at, quality.capture_ended_at,
+            select_trades_from_anchor(scoped_effective, on_start, on_end), grid, resolved,
+            instrument.canonical_id, quality.capture_started_at, quality.capture_ended_at,
             quality.gap_intervals, quality.lifecycle_state)
 
     return TpoAnalysisResult(
         dataset_id=dataset_id,
-        instrument=context.instrument,
+        instrument=instrument,
         trading_date=resolved,
         window=window,
         window_start_utc=start_utc,
         window_end_utc=end_utc,
         period_minutes=period_minutes,
         source_mode=VwapSourceMode.EFFECTIVE_TAPE,
-        applied_correction_count=context.tape.applied_correction_count,
-        applied_cancel_count=context.tape.applied_cancel_count,
+        applied_correction_count=applied_correction_count,
+        applied_cancel_count=applied_cancel_count,
         quality=quality,
         profile=profile,
         volume_profile=volume,
@@ -196,7 +220,16 @@ def analyze_tpo_dataset(
 
 def _dataset_quality(store: LaboratoryStore, dataset_id: UUID, start: datetime, end: datetime) -> TpoDatasetQuality:
     dataset = store.load_dataset(dataset_id)
-    events = store.load_quality_events(dataset_id)
+    lifecycle = store.load_dataset_lifecycle_state(dataset_id)
+    return dataset_quality_from_evidence(store.load_quality_events(dataset_id), dataset.capture_started_at,
+                                         dataset.capture_ended_at, lifecycle.value if lifecycle else None, start, end)
+
+
+def dataset_quality_from_evidence(
+    events, started: datetime | None, ended: datetime | None, lifecycle_state: str | None,
+    start: datetime, end: datetime,
+) -> TpoDatasetQuality:
+    """The accepted quality restatement over given evidence (the full record, or replay's as-of view)."""
     summary = summarize_dataset_quality(events)
     gap_types = {DatasetQualityEvidenceType.KNOWN_GAP, DatasetQualityEvidenceType.SUSPECTED_GAP}
     overlapping = sum(
@@ -208,15 +241,13 @@ def _dataset_quality(store: LaboratoryStore, dataset_id: UUID, start: datetime, 
         status = QualityStatus.SUSPECTED
     else:
         status = QualityStatus.COMPLETE
-    started, ended = dataset.capture_started_at, dataset.capture_ended_at
-    lifecycle = store.load_dataset_lifecycle_state(dataset_id)
     return TpoDatasetQuality(
         status=status,
         known_gap_count=summary.known_gap_count,
         suspected_gap_count=summary.suspected_gap_count,
         known_gap_duration=summary.known_gap_duration,
         gaps_overlapping_study_window=overlapping,
-        lifecycle_state=lifecycle.value if lifecycle else None,
+        lifecycle_state=lifecycle_state,
         capture_started_at=started,
         capture_ended_at=ended,
         study_window_captured=None if started is None or ended is None else (started <= start and ended >= end),
