@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-05  
+**Document revision:** V1-draft-06  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-05, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-06, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -55,7 +55,7 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Platform | NinjaTrader Desktop on Windows 11 (`weasel`) | Agreed; V1-INSTRUMENT-02 |
 | Primary chart | 5-minute | Agreed; V1-CONTEXT-01 |
 | Analytical instrument | ES for charts, VWAP, and Volume Profile; NES for execution | Agreed; V1-INSTRUMENT-03 |
-| Session VWAP anchor | 08:30 America/Chicago, resetting each RTH session | Agreed; V1-CONTEXT-04 |
+| Session VWAP | NinjaTrader Order Flow VWAP on ES; tick resolution subject to complete data; session reset; 08:30–15:00 Chicago template | Agreed; V1-CONTEXT-04 |
 | Volume Profile | NinjaTrader Order Flow Volume Profile; 68% value area; one ES tick per row; tick resolution subject to availability | Agreed; V1-CONTEXT-05 |
 | ATR | ATR(13), Wilder smoothing, full-session ES 5-minute bars; no 08:30 reset; last completed bar at entry | Agreed; V1-CONTEXT-06 |
 | Session focus | RTH analytical window 08:30–15:00 Chicago; overnight context only | Agreed; V1-SESSION-01/04 |
@@ -195,15 +195,29 @@ Price structure remains part of the assessment. Use Volume Profile rather than T
 
 VWAP provides auction location and context; crossing it alone is not an entry signal. Volume Profile informs location, acceptance, and value migration. Raw breakout volume does not gate entry. ATR is descriptive evidence, not the mechanical initial-stop or trailing-stop algorithm.
 
-The analytical source is ES and the session VWAP anchor is the 08:30 RTH open, both accepted on 2026-10-10. Analytical RTH, prior-session, and overnight windows and the holiday/shortened-session no-entry policy were accepted on 2026-10-10 (V1-SESSION-04). NinjaTrader Order Flow Volume Profile with 68% value area, one ES tick per row, tick-resolution data subject to availability, and ATR(13) settings were accepted on 2026-10-10 (V1-CONTEXT-05/06). Exact contract selection, timestamp boundary/data-completeness handling, profile calculation reproducibility, VWAP calculation details, and ATR seed/warm-up policy remain open under OD-04 and OD-05.
+The analytical source is ES and the session VWAP anchor is the 08:30 RTH open, both accepted on 2026-10-10. Analytical RTH, prior-session, and overnight windows and the holiday/shortened-session no-entry policy were accepted on 2026-10-10 (V1-SESSION-04). NinjaTrader Order Flow Volume Profile with 68% value area, one ES tick per row, tick-resolution data subject to availability, and ATR(13) settings were accepted on 2026-10-10 (V1-CONTEXT-05/06). Exact contract selection, timestamp boundary/data-completeness handling, profile calculation reproducibility, VWAP template/data/reproducibility verification, and ATR seed/warm-up policy remain open under OD-04 and OD-05.
 
-### V1-CONTEXT-04 — RTH session VWAP anchor
+### V1-CONTEXT-04 — RTH session VWAP anchor and implementation
 
-**Status: Agreed on 2026-10-10; calculation details open.**
+**Status: Agreed on 2026-10-10; operational verification details open.**
 
 Anchor the ES session VWAP at **08:30 America/Chicago**, resetting at each RTH session open. Overnight information remains separate context; overnight volume is not included in this RTH-anchored VWAP.
 
-Use the named timezone rather than a fixed UTC offset. The analytical session endpoint and holiday/shortened-session no-entry policy are defined in V1-SESSION-04. Price/volume inputs, timestamp boundary handling, and platform calculation method still require decisions under OD-04 and OD-05. This anchor choice does not define the future VWAP Wave deviation-band formula or settings.
+The following implementation was explicitly accepted on 2026-10-10:
+
+| Setting | Accepted implementation |
+| --- | --- |
+| Indicator | NinjaTrader Order Flow VWAP |
+| Analytical instrument | ES |
+| Resolution | Tick, subject to complete data availability |
+| Reset interval | Session |
+| Trading-hours template | Explicitly match 08:30–15:00 America/Chicago |
+
+NinjaTrader documents tick-resolution calculation, session resets, and a selectable trading-hours template [S5]. Verify the template's actual opening/closing hours, timezone, and applicable calendar rules rather than assuming its name matches the accepted window. Ensure the underlying data series contains the session data required by the indicator.
+
+Use the named timezone rather than a fixed UTC offset. The analytical session endpoint and holiday/shortened-session no-entry policy are defined in V1-SESSION-04. Record the actual NinjaTrader build, indicator settings, trading-hours template, and data source. ATR retains its separate full-session input policy.
+
+Exact timestamp inclusion, session-data completeness checks, behavior when tick history is unavailable, operational template verification, and numerical parity with a future Laboratory calculation remain open under OD-04/05. Do not silently substitute standard/bar resolution for the accepted tick-resolution implementation. This choice does not define the future VWAP Wave deviation-band formula, multipliers, or display settings; no VWAP-band entry rule is added to V1.
 
 ### V1-CONTEXT-05 — Volume Profile implementation and settings
 
@@ -580,7 +594,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-16 is close
 | OD-02 | Final six score factors, thresholds, measurable lookbacks/tolerances, insufficient-data policy | REGIME-01, REGIME-03 |
 | OD-03 | Score refresh cadence, freshness, and intrabar updates | REGIME-02 |
 | OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
-| OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; VWAP inputs, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
+| OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; Order Flow VWAP tick/session implementation and 08:30–15:00 template accepted; VWAP operational template/data/parity verification, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
 | OD-06 | Meaningful swing/consolidation definition and reference selection | ENTRY-01 |
 | OD-07 | Trigger price source, rounding/buffer, order type, protective workflow, fills/rejections/disconnection response | ENTRY-02, STOP-02 |
 | OD-08 | Initial structural-stop buffer; whether to use two NES ticks here too | STOP-01/02 |
@@ -641,6 +655,7 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-06 | 2026-10-10 | Accepted NinjaTrader Order Flow VWAP on ES, tick resolution subject to complete data, session reset, and explicit 08:30–15:00 Chicago template. Expanded V1-CONTEXT-04; retained operational verification/data/reproducibility details. |
 | V1-draft-05 | 2026-10-10 | Accepted full-session ES 5-minute ATR input, including overnight history, without resetting at 08:30. Updated V1-CONTEXT-06; retained seed, warm-up, trading-hours template, and gap-handling details as open. |
 | V1-draft-04 | 2026-10-10 | Accepted NinjaTrader Order Flow Volume Profile, 68% value area, one ES tick per row, tick resolution subject to availability, and ATR(13) Wilder on completed ES 5-minute bars. Added V1-CONTEXT-05/06. Retained open ATR history/session, profile reproducibility/data, and VWAP calculation details. |
 | V1-draft-03 | 2026-10-10 | Accepted RTH analytical window, prior-session references, overnight window, and holiday/shortened-session observation-only policy. Added V1-SESSION-04; further resolved OD-01/04 without choosing entry/flatten cutoffs or calculation settings. |
@@ -672,3 +687,5 @@ These topics are discussion/research items, not V1 permissions:
 **[S3] Profile settings:** NinjaTrader, [Order Flow Volume Profile](https://static.ninjatrader.com/support/helpGuides/nt8/order_flow_volume_profile.htm), accessed 2026-10-10. Documents traded-volume versus trade-count profiles, configurable value-area percentage and ticks per level, and tick versus minute data resolution.
 
 **[S4] ATR calculation:** NinjaTrader, [Average True Range (ATR)](https://static.ninjatrader.com/support/helpGuides/nt8/average_true_range_atr.htm), accessed 2026-10-10. Documents Wilder smoothing and a bar-count period parameter. The choice of 13 periods is the owner's accepted setting.
+
+**[S5] VWAP implementation:** NinjaTrader, [Order Flow VWAP](https://static.ninjatrader.com/support/helpGuides/nt8/order_flow_vwap.htm), accessed 2026-10-10. Documents session reset, tick resolution, and trading-hours selection in combination with the underlying data-series hours. The explicit 08:30–15:00 Chicago window is our accepted local configuration.
