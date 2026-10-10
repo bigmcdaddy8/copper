@@ -1,0 +1,106 @@
+MARKET STUDY STATE
+  Schema: MARKET_STUDY_STATE_V1   Temporality: FINAL_STUDY_STATE
+  End-state evidence over the complete study windows of the trading date. It is NOT what was knowable at any intraday instant (e.g. 10:00 CT); as-of snapshots belong to replay.
+  Analysis commit: 73c6b6d2cb82898146e59f8983b628b8360d3d1e
+
+DATASET / QUALITY  [QUALITY_QUALIFIED]
+  ! OVERNIGHT window not fully captured
+  Dataset 7e8d7b5e-d7b8-4286-92a2-320bfd26723d  trading date 2026-10-02  FUTURE:CME:ES:2026-12
+  Source TASTYTRADE_DXLINK /ESZ26:XCME  lifecycle FINALIZED  collector commit 6f5247faeac00ef67b41318996de19ff5820299c
+  Capture 2026-10-01T22:00:00.000203Z .. 2026-10-02T21:00:00.219628Z
+  Closing summary: accepted 1387081  rejected 6  deferred 1  submitted --  persisted --  difference --
+  Retained 1387081  corrections 0  cancels 0  database sha256 cd47e987c8edbec758d590c7580d4a4bb982ed802da18d21fea338f020c3fae2
+  Completeness COMPLETE / NO KNOWN GAPS  KNOWN_GAP 0  SUSPECTED_GAP 0
+  CASH_PROFILE fully captured yes     known gaps 0  suspected 0
+  OPENING      fully captured yes     known gaps 0  suspected 0
+  OVERNIGHT    fully captured no      known gaps 0  suspected 0
+
+CONTRACT  [AVAILABLE]
+  FUTURE:CME:ES:2026-12  ES Z2026 (E-mini S&P 500)  tick 0.25 (CME_ES_TICK_GRID CME_ES_TICK_GRID_V1)
+  streamer /ESZ26:XCME  broker symbol -- (NOT_RECORDED_IN_DATASET)  multiplier -- (NOT_RECORDED_IN_DATASET)
+
+VWAP  [QUALITY_QUALIFIED]
+  ! SESSION_OPEN: capture began 0:00:00.000203 after the anchor
+  SESSION_OPEN  from 2026-10-01T22:00:00.000000Z  VWAP 7777.745058762427238747725989  trades 1387081  volume 1761755.0  [QUALITY_QUALIFIED]
+  US_CASH_OPEN  from 2026-10-02T13:30:00.000000Z  VWAP 7781.726807671099203760054045  trades 1077251  volume 1385512.0  [AVAILABLE]
+
+VOLUME PROFILE (cash study window)  [AVAILABLE]
+  POC 7775.00  VAL 7764.75  VAH 7790.50  high 7810.25  low 7754.00  volume 1345390.0  levels 226
+
+TPO / INITIAL BALANCE  [AVAILABLE]
+  US_CASH_PROFILE 30-min periods, increment 0.25; high 7810.25  low 7754.00
+  TPO POC 7776.25  VAL 7766.75  VAH 7792.75  value area 70.81%
+  IB 7773.50-7808.75 (35.25); extension above 1.50, below 19.50
+
+PROFILE STRUCTURE  [AVAILABLE]
+  one-TPO zones 2; upper tail 6 rows, lower tail 40 rows
+  EXCESS_HIGH_CANDIDATE YES  POOR_HIGH_CANDIDATE NO  EXCESS_LOW_CANDIDATE YES  POOR_LOW_CANDIDATE NO
+
+DAY TYPE CANDIDATE (DAY_TYPE_V1)  [AVAILABLE]
+  outcome CANDIDATE  candidate NEUTRAL_DAY_CANDIDATE  quality UNQUALIFIED
+  deferred: NON_TREND_DAY, NEUTRAL_EXTREME / NEUTRAL_CENTER, DOUBLE_DISTRIBUTION_TREND_DAY
+
+DAY STRENGTH (DAY_STRUCTURE_STRENGTH_V1)  [AVAILABLE]
+  directional state BOTH_SIDES  dominant DOWN  above 6 ticks  below 78 ticks  counter/dominant 0.07692307692307692307692307692
+  terminal 7779.00 at percentile 0.4444444444444444444444444444
+
+PRIOR DAY  [AVAILABLE]
+  outcome AVAILABLE  expected 2026-10-01  supplied yes (fe280370-99f6-4265-8bf1-a4ce7580f940, 2026-10-01, FUTURE:CME:ES:2026-12)
+  high 7741.25  low 7672.75  POC 7694.25  VAL 7684.25  VAH 7725.25  IB 7682.25-7740.00  terminal 7726.00  V1 NEUTRAL_DAY
+
+OVERNIGHT (OVERNIGHT_CONTEXT_V1)  [QUALITY_QUALIFIED]
+  ! capture began 0:00:00.000203 after 17:00 CT (overnight window starts late)
+  ! Globex open NOT CLAIMED: capture began after 17:00 CT; the first retained trade is not the Globex open
+  Globex open claimed: no   first observed overnight trade 7723.75 at 2026-10-01T22:00:01.000000Z (not the Globex open unless claimed)
+  ONH 7802.75  ONL 7723.25  range 318 ticks  last 7789.50
+  cash open INSIDE_OVERNIGHT_RANGE, percentile 0.8333333333333333333333333333
+
+CASH OPENING (OPENING_AUCTION_FACTS_V1)  [AVAILABLE]
+  open 7789.50 at 2026-10-02T13:30:00.000000Z (delay 0:00:00)  vs prior range ABOVE_PRIOR_RANGE  vs prior value ABOVE_PRIOR_VALUE  gap 254 ticks
+   5 min: high 7792.00 low 7778.25 up 10 down 45 ticks, open crosses 18
+  15 min: high 7800.75 low 7778.25 up 45 down 45 ticks, open crosses 56
+  30 min: high 7804.75 low 7773.50 up 61 down 64 ticks, open crosses 63
+  60 min: high 7808.75 low 7773.50 up 77 down 64 ticks, open crosses 66
+
+OPENING-TYPE CANDIDATES (OPENING_TYPE_V1)  [QUALITY_QUALIFIED]
+  ! OPEN_TEST_DRIVE: overnight: capture began 0:00:00.000203 after 17:00 CT (overnight window starts late)
+  status CLASSIFIED  policy source matches freeze: yes  (candidate set; no primary type)
+  CANDIDATE OPEN_AUCTION_OUT_OF_RANGE  [UNQUALIFIED]
+  CANDIDATE OPEN_TEST_DRIVE DOWN  [QUALITY_QUALIFIED]
+  DEFERRED OPEN_REJECTION_REVERSE: REFERENCE_DEFINITION_CONFLICT: sources disagree on whether a reference must be reached, how large the initial run must be, and what distinguishes it from Open Test Drive
+
+QUALITY MATRIX
+  dataset         QUALITY_QUALIFIED  COMPLETE / NO KNOWN GAPS
+  contract        AVAILABLE          
+  vwap            QUALITY_QUALIFIED  
+  volume_profile  AVAILABLE          
+  cash_tpo        AVAILABLE          
+  tpo_structure   AVAILABLE          
+  day_type        AVAILABLE          CANDIDATE
+  day_strength    AVAILABLE          FULL_STUDY_WINDOW
+  prior_context   AVAILABLE          AVAILABLE
+  overnight       QUALITY_QUALIFIED  QUALITY_QUALIFIED
+  cash_opening    AVAILABLE          UNQUALIFIED
+  opening_type    QUALITY_QUALIFIED  CLASSIFIED
+
+POLICY VERSIONS
+  MARKET_STUDY_STATE         MARKET_STUDY_STATE_V1 MARKET_STUDY_STATE_V1
+  PRICE_GRID                 CME_ES_TICK_GRID CME_ES_TICK_GRID_V1
+  GLOBEX_SESSION             CME_EQUITY_INDEX_GLOBEX CME_EQUITY_INDEX_STANDARD_V1
+  CASH_SESSION_ANCHOR        US_CASH_SESSION US_CASH_SESSION_V1
+  STUDY_WINDOW               US_CASH_PROFILE US_CASH_PROFILE_V1
+  VWAP                       (none)
+  VOLUME_PROFILE_POC         DICKS_LAB_POC_TIE_POLICY V1_NEAREST_VOLUME_WEIGHTED_MEAN_THEN_LOWER_PRICE
+  VOLUME_VALUE_AREA          DICKS_LAB_VALUE_AREA_POLICY V1_SINGLE_ROW_GREATER_VOLUME_NEAREST_POC_TIE_ABOVE
+  TPO_POC                    DICKS_LAB_TPO_POC_POLICY V1_MAX_TPO_NEAREST_RANGE_MIDPOINT_THEN_LOWER_PRICE
+  TPO_VALUE_AREA             DICKS_LAB_TPO_VALUE_AREA_POLICY V1_TWO_ROW_GREATER_SUM_TIE_ABOVE
+  TPO_STRUCTURE              DICKS_LAB_TPO_STRUCTURE_POLICY V1_EXCESS_TAIL_GE_2_ROWS_POOR_EXTREME_GE_2_TPOS
+  DAY_TYPE_V1                DICKS_LAB_DAY_TYPE_POLICY V1_DIRECTIONAL_STATE_X_IB_SHARE
+  DAY_STRUCTURE_STRENGTH_V1  DAY_STRUCTURE_STRENGTH_V1
+  OPENING_AUCTION_FACTS_V1   OPENING_AUCTION_FACTS_V1
+  OVERNIGHT_CONTEXT_V1       OVERNIGHT_CONTEXT_V1
+  OPENING_PATH_FACTS_V1      OPENING_PATH_FACTS_V1
+  OPENING_TYPE_V1            OPENING_TYPE_V1 V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR
+
+STATE HASH  3fd8c5ff8355a1d259056cee6938291109c70b26657a67952ae5bd2406b9e1b3
+Evidence only: candidate labels are Laboratory policy outputs, not market opinion or a trading recommendation.

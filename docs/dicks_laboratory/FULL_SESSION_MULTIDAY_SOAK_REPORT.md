@@ -5124,7 +5124,9 @@ Descriptive corpus audit (`MARKET_PROFILE_OPENING_TYPE_0YH.md`,
 - Candidates:
   - Open Drive: 2, both DOWN;
   - OAIR: 4; OAOR: 2; generic OA: 7;
-  - Open Test Drive: 4, all DOWN (3 overlapping OA-family candidates).
+  - Open Test Drive: 4, all DOWN (all 4 overlap an OA-family candidate:
+    OAIR 2, OAOR 1, generic OA 1; corrected in 0Z-A from "3", per
+    `evidence/0Y-H/opening_type_run/opening_type_audit.md`).
 - 3 matched candidates are QUALITY_QUALIFIED.
 - Main open question, documented and not tuned: on 3 of the 4 Test Drive
   candidates, the A terminal ended on the probe side.
@@ -5135,4 +5137,43 @@ Descriptive corpus audit (`MARKET_PROFILE_OPENING_TYPE_0YH.md`,
 OPEN_REJECTION_REVERSE: DEFERRED
 OPENING_TYPE_V1: FROZEN FOR PROSPECTIVE VALIDATION
 NEXT: PO REVIEW — THEN UNIFIED MARKET STUDY STATE / REPLAY INTEGRATION
+```
+
+## MV. 0Z-A — Unified Market Study State Foundation (2026-10-10)
+
+PO record:
+- 0Y-H: **PASS / ACCEPTED / CLOSED**
+- OPENING_TYPE_V1: frozen for prospective validation; ORR deferred
+- Market Profile / TPO fact foundation: **sufficient for integration**
+
+What 0Z-A adds (`MARKET_STUDY_STATE_V1.md`):
+- **`MARKET_STUDY_STATE_V1`**: one immutable, typed, versioned
+  `FINAL_STUDY_STATE` per trading date, composed from the accepted objects
+  (TPO, structure, DAY_TYPE_V1, DAY_STRUCTURE_STRENGTH_V1,
+  OPENING_AUCTION_FACTS_V1, OVERNIGHT_CONTEXT_V1, OPENING_PATH_FACTS_V1,
+  OPENING_TYPE_V1) plus the accepted anchored VWAPs and the Volume Profile
+  headline. No new concept, no interpretation.
+- Dataset identity with collector commit vs analysis commit; contract from the
+  dataset (no broker query); per-window dataset quality; component
+  `status` + `reasons`; quality matrix with no overall score.
+- Policy registry from codebase constants; evidence-kind classification by
+  JSON pointer.
+- Canonical JSON and `market_study_state_sha256` (payload without the hash
+  field); `$ref` for shared sub-objects; tape paths omitted.
+- Replay-readiness inventory (REPLAY_READY / NEEDS AS-OF / FINAL-DAY ONLY).
+  Replay is not implemented.
+- `OPEN_TEST_DRIVE_V2_HOLD_HYPOTHESIS` recorded as documentation only.
+- CLI: `scripts/dicks_lab_market_study_state.py` (`--json`, `--summary`,
+  `--json-out`).
+
+Real-data proof (`MARKET_STUDY_STATE_0ZA.md`, `evidence/0Z-A/`): 09-30, 09-29,
+10-02 (each with prior), 09-21 (no prior), 08-31 (INTERRUPTED,
+NOT_CLASSIFIED). Each was built twice: byte-identical JSON, identical hash,
+database sha256 unchanged.
+
+```
+0Z-A: PASS — UNIFIED MARKET STUDY STATE FOUNDATION COMPLETE
+MARKET_STUDY_STATE_V1: READY FOR DOWNSTREAM CONSUMERS
+REPLAY: NOT YET IMPLEMENTED
+NEXT: PO REVIEW BEFORE DETERMINISTIC REPLAY / AS-OF STATE DEVELOPMENT
 ```
