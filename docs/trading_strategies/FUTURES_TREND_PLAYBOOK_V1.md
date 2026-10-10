@@ -1,14 +1,15 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-01  
-**Date:** 2026-10-03 (America/Chicago)  
+**Document revision:** V1-draft-02  
+**Created:** 2026-10-03 (America/Chicago)  
+**Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
 **Intended repository location:** `copper/docs/trading_strategies/FUTURES_TREND_PLAYBOOK_V1.md`
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-01, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-02, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -52,7 +53,9 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Execution instrument | E-nano S&P 500 futures (NES) | Agreed; V1-INSTRUMENT-01 |
 | Learning lot | One NES contract; no adds | Agreed; V1-RISK-01 |
 | Platform | NinjaTrader Desktop on Windows 11 (`weasel`) | Agreed; V1-INSTRUMENT-02 |
-| Primary chart | 5-minute | Working configuration; V1-CONTEXT-01 |
+| Primary chart | 5-minute | Agreed; V1-CONTEXT-01 |
+| Analytical instrument | ES for charts, VWAP, and Volume Profile; NES for execution | Agreed; V1-INSTRUMENT-03 |
+| Session VWAP anchor | 08:30 America/Chicago, resetting each RTH session | Agreed; V1-CONTEXT-04 |
 | Session focus | RTH beginning 08:30 Chicago; overnight context only | Agreed; V1-SESSION-01 |
 | Initial observation | 08:30–08:50 Chicago | Agreed; V1-SESSION-02 |
 | Regime architecture | Score from -6 through +6; reassess as auction develops | Agreed architecture; V1-REGIME-01 |
@@ -108,7 +111,7 @@ The training execution instrument is E-nano S&P 500 futures, product code **NES*
 | Dollar value of one tick | $0.25 |
 | Two-tick structural trailing buffer | 1.0 index point |
 
-These specifications were checked against the CME E-nano FAQ on 2026-10-03 [S1]. A 0.25-point increment from an ES or MES example is not an NES tick. Contract selection, rollover, and any use of ES/MES for analytical charts remain open (OD-04).
+These specifications were checked against the CME E-nano FAQ on 2026-10-03 [S1]. A 0.25-point increment from an ES or MES example is not an NES tick. ES analysis with NES execution was accepted on 2026-10-10. Exact expiry selection, rollover, and cross-instrument level handling remain open (OD-04 and OD-07).
 
 ### V1-INSTRUMENT-02 — Execution platform
 
@@ -126,9 +129,9 @@ Use Chicago local time for the human-facing journal and examples, with the date 
 
 ### V1-SESSION-02 — Initial observation window
 
-**Status: Agreed duration; 5-minute implementation is working configuration.**
+**Status: Agreed; 5-minute chart confirmed on 2026-10-10.**
 
-Observe from 08:30 until 08:50 Chicago. Do not enter during these first 20 minutes. With the working 5-minute chart, the four bars starting at 08:30, 08:35, 08:40, and 08:45 constitute the initial observation panel. Entries may become eligible beginning at 08:50 if the other conditions qualify.
+Observe from 08:30 until 08:50 Chicago. Do not enter during these first 20 minutes. With the agreed 5-minute chart, the four bars starting at 08:30, 08:35, 08:40, and 08:45 constitute the initial observation panel. Entries may become eligible beginning at 08:50 if the other conditions qualify.
 
 Call this the **initial observation range**, not the standard Initial Balance. Standard IB analysis may be added later.
 
@@ -138,13 +141,21 @@ Call this the **initial observation range**, not the standard Initial Balance. S
 
 Close all positions and remove outstanding entry orders before the chosen end-of-session cutoff. Do not carry a V1 position overnight. The exact latest-entry time, flatten time, and holiday/early-close handling must be decided under OD-01. Do not infer the cutoff from the earlier draft's Eastern-time wording.
 
+### V1-INSTRUMENT-03 — ES analysis with NES execution
+
+**Status: Agreed on 2026-10-10; implementation details open.**
+
+Use ES for the analytical chart, session VWAP, and Volume Profile. Execute the one-contract learning lot in NES. Journal both instruments with their actual dated contract identifiers, and distinguish ES analytical observations from NES fills and protective-order prices.
+
+Acceptance of this configuration does not establish an automatic price mapping between instruments. Exact expiries, roll alignment, NES trigger/stop validation, and level conversion/rounding remain open under OD-04 and OD-07. An ES reference must not be silently treated as an executable NES order price. Record any cross-instrument discrepancy when evaluating entry, invalidation, and execution.
+
 ## 4. Chart and context
 
 ### V1-CONTEXT-01 — Primary decision chart
 
-**Status: Working configuration.**
+**Status: Agreed on 2026-10-10.**
 
-Use a 5-minute primary decision chart. This produces four completed bars in the 20-minute panel. A 10-minute chart was considered; confirm the 5-minute choice when approving this draft.
+Use a 5-minute ES primary decision chart. This produces four completed bars in the 20-minute observation panel. NES remains the execution instrument. OD-16 is closed.
 
 ### V1-CONTEXT-02 — Required contextual references
 
@@ -165,7 +176,15 @@ Price structure remains part of the assessment. Use Volume Profile rather than T
 
 VWAP provides auction location and context; crossing it alone is not an entry signal. Volume Profile informs location, acceptance, and value migration. Raw breakout volume does not gate entry. ATR is descriptive evidence, not the mechanical initial-stop or trailing-stop algorithm.
 
-VWAP anchor/settings, profile session boundaries, value-area calculation, price-row size, profile source instrument, and ATR period/settings must be documented under OD-04 and OD-05. Proposed VWAP anchor: the 08:30 RTH open; this requires explicit confirmation.
+The analytical source is ES and the session VWAP anchor is the 08:30 RTH open, both accepted on 2026-10-10. Profile session boundaries, value-area calculation, price-row size, exact contract selection, VWAP calculation details, and ATR period/settings remain open under OD-04 and OD-05.
+
+### V1-CONTEXT-04 — RTH session VWAP anchor
+
+**Status: Agreed on 2026-10-10; calculation details open.**
+
+Anchor the ES session VWAP at **08:30 America/Chicago**, resetting at each RTH session open. Overnight information remains separate context; overnight volume is not included in this RTH-anchored VWAP.
+
+Use the named timezone rather than a fixed UTC offset. The session endpoint, holiday handling, price/volume inputs, and platform calculation method still require decisions under OD-04 and OD-05. This anchor choice does not define the future VWAP Wave deviation-band formula or settings.
 
 ## 5. Observation and regime assessment
 
@@ -502,15 +521,15 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 ## 16. Open decision register
 
-Resolve these items explicitly before freezing V1.0. A later answer should cite the OD ID and any affected rule IDs.
+Resolve the remaining open items explicitly before freezing V1.0. OD-16 is closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
 | OD-01 | Exact end of trading window, latest entry, flatten deadline, holiday/early-close treatment | SESSION-03, EXIT-02 |
 | OD-02 | Final six score factors, thresholds, measurable lookbacks/tolerances, insufficient-data policy | REGIME-01, REGIME-03 |
 | OD-03 | Score refresh cadence, freshness, and intrabar updates | REGIME-02 |
-| OD-04 | Chart/profile instrument and expiry, rollover, consistent prior/overnight/RTH session boundaries | INSTRUMENT-01, CONTEXT-02/03 |
-| OD-05 | VWAP anchor/calculation, value-area percentage/method, profile row size, ATR period/settings | CONTEXT-03 |
+| OD-04 | ES analysis / NES execution accepted; exact expiries, rollover alignment, cross-instrument level handling, and prior/overnight/RTH boundaries remain open | INSTRUMENT-01, CONTEXT-02/03 |
+| OD-05 | 08:30 Chicago ES VWAP anchor accepted; calculation details, value-area percentage/method, profile row size, ATR settings remain open | CONTEXT-03 |
 | OD-06 | Meaningful swing/consolidation definition and reference selection | ENTRY-01 |
 | OD-07 | Trigger price source, rounding/buffer, order type, protective workflow, fills/rejections/disconnection response | ENTRY-02, STOP-02 |
 | OD-08 | Initial structural-stop buffer; whether to use two NES ticks here too | STOP-01/02 |
@@ -521,7 +540,7 @@ Resolve these items explicitly before freezing V1.0. A later answer should cite 
 | OD-13 | Pivot selection/comparison, tracking changing candidates, same-bar event ambiguity, stop-modification timing | STOP-04 |
 | OD-14 | Open-position treatment after regime change; authorized manual/emergency exits | EXIT-03 |
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
-| OD-16 | Explicit confirmation of primary 5-minute chart | CONTEXT-01 |
+| OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
 **Study priority:** first define the score and its timing; then swings/pivots and order mechanics; then session boundaries and accounting. These are gaps to close, not invitations to add V2 complexity.
 
@@ -571,6 +590,7 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-02 | 2026-10-10 | Accepted 5-minute ES analysis, NES execution, and 08:30 Chicago session VWAP anchor. Added V1-INSTRUMENT-03 and V1-CONTEXT-04; closed OD-16; partially resolved OD-04/05. No score, entry, stop, or exit mechanics changed. |
 | V1-draft-01 | 2026-10-03 | Initial study draft. Preserves agreed single-lot mechanics, dynamic scoring architecture, intrabar breakout entry, structural stops, confirmed-pivot two-tick trailing, gross loss-R cutoff, and separate process review. Marks proposals and unresolved details explicitly. |
 
 ## 19. V2 backlog
