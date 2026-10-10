@@ -1,7 +1,7 @@
 # Futures Trading Strategies
 
 **Owner:** Mr. Dick Weasel  
-**Index revision:** 10  
+**Index revision:** 11  
 **Date:** 2026-10-10 (America/Chicago)  
 **Repository directory:** `copper/docs/trading_strategies`
 
@@ -15,7 +15,7 @@ The two principal external influences are Tom Hougaard's *Best Loser Wins* and C
 
 | ID | Playbook / setup | Document | Status |
 | --- | --- | --- | --- |
-| PB-TREND | Momentum Breakout with Structural Trailing | [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) | V1-draft-10; accepted configuration and indicator settings recorded; remaining open decisions prevent freezing V1.0 |
+| PB-TREND | Momentum Breakout with Structural Trailing | [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) | V1-draft-11; accepted configuration and indicator settings recorded; remaining open decisions prevent freezing V1.0 |
 | PB-PDC | Price Discovery Continuation | Future `VWAP_PRICE_DISCOVERY_CONTINUATION_PLAYBOOK_V1.md` | Backlog; closest conceptual overlap with PB-TREND, not an identical implementation |
 | PB-FADE | Fade Value Area Extremes | Future `VWAP_FADE_VALUE_AREA_EXTREMES_PLAYBOOK_V1.md` | Backlog; observation and design only |
 | PB-RTV | Return to Value | Future `VWAP_RETURN_TO_VALUE_PLAYBOOK_V1.md` | Backlog; observation and design only |
@@ -43,9 +43,11 @@ Accepted Factor 3: developing RTH VPOC and value-area midpoint must each rise/fa
 
 Accepted Factor 4: current-RTH three-bar pivots recognized after the right-hand bar closes; compare the latest two highs and latest two lows for higher-high/higher-low or lower-high/lower-low structure. Complete data with too few formed pivots scores zero.
 
-Next design work: range extension, acceptance/rejection, and total-score thresholds (OD-02). Configuration choices are recorded; operational template/data/reproducibility verification, ATR seed/warm-up, contract alignment and cross-instrument handling, and timestamp boundaries remain open before V1.0. This index and backlog do not independently authorize or change setup mechanics.
+Accepted Factor 5: freeze the 08:30–08:50 ES range; score directional extension when two completed post-observation bars close strictly beyond its high/low. First possible directional score is 09:00.
 
-The owner confirmed that the supplied V1-draft-07 files were saved and committed. Revision 10 of this index/backlog and V1-draft-10 are supplied as updates; repository replacement/commit remains a local step.
+Next design work: Factor 6 acceptance/rejection and total-score thresholds (OD-02). Configuration choices are recorded; operational template/data/reproducibility verification, ATR seed/warm-up, contract alignment and cross-instrument handling, and timestamp boundaries remain open before V1.0. This index and backlog do not independently authorize or change setup mechanics.
+
+The owner confirmed that the supplied V1-draft-07 files were saved and committed. Revision 11 of this index/backlog and V1-draft-11 are supplied as updates; repository replacement/commit remains a local step.
 
 ## Document conventions
 
@@ -68,6 +70,7 @@ The existing no-target rule remains specific to PB-TREND. It is not imposed on e
 
 | Revision | Date | Change |
 | --- | --- | --- |
+| 11 | 2026-10-10 | Recorded accepted Factor 5 range extension; advanced to the final factor and total-score thresholds. |
 | 10 | 2026-10-10 | Recorded accepted Factor 4 swing structure and three-bar pivot method; advanced to range extension. |
 | 09 | 2026-10-10 | Recorded accepted developing-value migration (Factor 3); advanced to swing structure. |
 | 08 | 2026-10-10 | Recorded accepted Factors 1/2; advanced to developing-value migration while retaining remaining factor/threshold decisions. |

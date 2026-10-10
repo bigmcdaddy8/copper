@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-10  
+**Document revision:** V1-draft-11  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-10, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-11, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -18,7 +18,7 @@ Each rule has a status:
 - **Proposed implementation:** a precise implementation offered for review, not an accepted decision.
 - **Open:** a definition or choice remains unresolved.
 
-An agreed principle can still have open implementation details. The regime-scoring architecture, assessment timing, and Factors 1 through 4 are agreed; the remaining two factor definitions and total-score thresholds remain proposals. Do not treat this draft as fully executable until Section 16's decision register is resolved. Examples illustrate mechanics and do not establish profitability.
+An agreed principle can still have open implementation details. The regime-scoring architecture, assessment timing, and Factors 1 through 5 are agreed; the remaining factor definition and total-score thresholds remain proposals. Do not treat this draft as fully executable until Section 16's decision register is resolved. Examples illustrate mechanics and do not establish profitability.
 
 The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. They do not override decisions recorded here. Pyramiding belongs to V2.
 
@@ -278,15 +278,15 @@ For example, a breakout at 09:12 uses the 09:10 assessment; the next scheduled a
 
 Record the score, its assessment timestamp, and the six components available at that time. Entry may occur intrabar while regime scoring follows this completed-bar cadence. Preserve the original entry-time evidence; do not retrospectively replace it with a later assessment.
 
-Factors 1 through 4 are defined in V1-REGIME-04/05/06/07. The remaining two component definitions and total-score directional thresholds remain open under OD-02. The timing policy does not make an incomplete classifier executable. Missing data is not neutral evidence. The open-position response to a later regime change remains a separate OD-14 decision.
+Factors 1 through 5 are defined in V1-REGIME-04/05/06/07/08. The remaining component definition and total-score directional thresholds remain open under OD-02. The timing policy does not make an incomplete classifier executable. Missing data is not neutral evidence. The open-position response to a later regime change remains a separate OD-14 decision.
 
 ## 6. Proposed regime score
 
 ### V1-REGIME-03 — Six-factor framework and proposed total-score thresholds
 
-**Status: Partially agreed. Factors 1 through 4 are accepted; Factors 5–6 and total-score thresholds remain proposed.**
+**Status: Partially agreed. Factors 1 through 5 are accepted; Factor 6 and total-score thresholds remain proposed.**
 
-Each factor contributes -1, 0, or +1. Sum all six. The table summarizes the observations. The exact accepted definitions for Factors 1 through 4 are in V1-REGIME-04/05/06/07. Terms such as “recent” and “holding” in the remaining factors still need measurable definitions before this becomes an executable classifier.
+Each factor contributes -1, 0, or +1. Sum all six. The table summarizes the observations. The exact accepted definitions for Factors 1 through 5 are in V1-REGIME-04/05/06/07/08. Terms such as “recent” and “holding” in the remaining factors still need measurable definitions before this becomes an executable classifier.
 
 | Factor | -1: bearish evidence | 0: neutral evidence | +1: bullish evidence |
 | --- | --- | --- | --- |
@@ -294,7 +294,7 @@ Each factor contributes -1, 0, or +1. Sum all six. The table summarizes the obse
 | VWAP relationship and slope (agreed) | Last two closes below their contemporaneous VWAP; VWAP down at least 0.25 points in 10 minutes | Neither directional condition | Last two closes above their contemporaneous VWAP; VWAP up at least 0.25 points in 10 minutes |
 | Developing value migration (agreed) | Developing RTH VPOC and value-area midpoint each down at least 1.0 point over 10 minutes | Neither directional condition | Developing RTH VPOC and value-area midpoint each up at least 1.0 point over 10 minutes |
 | Swing structure (agreed) | Latest two confirmed swing highs and latest two confirmed swing lows are both descending | Neither directional condition / too few formed pivots | Latest two confirmed swing highs and latest two confirmed swing lows are both ascending |
-| Range extension | Downside extension holding | No sustained extension | Upside extension holding |
+| Range extension (agreed) | Last two completed post-observation ES closes strictly below frozen initial 20-minute range low | Neither directional condition / fewer than two completed post-observation bars | Last two completed post-observation ES closes strictly above frozen initial 20-minute range high |
 | Acceptance / rejection | Downside breaks accepted; upside attempts rejected | Mixed / insufficient evidence | Upside breaks accepted; downside attempts rejected |
 
 | Proposed score | Classification | New entry permission |
@@ -307,7 +307,7 @@ Each factor contributes -1, 0, or +1. Sum all six. The table summarizes the obse
 
 **Rationale:** Scoring makes observations reviewable while preserving a separate entry decision. These factors are correlated; four points are not four independent proofs. A score near zero can also reflect conflicting directional evidence, so retain the component scores rather than treating every zero as the same auction.
 
-**Open definitions (OD-02):** remaining two factor definitions and total-score thresholds; range-extension reference; acceptance/rejection measurement; and required evidence for remaining components. Factors 1 through 4 now have agreed measurement conditions. The accepted V1-REGIME-02 policy marks an assessment UNKNOWN and prohibits new entries when required evidence is missing. Do not silently treat unavailable data as neutral evidence.
+**Open definitions (OD-02):** remaining factor definition and total-score thresholds; acceptance/rejection measurement; and required evidence for remaining components. Factors 1 through 5 now have agreed measurement conditions. The accepted V1-REGIME-02 policy marks an assessment UNKNOWN and prohibits new entries when required evidence is missing. Do not silently treat unavailable data as neutral evidence.
 
 ### V1-REGIME-04 — Factor 1: location relative to prior Volume Profile value
 
@@ -389,6 +389,30 @@ Complete price data with no established swing sequence scores zero. Missing requ
 Record pivot bar times, confirmation times, and prices. Only pivots confirmed by the assessment time are eligible; future bars must not be used to label a pivot earlier than it could have been recognized.
 
 These pivots measure the regime structure. A three-bar pivot alone does not authorize moving a protective stop: V1-STOP-04 still requires directional continuation beyond the preceding swing extreme. Initial-entry selection and stop-specific candidate tracking remain separate OD-06/13 decisions.
+
+### V1-REGIME-08 — Factor 5: range extension holding
+
+**Status: Agreed on 2026-10-10.**
+
+Use the **initial 20-minute ES observation range**, formed from the four completed RTH 5-minute bars beginning at 08:30, 08:35, 08:40, and 08:45 America/Chicago:
+
+- Range high: highest high of those four bars.
+- Range low: lowest low of those four bars.
+- Freeze both references at 08:50; do not expand them with later bars.
+
+At each scheduled assessment, use the **last two completed post-observation ES 5-minute bars**. The first eligible post-observation bar begins at 08:50 and ends at 08:55.
+
+| Score | Accepted condition |
+| ---: | --- |
+| +1 | Both eligible closes are strictly above the frozen initial observation range high |
+| -1 | Both eligible closes are strictly below the frozen initial observation range low |
+| 0 | Neither directional condition holds, including fewer than two completed post-observation bars, with required price data complete |
+
+A close equal to the relevant boundary fails the strict directional comparison. Complete price data with fewer than two elapsed post-observation bars scores zero; missing required data makes the assessment UNKNOWN under V1-REGIME-02.
+
+This factor scores zero at 08:50 and 08:55. The first possible directional score is 09:00, using the bars ending at 08:55 and 09:00. Other factors can contribute earlier; this factor is a score component, not a mandatory opening-range breakout gate.
+
+The two-close condition is an accepted proxy for extension holding; price need not remain outside the range throughout both bars. Record the frozen range, the eligible close prices, and bar endpoint times. This is the 20-minute observation range, not the standard Initial Balance.
 
 ## 7. Trade permission and entry
 
@@ -683,7 +707,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-03 and OD-1
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
 | OD-01 | RTH analytical window and holiday/shortened-session no-entry policy accepted; latest entry, flatten deadline, and operational calendar procedure remain open | SESSION-03, EXIT-02 |
-| OD-02 | Factors 1/2/3/4 and UNKNOWN/no-entry policy accepted; range-extension and acceptance/rejection definitions, required evidence, and total-score thresholds remain open | REGIME-01/03/04/05/06/07 |
+| OD-02 | Factors 1–5 and UNKNOWN/no-entry policy accepted; Factor 6 acceptance/rejection definition, required evidence, and total-score thresholds remain open | REGIME-01/03/04/05/06/07/08 |
 | OD-03 | CLOSED 2026-10-10: assess first at 08:50 and every completed 5-minute bar; use latest scheduled assessment for intrabar entries; missing required evidence means UNKNOWN/no entry | REGIME-02 |
 | OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
 | OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; Order Flow VWAP tick/session implementation and 08:30–15:00 template accepted; VWAP operational template/data/parity verification, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
@@ -747,6 +771,7 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-11 | 2026-10-10 | Accepted Factor 5: frozen 08:30–08:50 ES range and two completed post-observation closes outside its high/low. Added V1-REGIME-08; first directional reading possible at 09:00. Factor 6 and total-score thresholds remain open. |
 | V1-draft-10 | 2026-10-10 | Accepted Factor 4 current-RTH three-bar pivots and latest-two-high/latest-two-low structure score. Added V1-REGIME-07; preserved continuation requirement for stop movement. Two factors and total-score thresholds remain open. |
 | V1-draft-09 | 2026-10-10 | Accepted developing-value migration: current versus 10-minute-prior RTH snapshots; VPOC and value-area midpoint must each move at least 1.0 point in the same direction. Added V1-REGIME-06; three factors and total-score thresholds remain open. |
 | V1-draft-08 | 2026-10-10 | Accepted Factor 1 two-close prior-value measurement and Factor 2 contemporaneous VWAP/two-close relationship with 0.25-point change over 10 minutes. Added V1-REGIME-04/05; OD-02 remains open for four factors and total-score thresholds. |
