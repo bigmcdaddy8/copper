@@ -1,7 +1,7 @@
 # Futures Strategy Research Backlog
 
 **Owner:** Mr. Dick Weasel  
-**Revision:** 07  
+**Revision:** 09  
 **Date:** 2026-10-10 (America/Chicago)  
 **Status:** Agreed organizational direction; setup mechanics below remain research questions  
 **Repository location:** `copper/docs/trading_strategies/STRATEGY_RESEARCH_BACKLOG.md`
@@ -10,9 +10,9 @@
 
 Develop a long-term toolbox covering the four setups in Chris Drysdale's *VWAP Wave Core Setup Guide*, while completing the existing Momentum Breakout with Structural Trailing playbook first.
 
-This backlog records future work. It neither changes [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) nor authorizes a new setup. The playbook is now V1-draft-07, recording the accepted chart configuration, session definitions, and Volume Profile/ATR settings. It remains a draft until its remaining open decisions are resolved and the owner accepts a frozen baseline.
+This backlog records future work. It neither changes [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) nor authorizes a new setup. The playbook is now V1-draft-09, recording the accepted chart configuration, session definitions, and Volume Profile/ATR settings. It remains a draft until its remaining open decisions are resolved and the owner accepts a frozen baseline.
 
-The owner confirmed on 2026-10-10 that the existing draft was stored in Git and pushed to GitHub as written. The owner subsequently confirmed placing the revision-01 README and backlog beside the unchanged playbook. These are owner reports, not independently inspected repository states. The owner has now confirmed V1-draft-06 was committed. The revision-07 updated files supplied here still need to be copied and committed locally.
+The owner confirmed on 2026-10-10 that the existing draft was stored in Git and pushed to GitHub as written. The owner subsequently confirmed placing the revision-01 README and backlog beside the unchanged playbook. These are owner reports, not independently inspected repository states. The owner has now confirmed the supplied V1-draft-07 files were saved and committed. The revision-09 updated files supplied here still need to be copied and committed locally.
 
 ## 2. Agreed work sequence
 
@@ -144,7 +144,7 @@ Do not classify every VWAP touch as this setup.
 | CFG-06 | ATR(13), Wilder smoothing, full-session ES 5-minute bars including overnight; no 08:30 reset; last completed bar at entry | OD-05 | INPUT POLICY ACCEPTED 2026-10-10; exact template/gap/seed/warm-up policy remains open |
 | CFG-07 | Define VWAP Wave band formula/settings when developing those setups | Future playbooks | Deferred; not necessary to finalize PB-TREND unless added to its rules |
 
-CFG-01 through CFG-04 and the primary CFG-05/06 indicator settings are accepted. Full-session ATR input including overnight history and continuity through 08:30 is also accepted. The NinjaTrader Order Flow VWAP tick/session implementation with an explicit 08:30–15:00 Chicago template is now accepted. OD-03 is now closed: assessment at 08:50 and after every completed 5-minute bar, latest scheduled assessment for intrabar entries, freshness check before entry, and UNKNOWN/no-entry for missing required evidence. Next design discussion: OD-02 measurable score factors and thresholds. Keep ATR template/gap/seed/warm-up, profile algorithm/data policy, VWAP template/data/boundary/parity verification, and exact contract alignment/cross-instrument handling open before freezing V1.0. Configuration acceptance is not proof of numerical reproducibility.
+CFG-01 through CFG-04 and the primary CFG-05/06 indicator settings are accepted. Full-session ATR input including overnight history and continuity through 08:30 is also accepted. The NinjaTrader Order Flow VWAP tick/session implementation with an explicit 08:30–15:00 Chicago template is now accepted. OD-03 is now closed: assessment at 08:50 and after every completed 5-minute bar, latest scheduled assessment for intrabar entries, freshness check before entry, and UNKNOWN/no-entry for missing required evidence. Factors 1 and 2 are now accepted: two-close prior-value location, and two-close contemporaneous VWAP relationship plus at least 0.25-point VWAP change over 10 minutes (V1-REGIME-04/05). Factor 3 is now accepted: developing RTH VPOC and value-area midpoint each moving at least 1.0 point in the same direction over 10 minutes, measured from historical snapshots (V1-REGIME-06). Next design discussion: OD-02 swing structure, range extension, acceptance/rejection, and total-score thresholds. Keep ATR template/gap/seed/warm-up, profile algorithm/data policy, VWAP template/data/boundary/parity verification, and exact contract alignment/cross-instrument handling open before freezing V1.0. Configuration acceptance is not proof of numerical reproducibility.
 
 Use ES for contextual evidence and NES for actual entry/stop/fill prices. Do not silently copy an ES reference into a NES order. Acceptance of the two-instrument configuration does not yet specify a mapping algorithm.
 
@@ -160,6 +160,8 @@ Use ES for contextual evidence and NES for actual entry/stop/fill prices. Do not
 
 | Revision | Date | Change |
 | --- | --- | --- |
+| 09 | 2026-10-10 | Accepted Factor 3 developing-value migration and historical snapshot requirements. No additional repository commit was reported in this acceptance turn. |
+| 08 | 2026-10-10 | Accepted first two scoring measurements; retained four remaining factors and total-score thresholds. Recorded owner report that supplied V1-draft-07 files were saved and committed. |
 | 07 | 2026-10-10 | Accepted regime assessment timing/freshness and UNKNOWN/no-entry policy; closed OD-03. Recorded owner report that V1-draft-06 was committed. |
 | 06 | 2026-10-10 | Accepted NinjaTrader Order Flow VWAP tick/session implementation and explicit RTH template; retained operational checks and advanced design discussion to regime timing. Recorded owner report that V1-draft-05 was committed. |
 | 05 | 2026-10-10 | Accepted full-session ATR input including overnight and no 08:30 reset; retained exact template, gap, seed, and warm-up decisions. Recorded owner report that V1-draft-04 was committed. |

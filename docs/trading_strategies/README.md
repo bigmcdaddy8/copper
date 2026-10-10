@@ -1,7 +1,7 @@
 # Futures Trading Strategies
 
 **Owner:** Mr. Dick Weasel  
-**Index revision:** 07  
+**Index revision:** 09  
 **Date:** 2026-10-10 (America/Chicago)  
 **Repository directory:** `copper/docs/trading_strategies`
 
@@ -15,7 +15,7 @@ The two principal external influences are Tom Hougaard's *Best Loser Wins* and C
 
 | ID | Playbook / setup | Document | Status |
 | --- | --- | --- | --- |
-| PB-TREND | Momentum Breakout with Structural Trailing | [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) | V1-draft-07; accepted configuration and indicator settings recorded; remaining open decisions prevent freezing V1.0 |
+| PB-TREND | Momentum Breakout with Structural Trailing | [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) | V1-draft-09; accepted configuration and indicator settings recorded; remaining open decisions prevent freezing V1.0 |
 | PB-PDC | Price Discovery Continuation | Future `VWAP_PRICE_DISCOVERY_CONTINUATION_PLAYBOOK_V1.md` | Backlog; closest conceptual overlap with PB-TREND, not an identical implementation |
 | PB-FADE | Fade Value Area Extremes | Future `VWAP_FADE_VALUE_AREA_EXTREMES_PLAYBOOK_V1.md` | Backlog; observation and design only |
 | PB-RTV | Return to Value | Future `VWAP_RETURN_TO_VALUE_PLAYBOOK_V1.md` | Backlog; observation and design only |
@@ -37,9 +37,13 @@ Accepted VWAP implementation: NinjaTrader Order Flow VWAP on ES, tick resolution
 
 Accepted regime timing: first assessment at 08:50, then after each completed 5-minute bar; intrabar entry uses the latest scheduled completed assessment; missing required evidence means UNKNOWN/no new entry. OD-03 is closed.
 
-Next design work: measurable score factors and thresholds (OD-02). Configuration choices are recorded; operational template/data/reproducibility verification, ATR seed/warm-up, contract alignment and cross-instrument handling, and timestamp boundaries remain open before V1.0. This index and backlog do not independently authorize or change setup mechanics.
+Accepted score definitions: Factor 1 uses two completed ES closes strictly outside prior RTH Volume Profile value; Factor 2 uses two closes relative to their contemporaneous VWAP and a VWAP change of at least 0.25 points over 10 minutes.
 
-The owner confirmed that V1-draft-06 was committed. Revision 07 of this index/backlog and V1-draft-07 are supplied as updates; repository replacement/commit remains a local step.
+Accepted Factor 3: developing RTH VPOC and value-area midpoint must each rise/fall at least 1.0 point over 10 minutes for a directional point; use historical snapshots.
+
+Next design work: swing structure, range extension, acceptance/rejection, and total-score thresholds (OD-02). Configuration choices are recorded; operational template/data/reproducibility verification, ATR seed/warm-up, contract alignment and cross-instrument handling, and timestamp boundaries remain open before V1.0. This index and backlog do not independently authorize or change setup mechanics.
+
+The owner confirmed that the supplied V1-draft-07 files were saved and committed. Revision 09 of this index/backlog and V1-draft-09 are supplied as updates; repository replacement/commit remains a local step.
 
 ## Document conventions
 
@@ -62,6 +66,8 @@ The existing no-target rule remains specific to PB-TREND. It is not imposed on e
 
 | Revision | Date | Change |
 | --- | --- | --- |
+| 09 | 2026-10-10 | Recorded accepted developing-value migration (Factor 3); advanced to swing structure. |
+| 08 | 2026-10-10 | Recorded accepted Factors 1/2; advanced to developing-value migration while retaining remaining factor/threshold decisions. |
 | 07 | 2026-10-10 | Recorded accepted regime assessment timing and UNKNOWN/no-entry policy; closed OD-03 and advanced to scoring definitions. |
 | 06 | 2026-10-10 | Recorded accepted Order Flow VWAP implementation; advanced design discussion to regime timing/factors while retaining operational configuration checks. |
 | 05 | 2026-10-10 | Recorded accepted full-session ATR input without an 08:30 reset; advanced active work to VWAP implementation. |
