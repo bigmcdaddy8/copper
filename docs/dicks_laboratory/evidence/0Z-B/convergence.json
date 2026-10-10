@@ -1,0 +1,307 @@
+{
+ "compared": 57,
+ "equal": 57,
+ "all_equal": true,
+ "expected_differences_by_design": [
+  "schema",
+  "state_temporality",
+  "temporality_note",
+  "cutoff",
+  "cutoff_semantics",
+  "maturity",
+  "quality_matrix shape",
+  "as-of counts beyond accepted/applied",
+  "MARKET_STUDY_SNAPSHOT_V1 registry entry",
+  "no database_sha256 / file checksum in the snapshot",
+  "evidence_classification (0Z-A only)",
+  "dataset_quality windows/status (as-of model)",
+  "hash field name"
+ ],
+ "results": [
+  {
+   "snapshot": "/provenance",
+   "final_state": "/provenance",
+   "equal": true
+  },
+  {
+   "snapshot": "/contract",
+   "final_state": "/contract",
+   "equal": true
+  },
+  {
+   "snapshot": "/volume_profile",
+   "final_state": "/volume_profile",
+   "equal": true
+  },
+  {
+   "snapshot": "/tpo/profile",
+   "final_state": "/tpo/profile",
+   "equal": true
+  },
+  {
+   "snapshot": "/tpo/status",
+   "final_state": "/tpo/status",
+   "equal": true
+  },
+  {
+   "snapshot": "/tpo/reasons",
+   "final_state": "/tpo/reasons",
+   "equal": true
+  },
+  {
+   "snapshot": "/tpo_structure",
+   "final_state": "/tpo_structure",
+   "equal": true
+  },
+  {
+   "snapshot": "/day_type",
+   "final_state": "/day_type",
+   "equal": true
+  },
+  {
+   "snapshot": "/day_strength",
+   "final_state": "/day_strength",
+   "equal": true
+  },
+  {
+   "snapshot": "/prior_day",
+   "final_state": "/prior_day",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/session",
+   "final_state": "/overnight/session",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/context",
+   "final_state": "/overnight/context",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/status",
+   "final_state": "/overnight/status",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/reasons",
+   "final_state": "/overnight/reasons",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/globex_open_claimed",
+   "final_state": "/overnight/globex_open_claimed",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/globex_open_boundary_proven",
+   "final_state": "/overnight/globex_open_boundary_proven",
+   "equal": true
+  },
+  {
+   "snapshot": "/overnight/first_observed_overnight_trade_is_globex_open",
+   "final_state": "/overnight/first_observed_overnight_trade_is_globex_open",
+   "equal": true
+  },
+  {
+   "snapshot": "/cash_opening/facts",
+   "final_state": "/cash_opening/facts",
+   "equal": true
+  },
+  {
+   "snapshot": "/cash_opening/path_facts",
+   "final_state": "/cash_opening/path_facts",
+   "equal": true
+  },
+  {
+   "snapshot": "/cash_opening/status",
+   "final_state": "/cash_opening/status",
+   "equal": true
+  },
+  {
+   "snapshot": "/cash_opening/reasons",
+   "final_state": "/cash_opening/reasons",
+   "equal": true
+  },
+  {
+   "snapshot": "/opening_type",
+   "final_state": "/opening_type",
+   "equal": true
+  },
+  {
+   "snapshot": "/vwap/0/study",
+   "final_state": "/vwap/studies/0",
+   "equal": true
+  },
+  {
+   "snapshot": "/vwap/1/study",
+   "final_state": "/vwap/studies/1",
+   "equal": true
+  },
+  {
+   "snapshot": "/prices/study_window_terminal_price",
+   "final_state": "/day_type/classification/facts/terminal/price",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/lifecycle_as_of",
+   "final_state": "/current_dataset/lifecycle_state",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/counts/accepted_known",
+   "final_state": "/current_dataset/retained_trade_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/counts/corrections_applied",
+   "final_state": "/current_dataset/applied_correction_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/counts/cancels_applied",
+   "final_state": "/current_dataset/applied_cancel_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_summary/accepted_trade_count",
+   "final_state": "/current_dataset/accepted_trade_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_summary/rejected_record_count",
+   "final_state": "/current_dataset/rejected_record_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_summary/deferred_event_count",
+   "final_state": "/current_dataset/deferred_event_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_summary/submitted_events",
+   "final_state": "/current_dataset/submitted_events",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_summary/persisted_events",
+   "final_state": "/current_dataset/persisted_events",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_summary/closed_at",
+   "final_state": "/current_dataset/closing_summary_closed_at",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/closing_accounting_difference",
+   "final_state": "/current_dataset/accounting_difference",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/dataset_id",
+   "final_state": "/current_dataset/dataset_id",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/trading_date",
+   "final_state": "/current_dataset/trading_date",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/recorded_trading_date",
+   "final_state": "/current_dataset/recorded_trading_date",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/instrument_id",
+   "final_state": "/current_dataset/instrument_id",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/kind",
+   "final_state": "/current_dataset/kind",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/origin",
+   "final_state": "/current_dataset/origin",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/label",
+   "final_state": "/current_dataset/label",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/source_locator",
+   "final_state": "/current_dataset/source_locator",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/source_system",
+   "final_state": "/current_dataset/source_system",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/streamer_symbol",
+   "final_state": "/current_dataset/streamer_symbol",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/normalizer_version",
+   "final_state": "/current_dataset/normalizer_version",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/collector_version",
+   "final_state": "/current_dataset/collector_version",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/collector_git_commit",
+   "final_state": "/current_dataset/collector_git_commit",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/capture_started_at",
+   "final_state": "/current_dataset/capture_started_at",
+   "equal": true
+  },
+  {
+   "snapshot": "/current_dataset/capture_ended_at",
+   "final_state": "/current_dataset/capture_ended_at",
+   "equal": true
+  },
+  {
+   "snapshot": "/dataset_quality/completeness",
+   "final_state": "/dataset_quality/completeness",
+   "equal": true
+  },
+  {
+   "snapshot": "/dataset_quality/known_gap_count",
+   "final_state": "/dataset_quality/known_gap_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/dataset_quality/suspected_gap_count",
+   "final_state": "/dataset_quality/suspected_gap_count",
+   "equal": true
+  },
+  {
+   "snapshot": "/dataset_quality/known_gap_duration",
+   "final_state": "/dataset_quality/known_gap_duration",
+   "equal": true
+  },
+  {
+   "snapshot": "/dataset_quality/gaps",
+   "final_state": "/dataset_quality/gaps",
+   "equal": true
+  },
+  {
+   "snapshot": "/policy_registry[:-1]",
+   "final_state": "/policy_registry",
+   "equal": true
+  }
+ ]
+}

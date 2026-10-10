@@ -5177,3 +5177,52 @@ MARKET_STUDY_STATE_V1: READY FOR DOWNSTREAM CONSUMERS
 REPLAY: NOT YET IMPLEMENTED
 NEXT: PO REVIEW BEFORE DETERMINISTIC REPLAY / AS-OF STATE DEVELOPMENT
 ```
+
+## MW. 0Z-B — Deterministic As-Of Replay Foundation (2026-10-10)
+
+PO record:
+- 0Z-A: **PASS / ACCEPTED / CLOSED**; MARKET_STUDY_STATE_V1 accepted as the frozen
+  final-study evidence contract.
+- Historical broker symbol / multiplier stay NULL when not recorded; the VWAP
+  registry entry stays NULL with its note. MARKET_STUDY_STATE_V1 unchanged.
+
+What 0Z-B adds (`REPLAY_AS_OF_SEMANTICS.md`):
+- **MARKET-TIME CUTOFF ≠ FEED-KNOWLEDGE CUTOFF.** `ReplayCutoff(market, knowledge,
+  optional source-order cursor)`; a record is known iff `received_at <` the
+  knowledge cutoff; corrections / cancels apply only once known, in source order,
+  by the accepted reconstruction; market inclusion `event_timestamp <` the market
+  cutoff.
+- **`MARKET_STUDY_SNAPSHOT_V1`** (`AS_OF`): component maturity (developing VWAP,
+  Volume Profile, TPO without future periods, IB at 09:30, overnight to 08:30,
+  opening windows at 08:35 / 08:45 / 09:00 / 09:30, OPENING_TYPE_V1 at 09:30,
+  DAY_TYPE_V1 / strength / structure / terminal at 15:00); lifecycle, quality
+  and counts as of the cutoff; no final metadata or file checksum before it is
+  known; canonical JSON + `market_study_snapshot_sha256`.
+- Record-visibility audit, source-order stepping, `MarketReplay` API
+  (`snapshot(at=T)`), CLI `scripts/dicks_lab_replay.py`.
+- `analyze_tpo_dataset` split into the pure `derive_tpo_analysis` and
+  `dataset_quality_from_evidence` (behavior unchanged; replay runs the same
+  derivation over the as-of view).
+
+Formal proof (`MARKET_REPLAY_0ZB.md`, `evidence/0Z-B/`), 2026-09-30:
+- 11 cutoffs, two builds each: byte-identical; maturity as designed.
+- **Authentic late prints:** at 12:14:00 CT, 750 trades with earlier market
+  times (up to 20.293 s late) were absent; at 12:14:01 present; hash and volume
+  changed. The 15:00 terminal (7712.75) differs from the 16:00 / final
+  terminal (7713.00) for the same reason.
+- **Authentic CANCEL** (2026-10-02, received 40 min after its market time):
+  invisible before receipt, known after; its target trade was never retained,
+  so it proves knowledge timing, not removal (removal is proven by fixtures).
+- Convergence at 17:00 CT: **57 / 57** components equal MARKET_STUDY_STATE_V1.
+- Database sha256 unchanged (09-30, 09-29, 10-02).
+- Memory: prepared day 3.6 GB; with the prior day 5.8 GB; the first one-process
+  proof was stopped by host memory pressure at a third full-day build; the
+  split-process proof peaks at 5.95 GB. **Backlog:** replay memory /
+  prepared-tape optimization.
+- WAL flake: occurrences recorded in `MARKET_REPLAY_0ZB.md` §9; not fixed.
+
+```
+0Z-B: PASS — DETERMINISTIC AS-OF REPLAY FOUNDATION COMPLETE
+MARKET_STUDY_SNAPSHOT_V1: READY FOR DOWNSTREAM REPLAY
+NEXT: PO REVIEW BEFORE REPLAY PLAYER / TUTOR EVIDENCE INTEGRATION
+```

@@ -1,0 +1,63 @@
+MARKET STUDY SNAPSHOT (AS OF)
+  Schema: MARKET_STUDY_SNAPSHOT_V1   Temporality: AS_OF
+  Market cutoff:    2026-09-30T19:59:00.000000Z  (2026-09-30 14:59:00 CDT)
+  Knowledge cutoff: 2026-09-30T19:59:00.000000Z  (2026-09-30 14:59:00 CDT)
+  AS_OF evidence: only source records received before the knowledge cutoff, and only market activity before the market cutoff. Later evidence, final metadata and final-study labels are absent or NOT_YET_DETERMINED.
+  Analysis commit: 62ca5ec50af5e549bab3dc7987e0e6b13e29ce63
+
+DATASET AS OF
+  9ac5a21e-a5c0-427c-91fc-af300539b711  trading date 2026-09-30  FUTURE:CME:ES:2026-12
+  capture RUNNING  lifecycle OPEN_AS_OF  connection CONNECTED  closing summary NOT_YET_DETERMINED
+  known: records 1264748  accepted 1264743  rejected 5  deferred 0 (corrections 0, cancels 0; applied 0/0)
+  known with market time >= cutoff (excluded): 0
+QUALITY AS OF  [QUALITY_QUALIFIED]
+  ! OVERNIGHT window not captured through the clock
+
+MATURITY
+  closing_summary        NOT_YET_DETERMINED
+  vwap SESSION_OPEN      DEVELOPING
+  vwap US_CASH_OPEN      DEVELOPING
+  overnight              WINDOW_COMPLETE
+  cash_open              WINDOW_COMPLETE
+  opening_facts          WINDOW_COMPLETE
+  opening_type           WINDOW_COMPLETE
+  volume_profile         DEVELOPING
+  tpo                    DEVELOPING
+  initial_balance        WINDOW_COMPLETE
+  tpo_structure          NOT_YET_DETERMINED
+  day_type               NOT_YET_DETERMINED
+  day_strength           NOT_YET_DETERMINED
+  study_window_terminal  NOT_YET_DETERMINED
+
+VWAP
+  SESSION_OPEN  DEVELOPING        VWAP 7758.417238550085721283370071  trades 1264743  [QUALITY_QUALIFIED]
+  US_CASH_OPEN  DEVELOPING        VWAP 7760.931551498108828660028683  trades 1001472  [AVAILABLE]
+
+VOLUME PROFILE  [AVAILABLE]
+  POC 7770.00  VAL 7754.50  VAH 7778.50  high 7782.00  low 7722.75  volume 1315058.0
+
+TPO  [AVAILABLE]  periods reached ABCDEFGHIJKLM  current M  IB WINDOW_COMPLETE
+  POC 7767.25  VAL 7753.75  VAH 7778.25  high 7782.00  low 7722.75  IB 7748.00-7779.50
+
+FINAL-STUDY COMPONENTS
+  structure NOT_YET_DETERMINED: final-study structure; evaluated at 15:00 CT
+  DAY_TYPE_V1 NOT_YET_DETERMINED: DAY_TYPE_V1 is evaluated at 15:00 CT
+  terminal NOT_YET_DETERMINED --   last known price 7726.5 at 2026-09-30T19:58:59.900000Z
+
+OVERNIGHT  [QUALITY_QUALIFIED]  Globex open claimed no
+  ONH 7771.25  ONL 7719.50  last 7751.75
+
+CASH OPENING  [QUALITY_QUALIFIED]  cash open WINDOW_COMPLETE 7751.75  vs prior range INSIDE_PRIOR_RANGE
+   5 min WINDOW_COMPLETE: high 7760.75 low 7748.75 crosses 30
+  15 min WINDOW_COMPLETE: high 7760.75 low 7748.75 crosses 48
+  30 min WINDOW_COMPLETE: high 7767.75 low 7748.00 crosses 62
+  60 min WINDOW_COMPLETE: high 7779.50 low 7748.00 crosses 62
+
+OPENING-TYPE CANDIDATES  [QUALITY_QUALIFIED]
+  CANDIDATE OPEN_AUCTION_IN_RANGE
+  CANDIDATE OPEN_TEST_DRIVE DOWN
+
+PRIOR DAY  [AVAILABLE]  AVAILABLE
+
+SNAPSHOT HASH  e065675f267ad40783fa2f6b3e4ab4f6edf743d389f7ea28b03a069894b5db88
+As-of evidence only: no recommendation; candidate labels are Laboratory policy outputs.

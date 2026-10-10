@@ -1,0 +1,23 @@
+{
+ "candidates_and_conditions_equal_final": true,
+ "matched_quality_0930": [
+  [
+   "OPEN_AUCTION_IN_RANGE",
+   "QUALITY_QUALIFIED"
+  ],
+  [
+   "OPEN_TEST_DRIVE",
+   "QUALITY_QUALIFIED"
+  ]
+ ],
+ "matched_quality_final": [
+  [
+   "OPEN_AUCTION_IN_RANGE",
+   "UNQUALIFIED"
+  ],
+  [
+   "OPEN_TEST_DRIVE",
+   "UNQUALIFIED"
+  ]
+ ]
+}

@@ -1,0 +1,9 @@
+prepare_replay 95.4s rss 3547 MB
+deferred records: 1; first: CANCEL source_order 105305 index 7691961727608577538 event_time 2026-10-02 07:00:00+00:00 received 2026-10-02T07:40:04.790478Z
+cutoff 2026-10-02T07:40:03.790478Z: CANCEL order 105305 market 2026-10-02T07:00:00.000000Z received 2026-10-02T07:40:04.790478Z -> NOT_YET_RECEIVED: received at/after the knowledge cutoff
+cutoff 2026-10-02T07:40:03.790478Z: snapshot sha e1738def27f4abf3683e498bf3ebe3d9ceaf3cd613f6476a868fa09e3125b312; deferred known 0; cancels known 0; cancels applied 0; anomalies 0; effective trades 105301; volume 122340.0
+cutoff 2026-10-02T07:40:03.790478Z: cancels known 0, applied 0, anomalies []
+cutoff 2026-10-02T07:40:05.790478Z: CANCEL order 105305 market 2026-10-02T07:00:00.000000Z received 2026-10-02T07:40:04.790478Z -> ANOMALY: TARGET_SOURCE_EVENT_NOT_FOUND
+cutoff 2026-10-02T07:40:05.790478Z: snapshot sha 8542e52faaddec1e88f70897ba4b026b7d109578dff5e7e6ad4a0f7488f926cc; deferred known 1; cancels known 1; cancels applied 0; anomalies 1; effective trades 105304; volume 122344.0
+cutoff 2026-10-02T07:40:05.790478Z: cancels known 1, applied 0, anomalies ['TARGET_SOURCE_EVENT_NOT_FOUND']
+database sha256 unchanged: True cd47e987c8edbec758d590c7580d4a4bb982ed802da18d21fea338f020c3fae2

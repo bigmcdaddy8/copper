@@ -1,0 +1,61 @@
+MARKET STUDY SNAPSHOT (AS OF)
+  Schema: MARKET_STUDY_SNAPSHOT_V1   Temporality: AS_OF
+  Market cutoff:    2026-09-30T13:29:00.000000Z  (2026-09-30 08:29:00 CDT)
+  Knowledge cutoff: 2026-09-30T13:29:00.000000Z  (2026-09-30 08:29:00 CDT)
+  AS_OF evidence: only source records received before the knowledge cutoff, and only market activity before the market cutoff. Later evidence, final metadata and final-study labels are absent or NOT_YET_DETERMINED.
+  Analysis commit: 62ca5ec50af5e549bab3dc7987e0e6b13e29ce63
+
+DATASET AS OF
+  9ac5a21e-a5c0-427c-91fc-af300539b711  trading date 2026-09-30  FUTURE:CME:ES:2026-12
+  capture RUNNING  lifecycle OPEN_AS_OF  connection CONNECTED  closing summary NOT_YET_DETERMINED
+  known: records 260867  accepted 260862  rejected 5  deferred 0 (corrections 0, cancels 0; applied 0/0)
+  known with market time >= cutoff (excluded): 0
+QUALITY AS OF  [QUALITY_QUALIFIED]
+  ! OVERNIGHT window not captured through the clock
+
+MATURITY
+  closing_summary        NOT_YET_DETERMINED
+  vwap SESSION_OPEN      DEVELOPING
+  vwap US_CASH_OPEN      NOT_YET_AVAILABLE
+  overnight              DEVELOPING
+  cash_open              NOT_YET_AVAILABLE
+  opening_facts          NOT_YET_AVAILABLE
+  opening_type           NOT_YET_AVAILABLE
+  volume_profile         NOT_YET_AVAILABLE
+  tpo                    NOT_YET_AVAILABLE
+  initial_balance        NOT_YET_AVAILABLE
+  tpo_structure          NOT_YET_AVAILABLE
+  day_type               NOT_YET_AVAILABLE
+  day_strength           NOT_YET_AVAILABLE
+  study_window_terminal  NOT_YET_AVAILABLE
+
+VWAP
+  SESSION_OPEN  DEVELOPING        VWAP 7747.973752048945984065871231  trades 260862  [QUALITY_QUALIFIED]
+  US_CASH_OPEN  NOT_YET_AVAILABLE --  [NOT_AVAILABLE]
+
+VOLUME PROFILE  [NOT_AVAILABLE]
+  POC --  VAL --  VAH --  high --  low --  volume --
+
+TPO  [NOT_AVAILABLE]  periods reached --  current --  IB NOT_YET_AVAILABLE
+
+FINAL-STUDY COMPONENTS
+  structure NOT_YET_DETERMINED: final-study structure; evaluated at 15:00 CT
+  DAY_TYPE_V1 NOT_YET_DETERMINED: DAY_TYPE_V1 is evaluated at 15:00 CT
+  terminal NOT_YET_DETERMINED --   last known price 7753.25 at 2026-09-30T13:28:59.900000Z
+
+OVERNIGHT  [QUALITY_QUALIFIED]  Globex open claimed no
+  developing: high 7771.25  low 7719.50  range 207 ticks  last 7753.25
+
+CASH OPENING  [NOT_AVAILABLE]  cash open NOT_YET_AVAILABLE   vs prior range --
+   5 min NOT_YET_AVAILABLE
+  15 min NOT_YET_AVAILABLE
+  30 min NOT_YET_AVAILABLE
+  60 min NOT_YET_AVAILABLE
+
+OPENING-TYPE CANDIDATES  [NOT_AVAILABLE]
+  NOT_YET_DETERMINED: OPENING_TYPE_V1 is evaluated at 09:30 CT
+
+PRIOR DAY  [AVAILABLE]  AVAILABLE
+
+SNAPSHOT HASH  8b7927ac05785605e16f798e900a7b3ca47ee6380c861370698ebf5d09bbbf45
+As-of evidence only: no recommendation; candidate labels are Laboratory policy outputs.

@@ -42,8 +42,9 @@ Findings:
   (INTERRUPTED) is the kind of dataset where it can occur.
 - Authentic receipt lag on 2026-09-30: 0.013 s to 20.3 s; 3,280 trades arrived
   more than 1 s after their market time and 1,023 more than 5 s. 2026-10-02 holds
-  a real CANCEL received 40 minutes after its market time. The distinction is
-  material, not theoretical.
+  a real CANCEL received 40 minutes after its market time (its target trade was
+  never retained; see `MARKET_REPLAY_0ZB.md` §4). The distinction is material,
+  not theoretical.
 
 ## 2. ReplayCutoff
 
