@@ -1530,3 +1530,15 @@ industry-standard mechanical definition.**
 - Overnight inventory labels (LONG / SHORT / NEUTRAL): the survey disagrees
   on both the reference and the quantity.
 - `OVERNIGHT_PROFILE_V1`, settlement as a reference, and a holiday calendar.
+
+## 73. Unified Market Study State (0Z-A)
+
+- `MARKET_STUDY_STATE_V1` assembles the accepted 0Y-A–0Y-H objects, the
+  accepted VWAP studies and the Volume Profile headline into one immutable,
+  canonical, hashed state per trading date. Reference: `MARKET_STUDY_STATE_V1.md`.
+- No Market Profile concept is added or redefined. The one code change to this
+  module family is an optional `context` argument on `analyze_tpo_dataset`, so
+  the state builder loads a tape once; the default path is unchanged.
+- The state is `FINAL_STUDY_STATE` only. As-of replay snapshots are not
+  implemented; the replay-readiness inventory is in `MARKET_STUDY_STATE_V1.md`
+  §12.

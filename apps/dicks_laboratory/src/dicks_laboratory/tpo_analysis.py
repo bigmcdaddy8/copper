@@ -15,7 +15,7 @@ from enum import StrEnum
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from dicks_laboratory.analysis import prepare_scoped_dataset
+from dicks_laboratory.analysis import ScopedDatasetContext, prepare_scoped_dataset
 from dicks_laboratory.anchored_vwap import VwapSourceMode
 from dicks_laboratory.models import InstrumentIdentity
 from dicks_laboratory.quality import DatasetQualityEvidenceType, summarize_dataset_quality
@@ -137,9 +137,14 @@ def analyze_tpo_dataset(
     trading_date: date | None = None,
     period_minutes: int = DEFAULT_PERIOD_MINUTES,
     window: StudyWindow = US_CASH_PROFILE,
+    context: ScopedDatasetContext | None = None,
 ) -> TpoAnalysisResult:
-    """TPO profile of the effective tape inside the study window, plus quality and a volume comparison."""
-    context = prepare_scoped_dataset(store, dataset_id, AnchorKind.SESSION_OPEN, trading_date, None)
+    """TPO profile of the effective tape inside the study window, plus quality and a volume comparison.
+
+    `context` lets a caller that already scoped this dataset (SESSION_OPEN anchor) reuse its tape.
+    """
+    if context is None:
+        context = prepare_scoped_dataset(store, dataset_id, AnchorKind.SESSION_OPEN, trading_date, None)
     resolved = context.resolved_trading_date
     build_period_slots(resolved, period_minutes, window)  # validate before any work
     start_utc, end_utc = window.bounds_utc(resolved)
