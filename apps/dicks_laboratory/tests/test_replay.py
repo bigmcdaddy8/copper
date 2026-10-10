@@ -629,7 +629,7 @@ def test_replay_cli_smoke(fx, tmp_path):
     explicit = MarketReplay(fx.replay.current, fx.replay.prior, AnalysisProvenance("a" * 40, None))
     assert doc == canonical_snapshot_json(explicit.snapshot(at=ct(CUR, 10, 0)))
     many = _run(fx.cur, "--at", "2026-10-05T08:35:00-05:00", "--at", "2026-10-05T15:00:00-05:00",
-                "--analysis-commit", "a" * 40, "--out-dir", tmp_path / "snaps")
+                "--analysis-commit", "a" * 40, "--out-dir", tmp_path / "snaps", "--view", "summary")
     assert many.returncode == 0, many.stderr
     assert many.stdout.count("MARKET STUDY SNAPSHOT (AS OF)") == 2
     assert len(list((tmp_path / "snaps").glob("*.json"))) == 2
