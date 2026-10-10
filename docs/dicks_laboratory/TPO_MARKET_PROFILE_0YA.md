@@ -1216,6 +1216,11 @@ and adopts no label.
   within `GLOBEX_OPEN_MAX_DELAY` = 60 s of 17:00 CT. This is a data-coverage
   bound with the same value as the cash-open bound; it is not a market
   concept. Otherwise the first print is still reported, under its own name.
+- *(0Y-H PO decision: **no tolerance** for the 17:00 boundary. The capture
+  start must be recorded at or before 17:00:00 CT. An unrecorded start
+  previously fell through to the 60 s check; it now never allows a claim
+  (conformance fix with a test; no corpus day was affected, because every
+  corpus start is recorded and late).)*
 
 ## 53. Overnight quality (LABORATORY POLICY)
 
@@ -1409,10 +1414,119 @@ Test Drive. OpeningScaleFacts != Open Drive.**
 ## 64. Deferred
 
 - Opening-type labels (all six). Feasibility is in
-  `MARKET_PROFILE_OVERNIGHT_0YG.md`.
+  `MARKET_PROFILE_OVERNIGHT_0YG.md`. *(0Y-H: OPENING_TYPE_V1 candidates for
+  Open Drive, Open Auction In/Out of Range and Open Test Drive, §65–§72; ORR
+  remains deferred.)*
 - Inventory labels (LONG / SHORT / NEUTRAL) and any inventory threshold.
 - `OVERNIGHT_PROFILE_V1` (§56).
 - Settlement price as a reference: it requires a new data source.
 - Overnight midpoint as an inventory reference (LuxAlgo); derivable when
   wanted.
 - Session VWAP as a reference; a holiday calendar.
+
+## 65. OPENING_TYPE_V1 (LABORATORY POLICY, 0Y-H, FROZEN)
+
+**OPENING_TYPE_V1 is a pre-registered Laboratory candidate policy, not an
+industry-standard mechanical definition.**
+
+- The normative text is `OPENING_TYPE_V1_POLICY.md`. Its sha256 and the sha256
+  of `tpo_opening_type.py` are frozen in `tpo_opening_type_record.py`, and a
+  test asserts both.
+- Version string: `V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR`.
+- It reads `OpeningPathFacts` only. `OPENING_AUCTION_FACTS_V1`,
+  `OVERNIGHT_CONTEXT_V1`, `OPENING_PATH_FACTS_V1`, `DAY_TYPE_V1` and
+  `DAY_STRUCTURE_STRENGTH_V1` are unchanged.
+
+## 66. Horizon and grace (PO decisions)
+
+- **Horizon:** period A, [cash open print, end of A). A must be 30 minutes;
+  otherwise the result is NOT_CLASSIFIED. Nothing is classified from the
+  whole day.
+- **Grace:** 60 s after the cash open print, so the +60 s grace-instant
+  diagnostic of §59 is the same instant.
+  - It is a Laboratory observation scale, chosen because the tick-level open
+    is re-crossed within a second on every observed session.
+  - It is not from the Market Profile literature and is not validated.
+
+## 67. Candidate rules
+
+| Type | Conditions |
+|---|---|
+| `OPEN_DRIVE` UP/DOWN | D1 grace price strictly off the open (side = direction); D2 no trade strictly on the other side after the grace instant through the end of A; D3 the A terminal is on the grace side |
+| `OPEN_AUCTION_IN_RANGE` | R1 post-grace observation strictly above and strictly below the open; R2 at least one post-grace open cross; L open INSIDE / AT_PRIOR_HIGH / AT_PRIOR_LOW of the prior range |
+| `OPEN_AUCTION_OUT_OF_RANGE` | R1, R2; L open strictly above the prior high or strictly below the prior low |
+| `OPEN_AUCTION` | R1, R2 with no usable prior range (IN/OUT NOT_CLASSIFIED) |
+| `OPEN_TEST_DRIVE` UP/DOWN | T1 the first qualifying reference reached in A (exact: at or through the price); T2 it lies on the probe side; T3 the open is crossed after the reach, in A; T4 a trade strictly on the opposite side after the cross, in A. Direction = post-cross side. |
+| `OPEN_REJECTION_REVERSE` | DEFERRED — `REFERENCE_DEFINITION_CONFLICT` |
+
+- No minimum excursion, range, volume, cross count, A/B overlap,
+  counter/dominant ratio or proximity is required anywhere.
+- Under V1, T2 is implied by T1 and T4 by T3 (`OPENING_TYPE_V1_POLICY.md` §5).
+  Both are still stated in the output.
+
+## 68. Candidate-set semantics
+
+- Candidates are not mutually exclusive. There is no precedence and no
+  `primary_opening_type`.
+- Open Drive and the Open Auction family are mutually exclusive by
+  construction: D2 forbids a post-grace cross, and R2 requires one.
+- Open Test Drive can coexist with either.
+
+## 69. Dependency-aware quality
+
+- If the current open is QUALITY_QUALIFIED, every candidate is too.
+- Otherwise each candidate reads only its inputs:
+  - prior-range candidates read the prior day's quality;
+  - an Open Test Drive reads the source of its probe reference.
+- A qualified overnight (including the Globex boundary, §52) affects only a
+  test drive probing ONH / ONL. The observed overnight range is a subset of
+  the true range, so a non-reach is robust to it.
+- Opening NOT_AVAILABLE gives `OPENING TYPE: NOT_CLASSIFIED`.
+
+## 70. Data model and CLI
+
+- `classify_opening_type(OpeningPathFacts) -> OpeningTypeClassification`
+  (frozen dataclasses). It carries:
+  - `policy_id`, `policy_version` and `policy_constants`;
+  - `status`, `reasons` and `quality` (`ContextQuality`, never merged);
+  - `candidates`: one `OpeningTypeCandidate` per type in fixed order. Each has
+    `type`, `direction`, `result`, `quality`, `quality_reasons`,
+    `conditions` (`OpeningTypeCondition`: code, description, status, detail),
+    `evidence` (`GraceObservation` or `TestDriveEvidence`) and `policy_id`;
+  - `strength` (`OpeningStrengthFacts`, continuous) and the `facts`.
+
+  `matched` / `matched_types` give the set.
+- `opening_type_classification(current, candidates, closures)` in
+  `tpo_analysis`.
+- **CLI:** `dicks_lab_tpo_profile.py DB --opening-types [--prior-database
+  PRIOR_DB] [--closure ...]`. It prints `OPENING-TYPE CANDIDATES` after the
+  opening-path section. Without the flag, output is unchanged (tested).
+
+## 71. Prospective validation harness
+
+- `scripts/dicks_lab_mp_opening_type_study.py record OUT_DIR DBS...` writes
+  one JSON record per profiled date:
+  - the opening-auction, overnight and opening-path facts (tape `path` arrays
+    omitted; they are reproducible from the dataset id and database sha256);
+  - the classification;
+  - the policy-source sha256 and the fact-module sha256 values;
+  - the cohort.
+- It also writes per-day reports and an audit table.
+- `summarize OUT_FILE RECORDS...` aggregates by cohort.
+- Cohorts:
+  - `DEVELOPMENT`: on or before the 2026-10-09 freeze;
+  - `VALIDATION`: unseen later dates scored by the unmodified source;
+  - `POLICY_MODIFIED`: the source hash differs, so the record is never
+    validation.
+- Nothing is scheduled; collection stays disarmed.
+
+## 72. Deferred (after 0Y-H)
+
+- `OPEN_REJECTION_REVERSE` (`REFERENCE_DEFINITION_CONFLICT`).
+- A "toward the reference without touching" / proximity variant of Open Test
+  Drive.
+- Precedence or a primary opening type, and any strength threshold. These
+  need prospective evidence first.
+- Overnight inventory labels (LONG / SHORT / NEUTRAL): the survey disagrees
+  on both the reference and the quantity.
+- `OVERNIGHT_PROFILE_V1`, settlement as a reference, and a holiday calendar.

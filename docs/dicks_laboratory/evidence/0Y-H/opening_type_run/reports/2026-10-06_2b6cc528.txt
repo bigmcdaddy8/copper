@@ -1,0 +1,75 @@
+2026-10-06  2b6cc528-8928-4c2b-a27d-77794fc61d26  FUTURE:CME:ES:2026-12  cohort DEVELOPMENT
+
+OPENING-TYPE CANDIDATES:
+  Policy: OPENING_TYPE_V1 (V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR)
+  Pre-registered Laboratory candidate policy, not an industry-standard mechanical definition.
+  Constants: grace_seconds=60; grace_anchor=CASH_OPEN_PRINT; horizon=PERIOD_A; horizon_minutes=30; reference_touch_policy=EXACT; test_drive_probe_rule=FIRST_REFERENCE_REACHED; test_drive_references=PRIOR_HIGH,PRIOR_VAH,PRIOR_POC,PRIOR_VAL,PRIOR_LOW,OVERNIGHT_HIGH,OVERNIGHT_LOW; open_auction_location_anchor=PRIOR_RANGE; in_range_locations=INSIDE_PRIOR_RANGE,AT_PRIOR_HIGH,AT_PRIOR_LOW; open_rejection_reverse=DEFERRED:REFERENCE_DEFINITION_CONFLICT
+  Quality inputs (kept separate): CURRENT_OPEN UNQUALIFIED; PRIOR_DAY NO_PRIOR_PROFILE; OVERNIGHT QUALITY_QUALIFIED
+  Matched candidates: OPEN_AUCTION, OPEN_TEST_DRIVE DOWN (QUALITY_QUALIFIED)   (2 matched; candidate set -- no primary type)
+
+  OPEN_DRIVE
+    [satisfied]     price at +60 s is strictly above or below the cash open
+                    price at 13:31:00.000Z = 7867.50 (+20 ticks): UP
+    [NOT satisfied] no later trade on the other side of the open through the end of A
+                    first cross 13:34:43.954Z; 28 post-grace crosses, last 13:38:02.035Z
+    [satisfied]     the A terminal price is on the grace side of the open
+                    A terminal 7878.75 (+65 ticks): UP
+    Result: NOT_CANDIDATE   quality UNQUALIFIED
+
+  OPEN_AUCTION_IN_RANGE
+    [satisfied]     from +60 s to the end of A price is strictly above and strictly below the open
+                    above: yes (max 74 ticks), below: yes (max 9 ticks)
+    [satisfied]     at least one strict open cross after +60 s, before the end of A
+                    28 post-grace crosses; first 13:34:43.954Z, last 13:38:02.035Z
+    [not evaluable] open location vs the inclusive prior range
+                    prior context NO_PRIOR_PROFILE
+    IN_RANGE / OUT_OF_RANGE: NOT_CLASSIFIED -- prior context NO_PRIOR_PROFILE; no prior range
+    Result: NOT_CLASSIFIED
+
+  OPEN_AUCTION_OUT_OF_RANGE
+    [satisfied]     from +60 s to the end of A price is strictly above and strictly below the open
+                    above: yes (max 74 ticks), below: yes (max 9 ticks)
+    [satisfied]     at least one strict open cross after +60 s, before the end of A
+                    28 post-grace crosses; first 13:34:43.954Z, last 13:38:02.035Z
+    [not evaluable] open location vs the inclusive prior range
+                    prior context NO_PRIOR_PROFILE
+    IN_RANGE / OUT_OF_RANGE: NOT_CLASSIFIED -- prior context NO_PRIOR_PROFILE; no prior range
+    Result: NOT_CLASSIFIED
+
+  OPEN_AUCTION
+    [satisfied]     from +60 s to the end of A price is strictly above and strictly below the open
+                    above: yes (max 74 ticks), below: yes (max 9 ticks)
+    [satisfied]     at least one strict open cross after +60 s, before the end of A
+                    28 post-grace crosses; first 13:34:43.954Z, last 13:38:02.035Z
+    [satisfied]     no usable prior range (location NOT_CLASSIFIED)
+                    prior context NO_PRIOR_PROFILE
+    Result: CANDIDATE   quality UNQUALIFIED
+
+  OPEN_TEST_DRIVE
+    [satisfied]     an exact qualifying reference is reached during A (at or through its price; no proximity rule)
+                    OVERNIGHT_HIGH 7867.75 reached 13:30:53.163Z (exact touch); first reference reached
+    [satisfied]     the reference lies on the probe side of the open
+                    OVERNIGHT_HIGH is +21 ticks from the open: probe UP
+    [satisfied]     price crosses the cash open after the reach, before the end of A
+                    first cross 13:34:43.954Z (+230.791 s after the reach)
+    [satisfied]     after that cross price trades strictly on the opposite side of the open before the end of A
+                    max 9 ticks beyond the open on the DOWN side to 14:00:00.000Z
+    Result: CANDIDATE DOWN   quality QUALITY_QUALIFIED
+      - overnight: capture began 0:00:00.000209 after 17:00 CT (overnight window starts late)
+    Evidence: OVERNIGHT_HIGH (OVERNIGHT) 7867.75; reached 13:30:53.163Z; exact touch 13:30:53.163Z; probe side UP; open->reference +21 ticks (5.25 pts); reach->cross 230.791s; opposite excursion after cross in A 9 ticks (2.25 pts); A terminal +65 ticks (UP)
+    Other references reached in A: none; minimum reference distance 0 ticks (OVERNIGHT_HIGH)
+
+  OPEN_REJECTION_REVERSE
+    DEFERRED -- REFERENCE_DEFINITION_CONFLICT: sources disagree on whether a reference must be reached, how large the initial run must be, and what distinguishes it from Open Test Drive
+
+  Post-grace observation (+60 s = 13:31:00.000Z to end of A 14:00:00.000Z):
+    grace price 7867.50 (+20 ticks, side UP, held UP); post-grace crosses 28 (last 13:38:02.035Z); max up 74 / down 9 ticks
+    A high 7881.00 low 7860.25 terminal 7878.75 (+65 ticks, UP)
+
+  Continuous facts beside every candidate (evidence only; not conditions, not a score):
+     5m  up 26 / down 6 ticks (UP, counter/dominant 0.2308); open crosses 13, last 13:34:59.600Z; longest residence up 264.469s / down 9.771s
+    15m  up 26 / down 9 ticks (UP, counter/dominant 0.3462); open crosses 36, last 13:38:02.035Z; longest residence up 417.965s / down 25.077s
+    30m  up 74 / down 9 ticks (UP, counter/dominant 0.1216); open crosses 36, last 13:38:02.035Z; longest residence up 1317.965s / down 25.077s
+    A/B overlap 0.6364; one-timeframing run from A: higher lows 2, lower highs 1; first reference reached OVERNIGHT_HIGH 13:30:53.163Z
+    open vs prior: not available; open vs overnight: INSIDE_OVERNIGHT_RANGE, percentile 0.8645, overnight range 155 ticks
+  Candidates are descriptive taxonomy only: not a bias and not a signal.

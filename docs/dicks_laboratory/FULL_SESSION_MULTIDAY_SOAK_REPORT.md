@@ -5076,3 +5076,63 @@ Any future threshold must be pre-registered and validated prospectively.
 0Y-G: PASS — OVERNIGHT CONTEXT / MULTI-SCALE OPENING FOUNDATION COMPLETE
 NEXT: PO REVIEW BEFORE OPENING-TYPE V1 POLICY DESIGN
 ```
+
+## MU. 0Y-H — Opening-Type V1 Candidate Policy (2026-10-09)
+
+PO record:
+- 0Y-G: **PASS / ACCEPTED / CLOSED**
+- Overnight context and multi-scale opening facts: **accepted**
+
+PO decisions implemented:
+- **No tolerance** for claiming the 17:00 CT Globex open. A claim needs a
+  capture start recorded at or before 17:00:00 CT, so an unrecorded start no
+  longer allows one (conformance fix with a test; no corpus day changed).
+- Overnight facts stay computable and QUALITY_QUALIFIED.
+- Horizon: period A.
+- Open-Drive grace: 60 s, a Laboratory scale that is not validated.
+- Test Drive: exact reference reach only, with no "near" rule.
+- OAIR / OAOR: anchored on the prior range, with the boundaries inclusive.
+- ORR: DEFERRED.
+
+What 0Y-H adds:
+- **`OPENING_TYPE_V1`**
+  (`V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR`): a
+  pre-registered Laboratory candidate policy, not an industry-standard
+  mechanical definition.
+  - Candidates: OPEN_DRIVE, OPEN_AUCTION_IN_RANGE / OUT_OF_RANGE, generic
+    OPEN_AUCTION when there is no prior range, and OPEN_TEST_DRIVE.
+  - OPEN_REJECTION_REVERSE is DEFERRED (`REFERENCE_DEFINITION_CONFLICT`).
+  - The result is a candidate set: no primary type and no precedence.
+  - Quality is dependency-aware.
+  - Every condition is explained; continuous facts are printed beside the
+    candidates.
+  - CLI: `--opening-types`.
+- **Frozen before any corpus run:** policy source sha256 `2b7b571c…798d7c`
+  and policy document sha256 `1a952478…5af2ec` (a test asserts both), in
+  commit `92e0a0cc`.
+- **Prospective-validation harness:**
+  `scripts/dicks_lab_mp_opening_type_study.py record|summarize` writes JSON
+  records (facts, classification, policy hash, cohort
+  DEVELOPMENT / VALIDATION / POLICY_MODIFIED). Nothing is scheduled.
+- Design: `TPO_MARKET_PROFILE_0YA.md` §65–§72; policy:
+  `OPENING_TYPE_V1_POLICY.md`.
+
+Descriptive corpus audit (`MARKET_PROFILE_OPENING_TYPE_0YH.md`,
+`evidence/0Y-H/`); **DEVELOPMENT, NOT VALIDATION**:
+- 17 profiled days: 2 NOT_CLASSIFIED and 15 classified, of which 11 have one
+  candidate, 4 have several, and 0 have none.
+- Candidates:
+  - Open Drive: 2, both DOWN;
+  - OAIR: 4; OAOR: 2; generic OA: 7;
+  - Open Test Drive: 4, all DOWN (3 overlapping OA-family candidates).
+- 3 matched candidates are QUALITY_QUALIFIED.
+- Main open question, documented and not tuned: on 3 of the 4 Test Drive
+  candidates, the A terminal ended on the probe side.
+- Load took 1,603 s and classification 8.0 s. Database hashes are unchanged.
+
+```
+0Y-H: PASS — OPENING_TYPE_V1 CANDIDATE POLICY COMPLETE
+OPEN_REJECTION_REVERSE: DEFERRED
+OPENING_TYPE_V1: FROZEN FOR PROSPECTIVE VALIDATION
+NEXT: PO REVIEW — THEN UNIFIED MARKET STUDY STATE / REPLAY INTEGRATION
+```

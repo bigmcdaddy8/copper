@@ -1,0 +1,10 @@
+2026-08-31  befb7b0e-9a69-4001-ac2b-90405e0c28ed  FUTURE:CME:ES:2026-09  cohort DEVELOPMENT
+
+OPENING-TYPE CANDIDATES:
+  Policy: OPENING_TYPE_V1 (V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR)
+  Pre-registered Laboratory candidate policy, not an industry-standard mechanical definition.
+  Constants: grace_seconds=60; grace_anchor=CASH_OPEN_PRINT; horizon=PERIOD_A; horizon_minutes=30; reference_touch_policy=EXACT; test_drive_probe_rule=FIRST_REFERENCE_REACHED; test_drive_references=PRIOR_HIGH,PRIOR_VAH,PRIOR_POC,PRIOR_VAL,PRIOR_LOW,OVERNIGHT_HIGH,OVERNIGHT_LOW; open_auction_location_anchor=PRIOR_RANGE; in_range_locations=INSIDE_PRIOR_RANGE,AT_PRIOR_HIGH,AT_PRIOR_LOW; open_rejection_reverse=DEFERRED:REFERENCE_DEFINITION_CONFLICT
+  Quality inputs (kept separate): CURRENT_OPEN NOT_AVAILABLE; PRIOR_DAY NO_PRIOR_PROFILE; OVERNIGHT NOT_AVAILABLE
+  OPENING TYPE: NOT_CLASSIFIED
+    - opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)
+  OPEN_REJECTION_REVERSE: DEFERRED -- REFERENCE_DEFINITION_CONFLICT

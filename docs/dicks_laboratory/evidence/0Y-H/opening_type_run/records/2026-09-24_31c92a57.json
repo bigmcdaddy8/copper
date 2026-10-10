@@ -1,0 +1,2064 @@
+{
+ "classification": {
+  "candidates": [
+   {
+    "conditions": [
+     {
+      "code": "D1_GRACE_PRICE_OFF_OPEN",
+      "description": "price at +60 s is strictly above or below the cash open",
+      "detail": "price at 13:31:00.000Z = 7733.25 (-4 ticks): DOWN",
+      "status": "SATISFIED"
+     },
+     {
+      "code": "D2_NO_POST_GRACE_OPEN_CROSS",
+      "description": "no later trade on the other side of the open through the end of A",
+      "detail": "first cross 13:31:26.837Z; 7 post-grace crosses, last 13:31:31.040Z",
+      "status": "NOT_SATISFIED"
+     },
+     {
+      "code": "D3_A_TERMINAL_ON_GRACE_SIDE",
+      "description": "the A terminal price is on the grace side of the open",
+      "detail": "A terminal 7747.75 (+54 ticks): UP",
+      "status": "NOT_SATISFIED"
+     }
+    ],
+    "direction": null,
+    "evidence": {
+     "a_high": "7749.00",
+     "a_low": "7730.00",
+     "a_terminal_offset_ticks": 54,
+     "a_terminal_price": "7747.75",
+     "a_terminal_side": "UP",
+     "first_above_after_utc": "2026-09-24T13:31:26.837000+00:00",
+     "first_below_after_utc": "2026-09-24T13:31:00.021000+00:00",
+     "first_open_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+     "held_side": "DOWN",
+     "horizon_end_utc": "2026-09-24T14:00:00+00:00",
+     "instant_utc": "2026-09-24T13:31:00+00:00",
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "max_down_ticks": 17,
+     "max_up_ticks": 59,
+     "offset_ticks": -4,
+     "open_cross_count": 7,
+     "price": "7733.25",
+     "side": "DOWN",
+     "traded_above_after": true,
+     "traded_below_after": true
+    },
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "UNQUALIFIED",
+    "quality_reasons": [],
+    "reasons": [],
+    "result": "NOT_CANDIDATE",
+    "type": "OPEN_DRIVE"
+   },
+   {
+    "conditions": [
+     {
+      "code": "R1_BOTH_SIDES_AFTER_GRACE",
+      "description": "from +60 s to the end of A price is strictly above and strictly below the open",
+      "detail": "above: yes (max 59 ticks), below: yes (max 17 ticks)",
+      "status": "SATISFIED"
+     },
+     {
+      "code": "R2_POST_GRACE_OPEN_CROSS",
+      "description": "at least one strict open cross after +60 s, before the end of A",
+      "detail": "7 post-grace crosses; first 13:31:26.837Z, last 13:31:31.040Z",
+      "status": "SATISFIED"
+     },
+     {
+      "code": "L_PRIOR_RANGE_LOCATION",
+      "description": "open inside the inclusive prior range (AT_PRIOR_HIGH / AT_PRIOR_LOW count as inside)",
+      "detail": "open 7734.25 BELOW_PRIOR_RANGE (prior range 7759.25-7826.25; open - high -368 ticks, open - low -100 ticks)",
+      "status": "NOT_SATISFIED"
+     }
+    ],
+    "direction": null,
+    "evidence": {
+     "a_high": "7749.00",
+     "a_low": "7730.00",
+     "a_terminal_offset_ticks": 54,
+     "a_terminal_price": "7747.75",
+     "a_terminal_side": "UP",
+     "first_above_after_utc": "2026-09-24T13:31:26.837000+00:00",
+     "first_below_after_utc": "2026-09-24T13:31:00.021000+00:00",
+     "first_open_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+     "held_side": "DOWN",
+     "horizon_end_utc": "2026-09-24T14:00:00+00:00",
+     "instant_utc": "2026-09-24T13:31:00+00:00",
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "max_down_ticks": 17,
+     "max_up_ticks": 59,
+     "offset_ticks": -4,
+     "open_cross_count": 7,
+     "price": "7733.25",
+     "side": "DOWN",
+     "traded_above_after": true,
+     "traded_below_after": true
+    },
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "UNQUALIFIED",
+    "quality_reasons": [],
+    "reasons": [],
+    "result": "NOT_CANDIDATE",
+    "type": "OPEN_AUCTION_IN_RANGE"
+   },
+   {
+    "conditions": [
+     {
+      "code": "R1_BOTH_SIDES_AFTER_GRACE",
+      "description": "from +60 s to the end of A price is strictly above and strictly below the open",
+      "detail": "above: yes (max 59 ticks), below: yes (max 17 ticks)",
+      "status": "SATISFIED"
+     },
+     {
+      "code": "R2_POST_GRACE_OPEN_CROSS",
+      "description": "at least one strict open cross after +60 s, before the end of A",
+      "detail": "7 post-grace crosses; first 13:31:26.837Z, last 13:31:31.040Z",
+      "status": "SATISFIED"
+     },
+     {
+      "code": "L_PRIOR_RANGE_LOCATION",
+      "description": "open strictly above the prior high or strictly below the prior low",
+      "detail": "open 7734.25 BELOW_PRIOR_RANGE (prior range 7759.25-7826.25; open - high -368 ticks, open - low -100 ticks)",
+      "status": "SATISFIED"
+     }
+    ],
+    "direction": null,
+    "evidence": {
+     "a_high": "7749.00",
+     "a_low": "7730.00",
+     "a_terminal_offset_ticks": 54,
+     "a_terminal_price": "7747.75",
+     "a_terminal_side": "UP",
+     "first_above_after_utc": "2026-09-24T13:31:26.837000+00:00",
+     "first_below_after_utc": "2026-09-24T13:31:00.021000+00:00",
+     "first_open_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+     "held_side": "DOWN",
+     "horizon_end_utc": "2026-09-24T14:00:00+00:00",
+     "instant_utc": "2026-09-24T13:31:00+00:00",
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "max_down_ticks": 17,
+     "max_up_ticks": 59,
+     "offset_ticks": -4,
+     "open_cross_count": 7,
+     "price": "7733.25",
+     "side": "DOWN",
+     "traded_above_after": true,
+     "traded_below_after": true
+    },
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "UNQUALIFIED",
+    "quality_reasons": [],
+    "reasons": [],
+    "result": "CANDIDATE",
+    "type": "OPEN_AUCTION_OUT_OF_RANGE"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": {
+     "a_high": "7749.00",
+     "a_low": "7730.00",
+     "a_terminal_offset_ticks": 54,
+     "a_terminal_price": "7747.75",
+     "a_terminal_side": "UP",
+     "first_above_after_utc": "2026-09-24T13:31:26.837000+00:00",
+     "first_below_after_utc": "2026-09-24T13:31:00.021000+00:00",
+     "first_open_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+     "held_side": "DOWN",
+     "horizon_end_utc": "2026-09-24T14:00:00+00:00",
+     "instant_utc": "2026-09-24T13:31:00+00:00",
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "max_down_ticks": 17,
+     "max_up_ticks": 59,
+     "offset_ticks": -4,
+     "open_cross_count": 7,
+     "price": "7733.25",
+     "side": "DOWN",
+     "traded_above_after": true,
+     "traded_below_after": true
+    },
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "UNQUALIFIED",
+    "quality_reasons": [],
+    "reasons": [
+     "prior range location classified: see OPEN_AUCTION_IN_RANGE / OPEN_AUCTION_OUT_OF_RANGE"
+    ],
+    "result": "NOT_APPLICABLE",
+    "type": "OPEN_AUCTION"
+   },
+   {
+    "conditions": [
+     {
+      "code": "T1_EXACT_REFERENCE_REACHED_IN_A",
+      "description": "an exact qualifying reference is reached during A (at or through its price; no proximity rule)",
+      "detail": "no reference reached before 14:00:00.000Z; minimum distance (ticks): PRIOR_HIGH 309, PRIOR_VAH 179, PRIOR_POC 117, PRIOR_VAL 63, PRIOR_LOW 41, OVERNIGHT_HIGH 121, OVERNIGHT_LOW 91",
+      "status": "NOT_SATISFIED"
+     },
+     {
+      "code": "T2_REFERENCE_ON_PROBE_SIDE",
+      "description": "the reference lies on the probe side of the open",
+      "detail": "no reference reached",
+      "status": "NOT_EVALUABLE"
+     },
+     {
+      "code": "T3_OPEN_CROSSED_AFTER_REACH_IN_A",
+      "description": "price crosses the cash open after the reach, before the end of A",
+      "detail": "no reference reached",
+      "status": "NOT_EVALUABLE"
+     },
+     {
+      "code": "T4_OPPOSITE_SIDE_AFTER_CROSS_IN_A",
+      "description": "after that cross price trades strictly on the opposite side of the open before the end of A",
+      "detail": "no reference reached",
+      "status": "NOT_EVALUABLE"
+     }
+    ],
+    "direction": null,
+    "evidence": {
+     "a_terminal_offset_ticks": 54,
+     "a_terminal_side": "UP",
+     "exact_touch_utc": null,
+     "minimum_reference_distance_reference": "PRIOR_LOW",
+     "minimum_reference_distance_ticks": 41,
+     "open_cross_after_reach_utc": null,
+     "open_to_reference_points": null,
+     "open_to_reference_ticks": null,
+     "opposite_excursion_after_cross_points": null,
+     "opposite_excursion_after_cross_ticks": null,
+     "other_references_reached": [],
+     "probe_side": null,
+     "reach_beyond_ticks": null,
+     "reach_to_cross": null,
+     "reached_utc": null,
+     "reference": null,
+     "reference_price": null,
+     "reference_source": null
+    },
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "UNQUALIFIED",
+    "quality_reasons": [],
+    "reasons": [],
+    "result": "NOT_CANDIDATE",
+    "type": "OPEN_TEST_DRIVE"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "REFERENCE_DEFINITION_CONFLICT: sources disagree on whether a reference must be reached, how large the initial run must be, and what distinguishes it from Open Test Drive"
+    ],
+    "result": "DEFERRED",
+    "type": "OPEN_REJECTION_REVERSE"
+   }
+  ],
+  "policy_constants": [
+   [
+    "policy_id",
+    "OPENING_TYPE_V1"
+   ],
+   [
+    "policy_version",
+    "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR"
+   ],
+   [
+    "grace_seconds",
+    "60"
+   ],
+   [
+    "grace_anchor",
+    "CASH_OPEN_PRINT"
+   ],
+   [
+    "horizon",
+    "PERIOD_A"
+   ],
+   [
+    "horizon_minutes",
+    "30"
+   ],
+   [
+    "reference_touch_policy",
+    "EXACT"
+   ],
+   [
+    "test_drive_probe_rule",
+    "FIRST_REFERENCE_REACHED"
+   ],
+   [
+    "test_drive_references",
+    "PRIOR_HIGH,PRIOR_VAH,PRIOR_POC,PRIOR_VAL,PRIOR_LOW,OVERNIGHT_HIGH,OVERNIGHT_LOW"
+   ],
+   [
+    "open_auction_location_anchor",
+    "PRIOR_RANGE"
+   ],
+   [
+    "in_range_locations",
+    "INSIDE_PRIOR_RANGE,AT_PRIOR_HIGH,AT_PRIOR_LOW"
+   ],
+   [
+    "open_rejection_reverse",
+    "DEFERRED:REFERENCE_DEFINITION_CONFLICT"
+   ]
+  ],
+  "policy_id": "OPENING_TYPE_V1",
+  "policy_version": "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR",
+  "quality": {
+   "current_open": "UNQUALIFIED",
+   "current_open_reasons": [],
+   "overnight": "QUALITY_QUALIFIED",
+   "overnight_reasons": [
+    "capture began 0:00:00.000266 after 17:00 CT (overnight window starts late)"
+   ],
+   "prior_day_outcome": "AVAILABLE",
+   "prior_day_quality": "UNQUALIFIED",
+   "prior_day_reasons": []
+  },
+  "reasons": [],
+  "status": "CLASSIFIED",
+  "strength": {
+   "ab_overlap_ratio": "0.25",
+   "first_reference_reached": null,
+   "first_reference_reached_utc": null,
+   "open_percentile_in_overnight_range": "0.375",
+   "opening_higher_low_run": 2,
+   "opening_lower_high_run": 1,
+   "overnight_location": "INSIDE_OVERNIGHT_RANGE",
+   "overnight_range_ticks": 288,
+   "range_location": "BELOW_PRIOR_RANGE",
+   "value_location": "BELOW_PRIOR_VALUE",
+   "windows": [
+    {
+     "counter_to_dominant": "0.5",
+     "dominant": "UP",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 34,
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "longest_down_residence": "45.367000",
+     "longest_up_residence": "208.960000",
+     "minutes": 5,
+     "open_cross_count": 43
+    },
+    {
+     "counter_to_dominant": "0.4047619047619047619047619048",
+     "dominant": "UP",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 42,
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "longest_down_residence": "45.367000",
+     "longest_up_residence": "808.960000",
+     "minutes": 15,
+     "open_cross_count": 43
+    },
+    {
+     "counter_to_dominant": "0.2881355932203389830508474576",
+     "dominant": "UP",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 59,
+     "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+     "longest_down_residence": "45.367000",
+     "longest_up_residence": "1708.960000",
+     "minutes": 30,
+     "open_cross_count": 43
+    }
+   ]
+  }
+ },
+ "cohort": "DEVELOPMENT",
+ "contract": "FUTURE:CME:ES:2026-12",
+ "database_sha256": "c8a3524bbb7f4635f87f45dbe2418aff17f3b0f7f65808cd806b3d9dba7c0106",
+ "dataset_id": "31c92a57-242c-4b25-a983-0086c811ed9a",
+ "fact_source_sha256": {
+  "tpo_opening.py": "dd28f988f83cc4d039d5fd0126e43053b445c1905b7a4520882823fcdd1d88c2",
+  "tpo_opening_path.py": "37a684cf20679dfd00fc8e29916f524ae6677ae2dcf89f50fa77cea191b35e8c",
+  "tpo_overnight.py": "91f4ab6251440c275963336355f14f46c05ac01e0fad7fa58772e5475f882435"
+ },
+ "opening_auction_facts": {
+  "gap_direction": "DOWN",
+  "gap_extent": "BEYOND_PRIOR_RANGE",
+  "gap_points": "-39.50",
+  "gap_ticks": -158,
+  "open_vs_poc_points": "-44.00",
+  "open_vs_poc_ticks": -176,
+  "open_vs_prior_high_ticks": -368,
+  "open_vs_prior_low_ticks": -100,
+  "open_vs_vah_points": "-59.50",
+  "open_vs_vah_ticks": -238,
+  "open_vs_val_points": "-30.50",
+  "open_vs_val_ticks": -122,
+  "outcome": "AVAILABLE",
+  "policy_id": "OPENING_AUCTION_FACTS_V1",
+  "prior": {
+   "current_contract": "FUTURE:CME:ES:2026-12",
+   "dataset_quality": "COMPLETE / NO KNOWN GAPS",
+   "day_type": "NORMAL_VARIATION_DAY",
+   "day_type_direction": "DOWN",
+   "day_type_outcome": "CANDIDATE",
+   "expected_prior_date": "2026-09-23",
+   "ib_high": "7826.25",
+   "ib_low": "7778.00",
+   "outcome": "AVAILABLE",
+   "poc": "7778.25",
+   "prior_contract": "FUTURE:CME:ES:2026-12",
+   "prior_dataset_id": "b2856c52-17a5-43f4-941c-aa311e8558e9",
+   "prior_trading_date": "2026-09-23",
+   "profile_high": "7826.25",
+   "profile_low": "7759.25",
+   "quality_grade": "UNQUALIFIED",
+   "quality_reasons": [],
+   "reasons": [],
+   "same_contract": true,
+   "strength": {
+    "counter_extension_ticks": 0,
+    "counter_per_ib": "0",
+    "counter_to_dominant": "0",
+    "day_type": "NORMAL_VARIATION_DAY",
+    "day_type_direction": "DOWN",
+    "day_type_outcome": "CANDIDATE",
+    "day_type_policy": "DAY_TYPE_V1",
+    "directional_state": "DOWN_ONLY",
+    "dominant_extension": "DOWN",
+    "dominant_extension_ticks": 75,
+    "dominant_per_ib": "0.3886010362694300518134715026",
+    "dominant_share_of_total": "1",
+    "extension_above_per_ib": "0",
+    "extension_above_points": "0.00",
+    "extension_above_ticks": 0,
+    "extension_below_per_ib": "0.3886010362694300518134715026",
+    "extension_below_points": "18.75",
+    "extension_below_ticks": 75,
+    "first_extension_direction": "DOWN",
+    "ib_midpoint_percentile": "0.6399253731343283582089552239",
+    "ib_range_ticks": 193,
+    "ib_share_of_range": "0.7201492537313432835820895522",
+    "interior_one_tpo_rows": 0,
+    "interior_one_tpo_zone_count": 0,
+    "last_extension_direction": "DOWN",
+    "longest_higher_low_run": 3,
+    "longest_lower_high_run": 6,
+    "lower_tail_rows": 7,
+    "lower_tail_ticks": 7,
+    "max_consecutive_new_high_periods": 0,
+    "max_consecutive_new_low_periods": 4,
+    "new_high_period_count": 0,
+    "new_high_periods": "",
+    "new_low_period_count": 4,
+    "new_low_periods": "EFGH",
+    "poc_percentile": "0.2835820895522388059701492537",
+    "policy_id": "DAY_STRUCTURE_STRENGTH_V1",
+    "scope": "FULL_STUDY_WINDOW",
+    "scope_reasons": [],
+    "terminal_from_high_per_range": "0.7835820895522388059701492537",
+    "terminal_from_high_ticks": 210,
+    "terminal_from_low_per_range": "0.2164179104477611940298507463",
+    "terminal_from_low_ticks": 58,
+    "terminal_percentile": "0.2164179104477611940298507463",
+    "terminal_price": "7773.75",
+    "terminal_timestamp_utc": "2026-09-23T19:59:59.997000+00:00",
+    "upper_tail_rows": 83,
+    "upper_tail_ticks": 83,
+    "value_area_midpoint_percentile": "0.2985074626865671641791044776"
+   },
+   "terminal_price": "7773.75",
+   "value_area_high": "7793.75",
+   "value_area_low": "7764.75"
+  },
+  "range_location": "BELOW_PRIOR_RANGE",
+  "range_zone": {
+   "a_rows": 77,
+   "a_rows_inside": 0,
+   "a_seconds_observed": "1800.000",
+   "first_entry_utc": "2026-09-24T16:16:24.581000+00:00",
+   "first_exit_above_utc": null,
+   "first_exit_below_utc": null,
+   "first_return_utc": null,
+   "high": "7826.25",
+   "low": "7759.25",
+   "open_inside": false,
+   "seconds_inside_during_a": "0",
+   "time_to_return": null,
+   "zone": "PRIOR_RANGE"
+  },
+  "reasons": [],
+  "reference_interactions": [
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 334,
+    "open_offset_ticks": -368,
+    "price": "7826.25",
+    "reference": "PRIOR_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 326,
+    "open_offset_ticks": -368,
+    "price": "7826.25",
+    "reference": "PRIOR_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 309,
+    "open_offset_ticks": -368,
+    "price": "7826.25",
+    "reference": "PRIOR_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 273,
+    "open_offset_ticks": -368,
+    "price": "7826.25",
+    "reference": "PRIOR_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 66,
+    "open_offset_ticks": -100,
+    "price": "7759.25",
+    "reference": "PRIOR_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 58,
+    "open_offset_ticks": -100,
+    "price": "7759.25",
+    "reference": "PRIOR_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 41,
+    "open_offset_ticks": -100,
+    "price": "7759.25",
+    "reference": "PRIOR_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 5,
+    "open_offset_ticks": -100,
+    "price": "7759.25",
+    "reference": "PRIOR_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 204,
+    "open_offset_ticks": -238,
+    "price": "7793.75",
+    "reference": "PRIOR_VAH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 196,
+    "open_offset_ticks": -238,
+    "price": "7793.75",
+    "reference": "PRIOR_VAH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 179,
+    "open_offset_ticks": -238,
+    "price": "7793.75",
+    "reference": "PRIOR_VAH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 143,
+    "open_offset_ticks": -238,
+    "price": "7793.75",
+    "reference": "PRIOR_VAH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 88,
+    "open_offset_ticks": -122,
+    "price": "7764.75",
+    "reference": "PRIOR_VAL",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 80,
+    "open_offset_ticks": -122,
+    "price": "7764.75",
+    "reference": "PRIOR_VAL",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 63,
+    "open_offset_ticks": -122,
+    "price": "7764.75",
+    "reference": "PRIOR_VAL",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 27,
+    "open_offset_ticks": -122,
+    "price": "7764.75",
+    "reference": "PRIOR_VAL",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 142,
+    "open_offset_ticks": -176,
+    "price": "7778.25",
+    "reference": "PRIOR_POC",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 134,
+    "open_offset_ticks": -176,
+    "price": "7778.25",
+    "reference": "PRIOR_POC",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 117,
+    "open_offset_ticks": -176,
+    "price": "7778.25",
+    "reference": "PRIOR_POC",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 81,
+    "open_offset_ticks": -176,
+    "price": "7778.25",
+    "reference": "PRIOR_POC",
+    "touched": false
+   },
+   {
+    "crossed": true,
+    "first_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "first_touch_utc": "2026-09-24T13:30:00+00:00",
+    "horizon_minutes": 5,
+    "min_distance_ticks": 0,
+    "open_offset_ticks": 0,
+    "price": "7734.25",
+    "reference": "CASH_OPEN",
+    "touched": true
+   },
+   {
+    "crossed": true,
+    "first_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "first_touch_utc": "2026-09-24T13:30:00+00:00",
+    "horizon_minutes": 15,
+    "min_distance_ticks": 0,
+    "open_offset_ticks": 0,
+    "price": "7734.25",
+    "reference": "CASH_OPEN",
+    "touched": true
+   },
+   {
+    "crossed": true,
+    "first_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "first_touch_utc": "2026-09-24T13:30:00+00:00",
+    "horizon_minutes": 30,
+    "min_distance_ticks": 0,
+    "open_offset_ticks": 0,
+    "price": "7734.25",
+    "reference": "CASH_OPEN",
+    "touched": true
+   },
+   {
+    "crossed": true,
+    "first_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "first_touch_utc": "2026-09-24T13:30:00+00:00",
+    "horizon_minutes": 60,
+    "min_distance_ticks": 0,
+    "open_offset_ticks": 0,
+    "price": "7734.25",
+    "reference": "CASH_OPEN",
+    "touched": true
+   }
+  ],
+  "session": {
+   "a_end_utc": "2026-09-24T14:00:00+00:00",
+   "a_extremes": [
+    {
+     "crossed_open_after": false,
+     "extreme": "A_HIGH",
+     "first_open_cross_after_utc": null,
+     "horizon_end_utc": "2026-09-24T14:30:00+00:00",
+     "max_move_away_ticks": 11,
+     "opposite_excursion_beyond_open_ticks": 0,
+     "price": "7749.00",
+     "reached_utc": "2026-09-24T13:59:15.450000+00:00",
+     "time_to_open_cross": null
+    },
+    {
+     "crossed_open_after": true,
+     "extreme": "A_LOW",
+     "first_open_cross_after_utc": "2026-09-24T13:31:26.837000+00:00",
+     "horizon_end_utc": "2026-09-24T14:30:00+00:00",
+     "max_move_away_ticks": 112,
+     "opposite_excursion_beyond_open_ticks": 95,
+     "price": "7730.00",
+     "reached_utc": "2026-09-24T13:31:05.127000+00:00",
+     "time_to_open_cross": "21.710000"
+    }
+   ],
+   "cash_open": {
+    "cash_open_utc": "2026-09-24T13:30:00+00:00",
+    "delay": "0.000000",
+    "max_delay": "60.000000",
+    "price": "7734.25",
+    "tick": 30937,
+    "timestamp_utc": "2026-09-24T13:30:00+00:00",
+    "unavailable_reason": null
+   },
+   "early_tpo": {
+    "a_high": "7749.00",
+    "a_low": "7730.00",
+    "a_only_rows_at_day_high": 0,
+    "a_only_rows_at_day_low": 0,
+    "a_only_rows_full_day": 0,
+    "a_range_ticks": 76,
+    "a_rows": 77,
+    "a_rows_above_b": 0,
+    "a_rows_below_b": 65,
+    "ab_high": "7758.00",
+    "ab_low": "7730.00",
+    "ab_overlap_ratio": "0.25",
+    "ab_overlap_rows": 12,
+    "ab_range_ticks": 112,
+    "b_high": "7758.00",
+    "b_high_above_a": true,
+    "b_low": "7746.25",
+    "b_low_below_a": false,
+    "b_rows": 48
+   },
+   "one_timeframing": {
+    "first_higher_low_period": "B",
+    "first_lower_high_period": "C",
+    "longest_higher_low_run": 5,
+    "longest_lower_high_run": 4,
+    "opening_higher_low_run": 2,
+    "opening_lower_high_run": 1
+   },
+   "policy_id": "OPENING_AUCTION_FACTS_V1",
+   "price_increment": "0.25",
+   "quality": {
+    "gaps_later_in_study_window": 0,
+    "grade": "UNQUALIFIED",
+    "known_gaps_in_opening_window": 0,
+    "opening_window_end_utc": "2026-09-24T14:30:00+00:00",
+    "reasons": [],
+    "study_window_truncated": false,
+    "suspected_gaps_in_opening_window": 0
+   },
+   "trading_date": "2026-09-24",
+   "windows": [
+    {
+     "counter_to_dominant": "0.5",
+     "dominant": "UP",
+     "down_first_then_crossed_above": true,
+     "end_utc": "2026-09-24T13:35:00+00:00",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 34,
+     "extreme_order": "LOW_FIRST",
+     "first_above_open_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_below_open_utc": "2026-09-24T13:30:00.003000+00:00",
+     "first_direction": "DOWN",
+     "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_open_revisit_utc": "2026-09-24T13:30:00.012000+00:00",
+     "high": "7742.75",
+     "larger_excursion_ticks": 34,
+     "last_price": "7741.00",
+     "low": "7730.00",
+     "minutes": 5,
+     "open_cross_count": 43,
+     "range_ticks": 51,
+     "smaller_excursion_ticks": 17,
+     "time_of_high_utc": "2026-09-24T13:33:19.600000+00:00",
+     "time_of_low_utc": "2026-09-24T13:31:05.127000+00:00",
+     "traded_above_open": true,
+     "traded_below_open": true,
+     "up_first_then_crossed_below": false
+    },
+    {
+     "counter_to_dominant": "0.4047619047619047619047619048",
+     "dominant": "UP",
+     "down_first_then_crossed_above": true,
+     "end_utc": "2026-09-24T13:45:00+00:00",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 42,
+     "extreme_order": "LOW_FIRST",
+     "first_above_open_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_below_open_utc": "2026-09-24T13:30:00.003000+00:00",
+     "first_direction": "DOWN",
+     "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_open_revisit_utc": "2026-09-24T13:30:00.012000+00:00",
+     "high": "7744.75",
+     "larger_excursion_ticks": 42,
+     "last_price": "7740.50",
+     "low": "7730.00",
+     "minutes": 15,
+     "open_cross_count": 43,
+     "range_ticks": 59,
+     "smaller_excursion_ticks": 17,
+     "time_of_high_utc": "2026-09-24T13:36:51.192000+00:00",
+     "time_of_low_utc": "2026-09-24T13:31:05.127000+00:00",
+     "traded_above_open": true,
+     "traded_below_open": true,
+     "up_first_then_crossed_below": false
+    },
+    {
+     "counter_to_dominant": "0.2881355932203389830508474576",
+     "dominant": "UP",
+     "down_first_then_crossed_above": true,
+     "end_utc": "2026-09-24T14:00:00+00:00",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 59,
+     "extreme_order": "LOW_FIRST",
+     "first_above_open_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_below_open_utc": "2026-09-24T13:30:00.003000+00:00",
+     "first_direction": "DOWN",
+     "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_open_revisit_utc": "2026-09-24T13:30:00.012000+00:00",
+     "high": "7749.00",
+     "larger_excursion_ticks": 59,
+     "last_price": "7747.75",
+     "low": "7730.00",
+     "minutes": 30,
+     "open_cross_count": 43,
+     "range_ticks": 76,
+     "smaller_excursion_ticks": 17,
+     "time_of_high_utc": "2026-09-24T13:59:15.450000+00:00",
+     "time_of_low_utc": "2026-09-24T13:31:05.127000+00:00",
+     "traded_above_open": true,
+     "traded_below_open": true,
+     "up_first_then_crossed_below": false
+    },
+    {
+     "counter_to_dominant": "0.1789473684210526315789473684",
+     "dominant": "UP",
+     "down_first_then_crossed_above": true,
+     "end_utc": "2026-09-24T14:30:00+00:00",
+     "excursion_down_ticks": 17,
+     "excursion_up_ticks": 95,
+     "extreme_order": "LOW_FIRST",
+     "first_above_open_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_below_open_utc": "2026-09-24T13:30:00.003000+00:00",
+     "first_direction": "DOWN",
+     "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+     "first_open_revisit_utc": "2026-09-24T13:30:00.012000+00:00",
+     "high": "7758.00",
+     "larger_excursion_ticks": 95,
+     "last_price": "7754.50",
+     "low": "7730.00",
+     "minutes": 60,
+     "open_cross_count": 43,
+     "range_ticks": 112,
+     "smaller_excursion_ticks": 17,
+     "time_of_high_utc": "2026-09-24T14:07:54.369000+00:00",
+     "time_of_low_utc": "2026-09-24T13:31:05.127000+00:00",
+     "traded_above_open": true,
+     "traded_below_open": true,
+     "up_first_then_crossed_below": false
+    }
+   ]
+  },
+  "value_location": "BELOW_PRIOR_VALUE",
+  "value_zone": {
+   "a_rows": 77,
+   "a_rows_inside": 0,
+   "a_seconds_observed": "1800.000",
+   "first_entry_utc": "2026-09-24T16:16:42.352000+00:00",
+   "first_exit_above_utc": null,
+   "first_exit_below_utc": null,
+   "first_return_utc": null,
+   "high": "7793.75",
+   "low": "7764.75",
+   "open_inside": false,
+   "seconds_inside_during_a": "0",
+   "time_to_return": null,
+   "zone": "PRIOR_VALUE"
+  }
+ },
+ "opening_path_facts": {
+  "encounters": [
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 59,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 309,
+    "open_offset_ticks": -368,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 17,
+    "price": "7826.25",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "PRIOR_HIGH",
+    "side_of_open": "UP"
+   },
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 59,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 179,
+    "open_offset_ticks": -238,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 17,
+    "price": "7793.75",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "PRIOR_VAH",
+    "side_of_open": "UP"
+   },
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 59,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 117,
+    "open_offset_ticks": -176,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 17,
+    "price": "7778.25",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "PRIOR_POC",
+    "side_of_open": "UP"
+   },
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 59,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 63,
+    "open_offset_ticks": -122,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 17,
+    "price": "7764.75",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "PRIOR_VAL",
+    "side_of_open": "UP"
+   },
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 59,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 41,
+    "open_offset_ticks": -100,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 17,
+    "price": "7759.25",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "PRIOR_LOW",
+    "side_of_open": "UP"
+   },
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 59,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 121,
+    "open_offset_ticks": -180,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 17,
+    "price": "7779.25",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "OVERNIGHT_HIGH",
+    "side_of_open": "UP"
+   },
+   {
+    "crossed_open_after": null,
+    "excursion_toward_before_reach_ticks": 17,
+    "first_open_cross_after_utc": null,
+    "first_touch_utc": null,
+    "min_distance_ticks": 91,
+    "open_offset_ticks": 108,
+    "opposite_excursion_after_cross": [],
+    "opposite_excursion_before_reach_ticks": 59,
+    "price": "7707.25",
+    "reach_beyond_ticks": null,
+    "reach_to_cross": null,
+    "reached_utc": null,
+    "reference": "OVERNIGHT_LOW",
+    "side_of_open": "DOWN"
+   }
+  ],
+  "grace": [
+   {
+    "grace_seconds": 1,
+    "held_side": "UP",
+    "horizons": [
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:01.175000+00:00",
+      "max_counter_ticks": 17,
+      "max_favorable_ticks": 34,
+      "minutes": 5
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:01.175000+00:00",
+      "max_counter_ticks": 17,
+      "max_favorable_ticks": 42,
+      "minutes": 15
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:01.175000+00:00",
+      "max_counter_ticks": 17,
+      "max_favorable_ticks": 59,
+      "minutes": 30
+     }
+    ],
+    "instant_utc": "2026-09-24T13:30:01+00:00",
+    "offset_ticks": 0,
+    "price": "7734.25",
+    "side": "NONE"
+   },
+   {
+    "grace_seconds": 5,
+    "held_side": "UP",
+    "horizons": [
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:13.697000+00:00",
+      "max_counter_ticks": 17,
+      "max_favorable_ticks": 34,
+      "minutes": 5
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:13.697000+00:00",
+      "max_counter_ticks": 17,
+      "max_favorable_ticks": 42,
+      "minutes": 15
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:13.697000+00:00",
+      "max_counter_ticks": 17,
+      "max_favorable_ticks": 59,
+      "minutes": 30
+     }
+    ],
+    "instant_utc": "2026-09-24T13:30:05+00:00",
+    "offset_ticks": 11,
+    "price": "7737.00",
+    "side": "UP"
+   },
+   {
+    "grace_seconds": 15,
+    "held_side": "DOWN",
+    "horizons": [
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:17.156000+00:00",
+      "max_counter_ticks": 34,
+      "max_favorable_ticks": 17,
+      "minutes": 5
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:17.156000+00:00",
+      "max_counter_ticks": 42,
+      "max_favorable_ticks": 17,
+      "minutes": 15
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:17.156000+00:00",
+      "max_counter_ticks": 59,
+      "max_favorable_ticks": 17,
+      "minutes": 30
+     }
+    ],
+    "instant_utc": "2026-09-24T13:30:15+00:00",
+    "offset_ticks": -4,
+    "price": "7733.25",
+    "side": "DOWN"
+   },
+   {
+    "grace_seconds": 30,
+    "held_side": "DOWN",
+    "horizons": [
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:32.302000+00:00",
+      "max_counter_ticks": 34,
+      "max_favorable_ticks": 17,
+      "minutes": 5
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:32.302000+00:00",
+      "max_counter_ticks": 42,
+      "max_favorable_ticks": 17,
+      "minutes": 15
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:30:32.302000+00:00",
+      "max_counter_ticks": 59,
+      "max_favorable_ticks": 17,
+      "minutes": 30
+     }
+    ],
+    "instant_utc": "2026-09-24T13:30:30+00:00",
+    "offset_ticks": -4,
+    "price": "7733.25",
+    "side": "DOWN"
+   },
+   {
+    "grace_seconds": 60,
+    "held_side": "DOWN",
+    "horizons": [
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+      "max_counter_ticks": 34,
+      "max_favorable_ticks": 17,
+      "minutes": 5
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+      "max_counter_ticks": 42,
+      "max_favorable_ticks": 17,
+      "minutes": 15
+     },
+     {
+      "applicable": true,
+      "crossed_open": true,
+      "first_cross_utc": "2026-09-24T13:31:26.837000+00:00",
+      "max_counter_ticks": 59,
+      "max_favorable_ticks": 17,
+      "minutes": 30
+     }
+    ],
+    "instant_utc": "2026-09-24T13:31:00+00:00",
+    "offset_ticks": -4,
+    "price": "7733.25",
+    "side": "DOWN"
+   }
+  ],
+  "opening": null,
+  "overnight": null,
+  "overnight_reference_interactions": [
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 146,
+    "open_offset_ticks": -180,
+    "price": "7779.25",
+    "reference": "OVERNIGHT_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 138,
+    "open_offset_ticks": -180,
+    "price": "7779.25",
+    "reference": "OVERNIGHT_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 121,
+    "open_offset_ticks": -180,
+    "price": "7779.25",
+    "reference": "OVERNIGHT_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 85,
+    "open_offset_ticks": -180,
+    "price": "7779.25",
+    "reference": "OVERNIGHT_HIGH",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 5,
+    "min_distance_ticks": 91,
+    "open_offset_ticks": 108,
+    "price": "7707.25",
+    "reference": "OVERNIGHT_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 15,
+    "min_distance_ticks": 91,
+    "open_offset_ticks": 108,
+    "price": "7707.25",
+    "reference": "OVERNIGHT_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 30,
+    "min_distance_ticks": 91,
+    "open_offset_ticks": 108,
+    "price": "7707.25",
+    "reference": "OVERNIGHT_LOW",
+    "touched": false
+   },
+   {
+    "crossed": false,
+    "first_cross_utc": null,
+    "first_touch_utc": null,
+    "horizon_minutes": 60,
+    "min_distance_ticks": 91,
+    "open_offset_ticks": 108,
+    "price": "7707.25",
+    "reference": "OVERNIGHT_LOW",
+    "touched": false
+   }
+  ],
+  "policy_id": "OPENING_PATH_FACTS_V1",
+  "quality": {
+   "current_open": "UNQUALIFIED",
+   "current_open_reasons": [],
+   "overnight": "QUALITY_QUALIFIED",
+   "overnight_reasons": [
+    "capture began 0:00:00.000266 after 17:00 CT (overnight window starts late)"
+   ],
+   "prior_day_outcome": "AVAILABLE",
+   "prior_day_quality": "UNQUALIFIED",
+   "prior_day_reasons": []
+  },
+  "scales": [
+   {
+    "counter_to_dominant": "1",
+    "dominant": "TIE",
+    "end_utc": "2026-09-24T13:30:30+00:00",
+    "excursion_down_ticks": 15,
+    "excursion_up_ticks": 15,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7738.00",
+    "horizon_seconds": 30,
+    "last_open_cross_utc": "2026-09-24T13:30:19.028000+00:00",
+    "last_price": "7733.25",
+    "longest_down_residence": "10.972000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:19.028000+00:00",
+    "longest_up_residence": "11.085000",
+    "longest_up_residence_start_utc": "2026-09-24T13:30:02.612000+00:00",
+    "low": "7730.50",
+    "open_cross_count": 26,
+    "open_to_last_cross": "19.028000",
+    "seconds_above_open": "12.546",
+    "seconds_at_open": "2.330",
+    "seconds_below_open": "15.124",
+    "seconds_observed": "30.000"
+   },
+   {
+    "counter_to_dominant": "1",
+    "dominant": "TIE",
+    "end_utc": "2026-09-24T13:31:00+00:00",
+    "excursion_down_ticks": 15,
+    "excursion_up_ticks": 15,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7738.00",
+    "horizon_seconds": 60,
+    "last_open_cross_utc": "2026-09-24T13:30:41.470000+00:00",
+    "last_price": "7733.25",
+    "longest_down_residence": "18.530000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:41.470000+00:00",
+    "longest_up_residence": "11.085000",
+    "longest_up_residence_start_utc": "2026-09-24T13:30:02.612000+00:00",
+    "low": "7730.50",
+    "open_cross_count": 36,
+    "open_to_last_cross": "41.470000",
+    "seconds_above_open": "17.122",
+    "seconds_at_open": "6.331",
+    "seconds_below_open": "36.547",
+    "seconds_observed": "60.000"
+   },
+   {
+    "counter_to_dominant": "0.68",
+    "dominant": "UP",
+    "end_utc": "2026-09-24T13:33:00+00:00",
+    "excursion_down_ticks": 17,
+    "excursion_up_ticks": 25,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7740.50",
+    "horizon_seconds": 180,
+    "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+    "last_price": "7738.25",
+    "longest_down_residence": "45.367000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:41.470000+00:00",
+    "longest_up_residence": "88.960000",
+    "longest_up_residence_start_utc": "2026-09-24T13:31:31.040000+00:00",
+    "low": "7730.00",
+    "open_cross_count": 43,
+    "open_to_last_cross": "91.040000",
+    "seconds_above_open": "106.551",
+    "seconds_at_open": "7.844",
+    "seconds_below_open": "65.605",
+    "seconds_observed": "180.000"
+   },
+   {
+    "counter_to_dominant": "0.5",
+    "dominant": "UP",
+    "end_utc": "2026-09-24T13:35:00+00:00",
+    "excursion_down_ticks": 17,
+    "excursion_up_ticks": 34,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7742.75",
+    "horizon_seconds": 300,
+    "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+    "last_price": "7741.00",
+    "longest_down_residence": "45.367000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:41.470000+00:00",
+    "longest_up_residence": "208.960000",
+    "longest_up_residence_start_utc": "2026-09-24T13:31:31.040000+00:00",
+    "low": "7730.00",
+    "open_cross_count": 43,
+    "open_to_last_cross": "91.040000",
+    "seconds_above_open": "226.551",
+    "seconds_at_open": "7.844",
+    "seconds_below_open": "65.605",
+    "seconds_observed": "300.000"
+   },
+   {
+    "counter_to_dominant": "0.4047619047619047619047619048",
+    "dominant": "UP",
+    "end_utc": "2026-09-24T13:45:00+00:00",
+    "excursion_down_ticks": 17,
+    "excursion_up_ticks": 42,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7744.75",
+    "horizon_seconds": 900,
+    "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+    "last_price": "7740.50",
+    "longest_down_residence": "45.367000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:41.470000+00:00",
+    "longest_up_residence": "808.960000",
+    "longest_up_residence_start_utc": "2026-09-24T13:31:31.040000+00:00",
+    "low": "7730.00",
+    "open_cross_count": 43,
+    "open_to_last_cross": "91.040000",
+    "seconds_above_open": "826.551",
+    "seconds_at_open": "7.844",
+    "seconds_below_open": "65.605",
+    "seconds_observed": "900.000"
+   },
+   {
+    "counter_to_dominant": "0.2881355932203389830508474576",
+    "dominant": "UP",
+    "end_utc": "2026-09-24T14:00:00+00:00",
+    "excursion_down_ticks": 17,
+    "excursion_up_ticks": 59,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7749.00",
+    "horizon_seconds": 1800,
+    "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+    "last_price": "7747.75",
+    "longest_down_residence": "45.367000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:41.470000+00:00",
+    "longest_up_residence": "1708.960000",
+    "longest_up_residence_start_utc": "2026-09-24T13:31:31.040000+00:00",
+    "low": "7730.00",
+    "open_cross_count": 43,
+    "open_to_last_cross": "91.040000",
+    "seconds_above_open": "1726.551",
+    "seconds_at_open": "7.844",
+    "seconds_below_open": "65.605",
+    "seconds_observed": "1800.000"
+   },
+   {
+    "counter_to_dominant": "0.1789473684210526315789473684",
+    "dominant": "UP",
+    "end_utc": "2026-09-24T14:30:00+00:00",
+    "excursion_down_ticks": 17,
+    "excursion_up_ticks": 95,
+    "first_open_cross_utc": "2026-09-24T13:30:00.020000+00:00",
+    "high": "7758.00",
+    "horizon_seconds": 3600,
+    "last_open_cross_utc": "2026-09-24T13:31:31.040000+00:00",
+    "last_price": "7754.50",
+    "longest_down_residence": "45.367000",
+    "longest_down_residence_start_utc": "2026-09-24T13:30:41.470000+00:00",
+    "longest_up_residence": "3508.960000",
+    "longest_up_residence_start_utc": "2026-09-24T13:31:31.040000+00:00",
+    "low": "7730.00",
+    "open_cross_count": 43,
+    "open_to_last_cross": "91.040000",
+    "seconds_above_open": "3526.551",
+    "seconds_at_open": "7.844",
+    "seconds_below_open": "65.605",
+    "seconds_observed": "3600.000"
+   }
+  ],
+  "sequence": {
+   "events": [
+    {
+     "kind": "OPEN",
+     "price": "7734.25",
+     "reference": null,
+     "timestamp_utc": "2026-09-24T13:30:00+00:00"
+    },
+    {
+     "kind": "OPEN_CROSS_FIRST",
+     "price": "7734.50",
+     "reference": null,
+     "timestamp_utc": "2026-09-24T13:30:00.020000+00:00"
+    },
+    {
+     "kind": "WINDOW_LOW_FIRST_REACHED",
+     "price": "7730.00",
+     "reference": null,
+     "timestamp_utc": "2026-09-24T13:31:05.127000+00:00"
+    },
+    {
+     "kind": "OPEN_CROSS_LAST",
+     "price": "7734.50",
+     "reference": null,
+     "timestamp_utc": "2026-09-24T13:31:31.040000+00:00"
+    },
+    {
+     "kind": "WINDOW_HIGH_FIRST_REACHED",
+     "price": "7749.00",
+     "reference": null,
+     "timestamp_utc": "2026-09-24T13:59:15.450000+00:00"
+    }
+   ],
+   "horizon_minutes": 30,
+   "open_cross_count": 43,
+   "references": [
+    "PRIOR_HIGH",
+    "PRIOR_VAH",
+    "PRIOR_POC",
+    "PRIOR_VAL",
+    "PRIOR_LOW",
+    "OVERNIGHT_HIGH",
+    "OVERNIGHT_LOW"
+   ]
+  }
+ },
+ "overnight_context": {
+  "gaps": [
+   {
+    "direction": "NONE",
+    "from_price": "7773.75",
+    "name": "FIRST_OVERNIGHT_PRINT_VS_PRIOR_TERMINAL",
+    "points": "0.00",
+    "ticks": 0,
+    "to_price": "7773.75"
+   },
+   {
+    "direction": "DOWN",
+    "from_price": "7773.75",
+    "name": "CASH_OPEN_VS_PRIOR_TERMINAL",
+    "points": "-39.50",
+    "ticks": -158,
+    "to_price": "7734.25"
+   },
+   {
+    "direction": "UP",
+    "from_price": "7734.00",
+    "name": "CASH_OPEN_VS_OVERNIGHT_TERMINAL",
+    "points": "0.25",
+    "ticks": 1,
+    "to_price": "7734.25"
+   }
+  ],
+  "inventory": [
+   {
+    "brackets_entirely_above": 1,
+    "brackets_entirely_below": 28,
+    "brackets_touching_or_spanning": 2,
+    "brackets_traded": 31,
+    "fraction_above": "0.07888479026751233193144818734",
+    "fraction_below": "0.9204746003906883628299480862",
+    "price": "7773.75",
+    "range_above_ticks": 22,
+    "range_below_ticks": 266,
+    "reference": "PRIOR_TERMINAL",
+    "seconds_above": "4401.648",
+    "seconds_at": "35.745",
+    "seconds_below": "51361.044",
+    "seconds_observed": "55798.437",
+    "terminal_vs_reference_ticks": -159,
+    "tpo_rows_above": 45,
+    "tpo_rows_at": 2,
+    "tpo_rows_below": 1171,
+    "volume_above": "4810.0",
+    "volume_at": "38.0",
+    "volume_below": "312282.0"
+   },
+   {
+    "brackets_entirely_above": 0,
+    "brackets_entirely_below": 30,
+    "brackets_touching_or_spanning": 1,
+    "brackets_traded": 31,
+    "fraction_above": "0.001847524868841756266398644822",
+    "fraction_below": "0.9979659286872139447203512170",
+    "price": "7778.25",
+    "range_above_ticks": 4,
+    "range_below_ticks": 284,
+    "reference": "PRIOR_POC",
+    "seconds_above": "103.089",
+    "seconds_at": "10.409",
+    "seconds_below": "55684.939",
+    "seconds_observed": "55798.437",
+    "terminal_vs_reference_ticks": -177,
+    "tpo_rows_above": 4,
+    "tpo_rows_at": 1,
+    "tpo_rows_below": 1213,
+    "volume_above": "359.0",
+    "volume_at": "41.0",
+    "volume_below": "316730.0"
+   },
+   {
+    "brackets_entirely_above": 0,
+    "brackets_entirely_below": 31,
+    "brackets_touching_or_spanning": 0,
+    "brackets_traded": 31,
+    "fraction_above": "0E+3",
+    "fraction_below": "1",
+    "price": "7793.75",
+    "range_above_ticks": 0,
+    "range_below_ticks": 346,
+    "reference": "PRIOR_VAH",
+    "seconds_above": "0",
+    "seconds_at": "0",
+    "seconds_below": "55798.437",
+    "seconds_observed": "55798.437",
+    "terminal_vs_reference_ticks": -239,
+    "tpo_rows_above": 0,
+    "tpo_rows_at": 0,
+    "tpo_rows_below": 1218,
+    "volume_above": "0",
+    "volume_at": "0",
+    "volume_below": "317130.0"
+   },
+   {
+    "brackets_entirely_above": 4,
+    "brackets_entirely_below": 20,
+    "brackets_touching_or_spanning": 7,
+    "brackets_traded": 31,
+    "fraction_above": "0.2462204810503921462889722162",
+    "fraction_below": "0.7448296446009769055000590787",
+    "price": "7764.75",
+    "range_above_ticks": 58,
+    "range_below_ticks": 230,
+    "reference": "PRIOR_VAL",
+    "seconds_above": "13738.718",
+    "seconds_at": "499.389",
+    "seconds_below": "41560.330",
+    "seconds_observed": "55798.437",
+    "terminal_vs_reference_ticks": -123,
+    "tpo_rows_above": 154,
+    "tpo_rows_at": 7,
+    "tpo_rows_below": 1057,
+    "volume_above": "25356.0",
+    "volume_at": "1405.0",
+    "volume_below": "290369.0"
+   }
+  ],
+  "open_location": "INSIDE_OVERNIGHT_RANGE",
+  "open_percentile_in_overnight_range": "0.375",
+  "open_vs_onh_ticks": -180,
+  "open_vs_onl_ticks": 108,
+  "policy_id": "OVERNIGHT_CONTEXT_V1",
+  "prior": {
+   "current_contract": "FUTURE:CME:ES:2026-12",
+   "dataset_quality": "COMPLETE / NO KNOWN GAPS",
+   "day_type": "NORMAL_VARIATION_DAY",
+   "day_type_direction": "DOWN",
+   "day_type_outcome": "CANDIDATE",
+   "expected_prior_date": "2026-09-23",
+   "ib_high": "7826.25",
+   "ib_low": "7778.00",
+   "outcome": "AVAILABLE",
+   "poc": "7778.25",
+   "prior_contract": "FUTURE:CME:ES:2026-12",
+   "prior_dataset_id": "b2856c52-17a5-43f4-941c-aa311e8558e9",
+   "prior_trading_date": "2026-09-23",
+   "profile_high": "7826.25",
+   "profile_low": "7759.25",
+   "quality_grade": "UNQUALIFIED",
+   "quality_reasons": [],
+   "reasons": [],
+   "same_contract": true,
+   "strength": {
+    "counter_extension_ticks": 0,
+    "counter_per_ib": "0",
+    "counter_to_dominant": "0",
+    "day_type": "NORMAL_VARIATION_DAY",
+    "day_type_direction": "DOWN",
+    "day_type_outcome": "CANDIDATE",
+    "day_type_policy": "DAY_TYPE_V1",
+    "directional_state": "DOWN_ONLY",
+    "dominant_extension": "DOWN",
+    "dominant_extension_ticks": 75,
+    "dominant_per_ib": "0.3886010362694300518134715026",
+    "dominant_share_of_total": "1",
+    "extension_above_per_ib": "0",
+    "extension_above_points": "0.00",
+    "extension_above_ticks": 0,
+    "extension_below_per_ib": "0.3886010362694300518134715026",
+    "extension_below_points": "18.75",
+    "extension_below_ticks": 75,
+    "first_extension_direction": "DOWN",
+    "ib_midpoint_percentile": "0.6399253731343283582089552239",
+    "ib_range_ticks": 193,
+    "ib_share_of_range": "0.7201492537313432835820895522",
+    "interior_one_tpo_rows": 0,
+    "interior_one_tpo_zone_count": 0,
+    "last_extension_direction": "DOWN",
+    "longest_higher_low_run": 3,
+    "longest_lower_high_run": 6,
+    "lower_tail_rows": 7,
+    "lower_tail_ticks": 7,
+    "max_consecutive_new_high_periods": 0,
+    "max_consecutive_new_low_periods": 4,
+    "new_high_period_count": 0,
+    "new_high_periods": "",
+    "new_low_period_count": 4,
+    "new_low_periods": "EFGH",
+    "poc_percentile": "0.2835820895522388059701492537",
+    "policy_id": "DAY_STRUCTURE_STRENGTH_V1",
+    "scope": "FULL_STUDY_WINDOW",
+    "scope_reasons": [],
+    "terminal_from_high_per_range": "0.7835820895522388059701492537",
+    "terminal_from_high_ticks": 210,
+    "terminal_from_low_per_range": "0.2164179104477611940298507463",
+    "terminal_from_low_ticks": 58,
+    "terminal_percentile": "0.2164179104477611940298507463",
+    "terminal_price": "7773.75",
+    "terminal_timestamp_utc": "2026-09-23T19:59:59.997000+00:00",
+    "upper_tail_rows": 83,
+    "upper_tail_ticks": 83,
+    "value_area_midpoint_percentile": "0.2985074626865671641791044776"
+   },
+   "terminal_price": "7773.75",
+   "value_area_high": "7793.75",
+   "value_area_low": "7764.75"
+  },
+  "prior_relation": {
+   "excursion_above_prior_high_points": "0",
+   "excursion_above_prior_high_ticks": 0,
+   "excursion_above_vah_points": "0",
+   "excursion_above_vah_ticks": 0,
+   "excursion_below_prior_low_points": "52.00",
+   "excursion_below_prior_low_ticks": 208,
+   "excursion_below_val_points": "57.50",
+   "excursion_below_val_ticks": 230,
+   "inside_prior_range": false,
+   "inside_prior_value": false,
+   "onh_vs_prior_high_points": "-47.00",
+   "onh_vs_prior_high_ticks": -188,
+   "onh_vs_vah_points": "-14.50",
+   "onh_vs_vah_ticks": -58,
+   "onl_vs_prior_low_points": "-52.00",
+   "onl_vs_prior_low_ticks": -208,
+   "onl_vs_val_points": "-57.50",
+   "onl_vs_val_ticks": -230,
+   "overlaps_prior_range": true,
+   "overlaps_prior_value": true
+  },
+  "reasons": [
+   "no Globex open print: capture began after 17:00 CT; the first retained trade is not the Globex open"
+  ],
+  "session": {
+   "brackets": [
+    {
+     "end_utc": "2026-09-23T22:30:00+00:00",
+     "high_tick": 31117,
+     "index": 0,
+     "low_tick": 31094,
+     "start_utc": "2026-09-23T22:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-23T23:00:00+00:00",
+     "high_tick": 31110,
+     "index": 1,
+     "low_tick": 31096,
+     "start_utc": "2026-09-23T22:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-23T23:30:00+00:00",
+     "high_tick": 31103,
+     "index": 2,
+     "low_tick": 31074,
+     "start_utc": "2026-09-23T23:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T00:00:00+00:00",
+     "high_tick": 31081,
+     "index": 3,
+     "low_tick": 31068,
+     "start_utc": "2026-09-23T23:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T00:30:00+00:00",
+     "high_tick": 31079,
+     "index": 4,
+     "low_tick": 31059,
+     "start_utc": "2026-09-24T00:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T01:00:00+00:00",
+     "high_tick": 31073,
+     "index": 5,
+     "low_tick": 31045,
+     "start_utc": "2026-09-24T00:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T01:30:00+00:00",
+     "high_tick": 31072,
+     "index": 6,
+     "low_tick": 31054,
+     "start_utc": "2026-09-24T01:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T02:00:00+00:00",
+     "high_tick": 31070,
+     "index": 7,
+     "low_tick": 31038,
+     "start_utc": "2026-09-24T01:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T02:30:00+00:00",
+     "high_tick": 31063,
+     "index": 8,
+     "low_tick": 31032,
+     "start_utc": "2026-09-24T02:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T03:00:00+00:00",
+     "high_tick": 31067,
+     "index": 9,
+     "low_tick": 31052,
+     "start_utc": "2026-09-24T02:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T03:30:00+00:00",
+     "high_tick": 31060,
+     "index": 10,
+     "low_tick": 31035,
+     "start_utc": "2026-09-24T03:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T04:00:00+00:00",
+     "high_tick": 31038,
+     "index": 11,
+     "low_tick": 31024,
+     "start_utc": "2026-09-24T03:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T04:30:00+00:00",
+     "high_tick": 31038,
+     "index": 12,
+     "low_tick": 30965,
+     "start_utc": "2026-09-24T04:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T05:00:00+00:00",
+     "high_tick": 31029,
+     "index": 13,
+     "low_tick": 31008,
+     "start_utc": "2026-09-24T04:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T05:30:00+00:00",
+     "high_tick": 31040,
+     "index": 14,
+     "low_tick": 31007,
+     "start_utc": "2026-09-24T05:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T06:00:00+00:00",
+     "high_tick": 31028,
+     "index": 15,
+     "low_tick": 30968,
+     "start_utc": "2026-09-24T05:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T06:30:00+00:00",
+     "high_tick": 30992,
+     "index": 16,
+     "low_tick": 30953,
+     "start_utc": "2026-09-24T06:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T07:00:00+00:00",
+     "high_tick": 30965,
+     "index": 17,
+     "low_tick": 30937,
+     "start_utc": "2026-09-24T06:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T07:30:00+00:00",
+     "high_tick": 30983,
+     "index": 18,
+     "low_tick": 30923,
+     "start_utc": "2026-09-24T07:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T08:00:00+00:00",
+     "high_tick": 30992,
+     "index": 19,
+     "low_tick": 30934,
+     "start_utc": "2026-09-24T07:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T08:30:00+00:00",
+     "high_tick": 30965,
+     "index": 20,
+     "low_tick": 30890,
+     "start_utc": "2026-09-24T08:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T09:00:00+00:00",
+     "high_tick": 30926,
+     "index": 21,
+     "low_tick": 30884,
+     "start_utc": "2026-09-24T08:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T09:30:00+00:00",
+     "high_tick": 30919,
+     "index": 22,
+     "low_tick": 30890,
+     "start_utc": "2026-09-24T09:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T10:00:00+00:00",
+     "high_tick": 30903,
+     "index": 23,
+     "low_tick": 30829,
+     "start_utc": "2026-09-24T09:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T10:30:00+00:00",
+     "high_tick": 30913,
+     "index": 24,
+     "low_tick": 30876,
+     "start_utc": "2026-09-24T10:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T11:00:00+00:00",
+     "high_tick": 30951,
+     "index": 25,
+     "low_tick": 30878,
+     "start_utc": "2026-09-24T10:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T11:30:00+00:00",
+     "high_tick": 30945,
+     "index": 26,
+     "low_tick": 30905,
+     "start_utc": "2026-09-24T11:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T12:00:00+00:00",
+     "high_tick": 30938,
+     "index": 27,
+     "low_tick": 30888,
+     "start_utc": "2026-09-24T11:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T12:30:00+00:00",
+     "high_tick": 30958,
+     "index": 28,
+     "low_tick": 30906,
+     "start_utc": "2026-09-24T12:00:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T13:00:00+00:00",
+     "high_tick": 30949,
+     "index": 29,
+     "low_tick": 30898,
+     "start_utc": "2026-09-24T12:30:00+00:00"
+    },
+    {
+     "end_utc": "2026-09-24T13:30:00+00:00",
+     "high_tick": 30966,
+     "index": 30,
+     "low_tick": 30936,
+     "start_utc": "2026-09-24T13:00:00+00:00"
+    }
+   ],
+   "contract": "FUTURE:CME:ES:2026-12",
+   "extreme_order": "HIGH_FIRST",
+   "first_price": "7773.75",
+   "first_utc": "2026-09-23T22:00:01.563000+00:00",
+   "globex_open_delay": null,
+   "globex_open_price": null,
+   "globex_open_unavailable_reason": "capture began after 17:00 CT; the first retained trade is not the Globex open",
+   "globex_open_utc": null,
+   "high": "7779.25",
+   "low": "7707.25",
+   "policy_id": "OVERNIGHT_CONTEXT_V1",
+   "price_increment": "0.25",
+   "quality": {
+    "capture_begins_after_window_start": true,
+    "capture_ends_before_window_end": false,
+    "contract": "FUTURE:CME:ES:2026-12",
+    "contract_consistent": true,
+    "grade": "QUALITY_QUALIFIED",
+    "known_gaps_in_window": 0,
+    "lifecycle_state": "FINALIZED",
+    "reasons": [
+     "capture began 0:00:00.000266 after 17:00 CT (overnight window starts late)"
+    ],
+    "suspected_gaps_in_window": 0,
+    "window_end_utc": "2026-09-24T13:30:00+00:00",
+    "window_start_utc": "2026-09-23T22:00:00+00:00"
+   },
+   "range_points": "72.00",
+   "range_ticks": 288,
+   "terminal_price": "7734.00",
+   "terminal_utc": "2026-09-24T13:29:59.998000+00:00",
+   "time_of_high_utc": "2026-09-23T22:15:06.288000+00:00",
+   "time_of_low_utc": "2026-09-24T09:43:23.214000+00:00",
+   "trading_date": "2026-09-24",
+   "window_end_utc": "2026-09-24T13:30:00+00:00",
+   "window_start_utc": "2026-09-23T22:00:00+00:00"
+  }
+ },
+ "policy_constants": {
+  "grace_anchor": "CASH_OPEN_PRINT",
+  "grace_seconds": "60",
+  "horizon": "PERIOD_A",
+  "horizon_minutes": "30",
+  "in_range_locations": "INSIDE_PRIOR_RANGE,AT_PRIOR_HIGH,AT_PRIOR_LOW",
+  "open_auction_location_anchor": "PRIOR_RANGE",
+  "open_rejection_reverse": "DEFERRED:REFERENCE_DEFINITION_CONFLICT",
+  "policy_id": "OPENING_TYPE_V1",
+  "policy_version": "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR",
+  "reference_touch_policy": "EXACT",
+  "test_drive_probe_rule": "FIRST_REFERENCE_REACHED",
+  "test_drive_references": "PRIOR_HIGH,PRIOR_VAH,PRIOR_POC,PRIOR_VAL,PRIOR_LOW,OVERNIGHT_HIGH,OVERNIGHT_LOW"
+ },
+ "policy_frozen_on": "2026-10-09",
+ "policy_frozen_sha256": "2b7b571c0b813bd267d8f2591336f4fe2877a8f6c4258cb0427f6e665c798d7c",
+ "policy_id": "OPENING_TYPE_V1",
+ "policy_source_sha256": "2b7b571c0b813bd267d8f2591336f4fe2877a8f6c4258cb0427f6e665c798d7c",
+ "policy_version": "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR",
+ "record_schema": "OPENING_TYPE_V1_RECORD_1",
+ "trading_date": "2026-09-24"
+}

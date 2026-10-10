@@ -1,0 +1,407 @@
+{
+ "classification": {
+  "candidates": [
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+    ],
+    "result": "NOT_CLASSIFIED",
+    "type": "OPEN_DRIVE"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+    ],
+    "result": "NOT_CLASSIFIED",
+    "type": "OPEN_AUCTION_IN_RANGE"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+    ],
+    "result": "NOT_CLASSIFIED",
+    "type": "OPEN_AUCTION_OUT_OF_RANGE"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+    ],
+    "result": "NOT_CLASSIFIED",
+    "type": "OPEN_AUCTION"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+    ],
+    "result": "NOT_CLASSIFIED",
+    "type": "OPEN_TEST_DRIVE"
+   },
+   {
+    "conditions": [],
+    "direction": null,
+    "evidence": null,
+    "policy_id": "OPENING_TYPE_V1",
+    "quality": "NOT_AVAILABLE",
+    "quality_reasons": [],
+    "reasons": [
+     "REFERENCE_DEFINITION_CONFLICT: sources disagree on whether a reference must be reached, how large the initial run must be, and what distinguishes it from Open Test Drive"
+    ],
+    "result": "DEFERRED",
+    "type": "OPEN_REJECTION_REVERSE"
+   }
+  ],
+  "policy_constants": [
+   [
+    "policy_id",
+    "OPENING_TYPE_V1"
+   ],
+   [
+    "policy_version",
+    "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR"
+   ],
+   [
+    "grace_seconds",
+    "60"
+   ],
+   [
+    "grace_anchor",
+    "CASH_OPEN_PRINT"
+   ],
+   [
+    "horizon",
+    "PERIOD_A"
+   ],
+   [
+    "horizon_minutes",
+    "30"
+   ],
+   [
+    "reference_touch_policy",
+    "EXACT"
+   ],
+   [
+    "test_drive_probe_rule",
+    "FIRST_REFERENCE_REACHED"
+   ],
+   [
+    "test_drive_references",
+    "PRIOR_HIGH,PRIOR_VAH,PRIOR_POC,PRIOR_VAL,PRIOR_LOW,OVERNIGHT_HIGH,OVERNIGHT_LOW"
+   ],
+   [
+    "open_auction_location_anchor",
+    "PRIOR_RANGE"
+   ],
+   [
+    "in_range_locations",
+    "INSIDE_PRIOR_RANGE,AT_PRIOR_HIGH,AT_PRIOR_LOW"
+   ],
+   [
+    "open_rejection_reverse",
+    "DEFERRED:REFERENCE_DEFINITION_CONFLICT"
+   ]
+  ],
+  "policy_id": "OPENING_TYPE_V1",
+  "policy_version": "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR",
+  "quality": {
+   "current_open": "NOT_AVAILABLE",
+   "current_open_reasons": [
+    "opening window [08:30, 09:30) CT not fully captured",
+    "first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+   ],
+   "overnight": "NOT_AVAILABLE",
+   "overnight_reasons": [
+    "no eligible trade in the overnight window [17:00, 08:30) CT",
+    "capture began 21:32:55.472338 after 17:00 CT (overnight window starts late)"
+   ],
+   "prior_day_outcome": "NO_PRIOR_PROFILE",
+   "prior_day_quality": null,
+   "prior_day_reasons": [
+    "prior dataset has no study-window profile"
+   ]
+  },
+  "reasons": [
+   "opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+  ],
+  "status": "NOT_CLASSIFIED",
+  "strength": null
+ },
+ "cohort": "DEVELOPMENT",
+ "contract": "FUTURE:CME:ES:2026-09",
+ "database_sha256": "ca92dab0c386a6e7785130cdf90afbfb505f693180f120b7276d1d2433d4fdfa",
+ "dataset_id": "befb7b0e-9a69-4001-ac2b-90405e0c28ed",
+ "fact_source_sha256": {
+  "tpo_opening.py": "dd28f988f83cc4d039d5fd0126e43053b445c1905b7a4520882823fcdd1d88c2",
+  "tpo_opening_path.py": "37a684cf20679dfd00fc8e29916f524ae6677ae2dcf89f50fa77cea191b35e8c",
+  "tpo_overnight.py": "91f4ab6251440c275963336355f14f46c05ac01e0fad7fa58772e5475f882435"
+ },
+ "opening_auction_facts": {
+  "gap_direction": null,
+  "gap_extent": null,
+  "gap_points": null,
+  "gap_ticks": null,
+  "open_vs_poc_points": null,
+  "open_vs_poc_ticks": null,
+  "open_vs_prior_high_ticks": null,
+  "open_vs_prior_low_ticks": null,
+  "open_vs_vah_points": null,
+  "open_vs_vah_ticks": null,
+  "open_vs_val_points": null,
+  "open_vs_val_ticks": null,
+  "outcome": "CURRENT_OPEN_INCOMPLETE",
+  "policy_id": "OPENING_AUCTION_FACTS_V1",
+  "prior": {
+   "current_contract": "FUTURE:CME:ES:2026-09",
+   "dataset_quality": "COMPLETE / NO KNOWN GAPS",
+   "day_type": null,
+   "day_type_direction": null,
+   "day_type_outcome": null,
+   "expected_prior_date": "2026-08-28",
+   "ib_high": null,
+   "ib_low": null,
+   "outcome": "NO_PRIOR_PROFILE",
+   "poc": null,
+   "prior_contract": "FUTURE:CME:ES:2026-09",
+   "prior_dataset_id": "5a5fbbce-045b-4da2-b57b-ce1a2e2b76b4",
+   "prior_trading_date": "2026-08-28",
+   "profile_high": null,
+   "profile_low": null,
+   "quality_grade": null,
+   "quality_reasons": [],
+   "reasons": [
+    "prior dataset has no study-window profile"
+   ],
+   "same_contract": true,
+   "strength": null,
+   "terminal_price": null,
+   "value_area_high": null,
+   "value_area_low": null
+  },
+  "range_location": null,
+  "range_zone": null,
+  "reasons": [
+   "opening window [08:30, 09:30) CT not fully captured",
+   "first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+  ],
+  "reference_interactions": [],
+  "session": {
+   "a_end_utc": "2026-08-31T14:00:00+00:00",
+   "a_extremes": [],
+   "cash_open": {
+    "cash_open_utc": "2026-08-31T13:30:00+00:00",
+    "delay": null,
+    "max_delay": "60.000000",
+    "price": null,
+    "tick": null,
+    "timestamp_utc": null,
+    "unavailable_reason": "first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+   },
+   "early_tpo": {
+    "a_high": null,
+    "a_low": null,
+    "a_only_rows_at_day_high": null,
+    "a_only_rows_at_day_low": null,
+    "a_only_rows_full_day": null,
+    "a_range_ticks": null,
+    "a_rows": null,
+    "a_rows_above_b": null,
+    "a_rows_below_b": null,
+    "ab_high": null,
+    "ab_low": null,
+    "ab_overlap_ratio": null,
+    "ab_overlap_rows": null,
+    "ab_range_ticks": null,
+    "b_high": null,
+    "b_high_above_a": null,
+    "b_low": null,
+    "b_low_below_a": null,
+    "b_rows": null
+   },
+   "one_timeframing": {
+    "first_higher_low_period": null,
+    "first_lower_high_period": null,
+    "longest_higher_low_run": 1,
+    "longest_lower_high_run": 1,
+    "opening_higher_low_run": 0,
+    "opening_lower_high_run": 0
+   },
+   "policy_id": "OPENING_AUCTION_FACTS_V1",
+   "price_increment": "0.25",
+   "quality": {
+    "gaps_later_in_study_window": 0,
+    "grade": "NOT_AVAILABLE",
+    "known_gaps_in_opening_window": 0,
+    "opening_window_end_utc": "2026-08-31T14:30:00+00:00",
+    "reasons": [
+     "opening window [08:30, 09:30) CT not fully captured",
+     "first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+    ],
+    "study_window_truncated": false,
+    "suspected_gaps_in_opening_window": 0
+   },
+   "trading_date": "2026-08-31",
+   "windows": []
+  },
+  "value_location": null,
+  "value_zone": null
+ },
+ "opening_path_facts": {
+  "encounters": [],
+  "grace": [],
+  "opening": null,
+  "overnight": null,
+  "overnight_reference_interactions": [],
+  "policy_id": "OPENING_PATH_FACTS_V1",
+  "quality": {
+   "current_open": "NOT_AVAILABLE",
+   "current_open_reasons": [
+    "opening window [08:30, 09:30) CT not fully captured",
+    "first eligible trade 6:02:56.575000 after 08:30:00 CT (> 0:01:00)"
+   ],
+   "overnight": "NOT_AVAILABLE",
+   "overnight_reasons": [
+    "no eligible trade in the overnight window [17:00, 08:30) CT",
+    "capture began 21:32:55.472338 after 17:00 CT (overnight window starts late)"
+   ],
+   "prior_day_outcome": "NO_PRIOR_PROFILE",
+   "prior_day_quality": null,
+   "prior_day_reasons": [
+    "prior dataset has no study-window profile"
+   ]
+  },
+  "scales": [],
+  "sequence": null
+ },
+ "overnight_context": {
+  "gaps": [],
+  "inventory": [],
+  "open_location": null,
+  "open_percentile_in_overnight_range": null,
+  "open_vs_onh_ticks": null,
+  "open_vs_onl_ticks": null,
+  "policy_id": "OVERNIGHT_CONTEXT_V1",
+  "prior": {
+   "current_contract": "FUTURE:CME:ES:2026-09",
+   "dataset_quality": "COMPLETE / NO KNOWN GAPS",
+   "day_type": null,
+   "day_type_direction": null,
+   "day_type_outcome": null,
+   "expected_prior_date": "2026-08-28",
+   "ib_high": null,
+   "ib_low": null,
+   "outcome": "NO_PRIOR_PROFILE",
+   "poc": null,
+   "prior_contract": "FUTURE:CME:ES:2026-09",
+   "prior_dataset_id": "5a5fbbce-045b-4da2-b57b-ce1a2e2b76b4",
+   "prior_trading_date": "2026-08-28",
+   "profile_high": null,
+   "profile_low": null,
+   "quality_grade": null,
+   "quality_reasons": [],
+   "reasons": [
+    "prior dataset has no study-window profile"
+   ],
+   "same_contract": true,
+   "strength": null,
+   "terminal_price": null,
+   "value_area_high": null,
+   "value_area_low": null
+  },
+  "prior_relation": null,
+  "reasons": [
+   "overnight session NOT_AVAILABLE",
+   "no cash open print: cash-open comparisons not computed",
+   "prior context NO_PRIOR_PROFILE: prior-relative facts not computed"
+  ],
+  "session": {
+   "brackets": [],
+   "contract": "FUTURE:CME:ES:2026-09",
+   "extreme_order": null,
+   "first_price": null,
+   "first_utc": null,
+   "globex_open_delay": null,
+   "globex_open_price": null,
+   "globex_open_unavailable_reason": null,
+   "globex_open_utc": null,
+   "high": null,
+   "low": null,
+   "policy_id": "OVERNIGHT_CONTEXT_V1",
+   "price_increment": "0.25",
+   "quality": {
+    "capture_begins_after_window_start": true,
+    "capture_ends_before_window_end": false,
+    "contract": "FUTURE:CME:ES:2026-09",
+    "contract_consistent": true,
+    "grade": "NOT_AVAILABLE",
+    "known_gaps_in_window": 0,
+    "lifecycle_state": "FINALIZED",
+    "reasons": [
+     "no eligible trade in the overnight window [17:00, 08:30) CT",
+     "capture began 21:32:55.472338 after 17:00 CT (overnight window starts late)"
+    ],
+    "suspected_gaps_in_window": 0,
+    "window_end_utc": "2026-08-31T13:30:00+00:00",
+    "window_start_utc": "2026-08-30T22:00:00+00:00"
+   },
+   "range_points": null,
+   "range_ticks": null,
+   "terminal_price": null,
+   "terminal_utc": null,
+   "time_of_high_utc": null,
+   "time_of_low_utc": null,
+   "trading_date": "2026-08-31",
+   "window_end_utc": "2026-08-31T13:30:00+00:00",
+   "window_start_utc": "2026-08-30T22:00:00+00:00"
+  }
+ },
+ "policy_constants": {
+  "grace_anchor": "CASH_OPEN_PRINT",
+  "grace_seconds": "60",
+  "horizon": "PERIOD_A",
+  "horizon_minutes": "30",
+  "in_range_locations": "INSIDE_PRIOR_RANGE,AT_PRIOR_HIGH,AT_PRIOR_LOW",
+  "open_auction_location_anchor": "PRIOR_RANGE",
+  "open_rejection_reverse": "DEFERRED:REFERENCE_DEFINITION_CONFLICT",
+  "policy_id": "OPENING_TYPE_V1",
+  "policy_version": "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR",
+  "reference_touch_policy": "EXACT",
+  "test_drive_probe_rule": "FIRST_REFERENCE_REACHED",
+  "test_drive_references": "PRIOR_HIGH,PRIOR_VAH,PRIOR_POC,PRIOR_VAL,PRIOR_LOW,OVERNIGHT_HIGH,OVERNIGHT_LOW"
+ },
+ "policy_frozen_on": "2026-10-09",
+ "policy_frozen_sha256": "2b7b571c0b813bd267d8f2591336f4fe2877a8f6c4258cb0427f6e665c798d7c",
+ "policy_id": "OPENING_TYPE_V1",
+ "policy_source_sha256": "2b7b571c0b813bd267d8f2591336f4fe2877a8f6c4258cb0427f6e665c798d7c",
+ "policy_version": "V1_A_PERIOD_60S_GRACE_EXACT_REFERENCE_TEST_PRIOR_RANGE_ANCHOR",
+ "record_schema": "OPENING_TYPE_V1_RECORD_1",
+ "trading_date": "2026-08-31"
+}
