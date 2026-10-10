@@ -44,3 +44,6 @@ data/
 
 # Temporary Dick's Laboratory capture/reference artifacts
 apps/dicks_laboratory/docs/tmp/
+
+# Third-party material kept local only (see docs/dicks_laboratory/DRYSDALE_VWAP_SETUP_GUIDE.md)
+docs/dicks_laboratory/Drysdale_VWAP_Setup_Guide.pdf
