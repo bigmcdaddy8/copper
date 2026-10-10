@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-06  
+**Document revision:** V1-draft-07  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-06, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-07, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -61,6 +61,7 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Session focus | RTH analytical window 08:30–15:00 Chicago; overnight context only | Agreed; V1-SESSION-01/04 |
 | Initial observation | 08:30–08:50 Chicago | Agreed; V1-SESSION-02 |
 | Regime architecture | Score from -6 through +6; reassess as auction develops | Agreed architecture; V1-REGIME-01 |
+| Regime timing | First assessment 08:50; then after every completed 5-minute bar; intrabar entry uses latest scheduled assessment | Agreed; V1-REGIME-02 |
 | Proposed trade permission | +4 to +6 long; -4 to -6 short | Proposed thresholds; V1-REGIME-03 |
 | Entry family | Momentum break of meaningful swing/consolidation or auction reference | Agreed; V1-ENTRY-01 |
 | Trigger | Penetration; no completed-bar requirement | Agreed; V1-ENTRY-02 |
@@ -263,11 +264,21 @@ The evidence families are auction location, value behavior, and price behavior. 
 
 ### V1-REGIME-02 — Assessment timing and contemporaneous evidence
 
-**Status: Proposed implementation.**
+**Status: Agreed on 2026-10-10; OD-03 closed.**
 
-Make the first assessment at 08:50. Reassess after each completed 5-minute bar and before each new entry or reentry. Record the score and six components that were actually available before the trigger. Do not retrospectively replace an entry-time score with a later assessment.
+| Situation | Accepted timing policy |
+| --- | --- |
+| First assessment | 08:50 America/Chicago, using the first four completed RTH bars |
+| Subsequent assessments | After every completed 5-minute bar |
+| Intrabar breakout entry | Use the latest completed-bar regime assessment |
+| Assessment freshness | Before entry, confirm the latest scheduled assessment was completed and permits the intended direction |
+| Missing required evidence | Mark the assessment UNKNOWN; no new entry |
 
-The freshness interval and whether an intrabar event can change the score require a decision under OD-03. Entry may be intrabar without making every scoring input intrabar.
+For example, a breakout at 09:12 uses the 09:10 assessment; the next scheduled assessment is 09:15. At or after a new scheduled assessment time, an older score is no longer the latest scheduled assessment: complete the new assessment before permitting an entry. Check freshness and permission before every entry or reentry; this check does not itself create an intrabar rescore.
+
+Record the score, its assessment timestamp, and the six components available at that time. Entry may occur intrabar while regime scoring follows this completed-bar cadence. Preserve the original entry-time evidence; do not retrospectively replace it with a later assessment.
+
+The six component definitions and directional thresholds remain open under OD-02. The timing policy does not make an incomplete classifier executable. Missing data is not neutral evidence. The open-position response to a later regime change remains a separate OD-14 decision.
 
 ## 6. Proposed regime score
 
@@ -296,7 +307,7 @@ Each factor contributes -1, 0, or +1. Sum all six. The table describes the inten
 
 **Rationale:** Scoring makes observations reviewable while preserving a separate entry decision. These factors are correlated; four points are not four independent proofs. A score near zero can also reflect conflicting directional evidence, so retain the component scores rather than treating every zero as the same auction.
 
-**Open definitions (OD-02):** lookback windows; acceptance duration; VWAP separation and slope tolerance; migration magnitude; pivot identification; range-extension reference; treatment of insufficient data. Do not silently treat unavailable data as neutral evidence. Suggested journal representation: `UNKNOWN`, with no trade permission until required observations can be assessed; this policy is proposed.
+**Open definitions (OD-02):** final factors and thresholds; lookback windows; acceptance duration; VWAP separation and slope tolerance; migration magnitude; pivot identification; range-extension reference; and which observations are required for each component. The accepted V1-REGIME-02 policy marks an assessment UNKNOWN and prohibits new entries when required evidence is missing. Do not silently treat unavailable data as neutral evidence.
 
 ## 7. Trade permission and entry
 
@@ -561,7 +572,7 @@ These checklists summarize the rules; they do not override rule status or resolv
 ### Before each entry
 
 - [ ] Initial 20-minute observation period is complete.
-- [ ] Current regime permits the intended direction; score/components are recorded.
+- [ ] Latest scheduled completed-bar regime assessment is complete, not UNKNOWN, permits the intended direction, and has recorded score/components/timestamp.
 - [ ] Meaningful breakout reference and thesis ID are identified before the trigger.
 - [ ] Attempt count is below two and loss budget permits the trade.
 - [ ] Initial structural invalidation, stop, R0, and ATR are recorded.
@@ -586,13 +597,13 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 ## 16. Open decision register
 
-Resolve the remaining open items explicitly before freezing V1.0. OD-16 is closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
+Resolve the remaining open items explicitly before freezing V1.0. OD-03 and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
 | OD-01 | RTH analytical window and holiday/shortened-session no-entry policy accepted; latest entry, flatten deadline, and operational calendar procedure remain open | SESSION-03, EXIT-02 |
-| OD-02 | Final six score factors, thresholds, measurable lookbacks/tolerances, insufficient-data policy | REGIME-01, REGIME-03 |
-| OD-03 | Score refresh cadence, freshness, and intrabar updates | REGIME-02 |
+| OD-02 | Final six score factors, thresholds, measurable lookbacks/tolerances, and required evidence per factor; UNKNOWN/no-entry policy accepted | REGIME-01, REGIME-03 |
+| OD-03 | CLOSED 2026-10-10: assess first at 08:50 and every completed 5-minute bar; use latest scheduled assessment for intrabar entries; missing required evidence means UNKNOWN/no entry | REGIME-02 |
 | OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
 | OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; Order Flow VWAP tick/session implementation and 08:30–15:00 template accepted; VWAP operational template/data/parity verification, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
 | OD-06 | Meaningful swing/consolidation definition and reference selection | ENTRY-01 |
@@ -655,6 +666,7 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-07 | 2026-10-10 | Accepted completed-bar regime assessment timing, pre-entry freshness check, latest-score use for intrabar entries, and UNKNOWN/no-entry policy. Updated V1-REGIME-02 and closed OD-03. Factors, thresholds, and open-position regime-change response remain open. |
 | V1-draft-06 | 2026-10-10 | Accepted NinjaTrader Order Flow VWAP on ES, tick resolution subject to complete data, session reset, and explicit 08:30–15:00 Chicago template. Expanded V1-CONTEXT-04; retained operational verification/data/reproducibility details. |
 | V1-draft-05 | 2026-10-10 | Accepted full-session ES 5-minute ATR input, including overnight history, without resetting at 08:30. Updated V1-CONTEXT-06; retained seed, warm-up, trading-hours template, and gap-handling details as open. |
 | V1-draft-04 | 2026-10-10 | Accepted NinjaTrader Order Flow Volume Profile, 68% value area, one ES tick per row, tick resolution subject to availability, and ATR(13) Wilder on completed ES 5-minute bars. Added V1-CONTEXT-05/06. Retained open ATR history/session, profile reproducibility/data, and VWAP calculation details. |
