@@ -5270,3 +5270,44 @@ AI TUTOR: NOT YET IMPLEMENTED
 DRYSDALE VWAP CURRICULUM: EVIDENCE DEPENDENCIES AUDITED
 NEXT: PO REVIEW BEFORE AI TUTOR FOUNDATION
 ```
+
+## MY. 0AA-A — AI Tutor Evidence & Lesson Foundation (2026-10-10)
+
+PO record: 0Z-C **PASS / ACCEPTED / CLOSED**; replay evidence player and
+MARKET_STUDY_SNAPSHOT_V1 accepted; AI tutor ready for foundation work.
+PO decisions: COMPLETE (not FINAL) for a study window whose market interval has
+ended but whose evidence may still be revised by later-arriving records; the
+Laboratory value area stays 70% and the playbook / NinjaTrader value area stays
+68%, as separate conventions never silently reconciled.
+
+What 0AA-A adds (`AI_TUTOR_EVIDENCE_FOUNDATION.md`); replay semantics unchanged:
+- `TutorEvidenceContext` (AS_OF; replay market / knowledge time; snapshot hash;
+  `EvidenceRef` RFC 6901 pointers into MARKET_STUDY_SNAPSHOT_V1 /
+  MARKET_STUDY_DELTA_V1; quality warnings; policy registry; value-area
+  convention).
+- `TutorLesson`: definition, context, deterministic answer key and rubric,
+  optional hidden future outcome; `student_view` (QUESTION / HINT / ANSWER /
+  POST_REVEAL, `TUTOR_REVEAL_V1`) and `instructor_view`, canonical JSON with
+  `payload_sha256`.
+- `TutorAnswer` schema and `validate_answer_grounding` (unknown / unauthorized /
+  hidden-future / not-available evidence, category, value, quality-warning and
+  unsupported-claim checks); `EvidenceSupport` keeps INSUFFICIENT_EVIDENCE
+  distinct from false.
+- Curriculum sources (Laboratory, playbook, Drysdale); DRYSDALE_VWAP_WAVE_V1
+  registered as NOT_READY_FOR_RULE_IMPLEMENTATION with the 0Z-C dependency
+  matrix as data; LABORATORY_PROFILE_70 and PLAYBOOK_NINJATRADER_68 conventions.
+- CLI `scripts/dicks_lab_tutor_lesson.py`; `TutorSessionRecord` designed, not
+  persisted.
+
+Real-data proof (`AI_TUTOR_FOUNDATION_0AAA.md`, `evidence/0AA-A/`): 10 lessons
+on 09-30, 08-31 and 09-21; every reference answer grounded; hidden material
+absent from student payloads until its stage; all payloads deterministic;
+tutor layer 11–29 ms over cached snapshots (about 0.8 s for comparison
+lessons); database sha256 unchanged.
+
+```
+0AA-A: PASS — AI TUTOR EVIDENCE / LESSON FOUNDATION COMPLETE
+AI MODEL INTEGRATION: NOT YET IMPLEMENTED
+DRYSDALE VWAP MODULE: REGISTERED — DEPENDENCIES NOT YET COMPLETE
+NEXT: PO REVIEW BEFORE FIRST GROUNDED AI TUTOR INTEGRATION
+```

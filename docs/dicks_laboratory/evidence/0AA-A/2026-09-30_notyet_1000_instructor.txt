@@ -1,0 +1,49 @@
+LESSON LAB-NOT_YET_DETERMINED_ITEMS-2026-09-30-100000  [INSTRUCTOR]
+  What is not yet determined (IDENTIFY; module LAB_EVIDENCE_READING_V1)
+  objective: Identify evidence that does not exist yet at the replay time.
+  replay time 2026-09-30 10:00:00 CDT (evidence AS_OF, knowledge 2026-09-30 10:00:00 CDT)  snapshot 90cd2e42715abbc1
+  value-area convention: none used
+
+QUESTION  Which evidence is still NOT_YET_DETERMINED?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-09-30 10:00:00 CDT  snapshot 90cd2e42715abbc1
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    closing_summary maturity                             NOT_YET_DETERMINED           [AVAILABLE] /maturity/0/maturity
+    vwap SESSION_OPEN maturity                           DEVELOPING                   [AVAILABLE] /maturity/1/maturity
+    vwap US_CASH_OPEN maturity                           DEVELOPING                   [AVAILABLE] /maturity/2/maturity
+    overnight maturity                                   WINDOW_COMPLETE              [AVAILABLE] /maturity/3/maturity
+    cash_open maturity                                   WINDOW_COMPLETE              [AVAILABLE] /maturity/4/maturity
+    opening_facts maturity                               WINDOW_COMPLETE              [AVAILABLE] /maturity/5/maturity
+    opening_type maturity                                WINDOW_COMPLETE              [AVAILABLE] /maturity/6/maturity
+    volume_profile maturity                              DEVELOPING                   [AVAILABLE] /maturity/7/maturity
+    tpo maturity                                         DEVELOPING                   [AVAILABLE] /maturity/8/maturity
+    initial_balance maturity                             WINDOW_COMPLETE              [AVAILABLE] /maturity/9/maturity
+    tpo_structure maturity                               NOT_YET_DETERMINED           [AVAILABLE] /maturity/10/maturity
+    day_type maturity                                    NOT_YET_DETERMINED           [AVAILABLE] /maturity/11/maturity
+    day_strength maturity                                NOT_YET_DETERMINED           [AVAILABLE] /maturity/12/maturity
+    study_window_terminal maturity                       NOT_YET_DETERMINED           [AVAILABLE] /maturity/13/maturity
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+
+ANSWER KEY  SUPPORTED: 5
+  [PENDING_CLOSING_SUMMARY] closing_summary maturity is NOT_YET_DETERMINED.
+  [PENDING_TPO_STRUCTURE] tpo_structure maturity is NOT_YET_DETERMINED.
+  [PENDING_DAY_TYPE] day_type maturity is NOT_YET_DETERMINED.
+  [PENDING_DAY_STRENGTH] day_strength maturity is NOT_YET_DETERMINED.
+  [PENDING_STUDY_WINDOW_TERMINAL] study_window_terminal maturity is NOT_YET_DETERMINED.
+  not supported [DETERMINED_CLOSING_SUMMARY] The closing_summary result is already known. -> NOT_YET_DETERMINED (its maturity is NOT_YET_DETERMINED)
+  not supported [DETERMINED_TPO_STRUCTURE] The tpo_structure result is already known. -> NOT_YET_DETERMINED (its maturity is NOT_YET_DETERMINED)
+  not supported [DETERMINED_DAY_TYPE] The day_type result is already known. -> NOT_YET_DETERMINED (its maturity is NOT_YET_DETERMINED)
+  not supported [DETERMINED_DAY_STRENGTH] The day_strength result is already known. -> NOT_YET_DETERMINED (its maturity is NOT_YET_DETERMINED)
+  not supported [DETERMINED_STUDY_WINDOW_TERMINAL] The study_window_terminal result is already known. -> NOT_YET_DETERMINED (its maturity is NOT_YET_DETERMINED)
+
+payload 5d1cae2215b5e1c4. Evidence only; no interpretation, no AI model.

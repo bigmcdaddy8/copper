@@ -1,0 +1,44 @@
+LESSON LAB-PRICE_VS_CASH_VWAP-2026-09-30-100000-REVEAL-103000  [INSTRUCTOR]
+  Price relative to the cash VWAP (OBSERVE; module LAB_EVIDENCE_READING_V1)
+  objective: Read the last known price and the developing cash VWAP as of the replay time.
+  replay time 2026-09-30 10:00:00 CDT (evidence AS_OF, knowledge 2026-09-30 10:00:00 CDT)  snapshot 90cd2e42715abbc1
+  value-area convention: none used
+
+QUESTION  Where is the last known price relative to the cash VWAP, and what evidence supports the answer?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-09-30 10:00:00 CDT  snapshot 90cd2e42715abbc1
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    last known price                                     7772.75                      [AVAILABLE] /prices/last_known_price
+    last known price time                                2026-09-30T14:59:59.450000Z  [AVAILABLE] /prices/last_known_utc
+    SESSION_OPEN VWAP                                    7758.596957663784478780620234 [AVAILABLE, DEVELOPING] /vwap/0/study/vwap
+    US_CASH_OPEN VWAP                                    7766.198291778435143398861487 [AVAILABLE, DEVELOPING] /vwap/1/study/vwap
+    last known price vs US_CASH_OPEN VWAP                ABOVE                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_cash_vwap
+    last known price vs SESSION_OPEN VWAP                ABOVE                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_globex_vwap
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+    vwap SESSION_OPEN quality status                     QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/2/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+  LESSON_TIME:vwap SESSION_OPEN: QUALITY_QUALIFIED - capture began 0:00:00.000363 after the window start
+
+ANSWER KEY  SUPPORTED: ABOVE
+  [PRICE] The last known price is 7772.75 (traded at 2026-09-30T14:59:59.450000Z).
+  [CASH_VWAP] The cash VWAP is 7766.198291778435143398861487 (DEVELOPING).
+  [RELATION] The last known price is ABOVE the cash VWAP.
+  not supported [ACCEPTANCE] Price is accepting above (or below) the cash VWAP. -> INSUFFICIENT_EVIDENCE (acceptance has no deterministic definition (NEEDS_POLICY_DEFINITION))
+  not supported [VWAP_BANDS] Price is inside (or outside) the VWAP value bands. -> INSUFFICIENT_EVIDENCE (VWAP deviation bands are not defined (NEEDS_POLICY_DEFINITION))
+  not supported [VWAP_COMPLETE] The cash VWAP value is complete for the day. -> NOT_YET_DETERMINED (its maturity is DEVELOPING)
+
+FUTURE OUTCOME 2026-09-30 10:30:00 CDT  snapshot cdb6f5a03f75a850  summary ABOVE
+  [PRICE] The last known price is 7775.25 (traded at 2026-09-30T15:29:59.900000Z).
+  [CASH_VWAP] The cash VWAP is 7767.026444912057381709222622 (DEVELOPING).
+  [RELATION] The last known price is ABOVE the cash VWAP.
+
+payload 825c20d8baff72e5. Evidence only; no interpretation, no AI model.

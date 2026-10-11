@@ -1,0 +1,66 @@
+LESSON LAB-VALUE_MIGRATION-2026-09-30-100000-FROM-093000  [STUDENT, stage QUESTION]
+  Developing value between two times (COMPARE; module LAB_EVIDENCE_READING_V1)
+  objective: Compare developing volume and TPO value between two replay times.
+  replay time 2026-09-30 10:00:00 CDT (evidence AS_OF, knowledge 2026-09-30 10:00:00 CDT)  snapshot 90cd2e42715abbc1
+  value-area convention: LABORATORY_PROFILE_70 (0.70)
+
+QUESTION  What changed in developing value between the two times?
+
+AUTHORIZED EVIDENCE
+  COMPARE_FROM 2026-09-30 09:30:00 CDT  snapshot 4353b26861815def
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    volume profile POC                                   7773.00                      [AVAILABLE, DEVELOPING] /volume_profile/poc
+    volume profile value area low                        7756.75                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_low
+    volume profile value area high                       7779.25                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_high
+    volume profile profile low                           7748.00                      [AVAILABLE, DEVELOPING] /volume_profile/profile_low
+    volume profile profile high                          7779.50                      [AVAILABLE, DEVELOPING] /volume_profile/profile_high
+    volume profile total volume                          307788.0                     [AVAILABLE, DEVELOPING] /volume_profile/total_volume
+    last known price vs developing volume value area     INSIDE                       [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_volume_value_area
+    TPO periods reached                                  AB                           [AVAILABLE, DEVELOPING] /tpo/periods_reached
+    TPO current period                                   --                           [NOT_AVAILABLE, DEVELOPING] /tpo/current_period
+    TPO POC                                              7763.75                      [AVAILABLE, DEVELOPING] /tpo/profile/poc
+    TPO value area low                                   7758.75                      [AVAILABLE, DEVELOPING] /tpo/profile/value_area/low
+    TPO value area high                                  7779.25                      [AVAILABLE, DEVELOPING] /tpo/profile/value_area/high
+    TPO profile low                                      7748.00                      [AVAILABLE, DEVELOPING] /tpo/profile/profile_low
+    TPO profile high                                     7779.50                      [AVAILABLE, DEVELOPING] /tpo/profile/profile_high
+    last known price vs developing TPO value area        INSIDE                       [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_tpo_value_area
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+  LESSON_TIME 2026-09-30 10:00:00 CDT  snapshot 90cd2e42715abbc1
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    volume profile POC                                   7773.00                      [AVAILABLE, DEVELOPING] /volume_profile/poc
+    volume profile value area low                        7760.00                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_low
+    volume profile value area high                       7779.75                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_high
+    volume profile profile low                           7748.00                      [AVAILABLE, DEVELOPING] /volume_profile/profile_low
+    volume profile profile high                          7782.00                      [AVAILABLE, DEVELOPING] /volume_profile/profile_high
+    volume profile total volume                          442507.0                     [AVAILABLE, DEVELOPING] /volume_profile/total_volume
+    last known price vs developing volume value area     INSIDE                       [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_volume_value_area
+    TPO periods reached                                  ABC                          [AVAILABLE, DEVELOPING] /tpo/periods_reached
+    TPO current period                                   --                           [NOT_AVAILABLE, DEVELOPING] /tpo/current_period
+    TPO POC                                              7765.00                      [AVAILABLE, DEVELOPING] /tpo/profile/poc
+    TPO value area low                                   7761.50                      [AVAILABLE, DEVELOPING] /tpo/profile/value_area/low
+    TPO value area high                                  7779.50                      [AVAILABLE, DEVELOPING] /tpo/profile/value_area/high
+    TPO profile low                                      7748.00                      [AVAILABLE, DEVELOPING] /tpo/profile/profile_low
+    TPO profile high                                     7782.00                      [AVAILABLE, DEVELOPING] /tpo/profile/profile_high
+    last known price vs developing TPO value area        INSIDE                       [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_tpo_value_area
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+  DELTA 73c6ab3284e92b49 (35 references)
+
+QUALITY WARNINGS
+  COMPARE_FROM:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+
+WITHHELD (not in this payload): hints, answer_key
+
+payload b73f2b782d93ea9e. Evidence only; no interpretation, no AI model.

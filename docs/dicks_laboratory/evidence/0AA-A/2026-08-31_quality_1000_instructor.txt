@@ -1,0 +1,107 @@
+LESSON LAB-DATA_QUALITY-2026-08-31-100000  [INSTRUCTOR]
+  Qualified evidence (IDENTIFY; module LAB_EVIDENCE_READING_V1)
+  objective: Recognize qualified or unavailable evidence before reading it.
+  replay time 2026-08-31 10:00:00 CDT (evidence AS_OF, knowledge 2026-08-31 10:00:00 CDT)  snapshot 4a354c9eb4ba5c81
+  value-area convention: none used
+
+QUESTION  How complete and qualified is the evidence at this time?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-08-31 10:00:00 CDT  snapshot 4a354c9eb4ba5c81
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 INCOMPLETE                   [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      4                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    known gap 1 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/0/evidence_type
+    known gap 1 start_utc                                2026-08-31T12:09:41.684176Z  [AVAILABLE] /dataset_quality/gaps/0/start_utc
+    known gap 1 end_utc                                  2026-08-31T12:09:43.569919Z  [AVAILABLE] /dataset_quality/gaps/0/end_utc
+    known gap 2 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/1/evidence_type
+    known gap 2 start_utc                                2026-08-31T13:30:24.212970Z  [AVAILABLE] /dataset_quality/gaps/1/start_utc
+    known gap 2 end_utc                                  2026-08-31T13:30:27.242151Z  [AVAILABLE] /dataset_quality/gaps/1/end_utc
+    known gap 3 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/2/evidence_type
+    known gap 3 start_utc                                2026-08-31T13:32:27.278439Z  [AVAILABLE] /dataset_quality/gaps/2/start_utc
+    known gap 3 end_utc                                  2026-08-31T13:32:32.887785Z  [AVAILABLE] /dataset_quality/gaps/2/end_utc
+    known gap 4 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/3/evidence_type
+    known gap 4 start_utc                                2026-08-31T13:35:33.303623Z  [AVAILABLE] /dataset_quality/gaps/3/start_utc
+    known gap 4 end_utc                                  2026-08-31T13:35:43.846892Z  [AVAILABLE] /dataset_quality/gaps/3/end_utc
+    capture status                                       STOPPED                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      INTERRUPTED                  [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     STOPPED                      [AVAILABLE] /current_dataset/connection_as_of
+    SESSION_OPEN VWAP                                    7697.921735304340109593498340 [AVAILABLE, DEVELOPING] /vwap/0/study/vwap
+    US_CASH_OPEN VWAP                                    7691.380489801994938216465684 [AVAILABLE, DEVELOPING] /vwap/1/study/vwap
+    last known price vs US_CASH_OPEN VWAP                BELOW                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_cash_vwap
+    last known price vs SESSION_OPEN VWAP                BELOW                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_globex_vwap
+    volume profile POC                                   7690.00                      [AVAILABLE, DEVELOPING] /volume_profile/poc
+    volume profile value area low                        7685.50                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_low
+    volume profile value area high                       7693.00                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_high
+    volume profile profile low                           7682.50                      [AVAILABLE, DEVELOPING] /volume_profile/profile_low
+    volume profile profile high                          7704.25                      [AVAILABLE, DEVELOPING] /volume_profile/profile_high
+    volume profile total volume                          80604.0                      [AVAILABLE, DEVELOPING] /volume_profile/total_volume
+    last known price vs developing volume value area     INSIDE                       [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_volume_value_area
+    TPO periods reached                                  ABC                          [AVAILABLE, DEVELOPING] /tpo/periods_reached
+    TPO current period                                   --                           [NOT_AVAILABLE, DEVELOPING] /tpo/current_period
+    TPO POC                                              7693.25                      [AVAILABLE, DEVELOPING] /tpo/profile/poc
+    TPO value area low                                   7688.75                      [AVAILABLE, DEVELOPING] /tpo/profile/value_area/low
+    TPO value area high                                  7704.25                      [AVAILABLE, DEVELOPING] /tpo/profile/value_area/high
+    TPO profile low                                      7682.50                      [AVAILABLE, DEVELOPING] /tpo/profile/profile_low
+    TPO profile high                                     7704.25                      [AVAILABLE, DEVELOPING] /tpo/profile/profile_high
+    last known price vs developing TPO value area        BELOW                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_tpo_value_area
+    prior day status                                     NOT_AVAILABLE                [AVAILABLE] /prior_day/status
+    prior trading date                                   2026-08-28                   [AVAILABLE] /prior_day/context/prior_trading_date
+    prior high                                           --                           [NOT_AVAILABLE] /prior_day/context/profile_high
+    prior low                                            --                           [NOT_AVAILABLE] /prior_day/context/profile_low
+    prior value area high                                --                           [NOT_AVAILABLE] /prior_day/context/value_area_high
+    prior value area low                                 --                           [NOT_AVAILABLE] /prior_day/context/value_area_low
+    prior POC                                            --                           [NOT_AVAILABLE] /prior_day/context/poc
+    prior study-window terminal price                    --                           [NOT_AVAILABLE] /prior_day/context/terminal_price
+    prior DAY_TYPE_V1 candidate                          --                           [NOT_AVAILABLE] /prior_day/context/day_type
+    last known price vs prior value area                 --                           [NOT_AVAILABLE] /relations/last_price_vs_prior_value_area
+    overnight high                                       7723.50                      [AVAILABLE, WINDOW_COMPLETE] /overnight/session/high
+    overnight low                                        7683.75                      [AVAILABLE, WINDOW_COMPLETE] /overnight/session/low
+    overnight last price                                 7701.25                      [AVAILABLE, WINDOW_COMPLETE] /overnight/session/terminal_price
+    cash open price                                      7701.25                      [AVAILABLE, WINDOW_COMPLETE] /cash_opening/cash_open/price
+    cash open vs prior range                             --                           [NOT_AVAILABLE, WINDOW_COMPLETE] /cash_opening/range_location
+    cash open vs prior value                             --                           [NOT_AVAILABLE, WINDOW_COMPLETE] /cash_opening/value_location
+    cash open gap (ticks)                                --                           [NOT_AVAILABLE, WINDOW_COMPLETE] /cash_opening/gap_ticks
+    opening window 5m maturity                           NOT_AVAILABLE                [AVAILABLE] /cash_opening/windows/0/maturity
+    opening window 15m maturity                          NOT_AVAILABLE                [AVAILABLE] /cash_opening/windows/1/maturity
+    opening window 30m maturity                          NOT_AVAILABLE                [AVAILABLE] /cash_opening/windows/2/maturity
+    opening window 60m maturity                          NOT_AVAILABLE                [AVAILABLE] /cash_opening/windows/3/maturity
+    OPENING_TYPE_V1 status                               NOT_AVAILABLE                [AVAILABLE, WINDOW_COMPLETE] /opening_type/status
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+    vwap SESSION_OPEN quality status                     QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/2/status
+    vwap US_CASH_OPEN quality status                     QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/3/status
+    volume_profile quality status                        QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/4/status
+    cash_tpo quality status                              QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/5/status
+    prior_context quality status                         NOT_AVAILABLE                [AVAILABLE] /quality_matrix/9/status
+    overnight quality status                             QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/10/status
+    cash_opening quality status                          NOT_AVAILABLE                [AVAILABLE] /quality_matrix/11/status
+    opening_type quality status                          NOT_AVAILABLE                [AVAILABLE] /quality_matrix/12/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - KNOWN_GAP evidence known: 4; CASH_PROFILE window not captured through the clock; OPENING window not captured through the clock; OVERNIGHT window not captured through the clock; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:vwap SESSION_OPEN: QUALITY_QUALIFIED - capture began 0:00:00.000177 after the window start; KNOWN_GAP overlaps [window start, clock): 4; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:vwap US_CASH_OPEN: QUALITY_QUALIFIED - KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:volume_profile: QUALITY_QUALIFIED - KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:cash_tpo: QUALITY_QUALIFIED - KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:prior_context: NOT_AVAILABLE - prior dataset has no study-window profile
+  LESSON_TIME:overnight: QUALITY_QUALIFIED - capture began 0:00:00.000177 after 17:00 CT (overnight window starts late); KNOWN_GAP overlaps the overnight window: 1; lifecycle INTERRUPTED (not FINALIZED); Globex open NOT CLAIMED: capture began after 17:00 CT; the first retained trade is not the Globex open
+  LESSON_TIME:cash_opening: NOT_AVAILABLE - opening window [08:30, 09:30) CT not fully captured; KNOWN_GAP overlaps the opening window: 3; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:opening_type: NOT_AVAILABLE - opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; KNOWN_GAP overlaps the opening window: 3; lifecycle INTERRUPTED (not FINALIZED)
+
+ANSWER KEY  SUPPORTED: QUALITY_QUALIFIED
+  [STATUS] The dataset quality status is QUALITY_QUALIFIED.
+  [COMPLETENESS] Completeness: INCOMPLETE.
+  [KNOWN_GAPS] 4 known gaps.
+  [WARNING_DATASET] dataset is QUALITY_QUALIFIED: KNOWN_GAP evidence known: 4; CASH_PROFILE window not captured through the clock; OPENING window not captured through the clock; OVERNIGHT window not captured through the clock; lifecycle INTERRUPTED (not FINALIZED)
+  [WARNING_VWAP_SESSION_OPEN] vwap SESSION_OPEN is QUALITY_QUALIFIED: capture began 0:00:00.000177 after the window start; KNOWN_GAP overlaps [window start, clock): 4; lifecycle INTERRUPTED (not FINALIZED)
+  [WARNING_VWAP_US_CASH_OPEN] vwap US_CASH_OPEN is QUALITY_QUALIFIED: KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+  [WARNING_VOLUME_PROFILE] volume_profile is QUALITY_QUALIFIED: KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+  [WARNING_CASH_TPO] cash_tpo is QUALITY_QUALIFIED: KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+  [WARNING_PRIOR_CONTEXT] prior_context is NOT_AVAILABLE: prior dataset has no study-window profile
+  [WARNING_OVERNIGHT] overnight is QUALITY_QUALIFIED: capture began 0:00:00.000177 after 17:00 CT (overnight window starts late); KNOWN_GAP overlaps the overnight window: 1; lifecycle INTERRUPTED (not FINALIZED); Globex open NOT CLAIMED: capture began after 17:00 CT; the first retained trade is not the Globex open
+  [WARNING_CASH_OPENING] cash_opening is NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; KNOWN_GAP overlaps the opening window: 3; lifecycle INTERRUPTED (not FINALIZED)
+  [WARNING_OPENING_TYPE] opening_type is NOT_AVAILABLE: opening facts NOT_AVAILABLE: opening window [08:30, 09:30) CT not fully captured; KNOWN_GAP overlaps the opening window: 3; lifecycle INTERRUPTED (not FINALIZED)
+  not supported [PRISTINE] The evidence is complete and unqualified. -> INSUFFICIENT_EVIDENCE (dataset quality status is QUALITY_QUALIFIED)
+
+payload b7181d67dfd46275. Evidence only; no interpretation, no AI model.

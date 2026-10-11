@@ -1,0 +1,34 @@
+LESSON LAB-VALUE_OCCUPANCY-2026-09-30-100000  [STUDENT, stage QUESTION]
+  Inside or outside value (EXPLAIN_EVIDENCE; module LAB_EVIDENCE_READING_V1)
+  objective: Separate what one snapshot shows from what it cannot show.
+  replay time 2026-09-30 10:00:00 CDT (evidence AS_OF, knowledge 2026-09-30 10:00:00 CDT)  snapshot 90cd2e42715abbc1
+  value-area convention: LABORATORY_PROFILE_70 (0.70)
+
+QUESTION  Has price remained inside or outside value?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-09-30 10:00:00 CDT  snapshot 90cd2e42715abbc1
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    last known price                                     7772.75                      [AVAILABLE] /prices/last_known_price
+    last known price time                                2026-09-30T14:59:59.450000Z  [AVAILABLE] /prices/last_known_utc
+    volume profile POC                                   7773.00                      [AVAILABLE, DEVELOPING] /volume_profile/poc
+    volume profile value area low                        7760.00                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_low
+    volume profile value area high                       7779.75                      [AVAILABLE, DEVELOPING] /volume_profile/value_area_high
+    volume profile profile low                           7748.00                      [AVAILABLE, DEVELOPING] /volume_profile/profile_low
+    volume profile profile high                          7782.00                      [AVAILABLE, DEVELOPING] /volume_profile/profile_high
+    volume profile total volume                          442507.0                     [AVAILABLE, DEVELOPING] /volume_profile/total_volume
+    last known price vs developing volume value area     INSIDE                       [AVAILABLE, DEVELOPING] /relations/last_price_vs_developing_volume_value_area
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+
+WITHHELD (not in this payload): hints, answer_key
+
+payload 5544c1c3bbc6b962. Evidence only; no interpretation, no AI model.

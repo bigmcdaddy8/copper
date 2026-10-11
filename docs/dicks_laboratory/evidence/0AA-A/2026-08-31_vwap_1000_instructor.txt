@@ -1,0 +1,54 @@
+LESSON LAB-PRICE_VS_CASH_VWAP-2026-08-31-100000  [INSTRUCTOR]
+  Price relative to the cash VWAP (OBSERVE; module LAB_EVIDENCE_READING_V1)
+  objective: Read the last known price and the developing cash VWAP as of the replay time.
+  replay time 2026-08-31 10:00:00 CDT (evidence AS_OF, knowledge 2026-08-31 10:00:00 CDT)  snapshot 4a354c9eb4ba5c81
+  value-area convention: none used
+
+QUESTION  Where is the last known price relative to the cash VWAP, and what evidence supports the answer?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-08-31 10:00:00 CDT  snapshot 4a354c9eb4ba5c81
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 INCOMPLETE                   [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      4                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    known gap 1 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/0/evidence_type
+    known gap 1 start_utc                                2026-08-31T12:09:41.684176Z  [AVAILABLE] /dataset_quality/gaps/0/start_utc
+    known gap 1 end_utc                                  2026-08-31T12:09:43.569919Z  [AVAILABLE] /dataset_quality/gaps/0/end_utc
+    known gap 2 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/1/evidence_type
+    known gap 2 start_utc                                2026-08-31T13:30:24.212970Z  [AVAILABLE] /dataset_quality/gaps/1/start_utc
+    known gap 2 end_utc                                  2026-08-31T13:30:27.242151Z  [AVAILABLE] /dataset_quality/gaps/1/end_utc
+    known gap 3 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/2/evidence_type
+    known gap 3 start_utc                                2026-08-31T13:32:27.278439Z  [AVAILABLE] /dataset_quality/gaps/2/start_utc
+    known gap 3 end_utc                                  2026-08-31T13:32:32.887785Z  [AVAILABLE] /dataset_quality/gaps/2/end_utc
+    known gap 4 evidence_type                            KNOWN_GAP                    [AVAILABLE] /dataset_quality/gaps/3/evidence_type
+    known gap 4 start_utc                                2026-08-31T13:35:33.303623Z  [AVAILABLE] /dataset_quality/gaps/3/start_utc
+    known gap 4 end_utc                                  2026-08-31T13:35:43.846892Z  [AVAILABLE] /dataset_quality/gaps/3/end_utc
+    capture status                                       STOPPED                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      INTERRUPTED                  [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     STOPPED                      [AVAILABLE] /current_dataset/connection_as_of
+    last known price                                     7688.25                      [AVAILABLE] /prices/last_known_price
+    last known price time                                2026-08-31T13:47:35.894000Z  [AVAILABLE] /prices/last_known_utc
+    SESSION_OPEN VWAP                                    7697.921735304340109593498340 [AVAILABLE, DEVELOPING] /vwap/0/study/vwap
+    US_CASH_OPEN VWAP                                    7691.380489801994938216465684 [AVAILABLE, DEVELOPING] /vwap/1/study/vwap
+    last known price vs US_CASH_OPEN VWAP                BELOW                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_cash_vwap
+    last known price vs SESSION_OPEN VWAP                BELOW                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_globex_vwap
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+    vwap SESSION_OPEN quality status                     QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/2/status
+    vwap US_CASH_OPEN quality status                     QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/3/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - KNOWN_GAP evidence known: 4; CASH_PROFILE window not captured through the clock; OPENING window not captured through the clock; OVERNIGHT window not captured through the clock; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:vwap SESSION_OPEN: QUALITY_QUALIFIED - capture began 0:00:00.000177 after the window start; KNOWN_GAP overlaps [window start, clock): 4; lifecycle INTERRUPTED (not FINALIZED)
+  LESSON_TIME:vwap US_CASH_OPEN: QUALITY_QUALIFIED - KNOWN_GAP overlaps [window start, clock): 3; lifecycle INTERRUPTED (not FINALIZED)
+
+ANSWER KEY  SUPPORTED: BELOW
+  [PRICE] The last known price is 7688.25 (traded at 2026-08-31T13:47:35.894000Z).
+  [CASH_VWAP] The cash VWAP is 7691.380489801994938216465684 (DEVELOPING).
+  [RELATION] The last known price is BELOW the cash VWAP.
+  not supported [ACCEPTANCE] Price is accepting above (or below) the cash VWAP. -> INSUFFICIENT_EVIDENCE (acceptance has no deterministic definition (NEEDS_POLICY_DEFINITION))
+  not supported [VWAP_BANDS] Price is inside (or outside) the VWAP value bands. -> INSUFFICIENT_EVIDENCE (VWAP deviation bands are not defined (NEEDS_POLICY_DEFINITION))
+  not supported [PRICE_AT_LESSON_TIME] The last known price is the price at the lesson time. -> INSUFFICIENT_EVIDENCE (capture is STOPPED; the last known trade is at 2026-08-31T13:47:35.894000Z)
+  not supported [VWAP_COMPLETE] The cash VWAP value is complete for the day. -> NOT_YET_DETERMINED (its maturity is DEVELOPING)
+
+payload 9e681b4e81a2fcfa. Evidence only; no interpretation, no AI model.

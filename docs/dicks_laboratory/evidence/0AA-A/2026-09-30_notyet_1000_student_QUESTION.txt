@@ -1,0 +1,39 @@
+LESSON LAB-NOT_YET_DETERMINED_ITEMS-2026-09-30-100000  [STUDENT, stage QUESTION]
+  What is not yet determined (IDENTIFY; module LAB_EVIDENCE_READING_V1)
+  objective: Identify evidence that does not exist yet at the replay time.
+  replay time 2026-09-30 10:00:00 CDT (evidence AS_OF, knowledge 2026-09-30 10:00:00 CDT)  snapshot 90cd2e42715abbc1
+  value-area convention: none used
+
+QUESTION  Which evidence is still NOT_YET_DETERMINED?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-09-30 10:00:00 CDT  snapshot 90cd2e42715abbc1
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    closing_summary maturity                             NOT_YET_DETERMINED           [AVAILABLE] /maturity/0/maturity
+    vwap SESSION_OPEN maturity                           DEVELOPING                   [AVAILABLE] /maturity/1/maturity
+    vwap US_CASH_OPEN maturity                           DEVELOPING                   [AVAILABLE] /maturity/2/maturity
+    overnight maturity                                   WINDOW_COMPLETE              [AVAILABLE] /maturity/3/maturity
+    cash_open maturity                                   WINDOW_COMPLETE              [AVAILABLE] /maturity/4/maturity
+    opening_facts maturity                               WINDOW_COMPLETE              [AVAILABLE] /maturity/5/maturity
+    opening_type maturity                                WINDOW_COMPLETE              [AVAILABLE] /maturity/6/maturity
+    volume_profile maturity                              DEVELOPING                   [AVAILABLE] /maturity/7/maturity
+    tpo maturity                                         DEVELOPING                   [AVAILABLE] /maturity/8/maturity
+    initial_balance maturity                             WINDOW_COMPLETE              [AVAILABLE] /maturity/9/maturity
+    tpo_structure maturity                               NOT_YET_DETERMINED           [AVAILABLE] /maturity/10/maturity
+    day_type maturity                                    NOT_YET_DETERMINED           [AVAILABLE] /maturity/11/maturity
+    day_strength maturity                                NOT_YET_DETERMINED           [AVAILABLE] /maturity/12/maturity
+    study_window_terminal maturity                       NOT_YET_DETERMINED           [AVAILABLE] /maturity/13/maturity
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+
+WITHHELD (not in this payload): hints, answer_key
+
+payload f708126fb950562a. Evidence only; no interpretation, no AI model.

@@ -1,0 +1,50 @@
+LESSON LAB-EVIDENCE_CHANGES-2026-09-30-121401-FROM-121400  [INSTRUCTOR]
+  What changed in the evidence (COMPARE; module LAB_EVIDENCE_READING_V1)
+  objective: Read a MARKET_STUDY_DELTA_V1 between two replay times.
+  replay time 2026-09-30 12:14:01 CDT (evidence AS_OF, knowledge 2026-09-30 12:14:01 CDT)  snapshot f3bfd47aa1b3c020
+  value-area convention: none used
+
+QUESTION  What changed in the evidence between the two times?
+
+AUTHORIZED EVIDENCE
+  COMPARE_FROM 2026-09-30 12:14:00 CDT  snapshot ba971860e1715946
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+  LESSON_TIME 2026-09-30 12:14:01 CDT  snapshot f3bfd47aa1b3c020
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 COMPLETE / NO KNOWN GAPS     [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      0                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            --                           [NOT_AVAILABLE] /dataset_quality/active_interruption
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     CONNECTED                    [AVAILABLE] /current_dataset/connection_as_of
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+  DELTA b2e45b7c564d66c0 (27 references)
+
+QUALITY WARNINGS
+  COMPARE_FROM:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - OVERNIGHT window not captured through the clock
+
+ANSWER KEY  SUPPORTED: 10
+  [STATE_HASH] The snapshot hash changed.
+  [NEWLY_KNOWN] 754 source records became known.
+  [LATE_OBSERVATIONS] 750 newly known records have market times before the earlier cutoff (received up to 20.293056 s late).
+  [CHANGE_1] LATE_OBSERVATION_ADDED /evidence/newly_known_records_with_market_time_before_earlier_cutoff: 0 -> 750
+  [CHANGE_2] OBSERVATION_ADDED /current_dataset/counts/accepted_known: 890628 -> 891382
+  [CHANGE_3] VALUE_CHANGED /vwap/SESSION_OPEN/study/vwap: 7762.669315042901559935414137 -> 7762.670534069081254338800185
+  [CHANGE_4] VALUE_CHANGED /vwap/US_CASH_OPEN/study/vwap: 7768.450408093376330584172826 -> 7768.445387238018989169406641
+  [CHANGE_5] VALUE_CHANGED /prices/last_known_price: 7765.0 -> 7763.75
+  [CHANGE_6] VALUE_CHANGED /prices/last_known_utc: 2026-09-30T17:13:39.839000Z -> 2026-09-30T17:14:00.724000Z
+  [CHANGE_7] VALUE_CHANGED /volume_profile/total_volume: 805943.0 -> 806881.0
+  [CHANGE_8] VALUE_CHANGED /tpo/profile/value_area/low: 7764.25 -> 7763.75
+  [CHANGE_9] VALUE_CHANGED /tpo/profile/value_area/high: 7777.25 -> 7776.75
+  [CHANGE_10] RELATION_CHANGED /relations/last_price_vs_developing_volume_value_area: INSIDE -> BELOW
+  not supported [LATE_AS_NEW_ACTIVITY] The newly known trades are new market activity after the earlier time. -> INSUFFICIENT_EVIDENCE (their market times are before the earlier cutoff; they were received late)
+
+payload 56064eccb9dab40a. Evidence only; no interpretation, no AI model.

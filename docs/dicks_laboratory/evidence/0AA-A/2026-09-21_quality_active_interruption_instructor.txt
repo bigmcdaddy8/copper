@@ -1,0 +1,85 @@
+LESSON LAB-DATA_QUALITY-2026-09-21-215512-REVEAL-215514  [INSTRUCTOR]
+  Qualified evidence (IDENTIFY; module LAB_EVIDENCE_READING_V1)
+  objective: Recognize qualified or unavailable evidence before reading it.
+  replay time 2026-09-20 21:55:12 CDT (evidence AS_OF, knowledge 2026-09-20 21:55:12 CDT)  snapshot 94c8433aa0f9056f
+  value-area convention: none used
+
+QUESTION  How complete and qualified is the evidence at this time?
+
+AUTHORIZED EVIDENCE
+  LESSON_TIME 2026-09-20 21:55:12 CDT  snapshot 94c8433aa0f9056f
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /dataset_quality/status
+    dataset completeness                                 INCOMPLETE                   [AVAILABLE] /dataset_quality/completeness
+    known gap count                                      1                            [AVAILABLE] /dataset_quality/known_gap_count
+    active interruption start                            2026-09-21T02:55:11.948328Z  [AVAILABLE] /dataset_quality/active_interruption/start_utc
+    capture status                                       RUNNING                      [AVAILABLE] /current_dataset/capture_status
+    lifecycle as of                                      OPEN_AS_OF                   [AVAILABLE] /current_dataset/lifecycle_as_of
+    connection as of                                     DISCONNECTED                 [AVAILABLE] /current_dataset/connection_as_of
+    SESSION_OPEN VWAP                                    7734.956098944619270866782266 [AVAILABLE, DEVELOPING] /vwap/0/study/vwap
+    US_CASH_OPEN VWAP                                    --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /vwap/1/study
+    last known price vs US_CASH_OPEN VWAP                --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /relations/last_price_vs_cash_vwap
+    last known price vs SESSION_OPEN VWAP                ABOVE                        [AVAILABLE, DEVELOPING] /relations/last_price_vs_globex_vwap
+    volume profile POC                                   --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /volume_profile/poc
+    volume profile value area low                        --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /volume_profile/value_area_low
+    volume profile value area high                       --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /volume_profile/value_area_high
+    volume profile profile low                           --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /volume_profile/profile_low
+    volume profile profile high                          --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /volume_profile/profile_high
+    volume profile total volume                          --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /volume_profile/total_volume
+    last known price vs developing volume value area     --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /relations/last_price_vs_developing_volume_value_area
+    TPO periods reached                                                               [AVAILABLE, NOT_YET_AVAILABLE] /tpo/periods_reached
+    TPO current period                                   --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /tpo/current_period
+    TPO POC                                              --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /tpo/profile
+    last known price vs developing TPO value area        --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /relations/last_price_vs_developing_tpo_value_area
+    prior day status                                     NOT_AVAILABLE                [AVAILABLE] /prior_day/status
+    prior trading date                                   --                           [NOT_AVAILABLE] /prior_day/context/prior_trading_date
+    prior high                                           --                           [NOT_AVAILABLE] /prior_day/context/profile_high
+    prior low                                            --                           [NOT_AVAILABLE] /prior_day/context/profile_low
+    prior value area high                                --                           [NOT_AVAILABLE] /prior_day/context/value_area_high
+    prior value area low                                 --                           [NOT_AVAILABLE] /prior_day/context/value_area_low
+    prior POC                                            --                           [NOT_AVAILABLE] /prior_day/context/poc
+    prior study-window terminal price                    --                           [NOT_AVAILABLE] /prior_day/context/terminal_price
+    prior DAY_TYPE_V1 candidate                          --                           [NOT_AVAILABLE] /prior_day/context/day_type
+    last known price vs prior value area                 --                           [NOT_AVAILABLE] /relations/last_price_vs_prior_value_area
+    overnight high                                       7743.75                      [AVAILABLE, DEVELOPING] /overnight/developing/high
+    overnight low                                        7713.75                      [AVAILABLE, DEVELOPING] /overnight/developing/low
+    overnight last price                                 7741.25                      [AVAILABLE, DEVELOPING] /overnight/developing/last_price
+    cash open price                                      --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /cash_opening/cash_open
+    cash open vs prior range                             --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /cash_opening/range_location
+    cash open vs prior value                             --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /cash_opening/value_location
+    cash open gap (ticks)                                --                           [NOT_YET_AVAILABLE, NOT_YET_AVAILABLE] /cash_opening/gap_ticks
+    opening window 5m maturity                           NOT_YET_AVAILABLE            [AVAILABLE] /cash_opening/windows/0/maturity
+    opening window 15m maturity                          NOT_YET_AVAILABLE            [AVAILABLE] /cash_opening/windows/1/maturity
+    opening window 30m maturity                          NOT_YET_AVAILABLE            [AVAILABLE] /cash_opening/windows/2/maturity
+    opening window 60m maturity                          NOT_YET_AVAILABLE            [AVAILABLE] /cash_opening/windows/3/maturity
+    OPENING_TYPE_V1 status                               NOT_AVAILABLE                [AVAILABLE, NOT_YET_AVAILABLE] /opening_type/status
+    dataset quality status                               QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/0/status
+    vwap SESSION_OPEN quality status                     QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/2/status
+    prior_context quality status                         NOT_AVAILABLE                [AVAILABLE] /quality_matrix/9/status
+    overnight quality status                             QUALITY_QUALIFIED            [AVAILABLE] /quality_matrix/10/status
+
+QUALITY WARNINGS
+  LESSON_TIME:dataset: QUALITY_QUALIFIED - KNOWN_GAP evidence known: 1; ACTIVE_INTERRUPTION since 2026-09-21T02:55:11.948328Z; OVERNIGHT window not captured through the clock
+  LESSON_TIME:vwap SESSION_OPEN: QUALITY_QUALIFIED - capture began 0:00:00.000305 after the window start; KNOWN_GAP overlaps [window start, clock): 1 (includes the ACTIVE_INTERRUPTION)
+  LESSON_TIME:prior_context: NOT_AVAILABLE - no prior dataset was supplied to the builder; no dataset for prior trading date 2026-09-18
+  LESSON_TIME:overnight: QUALITY_QUALIFIED - capture began 0:00:00.000305 after the window start; KNOWN_GAP overlaps [window start, clock): 1 (includes the ACTIVE_INTERRUPTION); Globex open NOT CLAIMED: capture began after 17:00 CT; the first retained trade is not the Globex open
+
+ANSWER KEY  SUPPORTED: QUALITY_QUALIFIED
+  [STATUS] The dataset quality status is QUALITY_QUALIFIED.
+  [COMPLETENESS] Completeness: INCOMPLETE.
+  [KNOWN_GAPS] 1 known gaps.
+  [WARNING_DATASET] dataset is QUALITY_QUALIFIED: KNOWN_GAP evidence known: 1; ACTIVE_INTERRUPTION since 2026-09-21T02:55:11.948328Z; OVERNIGHT window not captured through the clock
+  [WARNING_VWAP_SESSION_OPEN] vwap SESSION_OPEN is QUALITY_QUALIFIED: capture began 0:00:00.000305 after the window start; KNOWN_GAP overlaps [window start, clock): 1 (includes the ACTIVE_INTERRUPTION)
+  [WARNING_PRIOR_CONTEXT] prior_context is NOT_AVAILABLE: no prior dataset was supplied to the builder; no dataset for prior trading date 2026-09-18
+  [WARNING_OVERNIGHT] overnight is QUALITY_QUALIFIED: capture began 0:00:00.000305 after the window start; KNOWN_GAP overlaps [window start, clock): 1 (includes the ACTIVE_INTERRUPTION); Globex open NOT CLAIMED: capture began after 17:00 CT; the first retained trade is not the Globex open
+  not supported [PRISTINE] The evidence is complete and unqualified. -> INSUFFICIENT_EVIDENCE (dataset quality status is QUALITY_QUALIFIED)
+
+FUTURE OUTCOME 2026-09-20 21:55:14 CDT  snapshot 0956d56a6fc5a615  summary QUALITY_QUALIFIED
+  [STATUS] The dataset quality status is QUALITY_QUALIFIED.
+  [COMPLETENESS] Completeness: INCOMPLETE.
+  [KNOWN_GAPS] 1 known gaps.
+  [WARNING_DATASET] dataset is QUALITY_QUALIFIED: KNOWN_GAP evidence known: 1; OVERNIGHT window not captured through the clock
+  [WARNING_VWAP_SESSION_OPEN] vwap SESSION_OPEN is QUALITY_QUALIFIED: capture began 0:00:00.000305 after the window start; KNOWN_GAP overlaps [window start, clock): 1
+  [WARNING_PRIOR_CONTEXT] prior_context is NOT_AVAILABLE: no prior dataset was supplied to the builder; no dataset for prior trading date 2026-09-18
+  [WARNING_OVERNIGHT] overnight is QUALITY_QUALIFIED: capture began 0:00:00.000305 after the window start; KNOWN_GAP overlaps [window start, clock): 1; Globex open NOT CLAIMED: capture began after 17:00 CT; the first retained trade is not the Globex open
+
+payload 04b6537b51d3ef5e. Evidence only; no interpretation, no AI model.

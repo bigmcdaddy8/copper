@@ -118,6 +118,9 @@ tutor.timeline()
 Nothing else is exposed; a future tutor never touches cutoffs or reconstruction.
 No AI behavior is implemented.
 
+The 0AA-A tutor foundation (`AI_TUTOR_EVIDENCE_FOUNDATION.md`) builds lessons on
+`ReplaySession` snapshots and deltas without redefining any of them.
+
 ## 5. Human replay workflow
 
 1. Choose the trading date's database (and the prior trading date's, if any).
