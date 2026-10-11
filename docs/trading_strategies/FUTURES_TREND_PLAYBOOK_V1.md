@@ -1,9 +1,9 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-47  
+**Document revision:** V1-draft-52  
 **Created:** 2026-10-03 (America/Chicago)  
-**Last revised:** 2026-10-10 (America/Chicago)  
+**Last revised:** 2026-10-11 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
 **Intended repository location:** `copper/docs/trading_strategies/FUTURES_TREND_PLAYBOOK_V1.md`
 
@@ -124,7 +124,7 @@ The training execution instrument is E-nano S&P 500 futures, product code **NES*
 | Dollar value of one tick | $0.25 |
 | Minimum initial/trailing buffer (local strategy policy) | 0.50 index points; one NES tick when the mapped level is tick-aligned |
 
-These specifications were checked against the CME E-nano FAQ on 2026-10-03 [S1]. A 0.25-point increment from an ES or MES example is not an NES tick. ES analysis with NES execution was accepted on 2026-10-10. Dated-contract alignment was accepted on 2026-10-10 under V1-INSTRUMENT-03. Exact expiry selection, rollover trigger, and cross-instrument level handling remain open (OD-04 and OD-07).
+These specifications were checked against the CME E-nano FAQ on 2026-10-03 [S1]. A 0.25-point increment from an ES or MES example is not an NES tick. ES analysis with NES execution was accepted on 2026-10-10. Dated-contract alignment was accepted on 2026-10-10 under V1-INSTRUMENT-03. Contract selection and rollover timing were accepted on 2026-10-11 under V1-INSTRUMENT-03. Structural-price mapping was accepted on 2026-10-11; Entry coordination, human delay/revalidation, and market-data freshness verification are accepted; discrepancy handling and platform execution verification remain open (OD-04 and OD-07).
 
 ### V1-INSTRUMENT-02 — Execution platform
 
@@ -200,7 +200,7 @@ OD-01 policy decisions are closed. This defines the verification workflow, not a
 
 Use ES for the analytical chart, session VWAP, and Volume Profile. Execute the one-contract learning lot in NES. Journal both instruments with their actual dated contract identifiers, and distinguish ES analytical observations from NES fills and protective-order prices.
 
-Acceptance of this configuration does not establish an automatic price mapping between instruments. Exact expiry selection and rollover trigger, NES trigger/stop validation, and level conversion/rounding remain open under OD-04 and OD-07. An ES reference must not be silently treated as an executable NES order price. Record any cross-instrument discrepancy when evaluating entry, invalidation, and execution.
+Structural-price mapping is accepted below as a starting research assumption. Entry-trigger coordination follows V1-ENTRY-02; ES/NES discrepancy handling and platform stop validation remain open under OD-04 and OD-07. Apply the recorded mapping, buffer, rounding, and actual-NES validation before treating an ES structural reference as an NES protective-order price. Record any cross-instrument discrepancy when evaluating entry, invalidation, and execution.
 
 **Accepted dated-contract alignment policy — 2026-10-10:**
 
@@ -210,7 +210,39 @@ Acceptance of this configuration does not establish an automatic price mapping b
 4. Keep the selected pair fixed during the session. Change contracts only between sessions after verifying a flat position and resolution of associated orders.
 5. Missing or mismatched dated contracts, or insufficient required history for the selected ES contract, block entries. Record the failed check and unresolved evidence.
 
-This acceptance establishes alignment and input provenance. The contract-selection/roll trigger and ES-to-NES price mapping remain separate open decisions; do not infer either from matching expiry labels.
+This acceptance establishes alignment and input provenance. Matching expiry labels do not establish an ES-to-NES price mapping.
+
+**Accepted starting contract-selection and rollover policy — 2026-10-11:**
+
+1. Use the nearest quarterly ES expiry until its published CME roll date, paired with the same NES expiry. After that roll, use the next quarterly expiry.
+2. Switch both contracts before 08:30 America/Chicago on the published roll date, only between sessions while flat with associated orders resolved. The CME published date is the selected V1 convention, not a requirement to hold until that date.
+3. An earlier verified NinjaTrader restriction takes priority. Establish the earlier switch before the affected session, while preserving same-expiry alignment and flat/order-resolved switching.
+4. Rebuild required analytical history from the newly selected dated ES contract, including its own prior-RTH, overnight, and ATR inputs. Do not transfer old-contract analytical levels or splice another expiry's history.
+5. Record both complete identifiers, expiration and published roll dates, applicable broker restrictions, the effective switch date, and source evidence. Unresolved contract selection or insufficient required history blocks entries.
+
+Contract-selection and rollover policy decisions are accepted; actual date-specific contract availability, broker restrictions, and historical-data verification remain required. Structural-price mapping is accepted below; entry-trigger coordination follows V1-ENTRY-02; ES/NES discrepancy handling and protection/recovery mechanics remain open under OD-04/07.
+
+
+**Accepted starting structural-price mapping policy — 2026-10-11:**
+
+1. Map ES structural prices numerically to NES without an offset. An ES pivot at 6,000.25 supplies a candidate NES structural reference of 6,000.25. This is a starting research assumption requiring execution review, not a guarantee of identical intraday quotes.
+2. Apply the accepted minimum 0.50-point buffer before rounding: subtract it for a long protective stop; add it for a short protective stop. This applies to both initial and qualifying trailing stops.
+3. Round away from structure to the NES 0.50-point grid. For the 6,000.25 reference, the long stop is 5,999.50 and the short stop is 6,001.00. Do not round the structural reference first or reduce the required clearance.
+4. Verify against the actual NES market. A proposed stop must be valid for the position and platform; actual NES entry prices determine affordability and post-fill risk. A trailing amendment must also strictly tighten the existing accepted NES stop under the agreed trailing workflow.
+5. Record the ES reference, mapped level, buffered/rounded NES stop, and contemporaneous ES/NES market evidence. Unresolved mapping or market-data validity blocks entry. Do not improvise an offset to make a trade qualify.
+
+Entry-trigger coordination follows accepted V1-ENTRY-02. Market-data freshness verification is accepted below; ES/NES discrepancy handling remains open under OD-04/07; execution suitability requires evidence.
+
+
+**Accepted starting market-data freshness verification policy — 2026-10-11:**
+
+1. Identify data mode and contracts. Live decisions require real-time data for the selected dated ES/NES pair. Replay uses its playback clock and clearly identified historical evidence; do not confuse historical playback, delayed data, or a locally simulated price feed with current live observations.
+2. Check market-data and order connectivity before submission. Check the relevant provider statuses for both price and order services; a connection indicator alone is insufficient. Also verify that the required displays are receiving usable data.
+3. Re-read ES and NES together during revalidation. Use current ES evidence and the current NES bid/ask for affordability. Do not reuse a quote remembered before an interruption.
+4. Block entries for unresolved data problems: missing or crossed bid/ask, frozen displays, delayed-data status, unresolved disconnects, or inability to establish that the required observations are current. Resolve the problem and revalidate the entire entry before submission.
+5. Record available timestamps, data source/mode, connection checks, and uncertainty. Do not impose an arbitrary quote-age threshold in starting V1. An unchanged price or absence of a recent NES trade alone does not establish feed failure; investigate rather than assume.
+
+This policy concerns the usability of market evidence at revalidation, not an operator response-time deadline. Exact platform verification and reproducible data evidence remain required; acceptance does not demonstrate that a feed is healthy. ES/NES discrepancy handling remains open under OD-04/07. For an existing position, follow the accepted analytical-evidence-loss versus execution/protection-failure rules in V1-EXIT-03; this entry gate does not create an automatic exit for every missing analytical observation.
 
 ## 4. Chart and context
 
@@ -499,13 +531,30 @@ An entry may break either:
 
 The direction must agree with the permitted regime. A random bar high/low is not automatically an eligible level. Breaking the initial observation range alone is not sufficient; it must qualify within the accepted entry family. Entry swing identification follows the accepted V1-ENTRY-05 method. V1-ENTRY-06 adds the accepted swing-reference selection and pullback requirement. Pullback selection and consolidation formation are now accepted in V1-ENTRY-07/08. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed. Remaining trigger/execution details stay under OD-07; pivot identification alone does not make every pivot an eligible breakout reference.
 
-### V1-ENTRY-02 — Penetration trigger
+### V1-ENTRY-02 — Penetration trigger and ES/NES entry coordination
 
-**Status: Agreed principle; exact trigger/order mechanics open.**
+**Status: Agreed principle and starting human-operated coordination policy on 2026-10-11; human-operated delay/revalidation policy accepted; ES/NES discrepancy handling and platform protection mechanics open.**
 
-Enter on penetration of the eligible level; do not require a completed 5-minute bar. For a long, penetration is above the selected level; for a short, below it. A touch is not penetration.
+1. ES determines the breakout event. Observe an actual trade in the selected dated ES contract strictly above the selected long reference or below the selected short reference. A touch is insufficient; no completed 5-minute bar is required.
+2. The selected reference and original structural invalidation must qualify before penetration. Do not retrospectively select an already-broken level.
+3. After the qualifying ES event, manually submit one NES market entry only if the latest scheduled regime permission, reference validity, session, risk, quote-quality, and position/order checks still pass. Use the selected matched dated NES contract and accepted one-contract learning lot.
+4. No additional NES breakout confirmation is required. NES supplies the executable market, actual entry fill, protective orders, and risk calculations. Structural-price mapping follows V1-INSTRUMENT-03; actual NES prices govern pre-entry affordability and the accepted post-fill risk checks.
+5. Do not pre-arm a standalone NES entry stop as a substitute for ES confirmation. Record the ES breakout observation, decision/submission time, contemporaneous NES market evidence, and actual fill. Market entry does not guarantee a particular fill price.
 
-Identify the level and initial structural invalidation before entry. Define trigger price source, tick rounding, any entry buffer, order type, and treatment of an already-broken level under OD-07. The accepted 0.50-point stop buffer is not an agreed entry buffer. Stop rounding is defined in V1-STOP-02; entry-trigger rounding remains open.
+Human-operated delay/revalidation follows the accepted policy below. Market-data freshness verification follows V1-INSTRUMENT-03; ES/NES discrepancy handling remains open under OD-04/07. The accepted 0.50-point stop buffer is not an entry buffer. The ES event uses strict penetration of the original analytical reference, without rounding that reference to the NES tick grid. An actual ES trade is required; a quote alone does not establish penetration. Protection attachment/verification, cancellation/rejection/disconnection recovery, and exact human platform procedure remain open under OD-07. This accepted coordination policy does not by itself establish a live-ready execution workflow.
+
+
+**Accepted human-operated delay and revalidation policy — 2026-10-11:**
+
+1. Impose no mandatory 10-second submission deadline. Record elapsed time descriptively; unknown timing remains unknown. Operator delay by itself is not an execution-quality violation.
+2. Revalidate when ready to act. The reference, breakout, latest regime permission, original structural invalidation and mapped stop, session eligibility, and position/order state must still qualify. If activity was missed during an interruption, establish what happened before entering; unresolved intervening evidence blocks entry.
+3. Apply both accepted dollar-risk and remaining-budget guards using the current NES executable market, applicable fees, and accepted slippage allowance. Delay does not permit exceeding either guard, narrowing structure to fit, or increasing a frozen pre-entry ceiling. Retain the actual-fill/post-fill checks.
+4. Do not impose the proposed fixed 1.00-point extension limit in starting V1. Measure entry distance beyond the original ES reference in index points and ATR units during replay, then evaluate whether a separate chasing filter is useful. Use the accepted last-completed ES ATR input; do not treat descriptive measurements as an entry gate.
+5. Measure operator delay separately from execution slippage. When evidence permits, record breakout-event time, recognition time, decision/submission time, and fill time, identifying the clock/source and unknown components. Record the current NES expected execution quote and actual fill for execution-slippage analysis; do not count operator delay or price movement twice as trade costs.
+
+A delayed observation can lead to a valid, affordable entry, or to a skipped opportunity. Revalidation does not revive an expired, invalidated, or already-consumed reference or waive its setup-specific qualification rules. In particular, V1-ENTRY-09's frozen-box first-breakout/replacement policy remains applicable; an interrupted operator may have to skip that event. Missing an opportunity without a fill does not consume a filled attempt.
+
+The prior 10-second/1.00-point proposal was not accepted and is not a V1 rule. Market-data freshness verification follows V1-INSTRUMENT-03. ES/NES discrepancy handling and exact platform protection/recovery verification remain separate open decisions.
 
 ### V1-ENTRY-03 — Breakout volume
 
@@ -531,7 +580,7 @@ Reuse V1-REGIME-07's three-bar pivot method for identifying entry swings on the 
 - Recognize a pivot only after the right-hand bar closes. Equal neighboring highs/lows do not qualify for the corresponding pivot.
 - The pivot must already be known before entry. Preserve its center-bar timestamp, recognition timestamp, and ES price; do not use a later-confirmed pivot retrospectively.
 
-This accepts swing identification, not a rule that every pivot is meaningful or eligible. The accepted swing-reference and pullback requirements are in V1-ENTRY-06. V1-ENTRY-07/08 record accepted pullback selection and consolidation formation. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts auction-reference qualification; OD-06 is closed. An ES pivot price does not resolve NES order-level mapping under OD-04/07. Trailing-stop movement retains V1-STOP-04's separate continuation-confirmation requirement; acceptance of an entry pivot does not itself authorize a stop modification.
+This accepts swing identification, not a rule that every pivot is meaningful or eligible. The accepted swing-reference and pullback requirements are in V1-ENTRY-06. V1-ENTRY-07/08 record accepted pullback selection and consolidation formation. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts auction-reference qualification; OD-06 is closed. Apply V1-INSTRUMENT-03 structural-price mapping; NES entry coordination follows V1-ENTRY-02; ES/NES discrepancy handling and order validation remain open under OD-04/07. Trailing-stop movement retains V1-STOP-04's separate continuation-confirmation requirement; acceptance of an entry pivot does not itself authorize a stop modification.
 
 ### V1-ENTRY-06 — Swing-reference selection and pullback requirement
 
@@ -546,7 +595,7 @@ For the swing-breakout variant, use this starting structure:
 
 Identify both pivots with V1-ENTRY-05. “Formed after” refers to their center-bar order; both recognition timestamps must precede entry. Record the selected reference and pullback pivot using evidence available before entry.
 
-The opposite pivot supplies the candidate structural invalidation for this swing → pullback → breakout sequence. V1-STOP-02 specifies the accepted stop buffer/rounding; executable NES level mapping and cross-instrument handling remain separate OD-04/07 decisions. The latest scheduled regime assessment must permit the direction, and the existing entry/protection/risk requirements still apply.
+The opposite pivot supplies the candidate structural invalidation for this swing → pullback → breakout sequence. V1-STOP-02 specifies the accepted stop buffer/rounding; V1-INSTRUMENT-03 supplies accepted structural-price mapping; entry coordination follows V1-ENTRY-02; ES/NES discrepancy handling and order validation remain separate OD-04/07 decisions. The latest scheduled regime assessment must permit the direction, and the existing entry/protection/risk requirements still apply.
 
 When multiple pullback pivots exist, select the most recent eligible opposite pivot as defined in V1-ENTRY-07. The pivot pair is recorded at entry; later pivots do not rewrite the original invalidation. V1-ENTRY-08/09 define consolidation formation and lifetime/replacement; V1-ENTRY-10 accepts meaningful auction-reference qualification. Treatment of already-penetrated references remains under OD-07, and a changed reference does not automatically reset the attempt count under OD-12. Entry-swing identification and selection do not replace the separate continuation confirmation required for trailing-stop movement.
 
@@ -561,7 +610,7 @@ When multiple pullback pivots exist, select the most recent eligible opposite pi
 
 “Most recent” refers to the center-bar timestamp among pivots that meet all listed conditions and are already recognized before entry. Use V1-ENTRY-05's identification method. If no eligible opposite pivot exists, the swing-breakout variant lacks its required pullback structure.
 
-Record the chosen reference/pullback pair at entry. Later pivots do not rewrite the original structural invalidation or the original risk reference. Subsequent protective-stop movement is governed separately by the trailing rules. NES price mapping remains open under OD-04/07; V1-STOP-02 specifies the accepted stop buffer/rounding. V1-ENTRY-08 defines consolidation formation. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed; already-penetrated levels and reentry accounting remain separate OD-07/12 decisions.
+Record the chosen reference/pullback pair at entry. Later pivots do not rewrite the original structural invalidation or the original risk reference. Subsequent protective-stop movement is governed separately by the trailing rules. Structural-price mapping follows V1-INSTRUMENT-03; NES entry coordination follows V1-ENTRY-02; ES/NES discrepancy handling remain open under OD-04/07; V1-STOP-02 specifies the accepted stop buffer/rounding. V1-ENTRY-08 defines consolidation formation. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed; already-penetrated levels and reentry accounting remain separate OD-07/12 decisions.
 
 ### V1-ENTRY-08 — Consolidation formation and breakout structure
 
@@ -582,7 +631,7 @@ For example, a four-point box requires at least two points of common overlap. Re
 
 The three-bar and 50% choices are accepted starting research settings, not established performance thresholds or a source-prescribed consolidation definition. Formation may use completed bars from the initial observation window; the existing no-entry-before-08:50 rule still applies. The latest scheduled regime assessment must permit the breakout direction. Entry remains on penetration rather than a completed breakout bar; other protection and risk requirements still apply.
 
-V1-ENTRY-09 accepts box freezing, first-breakout lifetime, and replacement. Reentry after penetration, detailed trigger/order handling, and thesis/attempt accounting remain separate OD-07/12 decisions. This rule does not resolve NES order-level mapping or maximum risk. V1-STOP-02 supplies the accepted stop buffer/rounding. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed. ATR remains descriptive evidence rather than a consolidation-entry filter.
+V1-ENTRY-09 accepts box freezing, first-breakout lifetime, and replacement. Reentry after penetration, detailed trigger/order handling, and thesis/attempt accounting remain separate OD-07/12 decisions. Use V1-INSTRUMENT-03 for structural-price mapping and the accepted risk rules for affordability; entry coordination follows V1-ENTRY-02; ES/NES discrepancy handling remain open. V1-STOP-02 supplies the accepted stop buffer/rounding. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed. ATR remains descriptive evidence rather than a consolidation-entry filter.
 
 ### V1-ENTRY-09 — Consolidation box duration and replacement
 
@@ -619,7 +668,7 @@ Use the accepted session definitions and analytical ES references. For VAH/VAL, 
 
 Both the selected reference and invalidation pivot must be known before entry. Record their prices, source/session identity, selection time, pivot center/recognition times, and the latest completed ES close used for the approach condition. Equality of that close to the reference is allowed; a touch alone is not an entry trigger.
 
-The latest scheduled regime assessment must permit the direction, and the existing protection/risk requirements still apply. The opposite pivot is candidate structural invalidation; V1-STOP-02 supplies the accepted stop buffer/rounding; NES level mapping and executable order workflow remain separate OD-04/07 decisions. Approach-side qualification does not authorize chasing a level already penetrated intrabar. Already-penetrated levels, exact trigger handling, and reentry accounting remain separate OD-07/12 decisions.
+The latest scheduled regime assessment must permit the direction, and the existing protection/risk requirements still apply. The opposite pivot is candidate structural invalidation; V1-STOP-02 supplies the accepted stop buffer/rounding; V1-INSTRUMENT-03 supplies structural-price mapping; executable order workflow and ES/NES discrepancy handling remain separate OD-04/07 decisions. Approach-side qualification does not authorize chasing a level already penetrated intrabar. Already-penetrated levels, exact trigger handling, and reentry accounting remain separate OD-07/12 decisions.
 
 This completes OD-06's accepted starting definitions for swing, consolidation, and auction-reference entry families. It does not establish a performance edge or freeze the entire V1 playbook. Trailing-pivot selection remains separate under OD-13.
 
@@ -650,7 +699,7 @@ The 0.50-point setting corresponds to two ES/MES ticks or one NES tick when the 
 
 Define buffer distance by strategy/instrument family and convert it using the execution tick size; do not automatically carry 0.50 points into unrelated futures such as NQ. Record nominal buffer, mapped level, tick size, rounded trigger, actual clearance, and resulting risk. Structure determines invalidation; if the resulting initial stop exceeds the eventual accepted risk limit, skip the entry rather than moving the stop closer. V1-RISK-03 accepts the combined percentage-and-dollar ceiling; starting allocation and numeric limits are accepted; equity update/verification and starting fee/slippage policies are agreed; OD-09 policy decisions are closed with no separate distance filter; platform implementation/validation remains under OD-07, gross/net realized accounting is agreed under closed OD-10, and funding/reconciliation evidence remains required.
 
-This closes OD-08 and the stop-price rounding subdecision of OD-07. ES-to-NES level mapping, entry-trigger rounding/buffer, and operational order procedures remain open. A mapped reference in the arithmetic example is a supplied input, not an accepted ES-to-NES mapping algorithm.
+This closes OD-08 and the stop-price rounding subdecision of OD-07. Structural-price mapping follows accepted V1-INSTRUMENT-03. ES strict-penetration/manual NES market-entry coordination follows V1-ENTRY-02; human-operated delay/revalidation follows V1-ENTRY-02; operational order procedures remain open.
 
 Proposed procedure: arrange the protective stop as part of the entry workflow; immediately verify its accepted status after a fill. The exact NinjaTrader procedure, partial-fill behavior, rejected-order response, and connection-loss handling must be documented under OD-07. A stop trigger is not a guarantee of a particular fill price.
 
@@ -963,7 +1012,7 @@ Compare unbuffered ES structure prices rather than NES stop triggers. Equal pric
 
 A qualifying comparison only makes a recognized pivot a candidate. V1-STOP-04's continuation confirmation, executable NES mapping, and a protective-stop update that tightens protection are still required. Advance the comparison reference only after the protective-stop update is accepted. An unconfirmed candidate, an unsubmitted modification, a rejected modification, or a mapped stop that does not tighten protection does not advance it. Until the first accepted tightening, retain the original structural-invalidation reference for comparison.
 
-After an accepted tightening, record the ES pivot used, the NES stop trigger, and update acceptance evidence. Later pivots do not rewrite the original invalidation or R0. V1-STOP-08 records accepted continuation-reference pairing. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 resolves continuation event order/same-bar ambiguity. V1-STOP-11 accepts modification timing; OD-13 is closed; exact mapping and order-response handling remain under OD-04/07.
+After an accepted tightening, record the ES pivot used, the NES stop trigger, and update acceptance evidence. Later pivots do not rewrite the original invalidation or R0. V1-STOP-08 records accepted continuation-reference pairing. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 resolves continuation event order/same-bar ambiguity. V1-STOP-11 accepts modification timing; OD-13 is closed; ES/NES discrepancy handling and order-response handling remain under OD-04/07; structural-price mapping follows V1-INSTRUMENT-03.
 
 ### V1-STOP-08 — Continuation-reference pairing
 
@@ -978,7 +1027,7 @@ At candidate recognition, select the reference from information already availabl
 
 Freeze the candidate/reference pair. Later swings do not retarget that candidate. If no eligible reference exists at candidate recognition, that candidate cannot authorize trailing; do not retroactively supply a later reference. Record both pivot prices, center/recognition times, pair-selection time, and the comparison reference in force at selection.
 
-Pair selection does not itself confirm continuation or authorize a stop modification. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 accepts the recognition/activation-before-confirmation sequence and excludes retrospective penetration. V1-STOP-11 accepts modification timing; OD-13 is closed. NES mapping and order-response handling remain separate OD-04/07 decisions.
+Pair selection does not itself confirm continuation or authorize a stop modification. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 accepts the recognition/activation-before-confirmation sequence and excludes retrospective penetration. V1-STOP-11 accepts modification timing; OD-13 is closed. Structural-price mapping follows V1-INSTRUMENT-03; ES/NES discrepancy handling and order-response handling remain separate OD-04/07 decisions.
 
 ### V1-STOP-09 — Unconfirmed-candidate replacement and invalidation
 
@@ -1019,7 +1068,7 @@ For example, a pair activated at 09:25 cannot use a reference penetration at 09:
 
 A bar's high and low alone may not establish which boundary was crossed first. If available evidence cannot establish the required order, discard that pair, preserve the reason in the record, and wait for a newly recognized qualifying candidate under V1-STOP-09. Do not manufacture confirmation from a bar that contains both candidate breach and reference penetration with unresolved order.
 
-When an active pair satisfies the ordered sequence before any candidate breach, mark it continuation-confirmed and record the approach observation, penetration observation, and confirmation time/sequence. This permits evaluation of a protective-stop tightening; it does not itself prove that an amendment was submitted or accepted. V1-STOP-11 accepts modification timing, pre-submission validity checks, one pending amendment, and reconciliation when conditions change during acknowledgement; OD-13 is closed. Exact ES/NES mapping, data/event-order verification, platform procedures, and order failures remain separate OD-04/05/07 implementation decisions.
+When an active pair satisfies the ordered sequence before any candidate breach, mark it continuation-confirmed and record the approach observation, penetration observation, and confirmation time/sequence. This permits evaluation of a protective-stop tightening; it does not itself prove that an amendment was submitted or accepted. V1-STOP-11 accepts modification timing, pre-submission validity checks, one pending amendment, and reconciliation when conditions change during acknowledgement; OD-13 is closed. Structural-price mapping follows V1-INSTRUMENT-03; ES/NES discrepancy handling, data/event-order verification, platform procedures, and order failures remain separate OD-04/05/07 implementation decisions.
 
 ### V1-STOP-11 — Stop-modification timing and acknowledgement
 
@@ -1034,13 +1083,13 @@ When an active pair satisfies the ordered sequence before any candidate breach, 
 | Protection during amendment | Use a workflow that preserves protection; never cancel existing stop in advance merely to prepare replacement |
 | Tightening accepted | Verify working stop, advance comparison anchor, retire pair, and resume tracking newly recognized candidates |
 
-Use V1-STOP-02/04's 0.50-point minimum trailing clearance and outward rounding beyond the mapped candidate under the ES-to-NES mapping policy once that policy is resolved. Evaluate validity on the executable NES instrument under the eventual platform/broker procedure. A theoretical ES confirmation alone does not establish that a valid, tighter NES order is available. Confirmation time, pre-submission verification, amendment submission, and acceptance are distinct events; record them separately.
+Use V1-STOP-02/04's 0.50-point minimum trailing clearance and outward rounding beyond the mapped candidate under the accepted V1-INSTRUMENT-03 structural-price mapping policy. Evaluate validity on the executable NES instrument under the eventual platform/broker procedure. A theoretical ES confirmation alone does not establish that a valid, tighter NES order is available. Confirmation time, pre-submission verification, amendment submission, and acceptance are distinct events; record them separately.
 
 While an amendment awaits acknowledgement, keep the confirmed pair frozen and do not send a competing second stop amendment. Do not treat submission as acceptance or advance the comparison anchor prematurely. A pending amendment is not proof that either the old or proposed stop is currently working; the operational workflow must verify actual protection. This rule specifies the required protection outcome rather than asserting unverified NinjaTrader/broker behavior.
 
 If the position exits, the candidate is breached while acknowledgement is pending, or the amendment is rejected or uncertain, reconcile actual position and orders before another amendment. Do not assume that the prior stop remains working after a failure or race. Detailed recovery procedures, acknowledgement timeouts, fill/cancel races, and connection-loss handling remain under OD-07. Advance V1-STOP-07's comparison anchor only after a verified accepted tightening for the open position. Preserve original invalidation and R0.
 
-This closes OD-13's intended timing and state-transition design. It does not resolve ES-to-NES mapping, tick rounding, instrument alignment, data/event-order verification, or operational platform procedures under OD-04/05/07, and does not freeze V1.0.
+This closes OD-13's intended timing and state-transition design. Structural mapping, outward stop rounding, and dated-contract alignment follow the accepted policies. Quote-quality limits, data/event-order verification, and operational platform procedures remain under OD-04/05/07; V1.0 is not frozen.
 
 ## 12. Exits
 
@@ -1184,10 +1233,10 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-01, OD-02, 
 | OD-01 | CLOSED (policy decisions) 2026-10-10: normal RTH analytical window and observation-only exceptions; Chicago 14:30 entry/cancel, 14:55 exit initiation, 14:59 flat/order-verification deadlines; late-fill exit/immediate recovery; per-session NYSE/CME ES-NES/NinjaTrader notice verification, normal-session eligibility, unknown/conflicting calendar no-entry, named-zone conversion, historical replay calendar, and new-restriction operational exit/reconciliation. Actual session evidence required; exact recovery under OD-07 | SESSION-03/04, EXIT-02/03 |
 | OD-02 | CLOSED 2026-10-10: all six factor definitions, equal-weight sum, aggregate thresholds, regime/entry permissions, and UNKNOWN/no-entry policy accepted | REGIME-01/03/04/05/06/07/08/09 |
 | OD-03 | CLOSED 2026-10-10: assess first at 08:50 and every completed 5-minute bar; use latest scheduled assessment for intrabar entries; missing required evidence means UNKNOWN/no entry | REGIME-02 |
-| OD-04 | ES analysis / NES execution, prior/overnight/RTH windows, matching dated expiries, selected-ES history without merging, and fixed session pair accepted; exact contract selection/roll trigger, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01/03, CONTEXT-02/03 |
+| OD-04 | ES analysis / NES execution, prior/overnight/RTH windows, matching dated expiries, selected-ES history without merging, and fixed session pair accepted; nearest-quarterly selection and published-CME-date rollover with earlier broker-restriction priority accepted; direct structural-price mapping with actual-NES validation accepted; ES-triggered manual NES market-entry coordination and human-operated delay/revalidation without fixed time/extension gates accepted; market-data freshness verification accepted; ES/NES discrepancy handling and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01/03, CONTEXT-02/03 |
 | OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; Order Flow VWAP tick/session implementation and 08:30–15:00 template accepted; VWAP operational template/data/parity verification, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
 | OD-06 | CLOSED 2026-10-10: swing/pullback selection, consolidation formation/lifetime/replacement, and eligible auction references with approach-side and known structural-invalidation requirements accepted | ENTRY-01/05/06/07/08/09/10 |
-| OD-07 | Stop rounding away from structure accepted under STOP-02; entry trigger price/rounding/buffer, mapping/order type, protective workflow, fills/rejections/disconnection response remain open | ENTRY-02, STOP-02/11 |
+| OD-07 | Stop rounding away from structure accepted under STOP-02; structural-price mapping accepted under INSTRUMENT-03; ES actual-trade strict penetration followed by manual one-NES market entry, without separate NES breakout confirmation or pre-armed standalone NES entry stop, accepted under ENTRY-02; human delay/revalidation and descriptive timing/extension measurement accepted without fixed time/extension gates; market-data freshness verification accepted under INSTRUMENT-03; ES/NES discrepancy handling, protective workflow, fills/rejections/disconnection response remain open | ENTRY-02, STOP-02/11 |
 | OD-08 | CLOSED 2026-10-10: initial and trailing minimum clearance 0.50 index points, outward execution-tick rounding, and strategy/instrument-family configuration accepted; supersedes earlier 1.00-point NES trailing buffer | STOP-01/02/04/06/11 |
 | OD-09 | CLOSED (policy decisions) 2026-10-10: $3,500 allocation, 0.50%/$15 combined cap, equity update/verification and pending/shared-capital policy, $1.88 starting NES Free-plan standard-connection round-trip fees, $1.50 replay/simulation slippage, actual-entry overshoot response, and no separate stop-distance filter accepted. Funding/equity/fee reconciliation and live slippage review evidence remain required; operational exit/protection/recovery remains under OD-07; realized accounting follows closed OD-10 | RISK-01/03 |
 | OD-10 | CLOSED (policy decisions) 2026-10-10: fixed price-risk R0, both gross/net reporting, actual-fill P&L minus transaction fees once, documented replay/simulation fee model, no second slippage subtraction, non-trade charges in allocation ledger, and daily sum of negative net trade Rs >= 3.00 accepted. NinjaTrader template/account reconciliation remains required | RISK-02, DAILY-01 |
@@ -1198,7 +1247,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-01, OD-02, 
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Remaining-budget guard and post-fill recheck are agreed. One-position/pending-entry policy is agreed; OD-11 policy decisions are closed. Filled-attempt counting is agreed. Starting directional thesis identity/reset is agreed; OD-12 policy decisions are closed. Open-position regime-change policy is agreed. Manual/operational emergency exit scope is agreed; OD-14 policy decisions are closed. Entry/flatten deadlines are agreed. Calendar-verification policy is agreed and OD-01 policy decisions are closed. Dated-contract alignment is agreed. Next resolve contract selection and rollover trigger under OD-04, then ES-to-NES mapping, protection/order mechanics, indicator/data verification, and review evidence. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Remaining-budget guard and post-fill recheck are agreed. One-position/pending-entry policy is agreed; OD-11 policy decisions are closed. Filled-attempt counting is agreed. Starting directional thesis identity/reset is agreed; OD-12 policy decisions are closed. Open-position regime-change policy is agreed. Manual/operational emergency exit scope is agreed; OD-14 policy decisions are closed. Entry/flatten deadlines are agreed. Calendar-verification policy is agreed and OD-01 policy decisions are closed. Dated-contract alignment is agreed. Contract selection and rollover timing are agreed. Structural-price mapping is agreed. ES/NES entry-trigger coordination is agreed. Human-operated delay/revalidation is agreed, without fixed elapsed-time or 1.00-point chasing gates. Market-data freshness verification is agreed. Next resolve ES/NES discrepancy handling under OD-04/07, then protection/order mechanics, indicator/data verification, and review evidence. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -1246,6 +1295,11 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-52 | 2026-10-11 | Accepted data-mode/dated-contract identification, real-time versus replay evidence, price/order connectivity plus usable-display checks, paired ES/NES re-reading, unresolved missing/crossed/frozen/delayed/disconnected/currentness no-entry, and timestamp/uncertainty records without arbitrary quote-age cutoff. Discrepancy handling and platform/data verification remain open. |
+| V1-draft-51 | 2026-10-11 | Accepted human-operated delay/revalidation: no mandatory 10-second deadline or fixed 1.00-point extension gate; current setup/regime/structure/session/order and both risk guards rechecked; intervening evidence established; operator delay measured separately from execution slippage, with unknown timing preserved and extension recorded descriptively. No revival of consumed/expired references. Quote-quality and protection/recovery remain open. |
+| V1-draft-50 | 2026-10-11 | Accepted actual ES trade strict penetration of a prequalified reference, followed by manual one-NES market entry with all gates rechecked, no extra NES breakout confirmation, no standalone pre-armed NES entry stop substitute, and event/submission/market/fill evidence. Quote-quality, delayed-entry, and protection/recovery details remain open. |
+| V1-draft-49 | 2026-10-11 | Accepted direct no-offset ES-to-NES structural-price mapping as a research assumption, minimum 0.50-point buffer before outward NES tick rounding, actual-NES stop validity/risk checks, discrepancy evidence, and unresolved mapping/data no-entry. Entry coordination and quote-quality limits remain open. |
+| V1-draft-48 | 2026-10-11 | Accepted nearest-quarterly ES selection with matched NES, switch before 08:30 on published CME roll date while flat/orders resolved, earlier verified NinjaTrader restriction priority, new-contract own-history rebuild without transferred levels, and recorded dates/evidence with unresolved selection/history no-entry. Mapping and execution mechanics remain open. |
 | V1-draft-47 | 2026-10-10 | Accepted same-expiry dated ES/NES pairing, selected dated ES analytical inputs and own-contract history without continuous/back-adjusted merging, fixed session pair and flat/order-resolved between-session changes, and missing/mismatched/history-incomplete no-entry. Contract selection/roll trigger and price mapping remain open under OD-04/07. |
 | V1-draft-46 | 2026-10-10 | Accepted per-session NYSE/CME ES-NES/NinjaTrader calendar verification, normal cash-session/futures availability eligibility, observation-only exceptions, unknown/conflicting no-entry, named-zone evidence recording, historical replay calendar, and new-restriction operational reconciliation. Closed OD-01 policy decisions; actual session evidence and OD-07 recovery remain required. |
 | V1-draft-45 | 2026-10-10 | Accepted Chicago deadlines: new entries strictly before 14:30; cancel unfilled entries at 14:30; begin coordinated exit 14:55; verify flat/resolved orders by 14:59. Late cutoff fills count/exit; failures/uncertainty trigger immediate recovery. Updated session/exit/checklist references; calendar verification remains open under OD-01. |
