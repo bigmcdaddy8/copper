@@ -1,0 +1,99 @@
+[2026-10-02] prepare session (replay layer): 271.9s rss 4381 MB
+[2026-10-02] 08:00 CT: snapshot 8.0s; facts 4.23s as_of_tape=3.16s sort_and_scale=0.58s single_pass_bands_occupancy_paths_bars=0.50s atr=0.00s bar_relations_and_summaries=0.00s; 9,609 bytes; deterministic True; sha 8c743af631883cf5; snapshot 5f74b8d1ddc90f79
+    bands NOT_YET_AVAILABLE
+    CASH_VWAP              NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    IB_HIGH                NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    IB_LOW                 NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    PRIOR_VALUE_AREA_HIGH  NOT_YET_AVAILABLE level 7725.25 side -- crosses 0 first --  last --
+    PRIOR_VALUE_AREA_LOW   NOT_YET_AVAILABLE level 7684.25 side -- crosses 0 first --  last --
+    VWAP_LOWER_1SD         NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    VWAP_LOWER_2SD         NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    VWAP_UPPER_1SD         NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    VWAP_UPPER_2SD         NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    ATR_5M_V1 DEVELOPING: 6.5409 through 08:00:00 (180 bars, 0 empty skipped)
+[2026-10-02] 09:00 CT: snapshot 9.6s; facts 16.95s as_of_tape=9.12s sort_and_scale=1.13s single_pass_bands_occupancy_paths_bars=6.69s atr=0.00s bar_relations_and_summaries=0.00s; 21,263 bytes; deterministic True; sha f6ba3fb1b7102987; snapshot 8223b5e41708a896
+    bands DEVELOPING [AVAILABLE]: VWAP 7789.4853 (== snapshot cash VWAP: True) sigma 7.6665 +/-1sd 7781.82/7797.15 +/-2sd 7774.15/7804.82; last 7788.5 at 08:59:59 zones [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')]
+    time vs 1sd bands: observed 1800s; above 592s below 294s outside 885s (0.4919 of observed)
+    time vs 2sd bands: observed 1800s; above 139s below 85s outside 224s (0.1242 of observed)
+    CASH_VWAP              DEVELOPING        level (moving) side BELOW crosses 155 first 08:30:00 DOWN last 08:59:54 | latest DOWN from 08:59:54: max 1.735866 pts, beyond 5s, closes beyond 1 (max consec 1), touched again --, returned --
+    IB_HIGH                NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    IB_LOW                 NOT_YET_AVAILABLE level (moving) side -- crosses 0 first --  last --
+    PRIOR_VALUE_AREA_HIGH  DEVELOPING        level 7725.25 side ABOVE crosses 0 first --  last --
+    PRIOR_VALUE_AREA_LOW   DEVELOPING        level 7684.25 side ABOVE crosses 0 first --  last --
+    VWAP_LOWER_1SD         DEVELOPING        level (moving) side ABOVE crosses 164 first 08:30:00 DOWN last 08:58:00 | latest UP from 08:58:00: max 7.936598 pts, beyond 120s, closes beyond 1 (max consec 1), touched again --, returned --
+    VWAP_LOWER_2SD         DEVELOPING        level (moving) side ABOVE crosses 182 first 08:30:00 DOWN last 08:57:36 | latest UP from 08:57:36: max 15.609507 pts, beyond 144s, closes beyond 1 (max consec 1), touched again --, returned --
+    VWAP_UPPER_1SD         DEVELOPING        level (moving) side BELOW crosses 223 first 08:30:00 DOWN last 08:51:10 | latest DOWN from 08:51:10: max 24.460698 pts, beyond 530s, closes beyond 2 (max consec 2), touched again --, returned --
+    VWAP_UPPER_2SD         DEVELOPING        level (moving) side BELOW crosses 125 first 08:30:00 DOWN last 08:47:09 | latest DOWN from 08:47:09: max 32.259607 pts, beyond 771s, closes beyond 3 (max consec 3), touched again --, returned --
+    ATR_5M_V1 DEVELOPING: 8.9246 through 09:00:00 (192 bars, 0 empty skipped)
+    bar 08:45:00 WINDOW_COMPLETE: O 7800.25 H 7804.75 L 7795.25 C 7797.25 DOWN n 24514 inside False outside False HH True LL False close vs VWAP ABOVE [(1, 'BETWEEN_VWAP_AND_UPPER_BAND'), (2, 'BETWEEN_VWAP_AND_UPPER_BAND')] ATR 7.6320
+    bar 08:50:00 WINDOW_COMPLETE: O 7797.25 H 7801.25 L 7784.75 C 7785.25 DOWN n 24378 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BELOW_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 8.3141
+    bar 08:55:00 WINDOW_COMPLETE: O 7785 H 7789.75 L 7773.5 C 7788.5 UP n 41612 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 8.9246
+[2026-10-02] 10:00 CT: snapshot 13.9s; facts 27.15s as_of_tape=11.44s sort_and_scale=1.82s single_pass_bands_occupancy_paths_bars=13.88s atr=0.01s bar_relations_and_summaries=0.00s; 30,027 bytes; deterministic True; sha 70d0a04f9f37150e; snapshot 96a973e9fb7b2daf
+    bands DEVELOPING [AVAILABLE]: VWAP 7794.8124 (== snapshot cash VWAP: True) sigma 8.1025 +/-1sd 7786.71/7802.91 +/-2sd 7778.61/7811.02; last 7793 at 09:59:59 zones [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')]
+    time vs 1sd bands: observed 5400s; above 2533s below 294s outside 2827s (0.5236 of observed)
+    time vs 2sd bands: observed 5400s; above 139s below 85s outside 224s (0.0415 of observed)
+    CASH_VWAP              DEVELOPING        level (moving) side BELOW crosses 217 first 08:30:00 DOWN last 09:58:24 | latest DOWN from 09:58:24: max 4.065660 pts, beyond 96s, closes beyond 1 (max consec 1), touched again --, returned --
+    IB_HIGH                DEVELOPING        level 7808.75 side BELOW crosses 2 first 09:42:19 UP last 09:42:40 | latest DOWN from 09:42:40: max 18.000000 pts, beyond 1039s, closes beyond 4 (max consec 4), touched again 09:42:47, returned --
+    IB_LOW                 DEVELOPING        level 7773.5 side ABOVE crosses 0 first --  last --
+    PRIOR_VALUE_AREA_HIGH  DEVELOPING        level 7725.25 side ABOVE crosses 0 first --  last --
+    PRIOR_VALUE_AREA_LOW   DEVELOPING        level 7684.25 side ABOVE crosses 0 first --  last --
+    VWAP_LOWER_1SD         DEVELOPING        level (moving) side ABOVE crosses 172 first 08:30:00 DOWN last 09:00:32 | latest UP from 09:00:32: max 24.527715 pts, beyond 3568s, closes beyond 12 (max consec 12), touched again --, returned --
+    VWAP_LOWER_2SD         DEVELOPING        level (moving) side ABOVE crosses 182 first 08:30:00 DOWN last 08:57:36 | latest UP from 08:57:36: max 32.798154 pts, beyond 3744s, closes beyond 13 (max consec 13), touched again --, returned --
+    VWAP_UPPER_1SD         DEVELOPING        level (moving) side BELOW crosses 549 first 08:30:00 DOWN last 09:50:04 | latest DOWN from 09:50:04: max 12.172846 pts, beyond 595s, closes beyond 2 (max consec 2), touched again --, returned --
+    VWAP_UPPER_2SD         DEVELOPING        level (moving) side BELOW crosses 133 first 08:30:00 DOWN last 09:27:27 | latest DOWN from 09:27:27: max 20.280032 pts, beyond 1953s, closes beyond 7 (max consec 7), touched again --, returned --
+    ATR_5M_V1 DEVELOPING: 8.9303 through 10:00:00 (204 bars, 0 empty skipped)
+    bar 09:45:00 WINDOW_COMPLETE: O 7804.75 H 7808 L 7801.25 C 7804 DOWN n 12149 inside False outside False HH False LL True close vs VWAP ABOVE [(1, 'ABOVE_UPPER_BAND'), (2, 'BETWEEN_VWAP_AND_UPPER_BAND')] ATR 8.5831
+    bar 09:50:00 WINDOW_COMPLETE: O 7804.25 H 7804.25 L 7791.5 C 7793 DOWN n 19508 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 8.9036
+    bar 09:55:00 WINDOW_COMPLETE: O 7793 H 7800 L 7790.75 C 7793 FLAT n 16583 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 8.9303
+[2026-10-02] 12:00 CT: snapshot 22.0s; facts 36.95s as_of_tape=9.23s sort_and_scale=2.24s single_pass_bands_occupancy_paths_bars=25.47s atr=0.02s bar_relations_and_summaries=0.00s; 46,180 bytes; deterministic True; sha aa813cfa5e1da52e; snapshot 1799e3206936899f
+    bands DEVELOPING [AVAILABLE]: VWAP 7784.5795 (== snapshot cash VWAP: True) sigma 13.0153 +/-1sd 7771.56/7797.59 +/-2sd 7758.55/7810.61; last 7776 at 11:59:59 zones [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')]
+    time vs 1sd bands: observed 12600s; above 2533s below 2933s outside 5467s (0.4339 of observed)
+    time vs 2sd bands: observed 12600s; above 139s below 981s outside 1121s (0.0889 of observed)
+    CASH_VWAP              DEVELOPING        level (moving) side BELOW crosses 217 first 08:30:00 DOWN last 09:58:24 | latest DOWN from 09:58:24: max 35.043357 pts, beyond 7296s, closes beyond 25 (max consec 25), touched again --, returned --
+    IB_HIGH                DEVELOPING        level 7808.75 side BELOW crosses 2 first 09:42:19 UP last 09:42:40 | latest DOWN from 09:42:40: max 54.750000 pts, beyond 8239s, closes beyond 28 (max consec 28), touched again 09:42:47, returned --
+    IB_LOW                 DEVELOPING        level 7773.5 side ABOVE crosses 164 first 10:09:54 DOWN last 11:51:57 | latest UP from 11:51:57: max 5.750000 pts, beyond 483s, closes beyond 2 (max consec 2), touched again --, returned --
+    PRIOR_VALUE_AREA_HIGH  DEVELOPING        level 7725.25 side ABOVE crosses 0 first --  last --
+    PRIOR_VALUE_AREA_LOW   DEVELOPING        level 7684.25 side ABOVE crosses 0 first --  last --
+    VWAP_LOWER_1SD         DEVELOPING        level (moving) side ABOVE crosses 600 first 08:30:00 DOWN last 11:50:42 | latest UP from 11:50:42: max 7.655288 pts, beyond 558s, closes beyond 2 (max consec 2), touched again --, returned --
+    VWAP_LOWER_2SD         DEVELOPING        level (moving) side ABOVE crosses 282 first 08:30:00 DOWN last 10:26:54 | latest UP from 10:26:54: max 23.370083 pts, beyond 5586s, closes beyond 19 (max consec 19), touched again --, returned --
+    VWAP_UPPER_1SD         DEVELOPING        level (moving) side BELOW crosses 549 first 08:30:00 DOWN last 09:50:04 | latest DOWN from 09:50:04: max 47.937262 pts, beyond 7795s, closes beyond 26 (max consec 26), touched again --, returned --
+    VWAP_UPPER_2SD         DEVELOPING        level (moving) side BELOW crosses 133 first 08:30:00 DOWN last 09:27:27 | latest DOWN from 09:27:27: max 60.832695 pts, beyond 9153s, closes beyond 31 (max consec 31), touched again --, returned --
+    ATR_5M_V1 DEVELOPING: 7.7514 through 12:00:00 (228 bars, 0 empty skipped)
+    bar 11:45:00 WINDOW_COMPLETE: O 7772.75 H 7776.25 L 7771.25 C 7773 UP n 9558 inside True outside False HH False LL False close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 8.0051
+    bar 11:50:00 WINDOW_COMPLETE: O 7772.75 H 7779.25 L 7770.75 C 7777.75 UP n 9127 inside False outside True HH True LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 8.0431
+    bar 11:55:00 WINDOW_COMPLETE: O 7778 H 7779 L 7774.75 C 7776 DOWN n 6944 inside True outside False HH False LL False close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 7.7514
+[2026-10-02] 15:00 CT: snapshot 25.2s; facts 50.77s as_of_tape=11.22s sort_and_scale=3.01s single_pass_bands_occupancy_paths_bars=36.54s atr=0.00s bar_relations_and_summaries=0.00s; 68,560 bytes; deterministic True; sha f14f9ea77e17a972; snapshot 1451178cce6fd812
+    bands DEVELOPING [AVAILABLE]: VWAP 7781.7694 (== snapshot cash VWAP: True) sigma 11.8655 +/-1sd 7769.90/7793.63 +/-2sd 7758.04/7805.50; last 7779 at 14:59:59 zones [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')]
+    time vs 1sd bands: observed 23400s; above 2533s below 4039s outside 6572s (0.2809 of observed)
+    time vs 2sd bands: observed 23400s; above 139s below 981s outside 1121s (0.0479 of observed)
+    CASH_VWAP              DEVELOPING        level (moving) side BELOW crosses 249 first 08:30:00 DOWN last 14:45:05 | latest DOWN from 14:45:05: max 8.089553 pts, beyond 894s, closes beyond 3 (max consec 3), touched again --, returned --
+    IB_HIGH                DEVELOPING        level 7808.75 side BELOW crosses 2 first 09:42:19 UP last 09:42:40 | latest DOWN from 09:42:40: max 54.750000 pts, beyond 19039s, closes beyond 64 (max consec 64), touched again 09:42:47, returned --
+    IB_LOW                 DEVELOPING        level 7773.5 side ABOVE crosses 310 first 10:09:54 DOWN last 14:16:57 | latest UP from 14:16:57: max 9.250000 pts, beyond 2582s, closes beyond 9 (max consec 9), touched again 14:16:58, returned --
+    PRIOR_VALUE_AREA_HIGH  DEVELOPING        level 7725.25 side ABOVE crosses 0 first --  last --
+    PRIOR_VALUE_AREA_LOW   DEVELOPING        level 7684.25 side ABOVE crosses 0 first --  last --
+    VWAP_LOWER_1SD         DEVELOPING        level (moving) side ABOVE crosses 772 first 08:30:00 DOWN last 13:31:56 | latest UP from 13:31:56: max 12.980619 pts, beyond 5284s, closes beyond 18 (max consec 18), touched again --, returned --
+    VWAP_LOWER_2SD         DEVELOPING        level (moving) side ABOVE crosses 282 first 08:30:00 DOWN last 10:26:54 | latest UP from 10:26:54: max 25.347804 pts, beyond 16386s, closes beyond 55 (max consec 55), touched again --, returned --
+    VWAP_UPPER_1SD         DEVELOPING        level (moving) side BELOW crosses 549 first 08:30:00 DOWN last 09:50:04 | latest DOWN from 09:50:04: max 47.937262 pts, beyond 18595s, closes beyond 62 (max consec 62), touched again --, returned --
+    VWAP_UPPER_2SD         DEVELOPING        level (moving) side BELOW crosses 133 first 08:30:00 DOWN last 09:27:27 | latest DOWN from 09:27:27: max 60.832695 pts, beyond 19953s, closes beyond 67 (max consec 67), touched again --, returned --
+    ATR_5M_V1 DEVELOPING: 4.8927 through 15:00:00 (264 bars, 0 empty skipped)
+    bar 14:45:00 WINDOW_COMPLETE: O 7778.25 H 7782.75 L 7775.75 C 7777.25 DOWN n 13161 inside False outside True HH True LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 4.7421
+    bar 14:50:00 WINDOW_COMPLETE: O 7777 H 7781.75 L 7776.25 C 7777 FLAT n 13347 inside True outside False HH False LL False close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 4.8004
+    bar 14:55:00 WINDOW_COMPLETE: O 7777.25 H 7779.75 L 7773.75 C 7779 UP n 37527 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 4.8927
+[2026-10-02] 16:00 CT: snapshot 30.6s; facts 56.76s as_of_tape=15.84s sort_and_scale=3.02s single_pass_bands_occupancy_paths_bars=37.90s atr=0.00s bar_relations_and_summaries=0.00s; 76,107 bytes; deterministic True; sha 70741784aab216b8; snapshot 023ae900e50e3cf0
+    bands WINDOW_COMPLETE [QUALITY_QUALIFIED]: VWAP 7781.7268 (== snapshot cash VWAP: True) sigma 11.7006 +/-1sd 7770.03/7793.43 +/-2sd 7758.33/7805.13; last 7776.5 at 15:59:57 zones [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')]
+    time vs 1sd bands: observed 27000s; above 2533s below 4039s outside 6572s (0.2434 of observed)
+    time vs 2sd bands: observed 27000s; above 139s below 981s outside 1121s (0.0415 of observed)
+    CASH_VWAP              WINDOW_COMPLETE   level (moving) side BELOW crosses 315 first 08:30:00 DOWN last 15:18:24 | latest DOWN from 15:18:24: max 6.741118 pts, beyond 2496s, closes beyond 9 (max consec 9), touched again --, returned --
+    IB_HIGH                WINDOW_COMPLETE   level 7808.75 side BELOW crosses 2 first 09:42:19 UP last 09:42:40 | latest DOWN from 09:42:40: max 54.750000 pts, beyond 22639s, closes beyond 76 (max consec 76), touched again 09:42:47, returned --
+    IB_LOW                 WINDOW_COMPLETE   level 7773.5 side ABOVE crosses 310 first 10:09:54 DOWN last 14:16:57 | latest UP from 14:16:57: max 11.000000 pts, beyond 6182s, closes beyond 21 (max consec 21), touched again 14:16:58, returned --
+    PRIOR_VALUE_AREA_HIGH  WINDOW_COMPLETE   level 7725.25 side ABOVE crosses 0 first --  last --
+    PRIOR_VALUE_AREA_LOW   WINDOW_COMPLETE   level 7684.25 side ABOVE crosses 0 first --  last --
+    VWAP_LOWER_1SD         WINDOW_COMPLETE   level (moving) side ABOVE crosses 772 first 08:30:00 DOWN last 13:31:56 | latest UP from 13:31:56: max 14.528772 pts, beyond 8884s, closes beyond 30 (max consec 30), touched again --, returned --
+    VWAP_LOWER_2SD         WINDOW_COMPLETE   level (moving) side ABOVE crosses 282 first 08:30:00 DOWN last 10:26:54 | latest UP from 10:26:54: max 26.306751 pts, beyond 19986s, closes beyond 67 (max consec 67), touched again --, returned --
+    VWAP_UPPER_1SD         WINDOW_COMPLETE   level (moving) side BELOW crosses 549 first 08:30:00 DOWN last 09:50:04 | latest DOWN from 09:50:04: max 47.937262 pts, beyond 22195s, closes beyond 74 (max consec 74), touched again --, returned --
+    VWAP_UPPER_2SD         WINDOW_COMPLETE   level (moving) side BELOW crosses 133 first 08:30:00 DOWN last 09:27:27 | latest DOWN from 09:27:27: max 60.832695 pts, beyond 23553s, closes beyond 79 (max consec 79), touched again --, returned --
+    ATR_5M_V1 WINDOW_COMPLETE: 3.2306 through 16:00:00 (276 bars, 0 empty skipped)
+    bar 15:45:00 WINDOW_COMPLETE: O 7778.75 H 7778.75 L 7776 C 7776.75 DOWN n 951 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 3.4460
+    bar 15:50:00 WINDOW_COMPLETE: O 7777 H 7777.25 L 7775 C 7776.5 DOWN n 1082 inside False outside False HH False LL True close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 3.3540
+    bar 15:55:00 WINDOW_COMPLETE: O 7776.5 H 7777 L 7775.25 C 7776.5 FLAT n 1259 inside True outside False HH False LL False close vs VWAP BELOW [(1, 'BETWEEN_VWAP_AND_LOWER_BAND'), (2, 'BETWEEN_VWAP_AND_LOWER_BAND')] ATR 3.2306
+[2026-10-02] peak rss 4381 MB

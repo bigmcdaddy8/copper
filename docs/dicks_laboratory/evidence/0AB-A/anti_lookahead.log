@@ -1,0 +1,9 @@
+mutated copy: 12518 trades in [11:00, 11:05) CT set to 7800 (above the +2 sigma band) (received at/after 11:00)
+11:00 CT facts identical: True
+11:10 CT facts identical: False
+bar 11:00 at 11:10 original H 7722.25 mutated H 7800
+CASH_VWAP: crosses at 11:00 459/459; at 11:10 original 459 mutated 461; last cross original 2026-09-29 14:58:13.875000+00:00 mutated 2026-09-29 16:05:00.011000+00:00
+VWAP_UPPER_1SD: crosses at 11:00 73/73; at 11:10 original 73 mutated 75; last cross original 2026-09-29 14:40:14.797000+00:00 mutated 2026-09-29 16:05:00.011000+00:00
+VWAP_UPPER_2SD: crosses at 11:00 9/9; at 11:10 original 9 mutated 11; last cross original 2026-09-29 13:30:00.007000+00:00 mutated 2026-09-29 16:05:00.011000+00:00
+mutated copy deleted
+MUT_DONE

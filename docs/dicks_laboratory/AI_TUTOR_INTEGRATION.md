@@ -176,7 +176,13 @@ warnings, validator result) and the deterministic answer key for comparison.
 Lessons: vwap, acceptance, ib, changes, value-migration, occupancy, not-yet,
 quality.
 
-## 13. Not in 0AA-B
+## 13. 0AB-A update
+
+`TUTOR_SYSTEM_PROMPT_V2`: the Laboratory VWAP_BANDS_V1 bands are defined facts (named by multiplier);
+the guide's "VWAP value area" / "value band" joins the undefined concepts. The output schema's source
+roles gain `PRICE_ACTION` (PRICE_ACTION_FACTS_V1). See `VWAP_PRICE_ACTION_PRIMITIVES.md`.
+
+## 14. Not in 0AA-B
 
 No Drysdale classification (module still REGISTERED /
 NOT_READY_FOR_RULE_IMPLEMENTATION), no new market policy, no semantic grading,

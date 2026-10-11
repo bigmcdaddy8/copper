@@ -5344,3 +5344,40 @@ AI TUTOR: MODEL-CONNECTED / EVIDENCE-GROUNDED
 DRYSDALE VWAP MODULE: STILL DEFERRED
 NEXT: PO REVIEW BEFORE DRYSDALE DEPENDENCY IMPLEMENTATION / TUTOR CURRICULUM EXPANSION
 ```
+
+## NA. 0AB-A — Drysdale VWAP Evidence Primitives (2026-10-10)
+
+PO record: 0AA-B **PASS / ACCEPTED / CLOSED**; grounding validator authoritative;
+0AA-A contract revisions (stale-price warning, acceptance question kind, no
+active interruption as a fact), selective proof-log backfill and the raw-log
+whitespace exemption accepted. Backlog: the delta receipt-lag label omits its
+unit (seconds); fix only in a deliberate payload / schema revision.
+
+What 0AB-A adds (`VWAP_PRICE_ACTION_PRIMITIVES.md`):
+- Source audit: the Drysdale guide names VWAP value area, deviation / value
+  bands, acceptance (time or distance), backtest, first sign of strength /
+  weakness, but gives no band formula, multiplier, percentage, threshold or
+  volatility measure; all policies are Laboratory policies.
+- `PRICE_ACTION_FACTS_V1` (separate, hashed; MARKET_STUDY_SNAPSHOT_V1
+  unchanged): VWAP_BANDS_V1 (volume-weighted σ about the cash VWAP, k = 1, 2,
+  exact integer comparisons), 7-zone band relations and time outside the bands,
+  REFERENCE_PATH_V1 (touch, cross, episodes, closes / time / volume beyond,
+  excursion, touched again, return) for VWAP, bands, prior day, overnight and
+  IB, BARS_5M_V1 bars with structural relations, ATR_5M_V1 (13, Wilder).
+- Tutor: PRICE_ACTION source role, opt-in domains, TUTOR_SYSTEM_PROMPT_V2.
+- Drysdale matrix: bands, crossing path, time outside, 5-minute facts and ATR
+  now FACT_AVAILABLE_NOW; "VWAP value area (which band pair)", breakout,
+  acceptance, backtest / retest, first sign of strength / weakness and rejection
+  remain NEEDS_POLICY_DEFINITION; nothing NEEDS_IMPLEMENTATION.
+
+Real-data study (`DRYSDALE_PRIMITIVES_0ABA.md`, `evidence/0AB-A/`): 09-30, 09-29,
+10-02 at six cutoffs; 18 / 18 deterministic; band VWAP equals the accepted cash
+VWAP; anti-lookahead proven on a copy of 09-29 (11:00 facts identical, 11:10
+bar and crossings changed); about 53–69 s per full-day facts document over a
+prepared replay.
+
+```
+0AB-A: PASS — DRYSDALE VWAP EVIDENCE PRIMITIVES COMPLETE
+DRYSDALE SETUP CLASSIFICATION: NOT YET IMPLEMENTED
+NEXT: PO REVIEW BEFORE DRYSDALE POLICY DEFINITIONS / SETUP CANDIDATES
+```
