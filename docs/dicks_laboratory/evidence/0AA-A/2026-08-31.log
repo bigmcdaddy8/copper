@@ -1,0 +1,12 @@
+[2026-08-31] prepare session (replay layer): 15.1s rss 578 MB
+[2026-08-31] quality_1000: LAB-DATA_QUALITY-2026-08-31-100000
+    support SUPPORTED summary 'QUALITY_QUALIFIED'; items 69; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:vwap US_CASH_OPEN', 'LESSON_TIME:volume_profile', 'LESSON_TIME:cash_tpo', 'LESSON_TIME:prior_context', 'LESSON_TIME:overnight', 'LESSON_TIME:cash_opening', 'LESSON_TIME:opening_type']
+    snapshot 4a354c9eb4ba5c8146566fc39dc9de5d80e763e88bdb1459cb334f12200bec15; student payload 479a77a0ff5a82ecce13f15f7fd6040c1ddd07a969eca3df0f7efaa77900445e; instructor b7181d67dfd46275a3ab5b6bbf9d87eb9ba442b4890a2527a584d6b79cece6bf; definition 0dad178467662d10766f1a334e3937f6ae8b443a28ece6b176f1ce4b2f0bbc9f
+    reference answer grounded True (13 refs); rubric refs cited 12/12; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 3.92s (first, incl. snapshots); tutor layer with cached snapshots 0.023s (rebuild + 5 payloads); student payload 34,064 bytes
+[2026-08-31] vwap_1000: LAB-PRICE_VS_CASH_VWAP-2026-08-31-100000
+    support SUPPORTED summary 'BELOW'; items 28; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:vwap US_CASH_OPEN']
+    snapshot 4a354c9eb4ba5c8146566fc39dc9de5d80e763e88bdb1459cb334f12200bec15; student payload b246645590c37f13108207ee266c047ed4010c7fdb0ebc65541cfa6473063dd1; instructor 9e681b4e81a2fcfaa1c9e1a745611dadd03395e9f71500eb2ec44d2cdc34cb7e; definition a5c766dd9ab2b82ad8c70b60ae9248e3188d13b84925c0e5e2acafd7a893b72d
+    reference answer grounded True (9 refs); rubric refs cited 4/4; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 0.01s (first, incl. snapshots); tutor layer with cached snapshots 0.015s (rebuild + 5 payloads); student payload 15,909 bytes
+[2026-08-31] peak rss 606 MB

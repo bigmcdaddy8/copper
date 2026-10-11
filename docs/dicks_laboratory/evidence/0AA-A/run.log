@@ -1,0 +1,62 @@
+analysis HEAD dd3e3181ac04cb8ffe465b123052afd69bf48da4 (worktree: 0 modified paths under apps/ scripts/)
+[2026-09-30] prepare session (replay layer): 196.0s rss 3623 MB
+[2026-09-30] vwap_1000_reveal_1030: LAB-PRICE_VS_CASH_VWAP-2026-09-30-100000-REVEAL-103000
+    support SUPPORTED summary 'ABOVE'; items 15; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN']
+    snapshot 90cd2e42715abbc111de5fd17798af8bf061232b413b53e105858f5538271510; student payload 75f40a3693900c23b4de9f78810258466013b1740a7ec1228905bf9db04b64c8; instructor 825c20d8baff72e5ee622dbf3c7336551541bb0cf00852ed4b99dc91e98043b3; definition 6cd4a86cf6489596745651c584ef08abeacbd49d313cf38bd775c69672d5e48c
+    reference answer grounded True (7 refs); rubric refs cited 4/4; QUESTION payload hides answer/hints/future True; future sha in student stages ['POST_REVEAL']; deterministic True; forbidden words []
+    build 23.60s (first, incl. snapshots); tutor layer with cached snapshots 0.029s (rebuild + 5 payloads); student payload 10,447 bytes
+[2026-09-30] ib_0915: LAB-INITIAL_BALANCE_STATUS-2026-09-30-091500
+    support SUPPORTED summary 'DEVELOPING'; items 13; warnings ['LESSON_TIME:dataset']
+    snapshot e66539cb2542646476386cd9eb87130f63afecea2a7d454f929f92986f87c3fa; student payload 55018d5e1805e293e617fb76ea0b2ebb569fb655481c26fd1707ddcac577ed0f; instructor e82dfbf04d174d46646e9aa616c1483622fde6b63c183eb903dd7849e2a9f3c7; definition cc36717be5d59e28ce2e94693d7236b19a9ec23d3dfee81c42402307aae27734
+    reference answer grounded True (4 refs); rubric refs cited 3/3; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 10.11s (first, incl. snapshots); tutor layer with cached snapshots 0.011s (rebuild + 5 payloads); student payload 9,119 bytes
+[2026-09-30] ib_0930: LAB-INITIAL_BALANCE_STATUS-2026-09-30-093000
+    support SUPPORTED summary 'COMPLETE'; items 13; warnings ['LESSON_TIME:dataset']
+    snapshot 4353b26861815defc2fbb95b53c3fbfbffc481d06c81f6116c7140674f8a2ba7; student payload e159d4e669ed5b87f2b94e242dcf5e1c0c02c442cd31d5b82a0f63c444f2b90d; instructor bea45ae0a3ad3c11ecaf3cc020ee517f22c6ab62f10e588455555fe335d311d0; definition a46897bb89b48faa015567b729f560df5854283d7859b77004b4c3db5abe1bf6
+    reference answer grounded True (4 refs); rubric refs cited 3/3; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 8.51s (first, incl. snapshots); tutor layer with cached snapshots 0.016s (rebuild + 5 payloads); student payload 9,149 bytes
+[2026-09-30] changes_121400_121401: LAB-EVIDENCE_CHANGES-2026-09-30-121401-FROM-121400
+    support SUPPORTED summary 10; items 43; warnings ['COMPARE_FROM:dataset', 'LESSON_TIME:dataset']
+    snapshot f3bfd47aa1b3c0205d862f69401d65e4ad36ccdfe30b8a9306efea323cdc6314; student payload bf352519f0f8e4f3feea258a990d05b48f2ad9813f505c0b36ad4dab706bb8ae; instructor 56064eccb9dab40ad883f94463bf2e19ac8480bc1086b899efd6779071bbca04; definition cac0685f25478f087ee7c1dd5b4a4544f2a8f525bc59c0a497349cfc0bd11fa1
+    reference answer grounded True (26 refs); rubric refs cited 25/25; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 31.57s (first, incl. snapshots); tutor layer with cached snapshots 0.784s (rebuild + 5 payloads); student payload 20,560 bytes
+[2026-09-30] value_0930_1000: LAB-VALUE_MIGRATION-2026-09-30-100000-FROM-093000
+    support SUPPORTED summary 'MIXED'; items 81; warnings ['COMPARE_FROM:dataset', 'LESSON_TIME:dataset']
+    snapshot 90cd2e42715abbc111de5fd17798af8bf061232b413b53e105858f5538271510; student payload b73f2b782d93ea9e296e54851e5ff8578f822b29553fb79bf7cb0208e5d0ae81; instructor ea066c3566e07d6cf6fc2a8b4a018414f88ea6945e6c0f0dacae6fe33d89629c; definition 833fcd8ff6bc719865e00651ddc46667ad1d6811f884765be504a7d427f5296c
+    reference answer grounded True (12 refs); rubric refs cited 12/12; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 0.79s (first, incl. snapshots); tutor layer with cached snapshots 0.825s (rebuild + 5 payloads); student payload 33,701 bytes
+[2026-09-30] occupancy_1000: LAB-VALUE_OCCUPANCY-2026-09-30-100000
+    support INSUFFICIENT_EVIDENCE summary None; items 17; warnings ['LESSON_TIME:dataset']
+    snapshot 90cd2e42715abbc111de5fd17798af8bf061232b413b53e105858f5538271510; student payload 5544c1c3bbc6b96277aecd76621250e8ebd4bb96a841e860b4c6af3398a5dbe8; instructor 8db619067b14ebbe05d7aaba8cf2ff5a3667bc247fca8b0f9ca55cf1fdc2d811; definition 3ee1a8c552b068a2a7d025222f1c0e0da54b3cd6aaca7efb5ef28ef6cd6f84b6
+    reference answer grounded True (1 refs); rubric refs cited 1/1; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 0.01s (first, incl. snapshots); tutor layer with cached snapshots 0.016s (rebuild + 5 payloads); student payload 10,724 bytes
+[2026-09-30] notyet_1000: LAB-NOT_YET_DETERMINED_ITEMS-2026-09-30-100000
+    support SUPPORTED summary 5; items 22; warnings ['LESSON_TIME:dataset']
+    snapshot 90cd2e42715abbc111de5fd17798af8bf061232b413b53e105858f5538271510; student payload f708126fb950562a6b6d861c14b223eb5f9f434827977c70b94afad6242ab9e3; instructor 5d1cae2215b5e1c48349e8ded7c83a0daadbe3f17dc0fe93a28bc269acf60ab2; definition 83d175a8df2043bcfa6712ab1d047c393b7b88f41b5ceadfb619aea64273372e
+    reference answer grounded True (10 refs); rubric refs cited 5/5; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 0.01s (first, incl. snapshots); tutor layer with cached snapshots 0.018s (rebuild + 5 payloads); student payload 11,804 bytes
+[2026-09-30] peak rss 3696 MB
+[2026-08-31] prepare session (replay layer): 15.1s rss 578 MB
+[2026-08-31] quality_1000: LAB-DATA_QUALITY-2026-08-31-100000
+    support SUPPORTED summary 'QUALITY_QUALIFIED'; items 69; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:vwap US_CASH_OPEN', 'LESSON_TIME:volume_profile', 'LESSON_TIME:cash_tpo', 'LESSON_TIME:prior_context', 'LESSON_TIME:overnight', 'LESSON_TIME:cash_opening', 'LESSON_TIME:opening_type']
+    snapshot 4a354c9eb4ba5c8146566fc39dc9de5d80e763e88bdb1459cb334f12200bec15; student payload 479a77a0ff5a82ecce13f15f7fd6040c1ddd07a969eca3df0f7efaa77900445e; instructor b7181d67dfd46275a3ab5b6bbf9d87eb9ba442b4890a2527a584d6b79cece6bf; definition 0dad178467662d10766f1a334e3937f6ae8b443a28ece6b176f1ce4b2f0bbc9f
+    reference answer grounded True (13 refs); rubric refs cited 12/12; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 3.92s (first, incl. snapshots); tutor layer with cached snapshots 0.023s (rebuild + 5 payloads); student payload 34,064 bytes
+[2026-08-31] vwap_1000: LAB-PRICE_VS_CASH_VWAP-2026-08-31-100000
+    support SUPPORTED summary 'BELOW'; items 28; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:vwap US_CASH_OPEN']
+    snapshot 4a354c9eb4ba5c8146566fc39dc9de5d80e763e88bdb1459cb334f12200bec15; student payload b246645590c37f13108207ee266c047ed4010c7fdb0ebc65541cfa6473063dd1; instructor 9e681b4e81a2fcfaa1c9e1a745611dadd03395e9f71500eb2ec44d2cdc34cb7e; definition a5c766dd9ab2b82ad8c70b60ae9248e3188d13b84925c0e5e2acafd7a893b72d
+    reference answer grounded True (9 refs); rubric refs cited 4/4; QUESTION payload hides answer/hints/future True; future sha in student stages []; deterministic True; forbidden words []
+    build 0.01s (first, incl. snapshots); tutor layer with cached snapshots 0.015s (rebuild + 5 payloads); student payload 15,909 bytes
+[2026-08-31] peak rss 606 MB
+[2026-09-21] prepare session (replay layer): 64.7s rss 2270 MB
+[2026-09-21] quality_active_interruption: LAB-DATA_QUALITY-2026-09-21-215512-REVEAL-215514
+    support SUPPORTED summary 'QUALITY_QUALIFIED'; items 48; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:prior_context', 'LESSON_TIME:overnight']
+    snapshot 94c8433aa0f9056f1d8ae8ebeca89d9bea80fbd9dcbb9595c42f5d37ca1bd261; student payload d5b045a3d2b029c6ba4615c3faebcb933c9eb4e50b6dfd2f8e14a4885fea6adc; instructor 04b6537b51d3ef5e9bb8cab426f27862c6ff27e7f0587ba524d094610f10ab8c; definition ab02eda33c8d2c2fdc41659236d182525c2513f3bd5b291f2387f332bc7e5141
+    reference answer grounded True (8 refs); rubric refs cited 7/7; QUESTION payload hides answer/hints/future True; future sha in student stages ['POST_REVEAL']; deterministic True; forbidden words []
+    build 2.93s (first, incl. snapshots); tutor layer with cached snapshots 0.016s (rebuild + 5 payloads); student payload 23,665 bytes
+[2026-09-21] peak rss 2318 MB
+DATABASE SHA256 UNCHANGED
+0930: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:44.26 	Maximum resident set size (kbytes): 3784504 
+0831: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:21.19 	Maximum resident set size (kbytes): 620428 
+0921: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:16.41 	Maximum resident set size (kbytes): 2373504 
+TUTOR_DONE

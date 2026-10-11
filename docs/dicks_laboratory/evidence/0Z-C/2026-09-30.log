@@ -1,0 +1,12 @@
+[2026-09-30] prepare session: 204.4s rss 3623 MB
+[2026-09-30] first snapshot 09:47: 12.0s  sha ef1693ca640ef397c050250a8c1d9d25ab5283a41dcbeefdc1f238b4fcaec494
+[2026-09-30] subsequent snapshot 12:14: 17.4s  sha 2b942cb5eda1c5b3f50ad138605ea5ce202f79862b323ff16c0a13d484c9b268
+[2026-09-30] subsequent snapshot 14:32: 17.2s  sha 4220aa485783c098cd28d25ea901a1a64143719a1f7cdbc30746f23cad99928f
+[2026-09-30] subsequent snapshot 09:29: 11.8s  sha ecd0fba45d75962b294b45090b5b24d301166b5e41717f2b43969f465e6bc4c4
+[2026-09-30] subsequent snapshot 09:30: 7.9s  sha 81e89c49f26da7c16165d90e4a62903162043c96a6086093e8a72dedb8e74c95
+[2026-09-30] subsequent snapshot 14:59: 22.8s  sha 72ad6a632633a4496ca2a0c0e42204e869a8f5573e572e543e61ffc3a22dd7b1
+[2026-09-30] subsequent snapshot 15:00: 23.5s  sha 4d5ef8b34eb3caed59f0010c755571160a4f96aaa0524104fbbbfff6532bbd59
+[2026-09-30] delta 12:14:00 -> 12:14:01: 10 changes, compare 18.2s, deterministic True, delta sha da2deac1eeb47bf82ba8fca97b161722e8dd40dbdeade8089c29d4e98fcf7feb; newly known NewlyKnownEvidence(records=754, with_market_time_before_earlier_market_cutoff=750, max_receipt_lag_of_those=datetime.timedelta(seconds=20, microseconds=293056), corrections=0, cancels=0)
+[2026-09-30] delta 09:29 -> 09:30: 16 changes, compare 0.7s, deterministic True, delta sha 57365a39babf4093272fe71ea6bbb59761196b09a8d4b6b6a9fea08e79587083; newly known NewlyKnownEvidence(records=3850, with_market_time_before_earlier_market_cutoff=0, max_receipt_lag_of_those=None, corrections=0, cancels=0)
+[2026-09-30] delta 14:59 -> 15:00: 31 changes, compare 0.9s, deterministic True, delta sha f3dd6c7a5e101e75060898de9363d7bee056c74dd279f91b7570045819582453; newly known NewlyKnownEvidence(records=55416, with_market_time_before_earlier_market_cutoff=0, max_receipt_lag_of_those=None, corrections=0, cancels=0)
+[2026-09-30] peak rss 3769 MB

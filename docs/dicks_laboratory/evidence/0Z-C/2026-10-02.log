@@ -1,0 +1,4 @@
+[2026-10-02] prepare session: 85.3s rss 3553 MB
+[2026-10-02] first snapshot 09:30: 9.1s  sha 24dba83647701bdc3aeaa0505ca53be0851f0fa4cbb61421fceba033121e92ed
+[2026-10-02] delta 2026-10-02T07:40:03.790478+00:00 -> 2026-10-02T07:40:05.790478+00:00: 7 changes, compare 5.4s, deterministic True, delta sha a7c844acc1e9bdca9ccd8c4f13409562f01b525b1c15591c67bd8746de93416a; newly known NewlyKnownEvidence(records=4, with_market_time_before_earlier_market_cutoff=0, max_receipt_lag_of_those=None, corrections=0, cancels=1)
+[2026-10-02] peak rss 3604 MB

@@ -1,0 +1,5 @@
+[2026-09-21] prepare session: 54.3s rss 2269 MB
+[2026-09-21] first snapshot 08:31: 2.8s  sha d46320aff8bf79d8d1353dd55fbf62af831e2cbbf55fcd8b7016c27b81b08eb9
+[2026-09-21] delta 2026-09-21T02:55:11+00:00 -> 2026-09-21T02:55:12.5+00:00: 4 changes, compare 2.9s, deterministic True, delta sha 5b6b6ae2d79e29cc93176253df1353fa1602d44b59740da86dbeb7ac85da16e1; newly known NewlyKnownEvidence(records=0, with_market_time_before_earlier_market_cutoff=0, max_receipt_lag_of_those=None, corrections=0, cancels=0)
+[2026-09-21] delta 2026-09-21T02:55:12.5+00:00 -> 2026-09-21T02:55:14+00:00: 6 changes, compare 1.6s, deterministic True, delta sha 98b129f77aa2efa7751b125cd9eb764f9492ed5268c32a7853f236b53861b22b; newly known NewlyKnownEvidence(records=7, with_market_time_before_earlier_market_cutoff=0, max_receipt_lag_of_those=None, corrections=0, cancels=0)
+[2026-09-21] peak rss 2318 MB

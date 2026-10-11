@@ -1,0 +1,7 @@
+[2026-09-21] prepare session (replay layer): 64.7s rss 2270 MB
+[2026-09-21] quality_active_interruption: LAB-DATA_QUALITY-2026-09-21-215512-REVEAL-215514
+    support SUPPORTED summary 'QUALITY_QUALIFIED'; items 48; warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:prior_context', 'LESSON_TIME:overnight']
+    snapshot 94c8433aa0f9056f1d8ae8ebeca89d9bea80fbd9dcbb9595c42f5d37ca1bd261; student payload d5b045a3d2b029c6ba4615c3faebcb933c9eb4e50b6dfd2f8e14a4885fea6adc; instructor 04b6537b51d3ef5e9bb8cab426f27862c6ff27e7f0587ba524d094610f10ab8c; definition ab02eda33c8d2c2fdc41659236d182525c2513f3bd5b291f2387f332bc7e5141
+    reference answer grounded True (8 refs); rubric refs cited 7/7; QUESTION payload hides answer/hints/future True; future sha in student stages ['POST_REVEAL']; deterministic True; forbidden words []
+    build 2.93s (first, incl. snapshots); tutor layer with cached snapshots 0.016s (rebuild + 5 payloads); student payload 23,665 bytes
+[2026-09-21] peak rss 2318 MB
