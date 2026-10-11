@@ -1,0 +1,50 @@
+AI TUTOR  [GROUNDED]  provider claude-code-cli  model claude-opus-5-5  repairs 0
+
+ANSWER
+  The Laboratory's evidence shows that the last known price is BELOW the developing US_CASH_OPEN (cash) VWAP. Several caveats apply.
+
+What the evidence shows:
+- Last known price: 7688.25, from the trade at 2026-08-31T13:47:35.894000Z.
+- US_CASH_OPEN VWAP: 7691.380489801994938216465684. Its maturity is DEVELOPING and its status is QUALITY_QUALIFIED.
+- The Laboratory's own comparison of these two values ("last known price vs US_CASH_OPEN VWAP") is BELOW. This is a derived fact the Laboratory built from exactly those two items. It is DEVELOPING and QUALITY_QUALIFIED.
+- For context, the last known price is also BELOW the SESSION_OPEN VWAP of 7697.921735304340109593498340. That value is also DEVELOPING and QUALITY_QUALIFIED.
+
+Caveats you must keep with this answer:
+1. **The price is STALE.** Capture STOPPED at 2026-08-31T13:48:13.715015Z. The last known trade was at 13:47:35.894000Z, not at the replay time of 2026-08-31T15:00:00Z. So BELOW describes the relationship at the last known trade. It does not describe 15:00.
+2. **The data is QUALITY_QUALIFIED and INCOMPLETE.** There are 4 KNOWN_GAP intervals, and the lifecycle is INTERRUPTED (not FINALIZED). The cash, opening and overnight windows were not captured through the clock.
+3. **The cash VWAP itself is QUALITY_QUALIFIED.** 3 known gaps overlap its window, and its lifecycle is INTERRUPTED. The VWAP is DEVELOPING, not complete.
+4. **The VWAP method isn't recorded.** The policy registry lists no VWAP policy_id or version, so this view doesn't show how the VWAP is calculated.
+
+The evidence can't tell you where price was relative to the cash VWAP at 15:00 itself, because no price was captured after 13:47:35.894000Z.
+
+CLAIMS
+  [DERIVED_FACT] The last known price is BELOW the developing US_CASH_OPEN (cash) VWAP.
+      - last known price vs US_CASH_OPEN VWAP: BELOW (/relations/last_price_vs_cash_vwap)
+  [OBSERVED_FACT] The last known price is 7688.25, observed at 2026-08-31T13:47:35.894000Z.
+      - last known price: 7688.25 (/prices/last_known_price)
+      - last known price time: 2026-08-31T13:47:35.894000Z (/prices/last_known_utc)
+  [DERIVED_FACT] The US_CASH_OPEN VWAP is 7691.380489801994938216465684, maturity DEVELOPING, status QUALITY_QUALIFIED.
+      - US_CASH_OPEN VWAP: 7691.380489801994938216465684 (/vwap/1/study/vwap)
+  [DERIVED_FACT] The last known price is also BELOW the developing SESSION_OPEN VWAP of 7697.921735304340109593498340.
+      - last known price vs SESSION_OPEN VWAP: BELOW (/relations/last_price_vs_globex_vwap)
+      - SESSION_OPEN VWAP: 7697.921735304340109593498340 (/vwap/0/study/vwap)
+  [OBSERVED_FACT] Capture status is STOPPED and lifecycle is INTERRUPTED, so the last known price is stale relative to the replay time.
+      - capture status: STOPPED (/current_dataset/capture_status)
+      - lifecycle as of: INTERRUPTED (/current_dataset/lifecycle_as_of)
+  [QUALITY_WARNING] The dataset is QUALITY_QUALIFIED and INCOMPLETE, with 4 known gaps.
+      - dataset quality status: QUALITY_QUALIFIED (/dataset_quality/status)
+      - dataset completeness: INCOMPLETE (/dataset_quality/completeness)
+      - known gap count: 4 (/dataset_quality/known_gap_count)
+  [QUALITY_WARNING] The US_CASH_OPEN VWAP quality status is QUALITY_QUALIFIED.
+      - vwap US_CASH_OPEN quality status: QUALITY_QUALIFIED (/quality_matrix/3/status)
+
+NOT SUPPORTED BY THE EVIDENCE
+  [INSUFFICIENT_EVIDENCE] Where price was relative to the cash VWAP exactly at the replay time 2026-08-31T15:00:00Z. (missing: Price captured after 2026-08-31T13:47:35.894000Z (capture STOPPED at 2026-08-31T13:48:13.715015Z); Cash VWAP value updated through the replay time)
+
+UNCERTAINTIES
+  - The last known price is from 2026-08-31T13:47:35.894000Z, not from the replay time 2026-08-31T15:00:00Z, so the BELOW relationship describes the last known trade only.
+  - Both VWAPs are DEVELOPING and QUALITY_QUALIFIED: known gaps overlap their windows and the lifecycle is INTERRUPTED.
+  - The policy registry lists no VWAP policy_id or policy_version, so the VWAP calculation method isn't recorded in this view.
+
+QUALITY WARNINGS PRESERVED  LESSON_TIME:dataset, LESSON_TIME:vwap SESSION_OPEN, LESSON_TIME:vwap US_CASH_OPEN, LESSON_TIME:last_known_price
+Validator: PASS (14 refs). AI output is not source truth; interpretations stay interpretations.

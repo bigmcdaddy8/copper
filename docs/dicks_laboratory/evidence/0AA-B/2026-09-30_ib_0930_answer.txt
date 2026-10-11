@@ -1,0 +1,37 @@
+AI TUTOR  [GROUNDED]  provider claude-code-cli  model claude-opus-5-5  repairs 0
+
+ANSWER
+  Yes. The Laboratory marks the Initial Balance as WINDOW_COMPLETE as of the replay time, 2026-09-30T14:30:00Z. That means it is no longer developing. Its derived values are a high of 7779.50, a low of 7748.00 and a range of 31.50. The last known price is INSIDE the Initial Balance.
+
+Quality caveat: the dataset is QUALITY_QUALIFIED because the OVERNIGHT window was not captured through the clock. The dataset is still listed as COMPLETE / NO KNOWN GAPS, with 0 known gaps. Capture is RUNNING, the dataset is OPEN_AS_OF and the connection is CONNECTED. This is a live, as-of view, so other studies that depend on the session are still open. The evidence doesn't say anything about what happens after the Initial Balance window.
+
+CLAIMS
+  [LABORATORY_POLICY_RESULT] The Initial Balance maturity is WINDOW_COMPLETE as of the replay time.
+      - Initial Balance maturity: WINDOW_COMPLETE (/maturity/9/maturity)
+  [DERIVED_FACT] Initial Balance high is 7779.50, low is 7748.00, range is 31.50.
+      - Initial Balance high: 7779.50 (/tpo/profile/initial_balance/high)
+      - Initial Balance low: 7748.00 (/tpo/profile/initial_balance/low)
+      - Initial Balance range: 31.50 (/tpo/profile/initial_balance/range)
+  [DERIVED_FACT] The last known price is INSIDE the Initial Balance.
+      - last known price vs Initial Balance: INSIDE (/relations/last_price_vs_initial_balance)
+  [QUALITY_WARNING] Dataset quality is QUALITY_QUALIFIED (OVERNIGHT window not captured through the clock), with completeness COMPLETE / NO KNOWN GAPS and 0 known gaps.
+      - dataset quality status: QUALITY_QUALIFIED (/quality_matrix/0/status)
+      - dataset quality status: QUALITY_QUALIFIED (/dataset_quality/status)
+      - dataset completeness: COMPLETE / NO KNOWN GAPS (/dataset_quality/completeness)
+      - known gap count: 0 (/dataset_quality/known_gap_count)
+  [OBSERVED_FACT] Capture status is RUNNING, lifecycle is OPEN_AS_OF, connection is CONNECTED.
+      - capture status: RUNNING (/current_dataset/capture_status)
+      - lifecycle as of: OPEN_AS_OF (/current_dataset/lifecycle_as_of)
+      - connection as of: CONNECTED (/current_dataset/connection_as_of)
+  [AI_INTERPRETATION] Because the Initial Balance window is complete, its high, low and range are fixed for this window rather than still developing, even though the session itself is still open.
+      - Initial Balance maturity: WINDOW_COMPLETE (/maturity/9/maturity)
+      - lifecycle as of: OPEN_AS_OF (/current_dataset/lifecycle_as_of)
+
+NOT SUPPORTED BY THE EVIDENCE
+  [NOT_YET_AVAILABLE] Whether price will later move outside the Initial Balance range. (missing: Evidence after the replay time 2026-09-30T14:30:00Z)
+
+UNCERTAINTIES
+  - The evidence is an as-of view at 2026-09-30T14:30:00Z while the dataset is OPEN_AS_OF. Later session developments are not shown.
+
+QUALITY WARNINGS PRESERVED  LESSON_TIME:dataset
+Validator: PASS (15 refs). AI output is not source truth; interpretations stay interpretations.

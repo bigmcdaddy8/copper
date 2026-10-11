@@ -1,0 +1,94 @@
+AI TUTOR  [GROUNDED]  provider claude-code-cli  model claude-opus-5-5  repairs 0
+
+ANSWER
+  Here is what changed in the evidence between 17:14:00Z (COMPARE_FROM) and 17:14:01Z (LESSON_TIME) on 2026-09-30 for FUTURE:CME:ES:2026-12.
+
+1. New records. The delta reports 754 newly known records. Of these, 750 had a market time before the earlier snapshot's market cutoff. This shows up as a LATE_OBSERVATION_ADDED change, from 0 to 750. The largest receipt lag among those 750 records is "20.293056". The evidence doesn't give a unit for that number. There were 0 corrections and 0 cancels. The accepted_known record count went from 890628 to 891382.
+
+2. Price. The last known price went from "7765.0" to "7763.75". Its timestamp went from 2026-09-30T17:13:39.839000Z to 2026-09-30T17:14:00.724000Z.
+
+3. Derived studies. All of these are DEVELOPING.
+- The SESSION_OPEN VWAP went from "7762.669315042901559935414137" to "7762.670534069081254338800185". This value is QUALITY_QUALIFIED.
+- The US_CASH_OPEN VWAP went from "7768.450408093376330584172826" to "7768.445387238018989169406641".
+- Volume profile total volume went from "805943.0" to "806881.0".
+- The TPO value area low went from "7764.25" to "7763.75".
+- The TPO value area high went from "7777.25" to "7776.75".
+
+4. Relation. The relation between the last price and the developing volume value area changed from INSIDE to BELOW.
+
+Data quality: both snapshots are QUALITY_QUALIFIED. The reason given is "OVERNIGHT window not captured through the clock". At both times completeness is "COMPLETE / NO KNOWN GAPS", with 0 known gaps and no active interruption. Capture is RUNNING, the session is OPEN_AS_OF and the feed is CONNECTED. Every study value here is still DEVELOPING, so any of them can change again.
+
+What the evidence can't answer: it doesn't give the volume value area's boundaries, so I can't say how far below it the price is. It also doesn't tell us whether this change means anything beyond the reported relation.
+
+CLAIMS
+  [OBSERVED_FACT] The delta compares the earlier snapshot d8121a92... with the later snapshot 3099aac2....
+      - earlier snapshot hash: d8121a925b4793736acd6fc9acbe9acfe360cbd21c544d8fcc8ad1da41b69400 (/from_snapshot_sha256)
+      - later snapshot hash: 3099aac25608c5bdaab20d4a81c636834d96b75911b31affa335797c98416e89 (/to_snapshot_sha256)
+  [OBSERVED_FACT] 754 records became newly known. 750 of them had a market time before the earlier market cutoff, and the largest receipt lag among those was 20.293056.
+      - newly known records: 754 (/newly_known/records)
+      - newly known with market time before earlier market cutoff: 750 (/newly_known/with_market_time_before_earlier_market_cutoff)
+      - newly known max receipt lag of those: 20.293056 (/newly_known/max_receipt_lag_of_those)
+  [OBSERVED_FACT] Among the newly known records there were 0 corrections and 0 cancels.
+      - newly known corrections: 0 (/newly_known/corrections)
+      - newly known cancels: 0 (/newly_known/cancels)
+  [OBSERVED_FACT] A LATE_OBSERVATION_ADDED change took the count of newly known records with market time before the earlier cutoff from 0 to 750.
+      - LATE_OBSERVATION_ADDED /evidence/newly_known_records_with_market_time_before_earlier_cutoff (before): 0 (/changes/0/before)
+      - LATE_OBSERVATION_ADDED /evidence/newly_known_records_with_market_time_before_earlier_cutoff (after): 750 (/changes/0/after)
+  [OBSERVED_FACT] The accepted_known record count went from 890628 to 891382.
+      - OBSERVATION_ADDED /current_dataset/counts/accepted_known (before): 890628 (/changes/1/before)
+      - OBSERVATION_ADDED /current_dataset/counts/accepted_known (after): 891382 (/changes/1/after)
+  [AI_INTERPRETATION] The increase in accepted_known (891382 - 890628) equals the 754 newly known records.
+      - OBSERVATION_ADDED /current_dataset/counts/accepted_known (before): 890628 (/changes/1/before)
+      - OBSERVATION_ADDED /current_dataset/counts/accepted_known (after): 891382 (/changes/1/after)
+      - newly known records: 754 (/newly_known/records)
+  [DERIVED_FACT] The SESSION_OPEN VWAP went from 7762.669315042901559935414137 to 7762.670534069081254338800185. It is DEVELOPING and QUALITY_QUALIFIED.
+      - VALUE_CHANGED /vwap/SESSION_OPEN/study/vwap (before): 7762.669315042901559935414137 (/changes/2/before)
+      - VALUE_CHANGED /vwap/SESSION_OPEN/study/vwap (after): 7762.670534069081254338800185 (/changes/2/after)
+  [DERIVED_FACT] The US_CASH_OPEN VWAP (DEVELOPING) went from 7768.450408093376330584172826 to 7768.445387238018989169406641.
+      - VALUE_CHANGED /vwap/US_CASH_OPEN/study/vwap (before): 7768.450408093376330584172826 (/changes/3/before)
+      - VALUE_CHANGED /vwap/US_CASH_OPEN/study/vwap (after): 7768.445387238018989169406641 (/changes/3/after)
+  [OBSERVED_FACT] The last known price went from 7765.0 to 7763.75, and its timestamp went from 2026-09-30T17:13:39.839000Z to 2026-09-30T17:14:00.724000Z.
+      - VALUE_CHANGED /prices/last_known_price (before): 7765.0 (/changes/4/before)
+      - VALUE_CHANGED /prices/last_known_price (after): 7763.75 (/changes/4/after)
+      - VALUE_CHANGED /prices/last_known_utc (before): 2026-09-30T17:13:39.839000Z (/changes/5/before)
+      - VALUE_CHANGED /prices/last_known_utc (after): 2026-09-30T17:14:00.724000Z (/changes/5/after)
+  [DERIVED_FACT] Volume profile total volume (DEVELOPING) went from 805943.0 to 806881.0.
+      - VALUE_CHANGED /volume_profile/total_volume (before): 805943.0 (/changes/6/before)
+      - VALUE_CHANGED /volume_profile/total_volume (after): 806881.0 (/changes/6/after)
+  [DERIVED_FACT] The TPO value area (DEVELOPING) changed: the low went from 7764.25 to 7763.75 and the high from 7777.25 to 7776.75.
+      - VALUE_CHANGED /tpo/profile/value_area/low (before): 7764.25 (/changes/7/before)
+      - VALUE_CHANGED /tpo/profile/value_area/low (after): 7763.75 (/changes/7/after)
+      - VALUE_CHANGED /tpo/profile/value_area/high (before): 7777.25 (/changes/8/before)
+      - VALUE_CHANGED /tpo/profile/value_area/high (after): 7776.75 (/changes/8/after)
+  [DERIVED_FACT] The relation of the last price to the developing volume value area changed from INSIDE to BELOW.
+      - RELATION_CHANGED /relations/last_price_vs_developing_volume_value_area (before): INSIDE (/changes/9/before)
+      - RELATION_CHANGED /relations/last_price_vs_developing_volume_value_area (after): BELOW (/changes/9/after)
+  [QUALITY_WARNING] Dataset quality is QUALITY_QUALIFIED at both times, with completeness 'COMPLETE / NO KNOWN GAPS' and 0 known gaps.
+      - dataset quality status: QUALITY_QUALIFIED (/dataset_quality/status)
+      - dataset quality status: QUALITY_QUALIFIED (/dataset_quality/status)
+      - dataset completeness: COMPLETE / NO KNOWN GAPS (/dataset_quality/completeness)
+      - known gap count: 0 (/dataset_quality/known_gap_count)
+      - dataset quality status: QUALITY_QUALIFIED (/quality_matrix/0/status)
+      - dataset quality status: QUALITY_QUALIFIED (/quality_matrix/0/status)
+  [QUALITY_WARNING] At lesson time there is no active interruption.
+      - active interruption start (null: no active interruption): None (/dataset_quality/active_interruption)
+  [OBSERVED_FACT] At lesson time, capture status is RUNNING, lifecycle is OPEN_AS_OF and connection is CONNECTED.
+      - capture status: RUNNING (/current_dataset/capture_status)
+      - lifecycle as of: OPEN_AS_OF (/current_dataset/lifecycle_as_of)
+      - connection as of: CONNECTED (/current_dataset/connection_as_of)
+  [AI_INTERPRETATION] The last known price fell by 1.25 (7765.0 to 7763.75), and the new price equals the new TPO value area low.
+      - VALUE_CHANGED /prices/last_known_price (before): 7765.0 (/changes/4/before)
+      - VALUE_CHANGED /prices/last_known_price (after): 7763.75 (/changes/4/after)
+      - VALUE_CHANGED /tpo/profile/value_area/low (after): 7763.75 (/changes/7/after)
+
+NOT SUPPORTED BY THE EVIDENCE
+  [INSUFFICIENT_EVIDENCE] How far the last price is below the developing volume value area, or what the volume value area's boundaries are. (missing: developing volume value area high/low values)
+  [INSUFFICIENT_EVIDENCE] Whether the INSIDE-to-BELOW relation change is a breakout, acceptance or rejection. (missing: Laboratory definitions for breakout, acceptance and rejection)
+
+UNCERTAINTIES
+  - The evidence gives no unit for the max receipt lag value "20.293056".
+  - All study values (both VWAPs, total volume, TPO value area) are DEVELOPING and can change as more records arrive.
+  - The SESSION_OPEN VWAP is QUALITY_QUALIFIED because the OVERNIGHT window was not captured through the clock.
+
+QUALITY WARNINGS PRESERVED  COMPARE_FROM:dataset, LESSON_TIME:dataset
+Validator: PASS (46 refs). AI output is not source truth; interpretations stay interpretations.

@@ -1,0 +1,47 @@
+AI TUTOR  [GROUNDED]  provider claude-code-cli  model claude-opus-5-5  repairs 0
+
+ANSWER
+  No. The Initial Balance is not complete yet. At replay time 2026-09-30T14:15:00Z, the Laboratory's Initial Balance maturity is DEVELOPING.
+
+What the evidence shows right now (all DEVELOPING):
+- Initial Balance high: 7779.50
+- Initial Balance low: 7748.00
+- Initial Balance range: 31.50
+- Last known price vs. Initial Balance: INSIDE
+
+Because the Initial Balance is DEVELOPING, these high, low and range values describe the window only up to this point. They can still change before the Laboratory marks the Initial Balance COMPLETE. The way to tell a developing Initial Balance from a complete one is to read its maturity field, not the price levels.
+
+Data quality: the dataset status is QUALITY_QUALIFIED. The reason given is "OVERNIGHT window not captured through the clock." The dataset also reports completeness "COMPLETE / NO KNOWN GAPS", 0 known gaps and no active interruption. Capture is RUNNING, the dataset is OPEN_AS_OF and the connection is CONNECTED. This evidence does not say when the Initial Balance window ends, so I can't tell you when it will become COMPLETE.
+
+CLAIMS
+  [LABORATORY_POLICY_RESULT] The Laboratory's Initial Balance maturity at this replay time is DEVELOPING, so the Initial Balance is not complete yet.
+      - Initial Balance maturity: DEVELOPING (/maturity/9/maturity)
+  [DERIVED_FACT] The developing Initial Balance high is 7779.50, its low is 7748.00 and its range is 31.50.
+      - Initial Balance high: 7779.50 (/tpo/profile/initial_balance/high)
+      - Initial Balance low: 7748.00 (/tpo/profile/initial_balance/low)
+      - Initial Balance range: 31.50 (/tpo/profile/initial_balance/range)
+  [DERIVED_FACT] The last known price is INSIDE the developing Initial Balance.
+      - last known price vs Initial Balance: INSIDE (/relations/last_price_vs_initial_balance)
+  [AI_INTERPRETATION] Because the maturity is DEVELOPING, the Initial Balance high, low and range describe the window only so far and may still change before it is COMPLETE.
+      - Initial Balance maturity: DEVELOPING (/maturity/9/maturity)
+      - Initial Balance high: 7779.50 (/tpo/profile/initial_balance/high)
+      - Initial Balance low: 7748.00 (/tpo/profile/initial_balance/low)
+  [QUALITY_WARNING] The dataset quality status is QUALITY_QUALIFIED, with completeness COMPLETE / NO KNOWN GAPS and a known gap count of 0.
+      - dataset quality status: QUALITY_QUALIFIED (/quality_matrix/0/status)
+      - dataset quality status: QUALITY_QUALIFIED (/dataset_quality/status)
+      - dataset completeness: COMPLETE / NO KNOWN GAPS (/dataset_quality/completeness)
+      - known gap count: 0 (/dataset_quality/known_gap_count)
+  [OBSERVED_FACT] Capture status is RUNNING, the lifecycle is OPEN_AS_OF and the connection is CONNECTED.
+      - capture status: RUNNING (/current_dataset/capture_status)
+      - lifecycle as of: OPEN_AS_OF (/current_dataset/lifecycle_as_of)
+      - connection as of: CONNECTED (/current_dataset/connection_as_of)
+
+NOT SUPPORTED BY THE EVIDENCE
+  [NOT_YET_DETERMINED] When the Initial Balance will become COMPLETE. (missing: Initial Balance window end time; a later snapshot showing maturity COMPLETE)
+
+UNCERTAINTIES
+  - The Initial Balance is DEVELOPING, so its high, low and range may still change before it is COMPLETE.
+  - The evidence does not give the end time of the Initial Balance window, so when it will become COMPLETE cannot be determined at this stage.
+
+QUALITY WARNINGS PRESERVED  LESSON_TIME:dataset
+Validator: PASS (16 refs). AI output is not source truth; interpretations stay interpretations.

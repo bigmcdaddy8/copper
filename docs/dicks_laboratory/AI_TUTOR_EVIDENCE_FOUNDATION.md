@@ -15,6 +15,7 @@ AI interpretation    != Laboratory evidence
 - **CLI:** `scripts/dicks_lab_tutor_lesson.py`.
 - **Tests:** `apps/dicks_laboratory/tests/test_tutor_evidence.py`.
 - **Real-data proof:** `AI_TUTOR_FOUNDATION_0AAA.md`, `evidence/0AA-A/`.
+- **AI integration (0AA-B):** `AI_TUTOR_INTEGRATION.md`.
 - **Temporal authority:** the accepted replay engine (`MARKET_STUDY_SNAPSHOT_V1`,
   0Z-B) through `ReplaySession` (0Z-C). This layer never computes a cutoff, a
   maturity or a market value; it selects evidence from snapshots the session
@@ -126,6 +127,7 @@ Representative question kinds (a small foundation, not a library):
 | VALUE_OCCUPANCY | EXPLAIN_EVIDENCE | INSUFFICIENT_EVIDENCE (time outside value: NEEDS_IMPLEMENTATION) + the current relation |
 | NOT_YET_DETERMINED_ITEMS | IDENTIFY | every NOT_YET_DETERMINED / NOT_YET_AVAILABLE component |
 | DATA_QUALITY | IDENTIFY | status, completeness, gaps, every quality warning |
+| VWAP_ACCEPTANCE (0AA-B) | EXPLAIN_EVIDENCE | INSUFFICIENT_EVIDENCE (acceptance: NEEDS_POLICY_DEFINITION) + the current VWAP relation |
 
 The `AnswerKey` holds `support` (EvidenceSupport), a summary, expected
 observations with their refs, missing dependencies, a `GradingRubric` and a
@@ -192,6 +194,11 @@ availability fact instead). The dataset warning reaches **every** lesson, even
 one not authorized for DATA_QUALITY. Each warning is itself citable evidence
 (`/quality_matrix/<i>/status`), is part of the rubric's quality caveats, and
 must be acknowledged in every answer.
+
+0AA-B additions: when the capture is not running and the lesson shows prices, a
+`last_known_price` warning (status STALE, citing `/current_dataset/capture_status`)
+states that the last known trade is not at the replay time; a null
+`/dataset_quality/active_interruption` is a citable fact (no active interruption).
 
 ## 10. Curriculum sources and modules
 

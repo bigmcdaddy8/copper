@@ -5311,3 +5311,36 @@ AI MODEL INTEGRATION: NOT YET IMPLEMENTED
 DRYSDALE VWAP MODULE: REGISTERED — DEPENDENCIES NOT YET COMPLETE
 NEXT: PO REVIEW BEFORE FIRST GROUNDED AI TUTOR INTEGRATION
 ```
+
+## MZ. 0AA-B — First Grounded AI Tutor Integration (2026-10-10)
+
+PO record: 0AA-A **PASS / ACCEPTED / CLOSED**; tutor evidence / lesson contract
+accepted; AI model integration ready for a first narrow slice.
+
+What 0AA-B adds (`AI_TUTOR_INTEGRATION.md`):
+- Provider-neutral `TutorModel` boundary; adapters `fake`, `claude-code-cli`
+  (used, with the Human's authorization), `anthropic-messages-api` (implemented,
+  no key configured).
+- Requests built only from `student_view(lesson, stage)`; fixed
+  `TUTOR_SYSTEM_PROMPT_V1`; strict structured output into `TutorAnswer`.
+- The 0AA-A grounding validator plus guards (trade advice, Laboratory
+  vocabulary incl. FINAL, undefined policies, unstated insufficiency); at most
+  one repair; typed failures; AI-disabled deterministic mode; run records; CLI
+  `--ai`.
+- Tutor evidence additions: a STALE last-known-price quality warning when the
+  capture is not running, the VWAP_ACCEPTANCE question kind, and "no active
+  interruption" as a citable fact.
+
+Real-model proof (`AI_TUTOR_INTEGRATION_0AAB.md`, `evidence/0AA-B/`): 7 lessons
+(VWAP, IB 09:15 / 09:30, 12:14 late prints, acceptance, prompt-injection
+fixture, interrupted 08-31). All GROUNDED without repair, hidden outcome absent
+until POST_REVEAL, injected instruction ignored, stale price stated,
+INSUFFICIENT_EVIDENCE for acceptance; about $0.95 in total; database sha256
+unchanged.
+
+```
+0AA-B: PASS — FIRST GROUNDED AI TUTOR INTEGRATION COMPLETE
+AI TUTOR: MODEL-CONNECTED / EVIDENCE-GROUNDED
+DRYSDALE VWAP MODULE: STILL DEFERRED
+NEXT: PO REVIEW BEFORE DRYSDALE DEPENDENCY IMPLEMENTATION / TUTOR CURRICULUM EXPANSION
+```

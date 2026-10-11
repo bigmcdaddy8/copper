@@ -1,0 +1,54 @@
+2026-10-04T18:34:47Z START p_delete250_1x
+2026-10-04T18:51:43Z END p_delete250_1x rc=0
+2026-10-04T18:51:43Z START p_delete_1x
+2026-10-04T19:05:25Z END p_delete_1x rc=0
+2026-10-04T19:05:25Z START p_wal_1x
+2026-10-04T19:18:34Z END p_wal_1x rc=0
+2026-10-04T19:18:34Z START p_delete_1_5x
+2026-10-04T19:25:10Z END p_delete_1_5x rc=0
+2026-10-04T19:25:10Z START p_wal_1_5x
+2026-10-04T19:28:26Z STOPPED: writer code changed mid-campaign; p_wal_1_5x+ discarded, WAL runs redone on final code
+2026-10-04T19:29:51Z CAMPAIGN2 code: 34d19af46157 0e68c8a8a408 766246df9f87 
+2026-10-04T19:29:51Z START p_wal_1x
+2026-10-04T19:41:16Z STOPPED campaign2: benchmark did not charge aborted-checkpoint IO; fixing + relaunch
+2026-10-04T19:42:44Z CAMPAIGN3 code: 2120c833eb2d 0e68c8a8a408 1ad3c71ca41f 
+2026-10-04T19:42:44Z START p_wal_1x
+2026-10-04T19:56:15Z END p_wal_1x rc=0
+2026-10-04T19:56:15Z START p_wal_1_5x
+2026-10-04T19:58:14Z STOPPED campaign3 after p_wal_1x: forced checkpoint fired mid-burst; WAL design revision
+2026-10-04T20:29:28Z CAMPAIGN4 code: 9c50a4c54bf3 4da3eea53a50 d43d9220e784 773ffe7fa3c2 
+2026-10-04T20:29:28Z START p_wal_1x
+2026-10-04T20:39:45Z END p_wal_1x rc=0
+2026-10-04T20:39:45Z START p_wal_1_5x
+2026-10-04T20:42:12Z END p_wal_1_5x rc=1
+2026-10-04T20:42:12Z START p_wal_2x
+2026-10-04T20:44:27Z END p_wal_2x rc=1
+2026-10-04T20:44:27Z START p_wal_1x_harsh
+2026-10-04T20:54:37Z END p_wal_1x_harsh rc=0
+2026-10-04T20:54:37Z START p_wal_2x_harsh
+2026-10-04T21:05:06Z END p_wal_2x_harsh rc=0
+2026-10-04T21:05:06Z START p_delete_1_5x
+2026-10-04T21:08:35Z END p_delete_1_5x rc=1
+2026-10-04T21:08:35Z START p_delete_2x
+2026-10-04T21:11:49Z END p_delete_2x rc=1
+2026-10-04T21:11:49Z START h_delete_2x_1100iops
+2026-10-04T21:15:18Z END h_delete_2x_1100iops rc=1
+2026-10-04T21:15:18Z START h_delete_2x_3500iops
+2026-10-04T21:25:44Z END h_delete_2x_3500iops rc=0
+2026-10-04T21:25:44Z START l_wal
+2026-10-04T21:30:37Z END l_wal rc=0
+2026-10-04T21:30:37Z START l_delete
+2026-10-04T21:36:03Z END l_delete rc=0
+2026-10-04T21:36:03Z CAMPAIGN4_DONE
+2026-10-04T21:36:58Z CAMPAIGN5 (reruns after benchmark-only fixes: synthetic index overflow, overload recording) code: 9c50a4c54bf3 4da3eea53a50 d43d9220e784 06817cb2cf8a 
+2026-10-04T21:36:58Z START p_wal_1_5x
+2026-10-04T21:47:07Z END p_wal_1_5x rc=0
+2026-10-04T21:47:07Z START p_wal_2x
+2026-10-04T21:57:38Z END p_wal_2x rc=0
+2026-10-04T21:57:38Z START p_delete_1_5x
+2026-10-04T22:03:58Z END p_delete_1_5x rc=0
+2026-10-04T22:03:58Z START p_delete_2x
+2026-10-04T22:09:49Z END p_delete_2x rc=0
+2026-10-04T22:09:49Z START h_delete_2x_1100iops
+2026-10-04T22:15:08Z END h_delete_2x_1100iops rc=0
+2026-10-04T22:15:08Z CAMPAIGN5_DONE

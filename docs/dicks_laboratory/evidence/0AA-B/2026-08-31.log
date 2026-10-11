@@ -1,0 +1,11 @@
+[2026-08-31] prepare session (replay layer): 19.7s
+[2026-08-31] provider claude-code-cli parameters {"model": "claude-opus-5-5", "session_persistence": false, "setting_sources": "none", "structured_output": "--json-schema", "temperature": "not exposed", "timeout_s": 300.0, "tools": "none"}
+[2026-08-31] vwap_1000_stale: LAB-PRICE_VS_CASH_VWAP-2026-08-31-100000
+    request vwap_1000_stale QUESTION: 23,468 bytes sha 7a6babded1a5b8dd; answer key False; hints False; future n/a; secret-like/forbidden []
+    request vwap_1000_stale HINT: 23,563 bytes sha f14666902ba2b71b; answer key False; hints True; future n/a; secret-like/forbidden []
+    request vwap_1000_stale ANSWER: 30,785 bytes sha 03efd84ce8ce9ed4; answer key True; hints True; future n/a; secret-like/forbidden []
+    request vwap_1000_stale POST_REVEAL: 30,795 bytes sha 8595f2edf0b1e515; answer key True; hints True; future n/a; secret-like/forbidden []
+    attempt 0: GROUNDED latency 26.085s in 23,468 B out 6247 B tokens in/out 15105/3283 cost $0.15100979999999997
+    RESULT GROUNDED repairs 0; claims ['DERIVED_FACT', 'OBSERVED_FACT', 'DERIVED_FACT', 'DERIVED_FACT', 'OBSERVED_FACT', 'QUALITY_WARNING', 'QUALITY_WARNING']; refs ['/current_dataset/capture_status', '/current_dataset/lifecycle_as_of', '/dataset_quality/completeness', '/dataset_quality/known_gap_count', '/dataset_quality/status', '/prices/last_known_price', '/prices/last_known_utc', '/quality_matrix/3/status', '/relations/last_price_vs_cash_vwap', '/relations/last_price_vs_globex_vwap', '/vwap/0/study/vwap', '/vwap/1/study/vwap']
+    unsupported [('INSUFFICIENT_EVIDENCE', 'Where price was relative to the cash VWAP exactly at the replay time 2026-08-31T15:00:00Z.')]
+    warnings preserved ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'LESSON_TIME:vwap US_CASH_OPEN', 'LESSON_TIME:last_known_price']; key SUPPORTED 'BELOW'

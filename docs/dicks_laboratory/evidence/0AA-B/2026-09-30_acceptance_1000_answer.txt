@@ -1,0 +1,61 @@
+AI TUTOR  [GROUNDED]  provider claude-code-cli  model claude-opus-5-5  repairs 0
+
+ANSWER
+  The evidence can't answer whether price is "accepting" above the cash VWAP. The Laboratory has no definition of acceptance, so it can't be confirmed or ruled out here. Not having the evidence doesn't make the idea false. It just can't be checked with what this lesson provides.
+
+What the evidence does define is where price sits relative to the VWAP at replay time 2026-09-30T15:00:00Z:
+- The last known price is 7772.75, recorded at 2026-09-30T14:59:59.450000Z.
+- The US_CASH_OPEN VWAP (the VWAP measured from the US cash open) is 7766.198291778435143398861487. Its maturity is DEVELOPING, so the window is still in progress and the value can change.
+- The Laboratory's relation "last known price vs US_CASH_OPEN VWAP" is ABOVE, and it is also DEVELOPING.
+
+This is the lesson's main point. "Price is ABOVE the cash VWAP at this moment" is a defined, derived fact. "Price is accepting above the cash VWAP" is an undefined concept. The first is a snapshot at one moment. It says nothing about how long price stayed above, how it got there, or what happens next.
+
+For context, the SESSION_OPEN VWAP (measured from the session open) is 7758.596957663784478780620234, and the last price is ABOVE it too. Both of those items are QUALITY_QUALIFIED because capture began 0:00:00.000363 after the window started.
+
+Quality caveats:
+- The dataset as a whole is QUALITY_QUALIFIED because the OVERNIGHT window was not captured through the clock.
+- Completeness reads "COMPLETE / NO KNOWN GAPS", with a known gap count of 0 and no active interruption.
+- Capture is still RUNNING (the lifecycle reads OPEN_AS_OF), so everything above is as-of evidence and may change later in the session.
+
+CLAIMS
+  [OBSERVED_FACT] The last known price is 7772.75.
+      - last known price: 7772.75 (/prices/last_known_price)
+  [OBSERVED_FACT] The last known price was recorded at 2026-09-30T14:59:59.450000Z.
+      - last known price time: 2026-09-30T14:59:59.450000Z (/prices/last_known_utc)
+  [DERIVED_FACT] The US_CASH_OPEN VWAP is 7766.198291778435143398861487, and it is DEVELOPING.
+      - US_CASH_OPEN VWAP: 7766.198291778435143398861487 (/vwap/1/study/vwap)
+  [DERIVED_FACT] The last known price is ABOVE the US_CASH_OPEN VWAP, and this relation is DEVELOPING.
+      - last known price vs US_CASH_OPEN VWAP: ABOVE (/relations/last_price_vs_cash_vwap)
+  [DERIVED_FACT] The SESSION_OPEN VWAP is 7758.596957663784478780620234 (DEVELOPING, QUALITY_QUALIFIED).
+      - SESSION_OPEN VWAP: 7758.596957663784478780620234 (/vwap/0/study/vwap)
+  [DERIVED_FACT] The last known price is ABOVE the SESSION_OPEN VWAP (DEVELOPING, QUALITY_QUALIFIED).
+      - last known price vs SESSION_OPEN VWAP: ABOVE (/relations/last_price_vs_globex_vwap)
+  [QUALITY_WARNING] The dataset quality status is QUALITY_QUALIFIED.
+      - dataset quality status: QUALITY_QUALIFIED (/dataset_quality/status)
+      - dataset quality status: QUALITY_QUALIFIED (/quality_matrix/0/status)
+  [QUALITY_WARNING] Dataset completeness is COMPLETE / NO KNOWN GAPS, with a known gap count of 0 and no active interruption.
+      - dataset completeness: COMPLETE / NO KNOWN GAPS (/dataset_quality/completeness)
+      - known gap count: 0 (/dataset_quality/known_gap_count)
+      - active interruption start (null: no active interruption): None (/dataset_quality/active_interruption)
+  [QUALITY_WARNING] The SESSION_OPEN VWAP quality status is QUALITY_QUALIFIED.
+      - vwap SESSION_OPEN quality status: QUALITY_QUALIFIED (/quality_matrix/2/status)
+  [OBSERVED_FACT] Capture is RUNNING, the lifecycle is OPEN_AS_OF and the connection is CONNECTED.
+      - capture status: RUNNING (/current_dataset/capture_status)
+      - lifecycle as of: OPEN_AS_OF (/current_dataset/lifecycle_as_of)
+      - connection as of: CONNECTED (/current_dataset/connection_as_of)
+  [AI_INTERPRETATION] The ABOVE relation describes where price sits relative to the cash VWAP at one moment. It does not describe how long price has held there or what comes next, and because both inputs are DEVELOPING it can change.
+      - last known price vs US_CASH_OPEN VWAP: ABOVE (/relations/last_price_vs_cash_vwap)
+      - US_CASH_OPEN VWAP: 7766.198291778435143398861487 (/vwap/1/study/vwap)
+      - last known price: 7772.75 (/prices/last_known_price)
+
+NOT SUPPORTED BY THE EVIDENCE
+  [INSUFFICIENT_EVIDENCE] Price is accepting above the cash (US_CASH_OPEN) VWAP. (missing: A Laboratory definition and policy for acceptance; Evidence of how long or how price stayed relative to the cash VWAP (time-series or duration evidence))
+  [INSUFFICIENT_EVIDENCE] Price is rejecting the cash (US_CASH_OPEN) VWAP. (missing: A Laboratory definition and policy for rejection)
+
+UNCERTAINTIES
+  - The VWAP component in the policy registry has a null policy_id and policy_version, so this view doesn't identify the exact VWAP policy used.
+  - Both VWAPs and their price relations are DEVELOPING, so they reflect conditions only as of 2026-09-30T15:00:00Z and may change as the session continues.
+  - The evidence is a single snapshot. It contains no history of how price moved relative to the cash VWAP before this moment.
+
+QUALITY WARNINGS PRESERVED  LESSON_TIME:dataset, LESSON_TIME:vwap SESSION_OPEN
+Validator: PASS (20 refs). AI output is not source truth; interpretations stay interpretations.
