@@ -138,6 +138,7 @@ class QuestionKind(StrEnum):
     EVIDENCE_CHANGES = "EVIDENCE_CHANGES"
     VALUE_MIGRATION = "VALUE_MIGRATION"
     VALUE_OCCUPANCY = "VALUE_OCCUPANCY"
+    VWAP_ACCEPTANCE = "VWAP_ACCEPTANCE"  # 0AA-B: a question the Laboratory deliberately cannot answer
     NOT_YET_DETERMINED_ITEMS = "NOT_YET_DETERMINED_ITEMS"
     DATA_QUALITY = "DATA_QUALITY"
 
@@ -453,12 +454,12 @@ def _snapshot_items(doc: dict, sha: str, domains: frozenset[EvidenceDomain]) -> 
     qual = {q["component"]: q["status"] for q in doc["quality_matrix"]}
     out: list[EvidenceItem] = []
 
-    def add(domain, label, pointer, category, maturity_of=None, status_of=None, derived=()):
+    def add(domain, label, pointer, category, maturity_of=None, status_of=None, derived=(), null_is_fact=False):
         if domain not in domains or any(i.ref.pointer == pointer for i in out):
             return  # one item per path (an absent parent object is reported once)
         value = _scalar(resolve_pointer(doc, pointer))
         maturity = mat[maturity_of][1] if maturity_of in mat else None
-        availability = (Availability.AVAILABLE if value is not None
+        availability = (Availability.AVAILABLE if value is not None or null_is_fact
                         else _NOT_YET.get(maturity, Availability.NOT_AVAILABLE))
         out.append(EvidenceItem(EvidenceRef(sha, pointer), domain, label, value, category, availability, maturity,
                                 qual.get(status_of) if status_of else None, tuple(derived)))
@@ -470,7 +471,8 @@ def _snapshot_items(doc: dict, sha: str, domains: frozenset[EvidenceDomain]) -> 
     add(E.DATA_QUALITY, "dataset quality status", "/dataset_quality/status", _Q, None, "dataset")
     add(E.DATA_QUALITY, "dataset completeness", "/dataset_quality/completeness", _Q, None, "dataset")
     add(E.DATA_QUALITY, "known gap count", "/dataset_quality/known_gap_count", _Q, None, "dataset")
-    add(E.DATA_QUALITY, "active interruption start", opt("/dataset_quality/active_interruption", "start_utc"), _Q)
+    add(E.DATA_QUALITY, "active interruption start (null: no active interruption)",
+        opt("/dataset_quality/active_interruption", "start_utc"), _Q, null_is_fact=True)  # 0AA-B
     for i, _ in enumerate(doc["dataset_quality"]["gaps"]):
         for leaf in ("evidence_type", "start_utc", "end_utc"):
             add(E.DATA_QUALITY, f"known gap {i + 1} {leaf}", f"/dataset_quality/gaps/{i}/{leaf}", _Q)
@@ -572,6 +574,12 @@ def _quality_warnings(doc: dict, sha: str, role: SourceRole,
                 domain is EvidenceDomain.TPO and EvidenceDomain.INITIAL_BALANCE in domains):
             out.append(QualityWarning(f"{role.value}:{q['component']}", q["component"], q["status"],
                                       tuple(q["reasons"]), EvidenceRef(sha, f"/quality_matrix/{i}/status")))
+    capture, last = doc["current_dataset"]["capture_status"], doc["prices"]["last_known_utc"]
+    if EvidenceDomain.PRICE in domains and capture != "RUNNING" and last is not None:  # 0AA-B
+        out.append(QualityWarning(f"{role.value}:last_known_price", "last_known_price", "STALE",
+                                  (f"capture {capture} (ended {doc['current_dataset']['capture_ended_at']}); the last "
+                                   f"known trade is at {last}, not at the replay time",),
+                                  EvidenceRef(sha, "/current_dataset/capture_status")))
     return tuple(out)
 
 
@@ -579,9 +587,11 @@ def _snapshot_evidence(s: MarketStudySnapshot, role: SourceRole,
                        domains: frozenset[EvidenceDomain]) -> tuple[SnapshotEvidence, dict]:
     doc, sha = snapshot_document(s), snapshot_sha256(s)
     items, warnings = _snapshot_items(doc, sha, domains), _quality_warnings(doc, sha, role, domains)
+    cited = {i.ref for i in items}
     items += tuple(EvidenceItem(w.ref, _DOMAIN_OF_COMPONENT.get(w.component, EvidenceDomain.DATA_QUALITY),
-                                f"{w.component} quality status", w.status, _Q, Availability.AVAILABLE, None, w.status)
-                   for w in warnings)  # a warning is itself citable evidence
+                                f"{w.component} quality status", resolve_pointer(doc, w.ref.pointer), _Q,
+                                Availability.AVAILABLE, None, w.status)
+                   for w in warnings if w.ref not in cited)  # a warning is itself citable evidence
     return SnapshotEvidence(role, sha, s.cutoff.market_time_cutoff_utc, s.cutoff.knowledge_time_cutoff_utc, AS_OF,
                             items, warnings), doc
 
@@ -632,6 +642,7 @@ QUESTION_SPECS = {s.kind: s for s in (
     QuestionSpec(QuestionKind.EVIDENCE_CHANGES, (EvidenceDomain.CHANGES,), True, False),
     QuestionSpec(QuestionKind.VALUE_MIGRATION, (EvidenceDomain.VOLUME_PROFILE, EvidenceDomain.TPO), True, True),
     QuestionSpec(QuestionKind.VALUE_OCCUPANCY, (EvidenceDomain.PRICE, EvidenceDomain.VOLUME_PROFILE), False, True),
+    QuestionSpec(QuestionKind.VWAP_ACCEPTANCE, (EvidenceDomain.PRICE, EvidenceDomain.VWAP), False, False),
     QuestionSpec(QuestionKind.NOT_YET_DETERMINED_ITEMS, (EvidenceDomain.MATURITY,), False, False),
     QuestionSpec(QuestionKind.DATA_QUALITY, (EvidenceDomain.DATA_QUALITY,), False, False),
 )}
@@ -901,6 +912,17 @@ def _key_for(kind: QuestionKind, snap: SnapshotEvidence, earlier: SnapshotEviden
             return EvidenceSupport.INSUFFICIENT_EVIDENCE, None, (), ("developing value at both times",), tuple(wrong)
         summary = moved[0] if len(set(moved)) == 1 else "MIXED"
         return EvidenceSupport.SUPPORTED, summary, tuple(obs), missing, tuple(wrong)
+    if kind is QuestionKind.VWAP_ACCEPTANCE:
+        rel = _find(items, "/relations/last_price_vs_cash_vwap")
+        if rel.value is not None:
+            obs.append(_obs("CURRENT_RELATION", f"The last known price is {rel.value} the cash VWAP.", _D, [rel],
+                            rel.value))
+        wrong.append(IncorrectClaim("ACCEPTANCE", "Price is accepting above (or below) the cash VWAP.",
+                                    EvidenceSupport.INSUFFICIENT_EVIDENCE,
+                                    "acceptance has no deterministic definition (NEEDS_POLICY_DEFINITION); being "
+                                    "above or below VWAP at one instant is not acceptance"))
+        return (EvidenceSupport.INSUFFICIENT_EVIDENCE, None, tuple(obs), ("acceptance (NEEDS_POLICY_DEFINITION)",),
+                tuple(wrong))
     if kind is QuestionKind.VALUE_OCCUPANCY:
         rel = _find(items, "/relations/last_price_vs_developing_volume_value_area")
         if rel.value is not None:
@@ -1275,6 +1297,12 @@ _EXAMPLES = {
         (EvidenceDomain.DATA_QUALITY, EvidenceDomain.PRICE, EvidenceDomain.VOLUME_PROFILE),
         LABORATORY_PROFILE_70.convention_id,
         ("What does the current relation show?", "Is there evidence about the path since the open?")),
+    QuestionKind.VWAP_ACCEPTANCE: (
+        LessonMode.EXPLAIN_EVIDENCE, "Acceptance and the cash VWAP",
+        "Separate a defined fact (price relative to VWAP) from an undefined concept (acceptance).",
+        "Is price accepting above the cash VWAP?",
+        (EvidenceDomain.DATA_QUALITY, EvidenceDomain.PRICE, EvidenceDomain.VWAP), None,
+        ("What does the evidence define about price and VWAP?", "Is acceptance defined anywhere in the evidence?")),
     QuestionKind.NOT_YET_DETERMINED_ITEMS: (
         LessonMode.IDENTIFY, "What is not yet determined",
         "Identify evidence that does not exist yet at the replay time.",

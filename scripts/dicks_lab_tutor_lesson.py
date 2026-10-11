@@ -10,6 +10,10 @@ prints the question, the authorized AS_OF evidence and the names of withheld mat
   --reveal-at T2    hidden future outcome (instructor-only until --stage POST_REVEAL)
   --stage S         QUESTION (default), HINT, ANSWER, POST_REVEAL (student view)
   --json            canonical payload JSON
+  --ai              ask a model (0AA-B): its answer, the validator result and the deterministic answer key
+  --ai-provider P   claude-cli (default; the local Claude Code login), anthropic-api (ANTHROPIC_API_KEY), or
+                    fake (offline: replays the deterministic reference answer through the same pipeline)
+  --record-out F    write the run record JSON (no credentials, no instructor payload)
 """
 from __future__ import annotations
 
@@ -23,6 +27,15 @@ from dicks_laboratory.analysis import LaboratoryAnalysisError
 from dicks_laboratory.market_study_state import AnalysisProvenance
 from dicks_laboratory.replay import MarketReplay
 from dicks_laboratory.replay_player import ReplaySession
+from dicks_laboratory.tutor_ai import (
+    AnthropicMessagesModel,
+    ClaudeCliModel,
+    FakeTutorModel,
+    answer_to_model_json,
+    render_result,
+    run_record,
+    run_tutor,
+)
 from dicks_laboratory.tutor_evidence import (
     LessonStage,
     QuestionKind,
@@ -35,7 +48,7 @@ from dicks_laboratory.tutor_evidence import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-LESSONS = {"vwap": QuestionKind.PRICE_VS_CASH_VWAP, "ib": QuestionKind.INITIAL_BALANCE_STATUS,
+LESSONS = {"vwap": QuestionKind.PRICE_VS_CASH_VWAP, "acceptance": QuestionKind.VWAP_ACCEPTANCE, "ib": QuestionKind.INITIAL_BALANCE_STATUS,
            "changes": QuestionKind.EVIDENCE_CHANGES, "value-migration": QuestionKind.VALUE_MIGRATION,
            "occupancy": QuestionKind.VALUE_OCCUPANCY, "not-yet": QuestionKind.NOT_YET_DETERMINED_ITEMS,
            "quality": QuestionKind.DATA_QUALITY}
@@ -67,6 +80,10 @@ def main(
     json_output: bool = typer.Option(False, "--json", help="Canonical payload JSON."),
     closures: list[str] = typer.Option([], "--closure", help="YYYY-MM-DD full CME closure (repeatable)."),
     analysis_commit: str | None = typer.Option(None, "--analysis-commit", help="Explicit analysis git commit."),
+    ai: bool = typer.Option(False, "--ai", help="Ask a model; show the validator result and the answer key."),
+    ai_provider: str = typer.Option("claude-cli", "--ai-provider", help="claude-cli, anthropic-api or fake."),
+    ai_model: str = typer.Option("claude-opus-5-5", "--ai-model", help="Model name for the provider."),
+    record_out: Path | None = typer.Option(None, "--record-out", help="Write the AI run record JSON here."),
 ) -> None:
     if lesson not in LESSONS:
         raise typer.BadParameter(f"--lesson must be one of {', '.join(LESSONS)}")
@@ -86,7 +103,34 @@ def main(
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
     payload = instructor_view(built) if instructor else student_view(built, lesson_stage)
-    typer.echo(canonical_json(payload) if json_output else render_view(payload), nl=json_output)
+    if not ai:
+        typer.echo(canonical_json(payload) if json_output else render_view(payload), nl=json_output)
+        return
+    if ai_provider == "fake":
+        model = FakeTutorModel([answer_to_model_json(built.answer_key.reference_answer, built)], "reference-answer")
+    elif ai_provider == "claude-cli":
+        model = ClaudeCliModel(ai_model)
+    elif ai_provider == "anthropic-api":
+        model = AnthropicMessagesModel(ai_model)
+    else:
+        raise typer.BadParameter("--ai-provider must be claude-cli, anthropic-api or fake")
+    result = run_tutor(built, lesson_stage, model)
+    record = run_record(result)
+    if record_out is not None:
+        record_out.write_text(canonical_json(record) + "\n")
+    if json_output:
+        typer.echo(canonical_json(record))
+        return
+    typer.echo(render_view(student_view(built, lesson_stage)), nl=False)
+    typer.echo("")
+    typer.echo(render_result(result, built), nl=False)
+    key = built.answer_key
+    typer.echo("")
+    typer.echo(f"DETERMINISTIC ANSWER KEY  {key.support.value}: {key.summary}")
+    for o in key.observations:
+        typer.echo(f"  [{o.observation_id}] {o.statement}")
+    for c in key.rubric.common_incorrect_claims:
+        typer.echo(f"  not supported [{c.claim_id}] {c.statement} -> {c.support.value}")
 
 
 if __name__ == "__main__":
