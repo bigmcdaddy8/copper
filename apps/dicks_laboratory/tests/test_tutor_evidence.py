@@ -354,12 +354,11 @@ def test_drysdale_is_registered_but_not_executable(session):
     assert [t.title for t in DRYSDALE_MODULE.topics] == ["Price Discovery Continuation", "Fade Value Area Extremes",
                                                         "Return to Value", "VWAP Bounce"]
     by = {s: [d.dependency for d in DRYSDALE_MODULE.dependencies if d.status is s] for s in DependencyStatus}
-    assert len(by[DependencyStatus.FACT_AVAILABLE_NOW]) == 8
-    assert by[DependencyStatus.NEEDS_POLICY_DEFINITION] == ["VWAP deviation bands", "breakout", "acceptance",
-                                                            "backtest / retest", "first sign of strength",
+    assert len(by[DependencyStatus.FACT_AVAILABLE_NOW]) == 13  # 0AB-A: bands, crossings, time outside, bars, ATR
+    assert by[DependencyStatus.NEEDS_POLICY_DEFINITION] == ["VWAP value area (which band pair)", "breakout",
+                                                            "acceptance", "backtest / retest", "first sign of strength",
                                                             "first sign of weakness", "rejection"]
-    assert by[DependencyStatus.NEEDS_IMPLEMENTATION] == ["VWAP crossing path", "time outside value",
-                                                         "5-minute price-action facts", "volatility measure such as ATR"]
+    assert by[DependencyStatus.NEEDS_IMPLEMENTATION] == []
     source = next(s for s in CURRICULUM_SOURCES if s.source_id == DRYSDALE_MODULE.source_id)
     assert source.origin == "Chris Drysdale" and not source.redistributable_in_repository
     with pytest.raises(CurriculumNotReady, match="acceptance"):

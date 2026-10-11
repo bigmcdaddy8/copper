@@ -29,6 +29,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from dicks_laboratory import market_study_state as mss
+from dicks_laboratory.price_action import build_price_action_facts, price_action_sha256
 from dicks_laboratory.replay import MarketStudySnapshot, Maturity, snapshot_sha256
 from dicks_laboratory.replay_player import (
     CT,
@@ -81,6 +82,10 @@ class EvidenceDomain(StrEnum):
     DAY_TYPE = "DAY_TYPE"
     MATURITY = "MATURITY"
     CHANGES = "CHANGES"  # MARKET_STUDY_DELTA_V1 between two lesson snapshots
+    VWAP_BANDS = "VWAP_BANDS"  # 0AB-A (PRICE_ACTION_FACTS_V1): VWAP_BANDS_V1 bands, zones, time outside
+    REFERENCE_PATHS = "REFERENCE_PATHS"  # crossings / excursions vs VWAP, bands and static references
+    PRICE_ACTION_BARS = "PRICE_ACTION_BARS"  # 5-minute bars (the most recent ones)
+    VOLATILITY = "VOLATILITY"  # ATR_5M_V1
 
 
 class Availability(StrEnum):
@@ -130,6 +135,7 @@ class SourceRole(StrEnum):
     COMPARE_FROM = "COMPARE_FROM"  # the earlier snapshot of a comparison lesson
     FUTURE_OUTCOME = "FUTURE_OUTCOME"  # instructor-only until POST_REVEAL
     DELTA = "DELTA"
+    PRICE_ACTION = "PRICE_ACTION"  # 0AB-A: PRICE_ACTION_FACTS_V1 at the lesson time
 
 
 class QuestionKind(StrEnum):
@@ -258,17 +264,32 @@ DRYSDALE_DEPENDENCIES = (
     CurriculumDependency("developing value migration", _A, "two snapshots + MARKET_STUDY_DELTA_V1",
                          "any threshold is a playbook policy"),
     CurriculumDependency("replay free of hindsight", _A, "MARKET_STUDY_SNAPSHOT_V1 cutoffs (0Z-B)"),
-    CurriculumDependency("VWAP deviation bands", _P, None, "formula, multiplier(s), anchor, session; CFG-07 deferred"),
-    CurriculumDependency("breakout", _P, None),
-    CurriculumDependency("acceptance", _P, None, "the guide offers time or distance; no definition is invented"),
-    CurriculumDependency("backtest / retest", _P, None),
-    CurriculumDependency("first sign of strength", _P, None),
-    CurriculumDependency("first sign of weakness", _P, None),
-    CurriculumDependency("rejection", _P, None),
-    CurriculumDependency("VWAP crossing path", _I, None, "path facts exist for the opening only (0Y-G)"),
-    CurriculumDependency("time outside value", _I, None),
-    CurriculumDependency("5-minute price-action facts", _I, None, "TPO periods are 30-minute high / low only"),
-    CurriculumDependency("volatility measure such as ATR", _I, None, "ATR(13) is a playbook setting (CFG-06)"),
+    # 0AB-A: implemented as Laboratory facts / policies (PRICE_ACTION_FACTS_V1)
+    CurriculumDependency("VWAP deviation bands", _A, "PRICE_ACTION_FACTS_V1 /bands (VWAP_BANDS_V1)",
+                         "Laboratory policy: volume-weighted sigma about the cash VWAP, k = 1, 2; the guide states no "
+                         "formula or multiplier"),
+    CurriculumDependency("VWAP crossing path", _A, "PRICE_ACTION_FACTS_V1 /references (REFERENCE_PATH_V1)"),
+    CurriculumDependency("time outside value", _A, "PRICE_ACTION_FACTS_V1 /occupancy",
+                         "time outside the VWAP_BANDS_V1 bands per multiplier; which band is the guide's 'VWAP value "
+                         "area' is a separate open policy"),
+    CurriculumDependency("5-minute price-action facts", _A, "PRICE_ACTION_FACTS_V1 /rth_bars (BARS_5M_V1)"),
+    CurriculumDependency("volatility measure such as ATR", _A, "PRICE_ACTION_FACTS_V1 /atr (ATR_5M_V1)",
+                         "ATR(13) Wilder on full-session 5m bars of the trading date; the guide names no measure"),
+    # still policy decisions; their measurable dimensions now exist (references, episodes, bars, occupancy)
+    CurriculumDependency("VWAP value area (which band pair)", _P, None,
+                         "the guide's 'VWAP value area' / 'value band' is not mapped to a VWAP_BANDS_V1 multiplier"),
+    CurriculumDependency("breakout", _P, "dimensions: /references episodes (first cross, first close beyond, "
+                         "excursion, time beyond, return)"),
+    CurriculumDependency("acceptance", _P, "dimensions: time beyond, closes / consecutive closes beyond, volume "
+                         "beyond, adverse return, cross count", "the guide offers time or distance; no threshold"),
+    CurriculumDependency("backtest / retest", _P, "dimensions: touched again, closest approach after peak, "
+                         "excursion after touch"),
+    CurriculumDependency("first sign of strength", _P, "dimensions: 5m bar facts and relations",
+                         "qualitative in the guide"),
+    CurriculumDependency("first sign of weakness", _P, "dimensions: 5m bar facts and relations",
+                         "qualitative in the guide"),
+    CurriculumDependency("rejection", _P, "dimensions: touch / cross, max excursion through, time beyond, return, "
+                         "excursion after return"),
 )
 LAB_MODULE = CurriculumModule(
     "LAB_EVIDENCE_READING_V1", "DICKS_LAB_EVIDENCE", "Reading Laboratory evidence as of a replay time",
@@ -581,6 +602,90 @@ def _quality_warnings(doc: dict, sha: str, role: SourceRole,
                                    f"known trade is at {last}, not at the replay time",),
                                   EvidenceRef(sha, "/current_dataset/capture_status")))
     return tuple(out)
+
+
+PRICE_ACTION_DOMAINS = frozenset({EvidenceDomain.VWAP_BANDS, EvidenceDomain.REFERENCE_PATHS,
+                                  EvidenceDomain.PRICE_ACTION_BARS, EvidenceDomain.VOLATILITY})
+RECENT_BARS = 6
+
+
+def _price_action_evidence(session: ReplaySession, snap: MarketStudySnapshot,
+                           domains: frozenset[EvidenceDomain]) -> tuple[SnapshotEvidence, dict]:
+    """PRICE_ACTION_FACTS_V1 for the lesson-time snapshot (same cutoff), as citable items."""
+    facts = build_price_action_facts(session.replay.current, snap)
+    doc, sha = mss.encode(facts), price_action_sha256(facts)
+    out: list[EvidenceItem] = []
+    E = EvidenceDomain
+
+    def add(domain, label, pointer, category, maturity=None):
+        if domain not in domains:
+            return
+        value = _scalar(resolve_pointer(doc, pointer))
+        availability = (Availability.AVAILABLE if value is not None else
+                        Availability.NOT_YET_AVAILABLE if maturity == Maturity.NOT_YET_AVAILABLE.value
+                        else Availability.NOT_AVAILABLE)
+        out.append(EvidenceItem(EvidenceRef(sha, pointer), domain, label, value, category, availability, maturity,
+                                doc["status"]))
+
+    bm = doc["bands"]["maturity"]
+    add(E.VWAP_BANDS, "VWAP_BANDS_V1 maturity", "/bands/maturity", _R, bm)
+    add(E.VWAP_BANDS, "cash VWAP (VWAP_BANDS_V1)", "/bands/vwap", _D, bm)
+    add(E.VWAP_BANDS, "VWAP sigma (volume-weighted)", "/bands/sigma", _D, bm)
+    add(E.VWAP_BANDS, "bands have zero width", "/bands/zero_width", _D, bm)
+    for i, b in enumerate(doc["bands"]["bands"]):
+        k = b["multiplier"]
+        add(E.VWAP_BANDS, f"VWAP +{k} sigma upper band", f"/bands/bands/{i}/upper", _D, bm)
+        add(E.VWAP_BANDS, f"VWAP -{k} sigma lower band", f"/bands/bands/{i}/lower", _D, bm)
+    for i, z in enumerate(doc["bands"]["last_price_zones"]):
+        add(E.VWAP_BANDS, f"last known price zone vs the {z[0]} sigma bands", f"/bands/last_price_zones/{i}/1", _D, bm)
+    for i, o in enumerate(doc["occupancy"]):
+        k = o["multiplier"]
+        for leaf, label in (("observed", "observed time (s)"), ("outside_above", "time above the upper band (s)"),
+                            ("outside_below", "time below the lower band (s)"),
+                            ("outside_total", "time outside the bands (s)"),
+                            ("fraction_outside_total", "fraction of observed time outside the bands")):
+            add(E.VWAP_BANDS, f"{k} sigma bands: {label}", f"/occupancy/{i}/{leaf}", _D, bm)
+    for i, r in enumerate(doc["references"]):
+        name, m = r["reference"], r["maturity"]
+        for leaf, label in (("level_at_clock", "level"), ("side_at_clock", "side of the last trade"),
+                            ("cross_count", "cross count"), ("first_touch_utc", "first touch"),
+                            ("first_cross/utc", "first cross time"), ("first_cross/direction", "first cross direction"),
+                            ("last_cross/utc", "last cross time"), ("last_cross/direction", "last cross direction"),
+                            ("seconds_since_last_cross", "time since the last cross (s)"),
+                            ("first_close_beyond_utc", "first 5m close beyond (vs initial side)")):
+            ptr = f"/references/{i}/{leaf}"
+            if "/" in leaf and r[leaf.split("/")[0]] is None:
+                ptr = f"/references/{i}/{leaf.split('/')[0]}"
+            add(E.REFERENCE_PATHS, f"{name} {label}", ptr, _D, m)
+        if r["latest_episode"] is not None:
+            for leaf in ("direction", "start_utc", "max_excursion_points", "seconds_beyond", "bars_closing_beyond",
+                         "max_consecutive_closes_beyond", "volume_beyond", "closest_approach_after_peak_points",
+                         "touched_again_utc", "returned_utc"):
+                add(E.REFERENCE_PATHS, f"{name} latest episode {leaf}", f"/references/{i}/latest_episode/{leaf}",
+                    _D, m)
+    bars = doc["rth_bars"]
+    for i in range(max(0, len(bars) - RECENT_BARS), len(bars)):
+        b = bars[i]
+        tag = f"5m bar {b['start_utc'][11:16]}Z"
+        add(E.PRICE_ACTION_BARS, f"{tag} maturity", f"/rth_bars/{i}/maturity", _R, b["maturity"])
+        for leaf in ("open", "high", "low", "close"):
+            add(E.PRICE_ACTION_BARS, f"{tag} {leaf}", f"/rth_bars/{i}/{leaf}", _O, b["maturity"])
+        for leaf in ("range", "body", "upper_wick", "lower_wick", "direction", "volume", "higher_high", "lower_low",
+                     "inside_bar", "outside_bar", "close_vs_vwap"):
+            add(E.PRICE_ACTION_BARS, f"{tag} {leaf}", f"/rth_bars/{i}/{leaf}", _D, b["maturity"])
+    am = doc["atr"]["maturity"]
+    add(E.VOLATILITY, "ATR_5M_V1 maturity", "/atr/maturity", _R, am)
+    add(E.VOLATILITY, "ATR_5M_V1 value (points)", "/atr/value", _D, am)
+    add(E.VOLATILITY, "ATR_5M_V1 completed bars used", "/atr/completed_bars_used", _D, am)
+    add(E.VOLATILITY, "ATR_5M_V1 through bar end", "/atr/through_bar_end_utc", _D, am)
+    warnings = ()
+    if doc["status"] != "AVAILABLE":
+        warnings = (QualityWarning(f"{SourceRole.PRICE_ACTION.value}:price_action", "price_action", doc["status"],
+                                   tuple(doc["reasons"]), EvidenceRef(sha, "/status")),)
+        out.append(EvidenceItem(EvidenceRef(sha, "/status"), E.DATA_QUALITY, "price_action quality status",
+                                doc["status"], _Q, Availability.AVAILABLE, None, doc["status"]))
+    return SnapshotEvidence(SourceRole.PRICE_ACTION, sha, facts.cutoff.market_time_cutoff_utc,
+                            facts.cutoff.knowledge_time_cutoff_utc, AS_OF, tuple(out), warnings), doc
 
 
 def _snapshot_evidence(s: MarketStudySnapshot, role: SourceRole,
@@ -1003,6 +1108,10 @@ def build_tutor_lesson(session: ReplaySession, definition: LessonDefinition) -> 
     current, doc = _snapshot_evidence(snap, SourceRole.LESSON_TIME, domains)
     evidence.append(current)
     docs.append((current.snapshot_sha256, doc))
+    if domains & PRICE_ACTION_DOMAINS:
+        pa, pdoc = _price_action_evidence(session, snap, domains)
+        evidence.append(pa)
+        docs.append((pa.snapshot_sha256, pdoc))
     delta = None
     if definition.compare_from is not None and EvidenceDomain.CHANGES in domains:
         delta, ddoc = _delta_evidence(session.compare(definition.compare_from, definition.at))

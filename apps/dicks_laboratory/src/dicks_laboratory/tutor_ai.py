@@ -52,7 +52,7 @@ from dicks_laboratory.tutor_evidence import (
 
 REQUEST_SCHEMA = "TUTOR_MODEL_REQUEST_V1"
 RUN_RECORD_SCHEMA = "TUTOR_RUN_RECORD_V1"
-SYSTEM_PROMPT_VERSION = "TUTOR_SYSTEM_PROMPT_V1"
+SYSTEM_PROMPT_VERSION = "TUTOR_SYSTEM_PROMPT_V2"  # V2 (0AB-A): VWAP_BANDS_V1 bands are defined facts
 MAX_REPAIR_ATTEMPTS = 1
 
 SYSTEM_PROMPT = """You are an evidence-grounded market-study tutor for Dick's Laboratory. You teach; you never advise.
@@ -73,9 +73,10 @@ them as Laboratory facts.
 in the answer when evidence is qualified, unavailable or stale.
 5. When the evidence cannot answer, say so: put the statement in "unsupported_claims" with support \
 INSUFFICIENT_EVIDENCE (or NOT_YET_DETERMINED / NOT_YET_AVAILABLE) and what is missing. Lack of evidence is not false.
-6. Concepts with no Laboratory definition (acceptance, rejection, breakout, backtest / retest, VWAP deviation bands, \
-first sign of strength or weakness, and the curriculum topics such as VWAP bounce) may appear only in \
-unsupported_claims.
+6. Concepts with no Laboratory definition (acceptance, rejection, breakout, backtest / retest, first sign of \
+strength or weakness, the guide's "VWAP value area" / "value band", and the curriculum topics such as VWAP \
+bounce) may appear only in unsupported_claims. The Laboratory VWAP_BANDS_V1 bands (VWAP +/- k sigma) are defined \
+facts; call them by their multiplier, never "value area".
 7. Never use or infer hidden or future evidence; use only what this stage shows.
 8. Never recommend a trade or position: no buy / sell, long / short, entries, stops, targets, sizing or risk amounts. \
 Do not use bias or forecast words (bullish, bearish, signal, probability, confidence, recommendation).
@@ -421,11 +422,11 @@ VOCABULARY = re.compile(r"\b(bullish|bearish|setups?|signals?|probability|probab
 # Concepts with no deterministic Laboratory definition (DRYSDALE_DEPENDENCIES NEEDS_POLICY_DEFINITION + topics).
 UNDEFINED_POLICY = re.compile(
     r"\b(accept(ing|ance|s)\b|accepted (above|below|into|inside|outside|at)|rejection|rejecting|breakout|"
-    r"break[- ]?out|back-?test(ing)?|re-?test(ing)?|deviation bands?|vwap bands?|value bands?|"
+    r"break[- ]?out|back-?test(ing)?|re-?test(ing)?|vwap value area|value bands?|"
     r"first sign of (strength|weakness)|vwap bounce|price discovery continuation|fade value area|return to value)\b",
     re.IGNORECASE)
 assert {d.dependency for d in DRYSDALE_MODULE.dependencies if d.status is DependencyStatus.NEEDS_POLICY_DEFINITION} \
-    == {"VWAP deviation bands", "breakout", "acceptance", "backtest / retest", "first sign of strength",
+    == {"VWAP value area (which band pair)", "breakout", "acceptance", "backtest / retest", "first sign of strength",
         "first sign of weakness", "rejection"}  # keep the guard aligned with the registered dependency matrix
 
 
