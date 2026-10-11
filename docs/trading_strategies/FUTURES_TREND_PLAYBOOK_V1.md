@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-38  
+**Document revision:** V1-draft-41  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -52,6 +52,7 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Purpose | Learn trend trading, mechanics, and review using tiny size | Agreed; V1-SCOPE-01 |
 | Execution instrument | E-nano S&P 500 futures (NES) | Agreed; V1-INSTRUMENT-01 |
 | Learning lot | One NES contract; no adds | Agreed; V1-RISK-01 |
+| Concurrency | One open V1 position; while flat at most one active entry order; unresolved position/orders block entries | Agreed; V1-SCOPE-03 |
 | Platform | NinjaTrader Desktop on Windows 11 (`weasel`) | Agreed; V1-INSTRUMENT-02 |
 | Primary chart | 5-minute | Agreed; V1-CONTEXT-01 |
 | Analytical instrument | ES for charts, VWAP, and Volume Profile; NES for execution | Agreed; V1-INSTRUMENT-03 |
@@ -95,9 +96,17 @@ This playbook does not claim a demonstrated edge. Regime factors, entry definiti
 
 ### V1-SCOPE-03 — V1 boundaries
 
-**Status: Agreed; single-position implementation proposed.**
+**Status: Agreed scope and one-position/pending-entry policy; OD-11 policy decisions closed 2026-10-10.**
 
-V1 uses one NES learning lot and excludes pyramiding. Proposed implementation: hold at most one position at a time; fully close it before any fresh attempt. Do not add to either a winning or losing V1 position.
+**Accepted one-position and pending-entry policy — 2026-10-10:**
+
+1. Starting V1 permits one open position of one NES contract. Submit no additional entry while that position is open; do not add to winning or losing positions.
+2. While flat, permit at most one active entry order. Confirm cancellation or other final resolution before submitting a replacement; a cancellation request alone is not confirmation.
+3. Before another entry, verify the previous position is flat, its associated orders are resolved, and equity, net Loss-R, and attempt counters are updated.
+4. Pending exits, cancellations, or uncertain position/order status block new entries until reconciled.
+5. A direction change requires closing and reconciling the existing position first, then independently qualifying the new entry. It does not automatically reset attempt limits.
+
+Protective stops and exit orders belong to the existing position; their exact coordination, acknowledgements, fill/cancel races, and recovery remain under OD-07. This policy closes OD-11's intended concurrency rules, not platform implementation verification. Starting V1 excludes pyramiding.
 
 ## 3. Instrument, platform, and session
 
@@ -772,7 +781,7 @@ Record verified session-start and current allocated equity, their sources/timest
 
 ### V1-DAILY-01 — Net realized losing-trade R budget
 
-**Status: Net losing-trade R cutoff agreed on 2026-10-10; OD-10 policy decisions closed. Remaining-budget guard remains open under OD-11.**
+**Status: Net losing-trade R cutoff agreed on 2026-10-10; OD-10 policy decisions closed. Remaining-budget guard agreed on 2026-10-10; one-position/pending-entry policy agreed; OD-11 policy decisions closed 2026-10-10.**
 
 For each completed filled attempt, let `r_i` be its net realized trade R under V1-RISK-02:
 
@@ -789,7 +798,24 @@ Stop taking new trades when **Loss-R used >= 3.00**. Equivalently, the signed su
 
 With R0 = $5, a $5 actual-fill price loss and $1.88 round-trip fees give net P&L = -$6.88, net trade R = -1.376, and 1.376 Loss-R used. The planning slippage allowance is not subtracted again. Three such losses would consume 4.128 Loss-R; fees mean three nominal price-risk stopouts need not equal the 3.00 budget.
 
-**Remaining-budget guard still proposed:** define a net-cost-aware pre-entry admission check under OD-11. The earlier full-1R price-loss guard is insufficient by itself once fees count toward the cutoff. For example, 2.6 net Loss-R already used leaves 0.4; skip a new attempt whose assessed net loss would exceed the remainder. The exact guard calculation/post-fill handling and one-position rule require acceptance under OD-11. Fills/costs can still cause an overshoot.
+**Accepted remaining-budget guard — 2026-10-10:**
+
+1. Before entry, record `Remaining Loss-R = 3.00 - net Loss-R already used`. No entries are permitted once used Loss-R reaches/exceeds 3.00.
+2. Let P be the positive planned one-NES entry-to-original-rounded-stop price risk in dollars, F the applicable round-trip transaction fee input, and S the accepted $1.50 replay/simulation planning slippage allowance. Calculate:
+
+   `Assessed planned Loss-R = (P + F + S) / P`
+
+   P is the prospective price-risk denominator for this admission check; actual R0 is still determined from the entry fill under V1-RISK-02. Require valid, reconciled inputs; no valid positive denominator means no entry.
+
+3. Permit entry only if assessed planned Loss-R does not exceed the remaining budget and the separate V1-RISK-03 dollar-risk check passes. Equality is allowed. With P = $5, F = $1.88, and S = $1.50, assessed planned Loss-R is 1.676; if 1.50 remains, skip the entry.
+4. Immediately after the fill, recheck against the remaining budget recorded before entry:
+
+   `Assessed post-fill Loss-R = (actual R0 + applicable round-trip fees + $1.00 protective-stop exit allowance) / actual R0`
+
+   The actual fill already captures entry slippage, so remove the $0.50 entry allowance. If the post-fill assessed loss strictly exceeds the recorded remainder, initiate the coordinated exit/protection procedure and verify flat position/resolved orders, as in V1-RISK-03. A pass on the dollar-risk check does not override failure of this Loss-R check, or vice versa. Exact NinjaTrader implementation and recovery remain under OD-07.
+5. Record the pre-entry used/remaining budget, P/F/S inputs and assessed ratio, dollar-risk result, actual R0, post-fill fees/exit allowance and ratio, and pass/skip/exit outcome. Never tighten structural invalidation or increase the budget merely to admit the attempt.
+
+These are admission/reassessment checks, not guarantees against realized overshoot. Do not charge the estimated assessed ratio to the realized daily budget: update that budget from the completed attempt's actual net trade R under V1-RISK-02. Filled overshoot exits count as attempts. The one-position/pending-entry policy is accepted under V1-SCOPE-03; OD-11 policy decisions are closed. Exact platform execution/recovery remains under OD-07.
 
 Because each trade has its own R0, summed trade R is a normalized training measure, not a fixed-dollar session-loss limit.
 
@@ -809,13 +835,21 @@ Keep realized session drawdown distinct from intratrade unrealized drawdown. Pea
 
 ### V1-REENTRY-01 — Two attempts at one thesis
 
-**Status: Agreed cap; thesis identity open.**
+**Status: Two-attempt cap and filled-attempt counting agreed on 2026-10-10; thesis identity/reset remain open under OD-12.**
 
 Assign a thesis/reference ID before the first attempt. The first fill is attempt 1; a qualifying reentry is attempt 2. Do not make attempt 3 against the same thesis/reference.
 
 A stopout means that attempt failed; it does not automatically invalidate the directional session thesis. Reassess the regime and identify fresh valid entry/stop structure before reentry. An unchanged bullish opinion is not sufficient by itself.
 
-OD-12 must define when adjacent levels represent the same thesis, whether the cap resets during the session, and how an unfilled or cancelled entry counts. Proposed policy: count filled attempts, retain the same ID through minor level relabeling, and do not reset its cap during the session.
+**Accepted filled-attempt counting policy:**
+
+1. An attempt counts when its entry receives its first fill. Preserve that fill's time, order ID, thesis ID, and assigned attempt number.
+2. Any filled entry counts regardless of outcome, including an immediate risk-overshoot exit, manual exit, or profitable exit. A single filled attempt is not counted again because its order status changes.
+3. A confirmed unfilled cancellation, rejection, or expiration does not consume an attempt. Record it as an order event.
+4. If cancellation races with a fill, the fill determines whether an attempt occurred. Uncertain status blocks another entry until reconciled under V1-SCOPE-03/OD-07; do not infer no fill merely from a cancellation request.
+5. Canceling or replacing an unfilled order does not reset the thesis's existing attempt count. Each separately filled reentry consumes the next attempt.
+
+The maximum remains two filled attempts per thesis. OD-12 still must define thesis identity, related/adjacent reference treatment, and reset timing. Retaining the same ID through minor relabeling and no intraday reset remain proposals until accepted; this counting policy does not invent a new thesis or authorize reentry without fresh qualifying evidence.
 
 ## 11. Confirmed-pivot trailing
 
@@ -1061,7 +1095,9 @@ These checklists summarize the rules; they do not override rule status or resolv
 - [ ] Attempt count is below two and loss budget permits the trade.
 - [ ] Initial structural invalidation, stop, R0, and ATR are recorded.
 - [ ] Quantity is one NES; order protection is ready.
+- [ ] Pre-entry assessed Loss-R fits recorded remaining budget and the separate dollar-risk check passes (DAILY-01/RISK-03).
 - [ ] Entry occurs on valid penetration under the agreed execution procedure.
+- [ ] Immediately recheck actual-fill dollar risk and assessed Loss-R; use coordinated exit/protection if either accepted ceiling is exceeded.
 
 ### During the position
 
@@ -1074,14 +1110,14 @@ These checklists summarize the rules; they do not override rule status or resolv
 ### After exit / end of session
 
 - [ ] Reconcile actual fills and record outcome separately from execution grade.
-- [ ] Update Loss-R used, net R, peak/drawdown, and attempt counters.
+- [ ] Update Loss-R used from completed net trade R, net R, peak/drawdown, and attempt counters.
 - [ ] At Loss-R used >= 3, end new trading for the session.
 - [ ] Capture screenshots and post-trade observations.
 - [ ] Finish the session flat and remove outstanding entry orders.
 
 ## 16. Open decision register
 
-Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-09, OD-10, OD-13, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
+Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-09, OD-10, OD-11, OD-13, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
@@ -1095,14 +1131,14 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-08 | CLOSED 2026-10-10: initial and trailing minimum clearance 0.50 index points, outward execution-tick rounding, and strategy/instrument-family configuration accepted; supersedes earlier 1.00-point NES trailing buffer | STOP-01/02/04/06/11 |
 | OD-09 | CLOSED (policy decisions) 2026-10-10: $3,500 allocation, 0.50%/$15 combined cap, equity update/verification and pending/shared-capital policy, $1.88 starting NES Free-plan standard-connection round-trip fees, $1.50 replay/simulation slippage, actual-entry overshoot response, and no separate stop-distance filter accepted. Funding/equity/fee reconciliation and live slippage review evidence remain required; operational exit/protection/recovery remains under OD-07; realized accounting follows closed OD-10 | RISK-01/03 |
 | OD-10 | CLOSED (policy decisions) 2026-10-10: fixed price-risk R0, both gross/net reporting, actual-fill P&L minus transaction fees once, documented replay/simulation fee model, no second slippage subtraction, non-trade charges in allocation ledger, and daily sum of negative net trade Rs >= 3.00 accepted. NinjaTrader template/account reconciliation remains required | RISK-02, DAILY-01 |
-| OD-11 | Remaining-budget guard and one-position-at-a-time rule | DAILY-01, SCOPE-03 |
-| OD-12 | Thesis identity/reset and attempt-count treatment for unfilled/cancelled orders | REENTRY-01 |
+| OD-11 | CLOSED (policy decisions) 2026-10-10: net-cost-aware pre-entry/post-fill remaining-budget guard, separate dollar gate, equality allowed/strict overshoot coordinated exit, one open one-NES V1 position, at most one active entry while flat, replacement only after confirmed resolution, flat/order/accounting reconciliation before another entry, uncertain-status no-entry, and no automatic attempt reset on direction change. Exact execution/recovery remains under OD-07 | DAILY-01, SCOPE-03 |
+| OD-12 | Filled-attempt counting accepted 2026-10-10: first entry fill counts regardless of outcome; confirmed unfilled cancellation/rejection/expiration is an order event, fill/cancel races require reconciliation, and unfilled replacement does not reset counts. Thesis identity/related-reference handling and reset policy remain open | REENTRY-01 |
 | OD-13 | CLOSED 2026-10-10: trailing identification/comparison/pairing/tracking, ordered continuation confirmation, prompt intrabar tightening checks, single pending amendment, verified acceptance, and reconciliation policy agreed. Operational mapping/platform recovery remains under OD-04/07 | STOP-04/06/07/08/09/10/11 |
 | OD-14 | Open-position treatment after regime change; authorized manual/emergency exits | EXIT-03 |
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Next resolve net-cost-aware remaining-budget and one-position rules under OD-11, then mapping/protection/order mechanics and session boundaries. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Remaining-budget guard and post-fill recheck are agreed. One-position/pending-entry policy is agreed; OD-11 policy decisions are closed. Filled-attempt counting is agreed. Next resolve thesis identity/related-reference treatment and reset policy under OD-12, then mapping/protection/order mechanics and session boundaries. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -1150,6 +1186,9 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-41 | 2026-10-10 | Accepted first-fill attempt counting regardless of exit/outcome; confirmed unfilled cancellations/rejections/expirations recorded without consuming attempts, fill/cancel race reconciliation, and no count reset from unfilled replacement. Two-attempt cap retained; thesis identity/reset remain open under OD-12. |
+| V1-draft-40 | 2026-10-10 | Accepted one open one-NES V1 position, at most one active entry while flat, confirmed resolution before replacement, flat/order/equity/Loss-R/attempt reconciliation before new entries, uncertain-status entry block, and independently qualifying direction changes without automatic attempt reset. Closed OD-11 policy decisions; platform coordination remains under OD-07. |
+| V1-draft-39 | 2026-10-10 | Accepted net-cost-aware remaining-budget guard: (planned price risk + fees + $1.50 allowance)/planned price risk must fit remaining 3.00 Loss-R budget; actual R0/fees/$1.00 exit-allowance recheck and strict-overshoot coordinated exit, equality allowed. Separate dollar gate also required; one-position rule remains open under OD-11. |
 | V1-draft-38 | 2026-10-10 | Accepted gross/net reporting with fixed price-risk R0, actual-fill P&L minus transaction fees once, documented replay/simulation fee model, no second slippage subtraction, and daily negative-net-R sum >= 3.00. Closed OD-10 policy decisions; revised summary/examples/metrics and retained net-cost-aware remaining-budget decision under OD-11. |
 | V1-draft-37 | 2026-10-10 | Accepted no separate stop-distance filter in starting V1: structure/buffer/rounding and one-NES combined risk gate determine eligibility; record points/ticks/ATR distance descriptively and require evidence/revision for later filters. Closed OD-09 policy decisions while retaining funding/cost/slippage evidence and operational/accounting work. |
 | V1-draft-36 | 2026-10-10 | Accepted immediate post-fill risk check using actual fill/original structural stop, applicable round-trip fees and $1.00 exit allowance (entry allowance removed); strict ceiling overshoot prompts coordinated exit, flat/order verification, and attempt/evidence recording. Platform procedure remains open under OD-07. |
