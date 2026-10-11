@@ -1,0 +1,2 @@
+# Raw proof logs are kept byte-for-byte as evidence; whitespace checks do not apply.
+docs/dicks_laboratory/evidence/**/*.log -whitespace
