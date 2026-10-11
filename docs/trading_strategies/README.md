@@ -1,7 +1,7 @@
 # Futures Trading Strategies
 
 **Owner:** Mr. Dick Weasel  
-**Index revision:** 18  
+**Index revision:** 24  
 **Date:** 2026-10-10 (America/Chicago)  
 **Repository directory:** `copper/docs/trading_strategies`
 
@@ -15,7 +15,7 @@ The two principal external influences are Tom Hougaard's *Best Loser Wins* and C
 
 | ID | Playbook / setup | Document | Status |
 | --- | --- | --- | --- |
-| PB-TREND | Momentum Breakout with Structural Trailing | [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) | V1-draft-18; accepted configuration and indicator settings recorded; remaining open decisions prevent freezing V1.0 |
+| PB-TREND | Momentum Breakout with Structural Trailing | [FUTURES_TREND_PLAYBOOK_V1.md](FUTURES_TREND_PLAYBOOK_V1.md) | V1-draft-24; accepted configuration and indicator settings recorded; remaining open decisions prevent freezing V1.0 |
 | PB-PDC | Price Discovery Continuation | Future `VWAP_PRICE_DISCOVERY_CONTINUATION_PLAYBOOK_V1.md` | Backlog; closest conceptual overlap with PB-TREND, not an identical implementation |
 | PB-FADE | Fade Value Area Extremes | Future `VWAP_FADE_VALUE_AREA_EXTREMES_PLAYBOOK_V1.md` | Backlog; observation and design only |
 | PB-RTV | Return to Value | Future `VWAP_RETURN_TO_VALUE_PLAYBOOK_V1.md` | Backlog; observation and design only |
@@ -47,9 +47,9 @@ Accepted Factor 5: freeze the 08:30–08:50 ES range; score directional extensio
 
 Accepted Factor 6: rejection of an already-known current-RTH swing extreme followed by immediate next-bar continuation; use valid events within the last four scheduled assessments.
 
-All six component definitions, equal weighting, and aggregate thresholds/permissions are accepted; OD-02 is closed. Scores +4 through +6 permit longs only, -6 through -4 permit shorts only, and other valid totals permit no entries. UNKNOWN blocks entry. Entry-swing identification is now accepted under V1-ENTRY-05: completed current-RTH ES three-bar strict pivots, recognized after the right-hand bar closes and known before entry. V1-ENTRY-06 now accepts the latest directional swing reference plus a subsequent confirmed opposite-pivot pullback, both known before entry. V1-ENTRY-07 accepts the most recent eligible subsequent opposite pivot, strictly below the reference high for longs or above the reference low for shorts, known before entry. Record the chosen pair at entry; later pivots do not rewrite original invalidation. V1-ENTRY-08 accepts consolidation formation from the latest three completed current-RTH ES bars, positive box width, and common overlap of at least 50% of box width. Directional penetration uses the opposite box boundary as candidate invalidation. V1-ENTRY-09 accepts frozen boundaries, a 15-minute exclusive first-breakout lifetime, termination at either boundary penetration, and replacement evaluation at the next scheduled assessment. Replacement does not reset attempts or rewrite existing trade invalidation. OD-06 remains open for auction-reference qualification; trailing-pivot mechanics remain separate under OD-13. Configuration choices are recorded; operational template/data/reproducibility verification, ATR seed/warm-up, contract alignment and cross-instrument handling, and timestamp boundaries remain open before V1.0. This index and backlog do not independently authorize or change setup mechanics.
+All six component definitions, equal weighting, and aggregate thresholds/permissions are accepted; OD-02 is closed. Scores +4 through +6 permit longs only, -6 through -4 permit shorts only, and other valid totals permit no entries. UNKNOWN blocks entry. Entry-swing identification is now accepted under V1-ENTRY-05: completed current-RTH ES three-bar strict pivots, recognized after the right-hand bar closes and known before entry. V1-ENTRY-06 now accepts the latest directional swing reference plus a subsequent confirmed opposite-pivot pullback, both known before entry. V1-ENTRY-07 accepts the most recent eligible subsequent opposite pivot, strictly below the reference high for longs or above the reference low for shorts, known before entry. Record the chosen pair at entry; later pivots do not rewrite original invalidation. V1-ENTRY-08 accepts consolidation formation from the latest three completed current-RTH ES bars, positive box width, and common overlap of at least 50% of box width. Directional penetration uses the opposite box boundary as candidate invalidation. V1-ENTRY-09 accepts frozen boundaries, a 15-minute exclusive first-breakout lifetime, termination at either boundary penetration, and replacement evaluation at the next scheduled assessment. Replacement does not reset attempts or rewrite existing trade invalidation. V1-ENTRY-10 accepts prior RTH VAH/VAL and high/low plus completed overnight high/low, preselection, completed-close approach qualification, and the most recent eligible known opposite-pivot invalidation. OD-06 is closed. V1-STOP-06 accepts the same strict completed-RTH ES three-bar trailing-pivot method, with both reference and candidate center bars beginning at/after entry fill and recognition only after the right-hand bar closes. V1-STOP-07 accepts strict unbuffered ES comparison against original structural invalidation initially and the last pivot used for an accepted stop tightening thereafter; advance that reference only after accepted tightening. V1-STOP-08 accepts frozen continuation-reference pairing at candidate recognition with the most recent eligible known preceding swing high for longs or low for shorts, with strict relative-price conditions and post-entry center restrictions. V1-STOP-09 accepts one active unconfirmed pair, independently qualifying strict-more-protective replacements, strict ES breach invalidation, and no revival of discarded/replaced pairs; existing protection and comparison anchor remain unchanged. V1-STOP-10 accepts post-activation approach-then-strict-penetration ES continuation, fresh tracking on replacement, breach-first discard, and discard when event order is unresolved. OD-13 remains open for stop-modification timing and movement between confirmation/submission/acceptance; trigger/order handling, NES mapping, and reentry accounting remain separately open. Configuration choices are recorded; operational template/data/reproducibility verification, ATR seed/warm-up, contract alignment and cross-instrument handling, and timestamp boundaries remain open before V1.0. This index and backlog do not independently authorize or change setup mechanics.
 
-The owner confirmed that the supplied V1-draft-07 files were saved and committed. Revision 18 of this index/backlog and V1-draft-18 are supplied as updates; repository replacement/commit remains a local step.
+The owner confirmed that the supplied V1-draft-07 files were saved and committed. Revision 24 of this index/backlog and V1-draft-24 are supplied as updates; repository replacement/commit remains a local step.
 
 ## Document conventions
 
@@ -72,6 +72,12 @@ The existing no-target rule remains specific to PB-TREND. It is not imposed on e
 
 | Revision | Date | Change |
 | --- | --- | --- |
+| 24 | 2026-10-10 | Accepted continuation-confirmation event sequence and ambiguity handling; advanced to stop-modification timing. |
+| 23 | 2026-10-10 | Accepted unconfirmed-candidate replacement/invalidation and unchanged protection/anchor; advanced to event ordering and modification timing. |
+| 22 | 2026-10-10 | Accepted frozen continuation-reference pairing; advanced to candidate replacement/invalidation. |
+| 21 | 2026-10-10 | Accepted higher-low/lower-high comparison and advancement only after accepted protective-stop tightening; advanced to reference pairing. |
+| 20 | 2026-10-10 | Accepted trailing-pivot identification and post-fill center-bar restriction; OD-13 remains partially open. |
+| 19 | 2026-10-10 | Accepted auction-reference qualification and closed OD-06; advanced to trailing-pivot mechanics. |
 | 18 | 2026-10-10 | Accepted consolidation box duration/freezing/replacement; advanced to auction-reference qualification. |
 | 17 | 2026-10-10 | Accepted three-bar consolidation formation, at least 50% common overlap, and breakout/invalidation structure; box lifecycle remains open. |
 | 16 | 2026-10-10 | Accepted most recent eligible pullback-pivot selection and preservation of the entry-time pair. Advanced to consolidation qualification. |
