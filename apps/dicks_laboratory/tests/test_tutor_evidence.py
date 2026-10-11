@@ -258,6 +258,17 @@ def test_not_yet_available_evidence_cannot_support_a_claim(session):
     assert GroundingIssueCode.UNSUPPORTED_MARKED_SUPPORTED in _codes(validate_answer_grounding(marked, pending))
 
 
+def test_stale_last_price_is_not_presented_as_current(session):
+    running = _lesson(session, Q.PRICE_VS_CASH_VWAP, "09:45")
+    assert running.answer_key.observations[0].statement == "The last known price is 103 (traded at " \
+        "2026-10-05T14:30:06.000000Z)."
+    assert "PRICE_AT_LESSON_TIME" not in [c.claim_id for c in running.answer_key.rubric.common_incorrect_claims]
+    stopped = _lesson(session, Q.PRICE_VS_CASH_VWAP, "16:00")  # the capture stopped at 15:30 CT
+    claim = next(c for c in stopped.answer_key.rubric.common_incorrect_claims if c.claim_id == "PRICE_AT_LESSON_TIME")
+    assert claim.support is EvidenceSupport.INSUFFICIENT_EVIDENCE and claim.why.startswith("capture is STOPPED")
+    assert validate_answer_grounding(stopped.answer_key.reference_answer, stopped).valid
+
+
 def test_insufficient_evidence_is_not_false(session):
     lesson = _lesson(session, Q.VALUE_OCCUPANCY, "10:00")
     key = lesson.answer_key

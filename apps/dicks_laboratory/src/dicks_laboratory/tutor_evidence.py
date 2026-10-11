@@ -820,7 +820,15 @@ def _key_for(kind: QuestionKind, snap: SnapshotEvidence, earlier: SnapshotEviden
                        Availability.NOT_YET_DETERMINED: EvidenceSupport.NOT_YET_DETERMINED}.get(
                 vwap.availability, EvidenceSupport.INSUFFICIENT_EVIDENCE)
             return support, None, (), ("cash VWAP" if vwap.value is None else "last known price",), tuple(wrong)
-        obs += [_obs("PRICE", f"The last known price is {price.value}.", _O, [price], price.value),
+        when = _find(items, "/prices/last_known_utc")
+        capture = _find(items, "/current_dataset/capture_status")
+        if capture is not None and capture.value != "RUNNING":
+            wrong.append(IncorrectClaim("PRICE_AT_LESSON_TIME", "The last known price is the price at the lesson time.",
+                                        EvidenceSupport.INSUFFICIENT_EVIDENCE,
+                                        f"capture is {capture.value}; the last known trade is at {when.value}",
+                                        (capture.ref, when.ref)))
+        obs += [_obs("PRICE", f"The last known price is {price.value} (traded at {when.value}).", _O, [price, when],
+                     price.value),
                 _obs("CASH_VWAP", f"The cash VWAP is {vwap.value} ({vwap.maturity}).", _D, [vwap], vwap.value),
                 _obs("RELATION", f"The last known price is {rel.value} the cash VWAP.", _D, [rel, price, vwap],
                      rel.value)]
