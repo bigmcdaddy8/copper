@@ -1,0 +1,86 @@
+[2026-09-29] frozen DRYSDALE_V1 at 1c961381498ebfa368fa530dcf4bc05c4c4f9706; prepare session: 222.8s; rss 3067 MB (peak 3272)
+[2026-09-29] snapshot 16:00: 25.7s
+[2026-09-29] as-of tape 16:00 (recomputed, as every derived fact does): 10.6s, 1,194,184 scoped trades
+[2026-09-29] COLD (no reuse) analysis 16:00 given the tape: 9.1s (pass + bars + candidates); +tape 10.6s = 19.6s; rss 3109 MB (+0)
+[2026-09-29] reference: 0AB-A PRICE_ACTION_FACTS_V1 16:00 given the tape: 41.6s
+[2026-09-29] deterministic (cold twice): True; 857,987 bytes; sha 4f03bd00ee7117ed
+[2026-09-29] Globex VWAP 7733.3211 == snapshot SESSION_OPEN VWAP: True (cash VWAP 7730.8534); sigma 11.0669; value area 7722.25-7744.39; outer 7711.19-7755.45; WINDOW_COMPLETE [QUALITY_QUALIFIED] capture began 0:00:00.000256 after the anchor; KNOWN_GAP overlaps the VWAP interval: 1; lifecycle OPEN (not FINALIZED); KNOWN_GAP evidence known: 1; OVERNIGHT window not captured through the clock
+[2026-09-29] last bar ATR equals PRICE_ACTION_FACTS_V1 ATR_5M_V1: True (3.462843339966078414406838622)
+[2026-09-29] 18:00 CT: analyze 2.5s (cache {'hits': 0, 'misses': 1, 'resumed': 0, 'full': 1}); bars 12; instances 3; candidates 1; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 19:00 CT: analyze 3.2s (cache {'hits': 0, 'misses': 2, 'resumed': 1, 'full': 1}); bars 24; instances 5; candidates 3; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 20:00 CT: analyze 3.2s (cache {'hits': 0, 'misses': 3, 'resumed': 2, 'full': 1}); bars 36; instances 6; candidates 4; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 21:00 CT: analyze 3.5s (cache {'hits': 0, 'misses': 4, 'resumed': 3, 'full': 1}); bars 48; instances 8; candidates 5; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 22:00 CT: analyze 4.2s (cache {'hits': 0, 'misses': 5, 'resumed': 4, 'full': 1}); bars 60; instances 11; candidates 6; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 23:00 CT: analyze 4.1s (cache {'hits': 0, 'misses': 6, 'resumed': 5, 'full': 1}); bars 72; instances 14; candidates 8; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 00:00 CT: analyze 7.6s (cache {'hits': 0, 'misses': 7, 'resumed': 6, 'full': 1}); bars 84; instances 14; candidates 8; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 01:00 CT: analyze 5.0s (cache {'hits': 0, 'misses': 8, 'resumed': 7, 'full': 1}); bars 96; instances 15; candidates 9; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 02:00 CT: analyze 4.9s (cache {'hits': 0, 'misses': 9, 'resumed': 8, 'full': 1}); bars 108; instances 18; candidates 9; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 03:00 CT: analyze 5.6s (cache {'hits': 0, 'misses': 10, 'resumed': 9, 'full': 1}); bars 120; instances 23; candidates 9; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 04:00 CT: analyze 5.8s (cache {'hits': 0, 'misses': 11, 'resumed': 10, 'full': 1}); bars 132; instances 28; candidates 11; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 05:00 CT: analyze 5.9s (cache {'hits': 0, 'misses': 12, 'resumed': 11, 'full': 1}); bars 144; instances 30; candidates 12; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 06:00 CT: analyze 7.3s (cache {'hits': 0, 'misses': 13, 'resumed': 12, 'full': 1}); bars 156; instances 34; candidates 12; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 07:00 CT: analyze 11.1s (cache {'hits': 0, 'misses': 14, 'resumed': 13, 'full': 1}); bars 168; instances 34; candidates 12; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 08:00 CT: analyze 8.0s (cache {'hits': 0, 'misses': 15, 'resumed': 14, 'full': 1}); bars 180; instances 35; candidates 13; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 09:00 CT: analyze 15.0s (cache {'hits': 0, 'misses': 16, 'resumed': 15, 'full': 1}); bars 192; instances 41; candidates 14; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3081 MB
+[2026-09-29] 10:00 CT: analyze 15.5s (cache {'hits': 0, 'misses': 17, 'resumed': 16, 'full': 1}); bars 204; instances 44; candidates 14; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3091 MB
+[2026-09-29] 11:00 CT: analyze 22.1s (cache {'hits': 0, 'misses': 18, 'resumed': 17, 'full': 1}); bars 216; instances 48; candidates 14; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3091 MB
+[2026-09-29] 12:00 CT: analyze 24.5s (cache {'hits': 0, 'misses': 19, 'resumed': 18, 'full': 1}); bars 228; instances 48; candidates 14; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3091 MB
+[2026-09-29] 13:00 CT: analyze 30.4s (cache {'hits': 0, 'misses': 20, 'resumed': 19, 'full': 1}); bars 240; instances 48; candidates 15; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3061 MB
+[2026-09-29] 14:00 CT: analyze 37.8s (cache {'hits': 0, 'misses': 21, 'resumed': 19, 'full': 2}); bars 252; instances 51; candidates 15; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3070 MB
+[2026-09-29] 15:00 CT: analyze 38.8s (cache {'hits': 0, 'misses': 22, 'resumed': 20, 'full': 2}); bars 264; instances 51; candidates 15; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3087 MB
+[2026-09-29] 16:00 CT: analyze 44.6s (cache {'hits': 0, 'misses': 23, 'resumed': 20, 'full': 3}); bars 276; instances 51; candidates 15; state QUALITY_QUALIFIED [QUALITY_QUALIFIED]; rss 3124 MB
+[2026-09-29] RESUMED analysis 16:00 identical to COLD: True
+[2026-09-29] cache HIT 16:00: 0.08 ms; cache stats {'hits': 1, 'misses': 23, 'resumed': 20, 'full': 3}
+[2026-09-29] lesson 10:00: build 0.1s, second question same time 0.1s; 152 cited items; answer key SUPPORTED: QUALITY_QUALIFIED; reference answer via pipeline: GROUNDED (TUTOR_SYSTEM_PROMPT_V3_DRYSDALE); warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'DRYSDALE:drysdale']
+[2026-09-29] lesson 12:00: build 0.1s, second question same time 0.2s; 152 cited items; answer key SUPPORTED: QUALITY_QUALIFIED; reference answer via pipeline: GROUNDED (TUTOR_SYSTEM_PROMPT_V3_DRYSDALE); warnings ['LESSON_TIME:dataset', 'LESSON_TIME:vwap SESSION_OPEN', 'DRYSDALE:drysdale']
+[2026-09-29] AUDIT (16:00, 276 complete Globex bars)
+    FADE_VALUE_AREA_EXTREME        DOWN  DEVELOPING         9
+    FADE_VALUE_AREA_EXTREME        UP    DEVELOPING         3
+    FADE_VALUE_AREA_EXTREME        UP    QUALITY_QUALIFIED  2
+    PRICE_DISCOVERY_CONTINUATION   DOWN  DEVELOPING         5
+    PRICE_DISCOVERY_CONTINUATION   DOWN  QUALITY_QUALIFIED  3
+    PRICE_DISCOVERY_CONTINUATION   UP    DEVELOPING         11
+    RETURN_TO_VALUE                DOWN  DEVELOPING         1
+    RETURN_TO_VALUE                DOWN  QUALITY_QUALIFIED  5
+    RETURN_TO_VALUE                UP    DEVELOPING         2
+    RETURN_TO_VALUE                UP    QUALITY_QUALIFIED  3
+    VWAP_BOUNCE                    DOWN  DEVELOPING         4
+    VWAP_BOUNCE                    UP    DEVELOPING         1
+    VWAP_BOUNCE                    UP    QUALITY_QUALIFIED  2
+    stage FADE_VALUE_AREA_EXTREME        BOUNDARY_TESTED            7
+    stage FADE_VALUE_AREA_EXTREME        CONDITIONS_SATISFIED       2
+    stage FADE_VALUE_AREA_EXTREME        REJECTION_OBSERVED         5
+    stage PRICE_DISCOVERY_CONTINUATION   ACCEPTED_OUTSIDE           3
+    stage PRICE_DISCOVERY_CONTINUATION   BREAKOUT_TRIGGERED         8
+    stage PRICE_DISCOVERY_CONTINUATION   CONDITIONS_SATISFIED       3
+    stage PRICE_DISCOVERY_CONTINUATION   RETEST_OBSERVED            5
+    stage RETURN_TO_VALUE                CONDITIONS_SATISFIED       8
+    stage RETURN_TO_VALUE                RETURNED_TO_VALUE          3
+    stage VWAP_BOUNCE                    CONDITIONS_SATISFIED       2
+    stage VWAP_BOUNCE                    VWAP_TESTED                5
+    candidates (all conditions satisfied): 15; QUALITY_QUALIFIED 15
+    of which first event in 08:35-16:00 CT: 1
+    RTV-DOWN-20260928T2220Z            QUALITY_QUALIFIED first 17:20 completed 17:25 first seen at hourly cutoff 18:00
+    BOUNCE-UP-20260928T2315Z           QUALITY_QUALIFIED first 18:15 completed 18:55 first seen at hourly cutoff 19:00
+    FADE-UP-20260928T2350Z             QUALITY_QUALIFIED first 18:50 completed 18:55 first seen at hourly cutoff 19:00
+    PDC-DOWN-20260929T0020Z            QUALITY_QUALIFIED first 19:20 completed 19:50 first seen at hourly cutoff 20:00 | 2sd True slope FALLING in-dir True vol/mean 3.73 dist 1.05sd at 19:20
+    RTV-UP-20260929T0130Z              QUALITY_QUALIFIED first 20:30 completed 20:35 first seen at hourly cutoff 21:00
+    FADE-UP-20260929T0155Z             QUALITY_QUALIFIED first 20:55 completed 21:15 first seen at hourly cutoff 22:00
+    PDC-DOWN-20260929T0245Z            QUALITY_QUALIFIED first 21:45 completed 22:10 first seen at hourly cutoff 23:00 | 2sd False slope FALLING in-dir True vol/mean 0.63 dist 0.05sd at 21:45
+    RTV-UP-20260929T0320Z              QUALITY_QUALIFIED first 22:20 completed 22:25 first seen at hourly cutoff 23:00
+    RTV-UP-20260929T0550Z              QUALITY_QUALIFIED first 00:50 completed 00:55 first seen at hourly cutoff 01:00
+    RTV-DOWN-20260929T0800Z            QUALITY_QUALIFIED first 03:00 completed 03:05 first seen at hourly cutoff 04:00
+    RTV-DOWN-20260929T0855Z            QUALITY_QUALIFIED first 03:55 completed 04:00 first seen at hourly cutoff 04:00
+    BOUNCE-UP-20260929T0935Z           QUALITY_QUALIFIED first 04:35 completed 04:40 first seen at hourly cutoff 05:00
+    RTV-DOWN-20260929T1255Z            QUALITY_QUALIFIED first 07:55 completed 08:00 first seen at hourly cutoff 08:00
+    RTV-DOWN-20260929T1320Z            QUALITY_QUALIFIED first 08:20 completed 08:25 first seen at hourly cutoff 09:00
+    PDC-DOWN-20260929T1555Z            QUALITY_QUALIFIED first 10:55 completed 12:55 first seen at hourly cutoff 13:00 | 2sd True slope FALLING in-dir True vol/mean 0.88 dist 0.70sd at 10:55
+    overlaps: 1 bars complete >1 candidate [('18:55', 2)]; 1 cross-family candidate pairs with intersecting first-to-completion intervals
+    PDC instances 19: +/-2 sigma reached in 7 (36.84%); among PDC candidates 2/3
+    trigger-bar volume / mean of preceding bars: min 0.51 median 0.88 max 3.73 (n 19); >1: 5
+    VWAP slope in the trigger direction at the trigger: {'True': 19}
+    PDC acceptance {'SATISFIED': 11, 'NOT_SATISFIED': 8}; retest {'NOT_SATISFIED': 11, 'SATISFIED': 8}
+    PDC triggers in the first two Globex hours (17:00-19:00 CT): 1
+    context 16:00: INSIDE_VALUE, slope RISING, trend UP, time above +1sd 15087s below -1sd 24509s, bars reaching 2sd 38, ATR 3.46 (12 bars earlier 5.41)
+[2026-09-29] step times: 18:00 2.5s, 19:00 3.2s, 20:00 3.2s, 21:00 3.5s, 22:00 4.2s, 23:00 4.1s, 00:00 7.6s, 01:00 5.0s, 02:00 4.9s, 03:00 5.6s, 04:00 5.8s, 05:00 5.9s, 06:00 7.3s, 07:00 11.1s, 08:00 8.0s, 09:00 15.0s, 10:00 15.5s, 11:00 22.1s, 12:00 24.5s, 13:00 30.4s, 14:00 37.8s, 15:00 38.8s, 16:00 44.6s
+[2026-09-29] peak rss 3311 MB

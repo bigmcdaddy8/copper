@@ -154,3 +154,9 @@ enabled.
 | NEEDS_IMPLEMENTATION | none |
 
 The module stays REGISTERED / NOT_READY_FOR_RULE_IMPLEMENTATION.
+
+**0AB-B (superseding note):** the Human's book notes settle the open items. Drysdale's VWAP is
+**Globex-anchored (17:00 CT)** and his VWAP value area is **Globex VWAP ±1σ**; ±2σ is outer
+context. `VWAP_BANDS_GLOBEX_V1` is added alongside this cash-anchored `VWAP_BANDS_V1`, which is
+unchanged. Breakout, acceptance, retest, rejection and strength / weakness now have explicit
+Laboratory V1 proxies. See `DRYSDALE_VWAP_TRAINING_CANDIDATES.md`.

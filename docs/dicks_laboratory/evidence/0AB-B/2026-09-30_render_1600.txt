@@ -1,0 +1,134 @@
+DRYSDALE VWAP WAVE - LABORATORY V1 TRAINING CANDIDATES  2026-09-30  as of 2026-09-30 16:00:00 CDT
+  Globex VWAP (anchor 17:00 CT): 7752.894720641355611808623249  sigma 19.03212801740004329718315434  [WINDOW_COMPLETE; QUALITY_QUALIFIED]
+  Drysdale VWAP value area (DRYSDALE_VALUE_AREA_V1, +/-1 sigma): 7733.862592623955568511440095 - 7771.926848658755655105806403;  outer +/-2 sigma context: 7714.830464606555525214256940 - 7790.958976676155698402989558
+  (not the Laboratory 70% profile value area, not the playbook 68% profile value)
+  complete 5m bars: 276; analysis state QUALITY_QUALIFIED
+  QUALITY: QUALITY_QUALIFIED - capture began 0:00:00.000363 after the anchor; lifecycle OPEN (not FINALIZED); OVERNIGHT window not captured through the clock
+
+SETUP 1 - PRICE DISCOVERY CONTINUATION
+  Drysdale source criteria (SOURCE SAYS; discretionary unless noted):
+  - break from prior value / range out of the VWAP value area
+  - acceptance outside VWAP value (time or distance)
+  - backtest pullback of the VWAP deviation band (it may retest again)
+  - first sign of strength (weakness) after the backtest
+  - supporting context: volume expansion, extension toward +/-2 sigma, VWAP slope, nearby opposing references, time of day, correlated markets
+  instances this session: 31 (DEVELOPING 29, QUALITY_QUALIFIED 2)
+  latest UP instance PDC-UP-20260930T1600Z (from 11:00 CT)  stage RETEST_OBSERVED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      LAB_BREAKOUT_TRIGGER_V1: a complete 5m bar closes strictly above +1 sigma (Globex VWAP bands) at 11:00
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes strictly beyond the same 1 sigma boundary at 11:05
+    [satisfied]      LAB_RETEST_V1: a later bar of the outside episode trades at or through the broken boundary and closes back outside at 11:15
+    [not satisfied]  LAB_DIRECTIONAL_CONFIRMATION_V1: the next complete bar closes above its open and above the retest bar high
+  Context (DrysdaleBreakoutEvidence):
+    +/-2 sigma reached: NO;  VWAP slope: RISING (0.142239764093111830389836);  breakout-bar volume ratio vs mean of 12: 0.76
+    distance beyond 1 sigma at the trigger close: 0.487123278718970136978828 pts (0.04 sigma, 0.06 ATR);  max excursion 3.750697 pts;  time beyond 739 s;  closes beyond 4
+    time of day 11:00 CT (cash session: True);  nearest opposing reference IB_HIGH 4.75;  returned inside: True
+    not available: CORRELATED_MARKET_NQ, MARKET_INTERNALS, ORDER_FLOW_AGGRESSION, NEWS_CATALYST
+    event RETEST 11:15 vs UPPER_1SD: through True excursion 0.800619 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED
+    closest_approach_after_acceptance_points: -0.800619
+  Result: DEVELOPING
+  latest DOWN instance PDC-DOWN-20260930T1935Z (from 14:35 CT)  stage ACCEPTED_OUTSIDE
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      LAB_BREAKOUT_TRIGGER_V1: a complete 5m bar closes strictly below -1 sigma (Globex VWAP bands) at 14:35
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes strictly beyond the same 1 sigma boundary at 14:40
+    [pending]        LAB_RETEST_V1: a later bar of the outside episode trades at or through the broken boundary and closes back outside
+    [pending]        LAB_DIRECTIONAL_CONFIRMATION_V1: the next complete bar closes below its open and below the retest bar low
+  Context (DrysdaleBreakoutEvidence):
+    +/-2 sigma reached: YES;  VWAP slope: FALLING (-0.101548235763007266989294);  breakout-bar volume ratio vs mean of 12: 1.16
+    distance beyond 1 sigma at the trigger close: 1.476210889855020955725735 pts (0.13 sigma, 0.32 ATR);  max excursion 30.386617 pts;  time beyond 5239 s;  closes beyond 18
+    time of day 14:35 CT (cash session: True);  nearest opposing reference IB_LOW 0.25;  returned inside: False
+    not available: CORRELATED_MARKET_NQ, MARKET_INTERNALS, ORDER_FLOW_AGGRESSION, NEWS_CATALYST
+    closest_approach_after_acceptance_points: 1.452972
+  Result: DEVELOPING
+
+SETUP 2 - FADE VALUE AREA EXTREMES
+  Drysdale source criteria (SOURCE SAYS; discretionary unless noted):
+  - price accepted inside the VWAP value area
+  - a test of the value-area extreme (the +/-1 sigma band)
+  - first sign of weakness / rejection on the test of the band area
+  - rotation back toward the interior; acceleration through the band is not a rejection
+  instances this session: 21 (DEVELOPING 17, QUALITY_QUALIFIED 4)
+  latest UP instance FADE-UP-20260930T1925Z (from 14:25 CT)  stage REJECTION_OBSERVED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes inside the inclusive -1..+1 sigma value region at 14:05
+    [satisfied]      DRYSDALE_VALUE_AREA_V1: a later complete bar trades at or through -1 sigma at 14:30
+    [satisfied]      LAB_REJECTION_V1: that bar closes strictly back inside the boundary at 14:30
+    [not satisfied]  LAB_DIRECTIONAL_CONFIRMATION_V1: the next complete bar closes above its open and above the test bar high
+    event BOUNDARY_TEST 14:25 vs LOWER_1SD: through True excursion 0.662946 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED
+    event BOUNDARY_TEST 14:30 vs LOWER_1SD: through True excursion 0.601413 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED
+    event BOUNDARY_TEST 14:35 vs LOWER_1SD: through True excursion 2.509620 pts, close BELOW, proxy not satisfied, next-bar confirmation NOT_SATISFIED
+  Result: DEVELOPING
+  latest DOWN instance FADE-DOWN-20260930T1530Z (from 10:30 CT)  stage BOUNDARY_TESTED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes inside the inclusive -1..+1 sigma value region at 10:20
+    [satisfied]      DRYSDALE_VALUE_AREA_V1: a later complete bar trades at or through +1 sigma at 10:30
+    [not satisfied]  LAB_REJECTION_V1: that bar closes strictly back inside the boundary
+    [not satisfied]  LAB_DIRECTIONAL_CONFIRMATION_V1: the next complete bar closes below its open and below the test bar low
+    event BOUNDARY_TEST 10:30 vs UPPER_1SD: through True excursion 2.306730 pts, close ABOVE, proxy not satisfied, next-bar confirmation NOT_SATISFIED
+  Result: DEVELOPING
+
+SETUP 3 - RETURN TO VALUE
+  Drysdale source criteria (SOURCE SAYS; discretionary unless noted):
+  - price was accepted outside value
+  - price returns inside the VWAP value area
+  - acceptance back inside value (time or distance)
+  - a backtest of the band may or may not occur
+  instances this session: 18 (DEVELOPING 7, QUALITY_QUALIFIED 11)
+  latest UP instance RTV-UP-20260930T1900Z (from 14:00 CT)  stage CONDITIONS_SATISFIED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes strictly beyond the same 1 sigma boundary at 13:55
+    [satisfied]      LAB_RETURN_TO_VALUE_V1: after that outside episode, a complete bar closes back inside the inclusive -1..+1 sigma region at 14:00
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes inside value (the return close and the next) at 14:05
+    event RETURN_RETEST 14:25 vs LOWER_1SD: through True excursion 0.662946 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED
+    event RETURN_RETEST 14:30 vs LOWER_1SD: through True excursion 0.601413 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED
+    RETURN_TO_VALUE_RETEST_PRESENT: True
+    retest_required: False
+    closest_approach_after_return_points: -0.662946
+  Result: QUALITY_QUALIFIED (QUALITY_QUALIFIED)
+  latest DOWN instance RTV-DOWN-20260930T1620Z (from 11:20 CT)  stage CONDITIONS_SATISFIED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes strictly beyond the same 1 sigma boundary at 11:05
+    [satisfied]      LAB_RETURN_TO_VALUE_V1: after that outside episode, a complete bar closes back inside the inclusive -1..+1 sigma region at 11:20
+    [satisfied]      LAB_ACCEPTANCE_TIME_V1: two consecutive complete 5m closes inside value (the return close and the next) at 11:25
+    RETURN_TO_VALUE_RETEST_PRESENT: False
+    retest_required: False
+    closest_approach_after_return_points: 2.475670
+  Result: QUALITY_QUALIFIED (QUALITY_QUALIFIED)
+
+SETUP 4 - VWAP BOUNCE
+  Drysdale source criteria (SOURCE SAYS; discretionary unless noted):
+  - an already trending market
+  - a pullback to the VWAP
+  - trend resumption: first sign of strength (weakness) away from the VWAP
+  - higher-volatility days can be preferable (no threshold)
+  instances this session: 11 (DEVELOPING 7, QUALITY_QUALIFIED 4)
+  latest UP instance BOUNCE-UP-20260930T1720Z (from 12:20 CT)  stage VWAP_TESTED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      DRYSDALE_VALUE_AREA_V1: an earlier complete close strictly above +1 sigma at 11:15
+    [satisfied]      LAB_RETURN_TO_VALUE_V1: then a complete close back inside value (at or before the test) at 11:20
+    [satisfied]      LAB_TREND_CONTEXT_V1: at the bar before the test: Globex VWAP RISING vs the previous bar and the close strictly ABOVE the VWAP at 13:00
+    [satisfied]      LAB_VWAP_TEST_V1: a complete bar trades at or through the Globex VWAP at 13:05
+    [not satisfied]  LAB_DIRECTIONAL_CONFIRMATION_V1: the next complete bar closes above its open and above the test bar high
+    event VWAP_TEST 13:25 vs GLOBEX_VWAP: through True excursion 8.726495 pts, close BELOW, proxy satisfied, next-bar confirmation NOT_SATISFIED, trend context NOT_SATISFIED
+    event VWAP_TEST 13:30 vs GLOBEX_VWAP: through True excursion 11.699920 pts, close BELOW, proxy satisfied, next-bar confirmation NOT_SATISFIED, trend context NOT_SATISFIED
+    event VWAP_TEST 13:35 vs GLOBEX_VWAP: through True excursion 13.775588 pts, close BELOW, proxy satisfied, next-bar confirmation NOT_SATISFIED, trend context NOT_SATISFIED
+    trend_context_required: True
+  Result: DEVELOPING
+  latest DOWN instance BOUNCE-DOWN-20260930T1230Z (from 07:30 CT)  stage VWAP_TESTED
+  Laboratory V1 (LABORATORY V1 TRAINING PROXY):
+    [satisfied]      DRYSDALE_VALUE_AREA_V1: an earlier complete close strictly below -1 sigma at 07:20
+    [satisfied]      LAB_RETURN_TO_VALUE_V1: then a complete close back inside value (at or before the test) at 07:25
+    [satisfied]      LAB_TREND_CONTEXT_V1: at the bar before the test: Globex VWAP FALLING vs the previous bar and the close strictly BELOW the VWAP at 07:25
+    [satisfied]      LAB_VWAP_TEST_V1: a complete bar trades at or through the Globex VWAP at 07:30
+    [not satisfied]  LAB_DIRECTIONAL_CONFIRMATION_V1: the next complete bar closes below its open and below the test bar low
+    event VWAP_TEST 07:30 vs GLOBEX_VWAP: through True excursion 3.347807 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED, trend context SATISFIED
+    event VWAP_TEST 07:35 vs GLOBEX_VWAP: through True excursion 28.336935 pts, close ABOVE, proxy satisfied, next-bar confirmation NOT_SATISFIED, trend context NOT_SATISFIED
+    trend_context_required: True
+  Result: DEVELOPING
+
+CONTEXT AT THE LAST COMPLETE BAR (facts)
+  16:00 CT: BELOW_VALUE; VWAP slope FALLING (-0.047265290190007996092978); LAB_TREND_CONTEXT_V1 DOWN
+  current episode: 18 closes (OUTSIDE_BELOW); LAB_ACCEPTANCE_TIME_V1: YES
+  ATR_5M_V1 5.214163004195286783073371055 (12 bars earlier 6.828537400249120815400565304); volume ratio vs mean 0.11
+
+Educational structure only: no trade, entry, stop, target or sizing. Laboratory V1 proxies are ours, not Drysdale's definitions.

@@ -182,7 +182,25 @@ quality.
 the guide's "VWAP value area" / "value band" joins the undefined concepts. The output schema's source
 roles gain `PRICE_ACTION` (PRICE_ACTION_FACTS_V1). See `VWAP_PRICE_ACTION_PRIMITIVES.md`.
 
-## 14. Not in 0AA-B
+## 14. 0AB-B update
+
+Drysdale lessons (module `DRYSDALE_VWAP_WAVE_V1`, now
+LABORATORY_V1_TRAINING_CANDIDATES_AVAILABLE) use `TUTOR_SYSTEM_PROMPT_V3_DRYSDALE`;
+every other lesson keeps `TUTOR_SYSTEM_PROMPT_V2` byte-for-byte. The run record
+names the prompt version that was used.
+
+- New source role `DRYSDALE` and domain `DRYSDALE_SETUPS` (`DRYSDALE_SETUP_ANALYSIS_V1`).
+- The output schema's source-role enum gains `DRYSDALE`.
+- Drysdale answer guards keep three voices apart:
+  - SOURCE SAYS (`CURRICULUM_RULE`, Drysdale source);
+  - LABORATORY V1 TRAINING PROXY (policy result naming the proxy, with an asserted DRYSDALE value);
+  - `AI_INTERPRETATION`.
+- "The market accepted / rejected / broke out" is never accepted as a fact.
+- CLI: `--lesson drysdale --question 1-9`.
+
+See `DRYSDALE_VWAP_TRAINING_CANDIDATES.md` §8.
+
+## 15. Not in 0AA-B
 
 No Drysdale classification (module still REGISTERED /
 NOT_READY_FOR_RULE_IMPLEMENTATION), no new market policy, no semantic grading,
