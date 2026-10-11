@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-35  
+**Document revision:** V1-draft-38  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -71,7 +71,7 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Profit target | None; no automatic +1R breakeven move | Agreed; V1-STOP-05, V1-EXIT-01 |
 | Reentry | Regime must still qualify; maximum two attempts per thesis/reference | Agreed; V1-ENTRY-04 |
 | R | Original initial price risk of that trade; denominator remains fixed | Agreed principle; V1-RISK-02 |
-| Daily cutoff | Gross realized losing-trade R reaches 3; winners do not replenish it | Agreed; V1-DAILY-01 |
+| Daily cutoff | Net realized losing-trade R reaches 3; winners do not replenish it | Agreed; V1-DAILY-01 |
 | Overnight holding | Prohibited; exact flatten time remains open | Agreed / open; V1-SESSION-03 |
 | Review | Outcome and execution quality scored separately | Agreed; V1-REVIEW-01 |
 
@@ -605,7 +605,7 @@ Let P be the mapped structural level before stop rounding and q the execution ti
 
 The 0.50-point setting corresponds to two ES/MES ticks or one NES tick when the mapped level is tick-aligned. If the mapped level lies between executable ticks, outward rounding can increase actual clearance. With NES q = 0.50 and a mapped long invalidation P = 6000.25, the desired stop is 5999.75 and the executable outward-rounded stop is 5999.50: actual clearance is 0.75 points. For a short at the same mapped reference, 6000.75 rounds upward to 6001.00, also giving 0.75-point clearance.
 
-Define buffer distance by strategy/instrument family and convert it using the execution tick size; do not automatically carry 0.50 points into unrelated futures such as NQ. Record nominal buffer, mapped level, tick size, rounded trigger, actual clearance, and resulting risk. Structure determines invalidation; if the resulting initial stop exceeds the eventual accepted risk limit, skip the entry rather than moving the stop closer. V1-RISK-03 accepts the combined percentage-and-dollar ceiling; starting allocation and numeric limits are accepted; equity snapshot/update and cost-input policies remain open under OD-09/10.
+Define buffer distance by strategy/instrument family and convert it using the execution tick size; do not automatically carry 0.50 points into unrelated futures such as NQ. Record nominal buffer, mapped level, tick size, rounded trigger, actual clearance, and resulting risk. Structure determines invalidation; if the resulting initial stop exceeds the eventual accepted risk limit, skip the entry rather than moving the stop closer. V1-RISK-03 accepts the combined percentage-and-dollar ceiling; starting allocation and numeric limits are accepted; equity update/verification and starting fee/slippage policies are agreed; OD-09 policy decisions are closed with no separate distance filter; platform implementation/validation remains under OD-07, gross/net realized accounting is agreed under closed OD-10, and funding/reconciliation evidence remains required.
 
 This closes OD-08 and the stop-price rounding subdecision of OD-07. ES-to-NES level mapping, entry-trigger rounding/buffer, and operational order procedures remain open. A mapped reference in the arithmetic example is a supplied input, not an accepted ES-to-NES mapping algorithm.
 
@@ -623,11 +623,11 @@ Never widen a protective stop to increase risk after entry. A long stop may rema
 
 **Status: Agreed.**
 
-Each V1 entry uses **one NES contract**. The accepted starting futures allocation is $3,500; the earlier approximately $50,000 account illustration is not the V1 allocated risk base. Do not optimize quantity to consume the allowance. A wider structural stop changes that trade's dollar risk, not its V1 quantity. V1-RISK-03 now accepts a combined percentage-and-dollar ceiling. Its starting allocation, percentage, and dollar cap are accepted; equity snapshot/update and cost-input policies remain open under OD-09/10. The ceiling filters entry eligibility; it does not increase V1 quantity or prescribe stop placement.
+Each V1 entry uses **one NES contract**. The accepted starting futures allocation is $3,500; the earlier approximately $50,000 account illustration is not the V1 allocated risk base. Do not optimize quantity to consume the allowance. A wider structural stop changes that trade's dollar risk, not its V1 quantity. V1-RISK-03 now accepts a combined percentage-and-dollar ceiling. Its starting allocation, percentage, and dollar cap are accepted; equity update/verification and starting fee/slippage policies are agreed; OD-09 policy decisions are closed with no separate distance filter; platform implementation/validation remains under OD-07, gross/net realized accounting is agreed under closed OD-10, and funding/reconciliation evidence remains required. The ceiling filters entry eligibility; it does not increase V1 quantity or prescribe stop placement.
 
 ### V1-RISK-02 — Fixed original denominator
 
-**Status: Agreed principle; price-risk convention made explicit.**
+**Status: Fixed price-risk denominator and gross/net reporting agreed; OD-10 policy decisions CLOSED 2026-10-10.**
 
 Let `E` be the actual entry fill, `S0` the original protective-stop trigger, and `Q = 1` contract:
 
@@ -635,7 +635,21 @@ Let `E` be the actual entry fill, `S0` the original protective-stop trigger, and
 
 `Gross realized trade R = gross realized trade P&L / R0`
 
-Keep `R0` fixed throughout the trade. Moving the stop does not reset the denominator. Calculate planned risk before entry and preserve it separately from risk calculated from the actual fill. Initial dollar risk here is price risk; fees and slippage accounting require OD-10.
+Keep `R0` fixed throughout the trade. Moving the stop does not reset the denominator. Calculate planned risk before entry and preserve it separately from risk calculated from the actual fill. Initial dollar risk here is price risk; the accepted gross/net accounting policy below keeps costs out of the fixed R0 denominator.
+
+**Accepted gross/net reporting and realized-cost policy:**
+
+`Gross realized trade P&L = direction-adjusted actual entry-to-exit price difference × $0.50 × 1`
+
+`Net realized trade P&L = gross realized trade P&L - applicable transaction fees`
+
+`Net realized trade R = net realized trade P&L / R0`
+
+Record both gross and net realized R for each completed filled attempt, including an overshoot exit. Live accounting uses actual fills and applicable transaction charges, reconciled to account records. Replay/simulation uses its documented fee model and mode-identified fills. Subtract transaction fees once; if a source already supplies net P&L, do not subtract the same fees again.
+
+Actual fills already capture execution slippage. Do not subtract the $1.50 planning allowance or any separately measured slippage amount again from realized P&L. For replay/simulation, any modeled slippage must be represented consistently in its fills and counted once, not treated as observed live execution. Preserve slippage measurements as separate execution evidence.
+
+Non-trade account charges remain in the allocation ledger and are not assigned as transaction fees to trade R. The daily cutoff uses net losing-trade R under V1-DAILY-01; gross R remains available for strategy/process analysis. Verify the NinjaTrader commission template and displayed P&L against the documented fee model/account charges before relying on those displays. See [NinjaTrader Accounts Tab documentation](https://static.ninjatrader.com/support/helpGuides/nt8/accounts_tab.htm), checked 2026-10-10: displayed commissions may be calculated from the local template rather than supplied by the data provider.
 
 | Example | Entry | Initial stop | Distance | R0 |
 | --- | ---: | ---: | ---: | ---: |
@@ -647,7 +661,7 @@ For Long A, a $7.50 gross profit is +3R. It does not imply a +3R profit-target o
 
 ### V1-RISK-03 — Combined percentage-and-dollar entry-risk ceiling
 
-**Status: Framework, starting allocation/numeric limits, equity-update policy, fee-input policy, and starting slippage allowance/measurement policy agreed on 2026-10-10; OD-09 partially resolved. Equity-verification, pending-transaction, and shared-capital policy agreed on 2026-10-10. Overshoot handling and live validation remain open; standard connection and starting fee input are recorded.**
+**Status: Starting risk configuration and input/update/verification/overshoot policies agreed on 2026-10-10; no separate stop-distance filter in starting V1. OD-09 policy decisions CLOSED 2026-10-10. Actual funding/reconciliation evidence, live cost/slippage validation, and platform execution/recovery remain required.**
 
 For the one-NES learning configuration, use the smaller of a percentage-of-equity ceiling and a fixed-dollar learning cap:
 
@@ -715,7 +729,7 @@ For the selected starting configuration, round-trip fees plus accepted replay/si
 
 These are provisional research assumptions, not measured NES execution estimates. Use $1.50 once in the pre-entry affordability check, in addition to verified round-trip fees. Keep planned entry price separate from the allowance; do not embed an adverse entry adjustment in that price and then charge the same adjustment again. The larger protective-stop exit component provides additional planning room; it does not guarantee the stop fill or maximum loss.
 
-Record actual adverse entry and protective-stop exit slippage separately, preserving the planned NES entry reference, applicable stop trigger, direction, actual fills, and timestamps so the measurements can be checked. Review the assumption against execution evidence before adopting a live baseline. Keep replay/simulation evidence identified by mode rather than presenting it as observed live execution. The allowance does not change the structural-stop buffer, move the stop, or redefine R0. Realized-cost and daily gross/net R accounting remain open under OD-10.
+Record actual adverse entry and protective-stop exit slippage separately, preserving the planned NES entry reference, applicable stop trigger, direction, actual fills, and timestamps so the measurements can be checked. Review the assumption against execution evidence before adopting a live baseline. Keep replay/simulation evidence identified by mode rather than presenting it as observed live execution. The allowance does not change the structural-stop buffer, move the stop, or redefine R0. Realized-cost and daily net Loss-R accounting are agreed under V1-RISK-02 and V1-DAILY-01; OD-10 policy decisions are closed.
 
 `Planned structural price risk + verified round-trip fees + $1.50 <= allowed planned risk`
 
@@ -727,32 +741,55 @@ Determine structural invalidation first, map to the execution instrument, and ap
 
 Compare estimated planned total risk with the combined ceiling. If it exceeds the ceiling, skip the entry rather than moving the stop closer or increasing the ceiling for that opportunity. Actual loss may exceed the estimate because stop execution and entry fills can differ from the plan. Preserve planned inputs separately from actual fills and realized results.
 
-This affordability check does not redefine V1-RISK-02's fixed price-risk R0 denominator or resolve gross/net daily Loss-R accounting under OD-10. The fee-input policy and NinjaTrader Free-plan selection are recorded; the $1.88 NES round-trip starting fee input is recorded for the selected standard connection, with account-statement verification and refresh before live use. The starting replay/simulation slippage allowance and separate measurement policy are accepted. Live validation, detailed execution-reference handling, treatment of actual-entry overshoot, and operational response remain to be specified under OD-07/09/10.
+This affordability check does not redefine V1-RISK-02's fixed price-risk R0 denominator. Realized gross/net accounting and the net Loss-R cutoff are accepted separately under V1-RISK-02 and V1-DAILY-01. The fee-input policy and NinjaTrader Free-plan selection are recorded; the $1.88 NES round-trip starting fee input is recorded for the selected standard connection, with account-statement verification and refresh before live use. The starting replay/simulation slippage allowance and separate measurement policy are accepted. The actual-entry overshoot response is accepted below. Live validation and detailed execution-reference/platform recovery verification remain required under the accepted risk policy and OD-07; realized accounting follows closed OD-10.
 
-**Remaining OD-09 decisions:** define the response to actual-entry risk overshoot and determine whether a separate stop-distance filter is needed. Equity-source verification, pending-deposit/withdrawal treatment, and no double allocation are agreed; actual funding and reconciliation evidence still must be obtained/applied under that policy. Session-start/current-equity comparison, profits/losses and deposit/withdrawal treatment, and no reset after losses are now accepted. The fee-input and starting replay/simulation slippage policies are accepted; the $1.88 starting NES fee input and standard connection are recorded, while actual equity reconciliation evidence, live fee reconciliation, and live slippage validation remain required. Detailed realized accounting remains open under OD-10.
+**Accepted actual-entry risk-overshoot policy:**
+
+1. Immediately after the entry fill, recalculate assessed risk using the actual NES fill and original rounded structural stop:
+
+   `Post-fill assessed risk = abs(actual NES entry fill - original rounded NES stop) × $0.50 × 1 + applicable round-trip fees + $1.00 protective-stop exit slippage allowance`
+
+   Remove the $0.50 entry-slippage allowance from this post-fill calculation: the actual entry fill already captures that price effect. Keep the $1.00 exit allowance as the accepted research assumption, not a guaranteed exit cost. Preserve the original R0 convention.
+
+2. Compare the result with the allowed ceiling recorded before entry. If post-fill assessed risk strictly exceeds that ceiling, promptly initiate exit of the one-NES position. Do not tighten the structural stop merely to make the calculation pass or raise the ceiling after the fill. Equality does not trigger this overshoot rule.
+3. Use a coordinated exit/protection procedure, then verify the position is flat and associated orders are resolved. Exact NinjaTrader steps, order/stop races, acknowledgements, rejection/disconnection handling, and recovery remain open under OD-07. Acceptance of the intended response is not proof that platform behavior has been verified.
+4. Record the pre-entry ceiling, planned risk, actual fill/original stop, fees, post-fill exit allowance, assessed risk, overshoot amount, exit fills, and reconciliation outcome. The filled entry counts as an attempt even when promptly exited for overshoot; realized accounting follows the accepted V1-RISK-02 gross/net convention and V1-DAILY-01 net Loss-R cutoff.
+
+This policy cannot guarantee that realized loss stays within the ceiling. The original structural stop and fill/order status still require the protection workflow; a risk calculation does not establish that protection is working or that the position remains open.
+
+**Accepted stop-distance policy — starting V1:**
+
+1. Use no additional stop-distance filter. Structure determines invalidation; apply the accepted minimum buffer and outward execution-tick rounding.
+2. At one NES, the combined percentage-and-dollar risk ceiling determines affordability. Skip setups whose total planned risk exceeds it; do not move the structural stop to make them qualify.
+3. Record initial stop distance in index points, execution ticks, and ATR multiples for research. Use the accepted last-completed-bar ES ATR input at entry and identify the price distance/ATR source explicitly; ATR remains descriptive, not an entry permission or stop-placement rule. Missing ATR cannot be treated as a valid ratio; indicator/data handling remains under OD-05.
+4. Consider any later distance filter only after replay evidence review through an explicit revision. Do not introduce an ad hoc ATR/point/tick maximum for an individual opportunity.
+
+**OD-09 policy decisions closed 2026-10-10:** starting risk limits, equity update/verification, fee/slippage inputs, overshoot response, and no separate stop-distance filter are agreed. Actual-entry risk-overshoot handling is agreed; exact exit/protection/recovery implementation remains under OD-07. Equity-source verification, pending-deposit/withdrawal treatment, and no double allocation are agreed; actual funding and reconciliation evidence still must be obtained/applied under that policy. Session-start/current-equity comparison, profits/losses and deposit/withdrawal treatment, and no reset after losses are now accepted. The fee-input and starting replay/simulation slippage policies are accepted; the $1.88 starting NES fee input and standard connection are recorded, while actual equity reconciliation evidence, live fee reconciliation, and live slippage validation remain required. Gross/net realized accounting and net Loss-R cutoff policy are agreed; OD-10 policy decisions are closed.
 
 At the starting configuration, $15 is the effective maximum estimated planned total risk per attempt; it is not a $15 price-risk allowance plus additional costs. For a hypothetical combined fee/slippage allowance of $3, the remaining price-risk allowance is $12, equivalent to 24 NES index points at one contract. That $3 is arithmetic illustration only, not an accepted cost estimate. Replay should measure valid-setup exclusions under the cap before considering changes; do not raise it ad hoc to admit a particular trade.
 
-Record verified session-start and current allocated equity, their sources/timestamps, the smaller pre-entry equity basis, percentage and dollar ceilings, effective minimum, planned entry/stop distance, verified round-trip fee input/source/date, separate $1.50 starting replay/simulation slippage allowance, total planned risk, and pass/skip outcome. Acceptance of the framework and starting numbers does not close the remaining OD-09 implementation decisions or freeze V1.0.
+Record verified session-start and current allocated equity, their sources/timestamps, the smaller pre-entry equity basis, percentage and dollar ceilings, effective minimum, planned entry/stop distance, verified round-trip fee input/source/date, separate $1.50 starting replay/simulation slippage allowance, total planned risk, and pass/skip outcome. OD-09 policy closure does not establish actual funding, verified platform behavior, or live execution validation, and does not freeze V1.0. Retain equity/fee reconciliation and slippage review evidence in the risk record; resolve operational execution/recovery under OD-07 and apply the accepted gross/net accounting under closed OD-10.
 
-### V1-DAILY-01 — Gross realized loss budget
+### V1-DAILY-01 — Net realized losing-trade R budget
 
-**Status: Agreed cutoff; cost basis open.**
+**Status: Net losing-trade R cutoff agreed on 2026-10-10; OD-10 policy decisions closed. Remaining-budget guard remains open under OD-11.**
 
-For each completed trade, let `r_i` be its realized R under the selected accounting convention:
+For each completed filled attempt, let `r_i` be its net realized trade R under V1-RISK-02:
 
 `Loss-R used = sum(max(0, -r_i))`
 
-Stop taking new trades when **Loss-R used >= 3.00**. Equivalently, the signed sum of negative trade Rs is **<= -3.00**. The cutoff is reached at three, not only after exceeding three. Winners do not restore this budget. Partial losses consume their actual R; this is not simply a count of three stopouts.
+Stop taking new trades when **Loss-R used >= 3.00**. Equivalently, the signed sum of negative trade Rs is **<= -3.00**. The cutoff is reached at three, not only after exceeding three. Winners do not restore this budget. Partial losses consume their actual net R; this is not simply a count of three stopouts. A gross breakeven or small gross winner can be a net loser after fees and therefore consume this budget. This revises the earlier gross losing-trade R basis; the 3.00 threshold and no replenishment by winners remain unchanged.
 
-| Completed sequence | Net R | Loss-R used | New entries? |
+| Completed sequence of net trade Rs | Cumulative net R | Net Loss-R used | New entries? |
 | --- | ---: | ---: | --- |
 | +4, -1, -1 | +2 | 2 | Potentially, subject to all other rules |
 | +4, -1, -1, -1 | +1 | 3 | No |
 | -0.5, -0.75, -1, -0.75 | -3 | 3 | No |
 | -1.2, -1, -0.8 | -3 | 3 | No |
 
-**Proposed remaining-budget guard:** before entry, require enough remaining Loss-R budget for the planned full 1R price loss. For example, 2.6 Loss-R already used leaves 0.4; skip a fresh full-risk attempt. This prevents deliberately initiating a trade whose normal stop would cross the threshold, but fills/costs can still cause an overshoot. Confirm under OD-11.
+With R0 = $5, a $5 actual-fill price loss and $1.88 round-trip fees give net P&L = -$6.88, net trade R = -1.376, and 1.376 Loss-R used. The planning slippage allowance is not subtracted again. Three such losses would consume 4.128 Loss-R; fees mean three nominal price-risk stopouts need not equal the 3.00 budget.
+
+**Remaining-budget guard still proposed:** define a net-cost-aware pre-entry admission check under OD-11. The earlier full-1R price-loss guard is insufficient by itself once fees count toward the cutoff. For example, 2.6 net Loss-R already used leaves 0.4; skip a new attempt whose assessed net loss would exceed the remainder. The exact guard calculation/post-fill handling and one-position rule require acceptance under OD-11. Fills/costs can still cause an overshoot.
 
 Because each trade has its own R0, summed trade R is a normalized training measure, not a fixed-dollar session-loss limit.
 
@@ -760,9 +797,9 @@ Because each trade has its own R0, summed trade R is a normalized training measu
 
 **Status: Agreed tracking concept; formulas proposed.**
 
-Track net realized R, gross Loss-R used, peak cumulative realized R, current drawdown from that peak, trade count, and full-stopout count.
+Track net realized R, net Loss-R used, peak cumulative net realized R, current drawdown from that peak, trade count, and full-stopout count.
 
-`Cumulative R = sum(r_i)`  
+`Cumulative R = sum(net realized trade R_i)`  
 `Peak R = max(0, all completed-trade cumulative R values)`  
 `Current realized drawdown R = Peak R - current cumulative R`
 
@@ -1044,7 +1081,7 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 ## 16. Open decision register
 
-Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-13, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
+Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-09, OD-10, OD-13, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
@@ -1056,8 +1093,8 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-06 | CLOSED 2026-10-10: swing/pullback selection, consolidation formation/lifetime/replacement, and eligible auction references with approach-side and known structural-invalidation requirements accepted | ENTRY-01/05/06/07/08/09/10 |
 | OD-07 | Stop rounding away from structure accepted under STOP-02; entry trigger price/rounding/buffer, mapping/order type, protective workflow, fills/rejections/disconnection response remain open | ENTRY-02, STOP-02/11 |
 | OD-08 | CLOSED 2026-10-10: initial and trailing minimum clearance 0.50 index points, outward execution-tick rounding, and strategy/instrument-family configuration accepted; supersedes earlier 1.00-point NES trailing buffer | STOP-01/02/04/06/11 |
-| OD-09 | Combined ceiling, $3,500 starting allocation, 0.50%, $15 all-in planned cap, session-start/current-equity update policy, fee-input policy, and $1.50 replay/simulation slippage allowance/measurement policy accepted. Equity-verification/pending-transaction/shared-capital policy accepted; actual funding/reconciliation evidence required. Live reconciliation of the recorded $1.88 NES Free-plan/standard-connection fee input, live slippage validation, actual-fill overshoot, and any separate stop-distance cap remain open | RISK-01/03 |
-| OD-10 | Gross versus net realized R for daily cutoff; fee and slippage treatment | RISK-02, DAILY-01 |
+| OD-09 | CLOSED (policy decisions) 2026-10-10: $3,500 allocation, 0.50%/$15 combined cap, equity update/verification and pending/shared-capital policy, $1.88 starting NES Free-plan standard-connection round-trip fees, $1.50 replay/simulation slippage, actual-entry overshoot response, and no separate stop-distance filter accepted. Funding/equity/fee reconciliation and live slippage review evidence remain required; operational exit/protection/recovery remains under OD-07; realized accounting follows closed OD-10 | RISK-01/03 |
+| OD-10 | CLOSED (policy decisions) 2026-10-10: fixed price-risk R0, both gross/net reporting, actual-fill P&L minus transaction fees once, documented replay/simulation fee model, no second slippage subtraction, non-trade charges in allocation ledger, and daily sum of negative net trade Rs >= 3.00 accepted. NinjaTrader template/account reconciliation remains required | RISK-02, DAILY-01 |
 | OD-11 | Remaining-budget guard and one-position-at-a-time rule | DAILY-01, SCOPE-03 |
 | OD-12 | Thesis identity/reset and attempt-count treatment for unfilled/cancelled orders | REENTRY-01 |
 | OD-13 | CLOSED 2026-10-10: trailing identification/comparison/pairing/tracking, ordered continuation confirmation, prompt intrabar tightening checks, single pending amendment, verified acceptance, and reconciliation policy agreed. Operational mapping/platform recovery remains under OD-04/07 | STOP-04/06/07/08/09/10/11 |
@@ -1065,7 +1102,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Next define overshoot handling, then finish mapping/protection/order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Next resolve net-cost-aware remaining-budget and one-position rules under OD-11, then mapping/protection/order mechanics and session boundaries. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -1086,7 +1123,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | Confirmed pivot | Candidate higher low/lower high validated by continuation beyond the preceding swing extreme |
 | Learning lot | One NES contract in V1 |
 | R0 / 1R | Fixed original price-risk dollars for that individual trade |
-| Loss-R used | Sum of magnitudes of negative realized trade Rs; wins do not offset it |
+| Loss-R used | Sum of magnitudes of negative net realized trade Rs; wins do not offset it |
 | MAE / MFE | Maximum adverse/favorable excursion during the actual holding period |
 | Thesis/reference ID | Identifier grouping attempts at the same breakout idea |
 | Pyramiding | Adding to an existing winning position; excluded from V1 |
@@ -1113,6 +1150,9 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-38 | 2026-10-10 | Accepted gross/net reporting with fixed price-risk R0, actual-fill P&L minus transaction fees once, documented replay/simulation fee model, no second slippage subtraction, and daily negative-net-R sum >= 3.00. Closed OD-10 policy decisions; revised summary/examples/metrics and retained net-cost-aware remaining-budget decision under OD-11. |
+| V1-draft-37 | 2026-10-10 | Accepted no separate stop-distance filter in starting V1: structure/buffer/rounding and one-NES combined risk gate determine eligibility; record points/ticks/ATR distance descriptively and require evidence/revision for later filters. Closed OD-09 policy decisions while retaining funding/cost/slippage evidence and operational/accounting work. |
+| V1-draft-36 | 2026-10-10 | Accepted immediate post-fill risk check using actual fill/original structural stop, applicable round-trip fees and $1.00 exit allowance (entry allowance removed); strict ceiling overshoot prompts coordinated exit, flat/order verification, and attempt/evidence recording. Platform procedure remains open under OD-07. |
 | V1-draft-35 | 2026-10-10 | Accepted funded-allocation ledger reconciled to NinjaTrader records before each session/changes before entries, actual results and charges, exclusion of pending deposits, immediate withdrawal reservation without double subtraction, no shared-capital double counting, and unreconciled-equity no-entry rule. Actual funding evidence, overshoot, and validation remain pending. |
 | V1-draft-34 | 2026-10-10 | Recorded owner-selected standard NinjaTrader connection and $1.88 starting one-NES round-trip fee input without optional routing add-ons; fees plus replay/simulation slippage total $3.38. Retained before-live charge reconciliation/refresh and remaining equity/overshoot/accounting decisions. |
 | V1-draft-33 | 2026-10-10 | Verified owner-provided NES Free-plan fee row: $0.36 exchange/NFA + $0.19 clearing + $0.39 commission = $0.94/side, $1.88 round trip. Documented conditional $3.38 base fees plus slippage; account-specific transaction add-ons remain unverified. |
