@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-13  
+**Document revision:** V1-draft-14  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-13, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-14, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -388,7 +388,7 @@ Complete price data with no established swing sequence scores zero. Missing requ
 
 Record pivot bar times, confirmation times, and prices. Only pivots confirmed by the assessment time are eligible; future bars must not be used to label a pivot earlier than it could have been recognized.
 
-These pivots measure the regime structure. A three-bar pivot alone does not authorize moving a protective stop: V1-STOP-04 still requires directional continuation beyond the preceding swing extreme. Initial-entry selection and stop-specific candidate tracking remain separate OD-06/13 decisions.
+These pivots measure the regime structure. A three-bar pivot alone does not authorize moving a protective stop: V1-STOP-04 still requires directional continuation beyond the preceding swing extreme. V1-ENTRY-05 now adopts the same pivot identification method for entry swings. Meaningful entry-reference selection and stop-specific candidate tracking remain separate OD-06/13 decisions.
 
 ### V1-REGIME-08 — Factor 5: range extension holding
 
@@ -454,7 +454,7 @@ An entry may break either:
 1. A meaningful recent swing or consolidation high/low; or
 2. A meaningful auction reference, such as prior VAH/VAL, prior-session high/low, or overnight high/low.
 
-The direction must agree with the permitted regime. A random bar high/low is not automatically an eligible level. Breaking the initial observation range alone is not sufficient; it must qualify within the accepted entry family. Define “meaningful,” swing selection, and consolidation selection under OD-06.
+The direction must agree with the permitted regime. A random bar high/low is not automatically an eligible level. Breaking the initial observation range alone is not sufficient; it must qualify within the accepted entry family. Entry swing identification follows the accepted V1-ENTRY-05 method. Define “meaningful,” reference selection, and consolidation selection under OD-06; pivot identification alone does not make every pivot an eligible breakout reference.
 
 ### V1-ENTRY-02 — Penetration trigger
 
@@ -475,6 +475,20 @@ Do not require a raw-volume confirmation for V1 entry. Record available breakout
 **Status: Agreed.**
 
 A failed attempt may be followed by another attempt if the current regime still qualifies and the session loss budget permits it. Maximum **two total attempts**, including the original entry, against the same breakout thesis/reference. See V1-REENTRY-01 for the unresolved grouping details.
+
+### V1-ENTRY-05 — Entry-swing pivot identification
+
+**Status: Agreed on 2026-10-10; OD-06 partially resolved.**
+
+Reuse V1-REGIME-07's three-bar pivot method for identifying entry swings on the current-RTH ES 5-minute chart:
+
+- Use completed current-RTH bars for all three observations.
+- A swing high's center-bar high must be strictly higher than both immediately adjacent bar highs.
+- A swing low's center-bar low must be strictly lower than both immediately adjacent bar lows.
+- Recognize a pivot only after the right-hand bar closes. Equal neighboring highs/lows do not qualify for the corresponding pivot.
+- The pivot must already be known before entry. Preserve its center-bar timestamp, recognition timestamp, and ES price; do not use a later-confirmed pivot retrospectively.
+
+This accepts swing identification, not a rule that every pivot is meaningful or eligible. Reference selection and consolidation qualification remain open under OD-06. An ES pivot price does not resolve NES order-level mapping under OD-04/07. Trailing-stop movement retains V1-STOP-04's separate continuation-confirmation requirement; acceptance of an entry pivot does not itself authorize a stop modification.
 
 ## 8. Initial stop and protective orders
 
@@ -740,7 +754,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-03 | CLOSED 2026-10-10: assess first at 08:50 and every completed 5-minute bar; use latest scheduled assessment for intrabar entries; missing required evidence means UNKNOWN/no entry | REGIME-02 |
 | OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
 | OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; Order Flow VWAP tick/session implementation and 08:30–15:00 template accepted; VWAP operational template/data/parity verification, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
-| OD-06 | Meaningful swing/consolidation definition and reference selection | ENTRY-01 |
+| OD-06 | Entry-swing identification accepted: completed current-RTH ES three-bar strict pivots known before entry. Meaningful reference selection and consolidation definition remain open | ENTRY-01/05 |
 | OD-07 | Trigger price source, rounding/buffer, order type, protective workflow, fills/rejections/disconnection response | ENTRY-02, STOP-02 |
 | OD-08 | Initial structural-stop buffer; whether to use two NES ticks here too | STOP-01/02 |
 | OD-09 | Maximum initial stop distance/dollar risk; handling excessive width | RISK-01 |
@@ -752,7 +766,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Next define entry swings/consolidations and trailing-pivot mechanics; then order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Next define meaningful entry-reference selection/consolidations and trailing-pivot mechanics; then order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -800,6 +814,7 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-14 | 2026-10-10 | Accepted current-RTH completed ES three-bar strict pivot identification for entry swings, with right-hand-bar recognition and no hindsight. Added V1-ENTRY-05; OD-06 remains open for meaningful reference selection and consolidation rules. |
 | V1-draft-13 | 2026-10-10 | Accepted equal-weight total-score thresholds and regime/entry permissions; closed OD-02. UNKNOWN blocks entry; retain component evidence and separate breakout/risk requirements. Advanced to entry structure definitions. |
 | V1-draft-12 | 2026-10-10 | Accepted Factor 6 rejected counterdirectional swing break plus next-bar continuation, four-assessment window, current-close validity, and conflicting-event neutrality. Added V1-REGIME-09. All factors agreed; total-score thresholds remain open. |
 | V1-draft-11 | 2026-10-10 | Accepted Factor 5: frozen 08:30–08:50 ES range and two completed post-observation closes outside its high/low. Added V1-REGIME-08; first directional reading possible at 09:00. Factor 6 and total-score thresholds remain open. |
