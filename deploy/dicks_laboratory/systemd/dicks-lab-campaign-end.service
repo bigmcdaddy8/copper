@@ -1,0 +1,16 @@
+# Campaign-end guest disarm for the bounded four-week /ES corpus campaign
+# (trading dates 2026-10-12 .. 2026-11-06; docs/dicks_laboratory/ES_CORPUS_CAMPAIGN_2026_10.md).
+# Disables (and stops) the two recurring gate timers so that no further
+# preflight / launch can occur on a later boot of dragon. It never touches a
+# running dicks-lab-es-session.service: the Friday 2026-11-06 capture finishes
+# and finalizes on its own. Runs as root (system unit) because enabling or
+# disabling system timers requires it. Re-arming later is an explicit,
+# separately authorized `systemctl enable --now` of the two gate timers.
+
+[Unit]
+Description=Dick's Laboratory - disarm the bounded ES corpus campaign (gate timers)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl disable --now dicks-lab-preflight-gate.timer dicks-lab-launch-gate.timer
+ExecStart=/usr/bin/systemctl disable dicks-lab-campaign-end.timer

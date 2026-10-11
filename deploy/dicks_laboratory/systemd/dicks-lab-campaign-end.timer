@@ -1,0 +1,17 @@
+# One-shot campaign end: Fri 2026-11-06 16:30 America/Chicago (CST), after the
+# final trading-date capture (collector self-exit ~16:10 CT) and before the
+# 16:45 CT Azure Stop-Dragon. Persistent=true: if dragon happens to be down at
+# 16:30 and boots later, the disarm still runs at that boot (fail-safe toward
+# DISARMED, never toward an extra capture).
+
+[Unit]
+Description=Dick's Laboratory - ES corpus campaign end (2026-11-06 16:30 America/Chicago)
+
+[Timer]
+OnCalendar=2026-11-06 16:30:00 America/Chicago
+AccuracySec=1s
+Persistent=true
+Unit=dicks-lab-campaign-end.service
+
+[Install]
+WantedBy=timers.target
