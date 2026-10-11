@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-24  
+**Document revision:** V1-draft-26  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-24, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-26, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -66,8 +66,8 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Entry family | Momentum break of meaningful swing/consolidation or auction reference | Agreed; V1-ENTRY-01 |
 | Trigger | Penetration; no completed-bar requirement | Agreed; V1-ENTRY-02 |
 | Breakout volume | Record afterward; no volume gate | Agreed; V1-ENTRY-03 |
-| Initial stop | Structural invalidation; ATR recorded | Agreed; V1-STOP-01 |
-| Trailing | Confirmed higher lows / lower highs; 2 NES ticks beyond pivot | Agreed; V1-STOP-04 |
+| Initial stop | Structural invalidation plus minimum 0.50-point clearance; round away on execution tick grid; ATR recorded | Agreed; V1-STOP-01/02 |
+| Trailing | Confirmed higher lows / lower highs; minimum 0.50-point clearance beyond mapped pivot; round away | Agreed; V1-STOP-02/04 |
 | Profit target | None; no automatic +1R breakeven move | Agreed; V1-STOP-05, V1-EXIT-01 |
 | Reentry | Regime must still qualify; maximum two attempts per thesis/reference | Agreed; V1-ENTRY-04 |
 | R | Original initial price risk of that trade; denominator remains fixed | Agreed principle; V1-RISK-02 |
@@ -112,7 +112,7 @@ The training execution instrument is E-nano S&P 500 futures, product code **NES*
 | One index point, one contract | $0.50 |
 | Minimum tick | 0.5 index points |
 | Dollar value of one tick | $0.25 |
-| Two-tick structural trailing buffer | 1.0 index point |
+| Minimum initial/trailing buffer (local strategy policy) | 0.50 index points; one NES tick when the mapped level is tick-aligned |
 
 These specifications were checked against the CME E-nano FAQ on 2026-10-03 [S1]. A 0.25-point increment from an ES or MES example is not an NES tick. ES analysis with NES execution was accepted on 2026-10-10. Exact expiry selection, rollover, and cross-instrument level handling remain open (OD-04 and OD-07).
 
@@ -462,7 +462,7 @@ The direction must agree with the permitted regime. A random bar high/low is not
 
 Enter on penetration of the eligible level; do not require a completed 5-minute bar. For a long, penetration is above the selected level; for a short, below it. A touch is not penetration.
 
-Identify the level and initial structural invalidation before entry. Define trigger price source, tick rounding, any entry buffer, order type, and treatment of an already-broken level under OD-07. The two-tick trailing buffer is not an agreed entry buffer.
+Identify the level and initial structural invalidation before entry. Define trigger price source, tick rounding, any entry buffer, order type, and treatment of an already-broken level under OD-07. The accepted 0.50-point stop buffer is not an agreed entry buffer. Stop rounding is defined in V1-STOP-02; entry-trigger rounding remains open.
 
 ### V1-ENTRY-03 — Breakout volume
 
@@ -503,7 +503,7 @@ For the swing-breakout variant, use this starting structure:
 
 Identify both pivots with V1-ENTRY-05. “Formed after” refers to their center-bar order; both recognition timestamps must precede entry. Record the selected reference and pullback pivot using evidence available before entry.
 
-The opposite pivot supplies the candidate structural invalidation for this swing → pullback → breakout sequence. Executable NES stop pricing, cross-instrument handling, and the initial stop buffer remain separate OD-04/07/08 decisions. The latest scheduled regime assessment must permit the direction, and the existing entry/protection/risk requirements still apply.
+The opposite pivot supplies the candidate structural invalidation for this swing → pullback → breakout sequence. V1-STOP-02 specifies the accepted stop buffer/rounding; executable NES level mapping and cross-instrument handling remain separate OD-04/07 decisions. The latest scheduled regime assessment must permit the direction, and the existing entry/protection/risk requirements still apply.
 
 When multiple pullback pivots exist, select the most recent eligible opposite pivot as defined in V1-ENTRY-07. The pivot pair is recorded at entry; later pivots do not rewrite the original invalidation. V1-ENTRY-08/09 define consolidation formation and lifetime/replacement; V1-ENTRY-10 accepts meaningful auction-reference qualification. Treatment of already-penetrated references remains under OD-07, and a changed reference does not automatically reset the attempt count under OD-12. Entry-swing identification and selection do not replace the separate continuation confirmation required for trailing-stop movement.
 
@@ -518,7 +518,7 @@ When multiple pullback pivots exist, select the most recent eligible opposite pi
 
 “Most recent” refers to the center-bar timestamp among pivots that meet all listed conditions and are already recognized before entry. Use V1-ENTRY-05's identification method. If no eligible opposite pivot exists, the swing-breakout variant lacks its required pullback structure.
 
-Record the chosen reference/pullback pair at entry. Later pivots do not rewrite the original structural invalidation or the original risk reference. Subsequent protective-stop movement is governed separately by the trailing rules. NES price mapping and the initial stop buffer remain open under OD-04/07/08. V1-ENTRY-08 defines consolidation formation. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed; already-penetrated levels and reentry accounting remain separate OD-07/12 decisions.
+Record the chosen reference/pullback pair at entry. Later pivots do not rewrite the original structural invalidation or the original risk reference. Subsequent protective-stop movement is governed separately by the trailing rules. NES price mapping remains open under OD-04/07; V1-STOP-02 specifies the accepted stop buffer/rounding. V1-ENTRY-08 defines consolidation formation. V1-ENTRY-09 accepts consolidation lifetime/replacement. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed; already-penetrated levels and reentry accounting remain separate OD-07/12 decisions.
 
 ### V1-ENTRY-08 — Consolidation formation and breakout structure
 
@@ -531,7 +531,7 @@ Record the chosen reference/pullback pair at entry. Later pivots do not rewrite 
 | Overlap requirement | Price interval shared by all three bars spans at least 50% of the total box width |
 | Recognition | After the third bar closes; require positive box width |
 | Entry structure | Penetrate above the box for a permitted long; below it for a permitted short |
-| Candidate invalidation | Opposite box boundary, subject to separate NES mapping, initial buffer, and risk decisions |
+| Candidate invalidation | Opposite box boundary; apply accepted stop buffer/rounding after NES mapping, subject to risk limits |
 
 Let W = H - L. Let overlap upper = minimum of the three bar highs and overlap lower = maximum of the three bar lows. Shared overlap width O = overlap upper - overlap lower. The formation qualifies only when W > 0 and O >= 0.50 × W. Equality at 50% qualifies. Disjoint ranges or a single-price common touch do not satisfy the requirement for a positive-width box. Missing required bars/prices cannot be treated as a qualifying formation.
 
@@ -539,7 +539,7 @@ For example, a four-point box requires at least two points of common overlap. Re
 
 The three-bar and 50% choices are accepted starting research settings, not established performance thresholds or a source-prescribed consolidation definition. Formation may use completed bars from the initial observation window; the existing no-entry-before-08:50 rule still applies. The latest scheduled regime assessment must permit the breakout direction. Entry remains on penetration rather than a completed breakout bar; other protection and risk requirements still apply.
 
-V1-ENTRY-09 accepts box freezing, first-breakout lifetime, and replacement. Reentry after penetration, detailed trigger/order handling, and thesis/attempt accounting remain separate OD-07/12 decisions. This rule does not resolve NES order-level mapping, the initial stop buffer, or maximum risk. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed. ATR remains descriptive evidence rather than a consolidation-entry filter.
+V1-ENTRY-09 accepts box freezing, first-breakout lifetime, and replacement. Reentry after penetration, detailed trigger/order handling, and thesis/attempt accounting remain separate OD-07/12 decisions. This rule does not resolve NES order-level mapping or maximum risk. V1-STOP-02 supplies the accepted stop buffer/rounding. V1-ENTRY-10 accepts meaningful auction-reference qualification; OD-06 is closed. ATR remains descriptive evidence rather than a consolidation-entry filter.
 
 ### V1-ENTRY-09 — Consolidation box duration and replacement
 
@@ -576,7 +576,7 @@ Use the accepted session definitions and analytical ES references. For VAH/VAL, 
 
 Both the selected reference and invalidation pivot must be known before entry. Record their prices, source/session identity, selection time, pivot center/recognition times, and the latest completed ES close used for the approach condition. Equality of that close to the reference is allowed; a touch alone is not an entry trigger.
 
-The latest scheduled regime assessment must permit the direction, and the existing protection/risk requirements still apply. The opposite pivot is candidate structural invalidation; NES price mapping, initial stop buffer, and executable order prices remain separate OD-04/07/08 decisions. Approach-side qualification does not authorize chasing a level already penetrated intrabar. Already-penetrated levels, exact trigger handling, and reentry accounting remain separate OD-07/12 decisions.
+The latest scheduled regime assessment must permit the direction, and the existing protection/risk requirements still apply. The opposite pivot is candidate structural invalidation; V1-STOP-02 supplies the accepted stop buffer/rounding; NES level mapping and executable order workflow remain separate OD-04/07 decisions. Approach-side qualification does not authorize chasing a level already penetrated intrabar. Already-penetrated levels, exact trigger handling, and reentry accounting remain separate OD-07/12 decisions.
 
 This completes OD-06's accepted starting definitions for swing, consolidation, and auction-reference entry families. It does not establish a performance edge or freeze the entire V1 playbook. Trailing-pivot selection remains separate under OD-13.
 
@@ -592,9 +592,22 @@ Structure determines stop location. Do not move the stop closer merely to fit a 
 
 ### V1-STOP-02 — Initial buffer and order protection
 
-**Status: Open buffer; proposed protection procedure.**
+**Status: Buffer and outward stop rounding agreed on 2026-10-10; OD-08 closed. Initial protection workflow remains open under OD-07.**
 
-The agreed **two-tick buffer applies to confirmed-pivot trailing**. Applying the same buffer to the initial structural stop is a proposal, not an explicit prior agreement (OD-08).
+For both initial and trailing stops in this S&P 500 playbook, use a **minimum 0.50-index-point clearance beyond the mapped structural-invalidation level**, then round the resulting stop price away from structure to a valid execution-contract tick. This supersedes the earlier two-NES-tick (1.00-point) trailing policy.
+
+| Direction | Accepted calculation |
+| --- | --- |
+| Long | Subtract 0.50 points from the mapped level, then round downward to the execution tick grid |
+| Short | Add 0.50 points to the mapped level, then round upward to the execution tick grid |
+
+Let P be the mapped structural level before stop rounding and q the execution tick size. For the standard zero-based tick grid, long stop = floor((P - 0.50) / q) × q; short stop = ceil((P + 0.50) / q) × q. Obtain tick size from the execution instrument's verified specification/metadata. Do not round inward merely to fit an order or risk preference.
+
+The 0.50-point setting corresponds to two ES/MES ticks or one NES tick when the mapped level is tick-aligned. If the mapped level lies between executable ticks, outward rounding can increase actual clearance. With NES q = 0.50 and a mapped long invalidation P = 6000.25, the desired stop is 5999.75 and the executable outward-rounded stop is 5999.50: actual clearance is 0.75 points. For a short at the same mapped reference, 6000.75 rounds upward to 6001.00, also giving 0.75-point clearance.
+
+Define buffer distance by strategy/instrument family and convert it using the execution tick size; do not automatically carry 0.50 points into unrelated futures such as NQ. Record nominal buffer, mapped level, tick size, rounded trigger, actual clearance, and resulting risk. Structure determines invalidation; if the resulting initial stop exceeds the eventual accepted risk limit, skip the entry rather than moving the stop closer. The numeric risk ceiling remains open under OD-09.
+
+This closes OD-08 and the stop-price rounding subdecision of OD-07. ES-to-NES level mapping, entry-trigger rounding/buffer, and operational order procedures remain open. A mapped reference in the arithmetic example is a supplied input, not an accepted ES-to-NES mapping algorithm.
 
 Proposed procedure: arrange the protective stop as part of the entry workflow; immediately verify its accepted status after a fill. The exact NinjaTrader procedure, partial-fill behavior, rejected-order response, and connection-loss handling must be documented under OD-07. A stop trigger is not a guarantee of a particular fill price.
 
@@ -679,37 +692,37 @@ OD-12 must define when adjacent levels represent the same thesis, whether the ca
 
 ## 11. Confirmed-pivot trailing
 
-### V1-STOP-04 — Confirmation and two-tick trail
+### V1-STOP-04 — Confirmation and structural trail
 
-**Status: Agreed core rule, identification, comparison, pairing, tracking, and continuation event order; modification timing open.**
+**Status: Agreed core rule and complete OD-13 design policy; operational mapping/order verification remains open under OD-04/07.**
 
 For a **long**:
 
 1. Keep the initial stop while price develops an impulse and pullback.
 2. Identify the preceding swing high and the candidate higher low.
 3. The higher low becomes confirmed when price subsequently penetrates the preceding swing high.
-4. Move the protective stop to **two NES ticks below** that confirmed higher low.
+4. Move the protective stop at least **0.50 index points below the mapped confirmed higher low**, rounding downward under V1-STOP-02.
 5. Repeat for later confirmed higher lows, subject to the stop never being loosened.
 
-For a **short**, mirror the sequence: a candidate lower high becomes confirmed when price penetrates the preceding swing low; trail **two NES ticks above** that lower high.
+For a **short**, mirror the sequence: a candidate lower high becomes confirmed when price penetrates the preceding swing low; trail at least **0.50 index points above the mapped lower high**, rounding upward under V1-STOP-02.
 
-A two-tick NES buffer is **1.0 index point**. Confirmation requires continuation beyond the reference, not merely a touch. V1-STOP-06 specifies accepted trailing-pivot identification. V1-STOP-07 specifies accepted higher-low/lower-high comparison. V1-STOP-08 specifies accepted continuation-reference pairing. V1-STOP-09 specifies accepted candidate replacement/invalidation. V1-STOP-10 specifies accepted continuation-confirmation event order. Stop-modification timing remains open under OD-13.
+The accepted minimum buffer is **0.50 index points**, one NES tick for a tick-aligned mapped pivot; apply outward rounding under V1-STOP-02. Confirmation requires continuation beyond the reference, not merely a touch. V1-STOP-06 specifies accepted trailing-pivot identification. V1-STOP-07 specifies accepted higher-low/lower-high comparison. V1-STOP-08 specifies accepted continuation-reference pairing. V1-STOP-09 specifies accepted candidate replacement/invalidation. V1-STOP-10 specifies accepted continuation-confirmation event order. V1-STOP-11 accepts stop-modification timing; OD-13 is closed.
 
-**Long example:**
+**Long example (assumes level mapping yields the prices shown; does not define the mapping policy):**
 
 | Event | Price / action |
 | --- | --- |
 | Entry | 6000.0 |
-| Original stop | 5994.0; R0 = $3.00 |
+| Original mapped invalidation / stop | 5994.5 / 5994.0; R0 = $3.00 |
 | Rally establishes swing high A | 6010.0 |
 | Pullback establishes candidate higher low | 6005.0 |
 | Continuation penetrates A | 6010.5 |
 | Candidate becomes confirmed | Higher low at 6005.0 |
-| New stop trigger | 6004.0 |
+| New stop trigger | 6004.5 |
 
-The trigger is four points above entry; an actual exit fill at 6004.0 would yield $2.00 gross, or approximately +0.67R. This is an intended trigger outcome, not a guaranteed profit.
+The trigger is 4.5 points above entry; an actual exit fill at 6004.5 would yield $2.25 gross, or +0.75R. This is an intended trigger outcome, not a guaranteed profit.
 
-**Short example:** entry 6000.0, original stop 6006.0, swing low 5990.0, candidate lower high 5995.0. Price subsequently trades at 5989.5: trail to 5996.0, two NES ticks above the confirmed lower high.
+**Short example (same mapping assumption):** entry 6000.0, original mapped invalidation 6005.5, original stop 6006.0, swing low 5990.0, candidate lower high 5995.0. Price subsequently trades at 5989.5: trail to 5995.5, 0.50 points above the mapped confirmed lower high.
 
 ### V1-STOP-05 — Structure rather than a P&L milestone
 
@@ -721,7 +734,7 @@ Do not move the stop solely because price reaches +1R, breakeven, or another arb
 
 ### V1-STOP-06 — Trailing-pivot identification
 
-**Status: Agreed on 2026-10-10; OD-13 partially resolved.**
+**Status: Agreed on 2026-10-10; OD-13 closed.**
 
 Reuse V1-ENTRY-05's completed current-RTH ES 5-minute strict three-bar pivot method for trailing-pivot identification. A center-bar high must strictly exceed both adjacent highs; a center-bar low must be strictly below both adjacent lows. Equal neighboring extremes do not qualify for the corresponding pivot. Recognize each pivot only after its right-hand bar closes.
 
@@ -729,11 +742,11 @@ For both the continuation reference and the pullback candidate, require the pivo
 
 For example, an entry fill at 09:12 makes the 09:15 bar the earliest eligible center bar for a trailing pivot. Its recognition requires completion of the right-hand bar. Record center-bar start time, recognition time, ES price, and actual fill time. Both reference and candidate must be recognized before they can be used prospectively in trailing decisions.
 
-Recognition alone does not authorize a stop move. V1-STOP-04's separate continuation requirement and two-NES-tick trailing buffer remain in force. V1-STOP-07 now resolves higher-low/lower-high comparison. V1-STOP-08 now resolves continuation-reference pairing. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 resolves continuation event order/same-bar ambiguity. Modification timing remains open under OD-13. ES-to-NES level handling remains separately open under OD-04/07.
+Recognition alone does not authorize a stop move. V1-STOP-04's separate continuation requirement and 0.50-point minimum trailing clearance and outward rounding remain in force. V1-STOP-07 now resolves higher-low/lower-high comparison. V1-STOP-08 now resolves continuation-reference pairing. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 resolves continuation event order/same-bar ambiguity. V1-STOP-11 accepts modification timing; OD-13 is closed. ES-to-NES level handling remains separately open under OD-04/07.
 
 ### V1-STOP-07 — Higher-low / lower-high comparison
 
-**Status: Agreed on 2026-10-10; OD-13 partially resolved.**
+**Status: Agreed on 2026-10-10; OD-13 closed.**
 
 | Candidate | Accepted comparison requirement |
 | --- | --- |
@@ -746,11 +759,11 @@ Compare unbuffered ES structure prices rather than NES stop triggers. Equal pric
 
 A qualifying comparison only makes a recognized pivot a candidate. V1-STOP-04's continuation confirmation, executable NES mapping, and a protective-stop update that tightens protection are still required. Advance the comparison reference only after the protective-stop update is accepted. An unconfirmed candidate, an unsubmitted modification, a rejected modification, or a mapped stop that does not tighten protection does not advance it. Until the first accepted tightening, retain the original structural-invalidation reference for comparison.
 
-After an accepted tightening, record the ES pivot used, the NES stop trigger, and update acceptance evidence. Later pivots do not rewrite the original invalidation or R0. V1-STOP-08 records accepted continuation-reference pairing. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 resolves continuation event order/same-bar ambiguity. Modification timing remains open under OD-13; exact mapping and order-response handling remain under OD-04/07.
+After an accepted tightening, record the ES pivot used, the NES stop trigger, and update acceptance evidence. Later pivots do not rewrite the original invalidation or R0. V1-STOP-08 records accepted continuation-reference pairing. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 resolves continuation event order/same-bar ambiguity. V1-STOP-11 accepts modification timing; OD-13 is closed; exact mapping and order-response handling remain under OD-04/07.
 
 ### V1-STOP-08 — Continuation-reference pairing
 
-**Status: Agreed on 2026-10-10; OD-13 partially resolved.**
+**Status: Agreed on 2026-10-10; OD-13 closed.**
 
 | Candidate | Accepted continuation reference |
 | --- | --- |
@@ -761,11 +774,11 @@ At candidate recognition, select the reference from information already availabl
 
 Freeze the candidate/reference pair. Later swings do not retarget that candidate. If no eligible reference exists at candidate recognition, that candidate cannot authorize trailing; do not retroactively supply a later reference. Record both pivot prices, center/recognition times, pair-selection time, and the comparison reference in force at selection.
 
-Pair selection does not itself confirm continuation or authorize a stop modification. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 accepts the recognition/activation-before-confirmation sequence and excludes retrospective penetration. Modification timing remains open under OD-13. NES mapping and order-response handling remain separate OD-04/07 decisions.
+Pair selection does not itself confirm continuation or authorize a stop modification. V1-STOP-09 accepts candidate replacement/invalidation. V1-STOP-10 accepts the recognition/activation-before-confirmation sequence and excludes retrospective penetration. V1-STOP-11 accepts modification timing; OD-13 is closed. NES mapping and order-response handling remain separate OD-04/07 decisions.
 
 ### V1-STOP-09 — Unconfirmed-candidate replacement and invalidation
 
-**Status: Agreed on 2026-10-10; OD-13 partially resolved.**
+**Status: Agreed on 2026-10-10; OD-13 closed.**
 
 | Situation | Accepted handling |
 | --- | --- |
@@ -780,11 +793,11 @@ Apply V1-STOP-06/07/08 independently to a proposed replacement using evidence av
 
 Replacing or discarding a candidate leaves the existing protective stop and V1-STOP-07 comparison anchor unchanged. The anchor advances only after an accepted stop tightening. Candidate invalidation alone does not authorize a discretionary position exit or loosening/removing protection. Do not restore an older pair when the replacement later fails; wait for a newly recognized qualifying candidate.
 
-Record candidate identity, frozen continuation reference, activation/replacement/discard time, replacement eligibility, and the observed ES breach when applicable. V1-STOP-10 resolves exact continuation event order, ambiguity, and the transition from unconfirmed to continuation-confirmed. Stop-modification timing remains open under OD-13. Order acknowledgement/rejection and connection-loss handling remain separate OD-07 decisions.
+Record candidate identity, frozen continuation reference, activation/replacement/discard time, replacement eligibility, and the observed ES breach when applicable. V1-STOP-10 resolves exact continuation event order, ambiguity, and the transition from unconfirmed to continuation-confirmed. V1-STOP-11 accepts stop-modification timing; OD-13 is closed. Order acknowledgement/rejection and connection-loss handling remain separate OD-07 decisions.
 
 ### V1-STOP-10 — Continuation-confirmation event order
 
-**Status: Agreed on 2026-10-10; OD-13 partially resolved.**
+**Status: Agreed on 2026-10-10; OD-13 closed.**
 
 | Situation | Accepted handling |
 | --- | --- |
@@ -802,7 +815,28 @@ For example, a pair activated at 09:25 cannot use a reference penetration at 09:
 
 A bar's high and low alone may not establish which boundary was crossed first. If available evidence cannot establish the required order, discard that pair, preserve the reason in the record, and wait for a newly recognized qualifying candidate under V1-STOP-09. Do not manufacture confirmation from a bar that contains both candidate breach and reference penetration with unresolved order.
 
-When an active pair satisfies the ordered sequence before any candidate breach, mark it continuation-confirmed and record the approach observation, penetration observation, and confirmation time/sequence. This permits evaluation of a protective-stop tightening; it does not itself prove that an amendment was submitted or accepted. Stop-modification timing and the handling of market movement between confirmation, submission, and acceptance remain open under OD-13. Exact ES/NES mapping, data/event-order verification, platform procedures, and order failures remain separate OD-04/05/07 implementation decisions.
+When an active pair satisfies the ordered sequence before any candidate breach, mark it continuation-confirmed and record the approach observation, penetration observation, and confirmation time/sequence. This permits evaluation of a protective-stop tightening; it does not itself prove that an amendment was submitted or accepted. V1-STOP-11 accepts modification timing, pre-submission validity checks, one pending amendment, and reconciliation when conditions change during acknowledgement; OD-13 is closed. Exact ES/NES mapping, data/event-order verification, platform procedures, and order failures remain separate OD-04/05/07 implementation decisions.
+
+### V1-STOP-11 — Stop-modification timing and acknowledgement
+
+**Status: Agreed on 2026-10-10; OD-13 closed.**
+
+| Situation | Accepted design policy |
+| --- | --- |
+| Continuation confirmed | Evaluate and submit tightening promptly, intrabar; do not wait for another 5-minute close |
+| Before submission | Verify position remains open, candidate has not been breached, and mapped NES stop is valid and strictly tighter |
+| Checks fail | Discard proposed update; retain existing protection and comparison anchor |
+| Amendment submitted | Freeze confirmed pair; allow only one stop amendment awaiting acknowledgement |
+| Protection during amendment | Use a workflow that preserves protection; never cancel existing stop in advance merely to prepare replacement |
+| Tightening accepted | Verify working stop, advance comparison anchor, retire pair, and resume tracking newly recognized candidates |
+
+Use V1-STOP-02/04's 0.50-point minimum trailing clearance and outward rounding beyond the mapped candidate under the ES-to-NES mapping policy once that policy is resolved. Evaluate validity on the executable NES instrument under the eventual platform/broker procedure. A theoretical ES confirmation alone does not establish that a valid, tighter NES order is available. Confirmation time, pre-submission verification, amendment submission, and acceptance are distinct events; record them separately.
+
+While an amendment awaits acknowledgement, keep the confirmed pair frozen and do not send a competing second stop amendment. Do not treat submission as acceptance or advance the comparison anchor prematurely. A pending amendment is not proof that either the old or proposed stop is currently working; the operational workflow must verify actual protection. This rule specifies the required protection outcome rather than asserting unverified NinjaTrader/broker behavior.
+
+If the position exits, the candidate is breached while acknowledgement is pending, or the amendment is rejected or uncertain, reconcile actual position and orders before another amendment. Do not assume that the prior stop remains working after a failure or race. Detailed recovery procedures, acknowledgement timeouts, fill/cancel races, and connection-loss handling remain under OD-07. Advance V1-STOP-07's comparison anchor only after a verified accepted tightening for the open position. Preserve original invalidation and R0.
+
+This closes OD-13's intended timing and state-transition design. It does not resolve ES-to-NES mapping, tick rounding, instrument alignment, data/event-order verification, or operational platform procedures under OD-04/05/07, and does not freeze V1.0.
 
 ## 12. Exits
 
@@ -906,7 +940,7 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 - [ ] Verify protective stop acceptance.
 - [ ] Track candidate pivots and confirmation references.
-- [ ] Trail only on confirmed structure, using two NES ticks beyond the pivot.
+- [ ] Trail only on confirmed structure, applying minimum 0.50-point clearance beyond the mapped pivot and outward execution-tick rounding.
 - [ ] Do not loosen the stop, add size, or install a fixed profit target.
 - [ ] Follow the finalized regime-change/operational-exit policy and session cutoff.
 
@@ -920,7 +954,7 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 ## 16. Open decision register
 
-Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
+Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-13, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
@@ -930,18 +964,18 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
 | OD-05 | VWAP anchor, NinjaTrader Volume Profile (68%, one ES tick/row, tick resolution subject to availability), and ATR(13) Wilder on completed full-session ES 5-minute bars with no 08:30 reset accepted; Order Flow VWAP tick/session implementation and 08:30–15:00 template accepted; VWAP operational template/data/parity verification, profile reproducibility/data policy, and ATR template/gap/seed/warm-up remain open | CONTEXT-03/04/05/06 |
 | OD-06 | CLOSED 2026-10-10: swing/pullback selection, consolidation formation/lifetime/replacement, and eligible auction references with approach-side and known structural-invalidation requirements accepted | ENTRY-01/05/06/07/08/09/10 |
-| OD-07 | Trigger price source, rounding/buffer, order type, protective workflow, fills/rejections/disconnection response | ENTRY-02, STOP-02 |
-| OD-08 | Initial structural-stop buffer; whether to use two NES ticks here too | STOP-01/02 |
+| OD-07 | Stop rounding away from structure accepted under STOP-02; entry trigger price/rounding/buffer, mapping/order type, protective workflow, fills/rejections/disconnection response remain open | ENTRY-02, STOP-02/11 |
+| OD-08 | CLOSED 2026-10-10: initial and trailing minimum clearance 0.50 index points, outward execution-tick rounding, and strategy/instrument-family configuration accepted; supersedes earlier 1.00-point NES trailing buffer | STOP-01/02/04/06/11 |
 | OD-09 | Maximum initial stop distance/dollar risk; handling excessive width | RISK-01 |
 | OD-10 | Gross versus net realized R for daily cutoff; fee and slippage treatment | RISK-02, DAILY-01 |
 | OD-11 | Remaining-budget guard and one-position-at-a-time rule | DAILY-01, SCOPE-03 |
 | OD-12 | Thesis identity/reset and attempt-count treatment for unfilled/cancelled orders | REENTRY-01 |
-| OD-13 | Trailing identification/comparison/pairing/tracking and post-activation approach-then-penetration confirmation with ambiguity discard agreed. Stop-modification timing and movement between confirmation/submission/acceptance remain open | STOP-04/06/07/08/09/10 |
+| OD-13 | CLOSED 2026-10-10: trailing identification/comparison/pairing/tracking, ordered continuation confirmation, prompt intrabar tightening checks, single pending amendment, verified acceptance, and reconciliation policy agreed. Operational mapping/platform recovery remains under OD-04/07 | STOP-04/06/07/08/09/10/11 |
 | OD-14 | Open-position treatment after regime change; authorized manual/emergency exits | EXIT-03 |
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Next define stop-modification timing; then order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Next finish maximum initial risk, mapping/protection/order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -989,6 +1023,8 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-26 | 2026-10-10 | Accepted minimum 0.50-point initial/trailing clearance with rounding away from structure; closed OD-08 and stop-rounding subdecision of OD-07. Superseded two-NES-tick/1.00-point trailing setting, updated current rules/checklist and examples. Mapping and numeric risk ceiling remain open. |
+| V1-draft-25 | 2026-10-10 | Accepted prompt intrabar tightening, pre-submission validity checks, one pending amendment, preservation/verification of protection, and advancement only after accepted tightening. Added V1-STOP-11 and closed OD-13; actual mapping and platform recovery remain under OD-04/07. |
 | V1-draft-24 | 2026-10-10 | Accepted post-activation ES approach-then-penetration continuation, fresh tracking on replacement, breach-first discard, and discard when order cannot be established. Added V1-STOP-10; modification timing remains open under OD-13. |
 | V1-draft-23 | 2026-10-10 | Accepted one active unconfirmed pair, strict-more-protective independent replacement, strict ES breach invalidation, and no revival of discarded/replaced pairs. Added V1-STOP-09; existing protection and comparison anchor remain unchanged until accepted tightening. Event/modification timing remains open. |
 | V1-draft-22 | 2026-10-10 | Accepted continuation-reference pairing at candidate recognition using the most recent eligible known preceding opposite swing and strict relative-price conditions. Added V1-STOP-08; pair is frozen without later retargeting. Candidate replacement and event/modification timing remain open. |
