@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-26  
+**Document revision:** V1-draft-28  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -9,7 +9,7 @@
 
 ## How to use this document
 
-This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-26, I have a question about V1-STOP-04.”
+This document preserves the decisions made in our trading-design discussion. Read the quick reference before practice; use the numbered rules for study and questions. Cite a rule and revision when discussing it: “In V1-draft-28, I have a question about V1-STOP-04.”
 
 Each rule has a status:
 
@@ -605,7 +605,7 @@ Let P be the mapped structural level before stop rounding and q the execution ti
 
 The 0.50-point setting corresponds to two ES/MES ticks or one NES tick when the mapped level is tick-aligned. If the mapped level lies between executable ticks, outward rounding can increase actual clearance. With NES q = 0.50 and a mapped long invalidation P = 6000.25, the desired stop is 5999.75 and the executable outward-rounded stop is 5999.50: actual clearance is 0.75 points. For a short at the same mapped reference, 6000.75 rounds upward to 6001.00, also giving 0.75-point clearance.
 
-Define buffer distance by strategy/instrument family and convert it using the execution tick size; do not automatically carry 0.50 points into unrelated futures such as NQ. Record nominal buffer, mapped level, tick size, rounded trigger, actual clearance, and resulting risk. Structure determines invalidation; if the resulting initial stop exceeds the eventual accepted risk limit, skip the entry rather than moving the stop closer. The numeric risk ceiling remains open under OD-09.
+Define buffer distance by strategy/instrument family and convert it using the execution tick size; do not automatically carry 0.50 points into unrelated futures such as NQ. Record nominal buffer, mapped level, tick size, rounded trigger, actual clearance, and resulting risk. Structure determines invalidation; if the resulting initial stop exceeds the eventual accepted risk limit, skip the entry rather than moving the stop closer. V1-RISK-03 accepts the combined percentage-and-dollar ceiling; starting allocation and numeric limits are accepted; equity snapshot/update and cost-input policies remain open under OD-09/10.
 
 This closes OD-08 and the stop-price rounding subdecision of OD-07. ES-to-NES level mapping, entry-trigger rounding/buffer, and operational order procedures remain open. A mapped reference in the arithmetic example is a supplied input, not an accepted ES-to-NES mapping algorithm.
 
@@ -623,7 +623,7 @@ Never widen a protective stop to increase risk after entry. A long stop may rema
 
 **Status: Agreed.**
 
-Each V1 entry uses **one NES contract**. Do not optimize quantity against the approximately $50,000 capital context. A wider structural stop changes that trade's dollar risk, not its V1 quantity. A maximum acceptable stop distance/dollar risk has not yet been specified (OD-09).
+Each V1 entry uses **one NES contract**. The accepted starting futures allocation is $3,500; the earlier approximately $50,000 account illustration is not the V1 allocated risk base. Do not optimize quantity to consume the allowance. A wider structural stop changes that trade's dollar risk, not its V1 quantity. V1-RISK-03 now accepts a combined percentage-and-dollar ceiling. Its starting allocation, percentage, and dollar cap are accepted; equity snapshot/update and cost-input policies remain open under OD-09/10. The ceiling filters entry eligibility; it does not increase V1 quantity or prescribe stop placement.
 
 ### V1-RISK-02 — Fixed original denominator
 
@@ -644,6 +644,41 @@ Keep `R0` fixed throughout the trade. Moving the stop does not reset the denomin
 | Short C | 6000.0 | 6009.0 | 9 points | $4.50 |
 
 For Long A, a $7.50 gross profit is +3R. It does not imply a +3R profit-target order. A stop filled at its original trigger produces -1R before costs; an adverse fill can lose more than 1R.
+
+### V1-RISK-03 — Combined percentage-and-dollar entry-risk ceiling
+
+**Status: Framework and starting allocation/numeric limits agreed on 2026-10-10; OD-09 partially resolved. Equity/cost input policies remain open.**
+
+For the one-NES learning configuration, use the smaller of a percentage-of-equity ceiling and a fixed-dollar learning cap:
+
+`Allowed planned risk = min(p × A, D)`
+
+| Input | Accepted starting configuration |
+| --- | ---: |
+| Initial futures allocation | $3,500 |
+| Percentage ceiling p | 0.50% (0.005) |
+| Fixed-dollar learning cap D | $15 |
+| Initial percentage-based allowance | $17.50 |
+| Initial effective combined ceiling | $15, including estimated round-trip fees and slippage allowance |
+| Execution quantity | One NES contract |
+
+Here A is the equity explicitly allocated to futures trading, initially $3,500; p is the accepted 0.005 risk fraction; and D is the accepted $15 fixed-dollar learning cap. These are starting learning/research settings. They do not establish that every qualifying structural stop fits or that the strategy has a performance edge. The percentage is a ceiling rather than a target amount to consume. Keep Q = 1 NES; do not enlarge quantity or widen a structural stop to reach the allowance. Account for other positions drawing on the same allocated capital when finalizing the risk policy.
+
+Determine structural invalidation first, map to the execution instrument, and apply V1-STOP-02's 0.50-point minimum clearance and outward tick-grid rounding. Assess affordability using the resulting planned price risk plus estimated round-trip fees and a slippage allowance:
+
+`Planned price risk = abs(planned NES entry - rounded initial NES stop) × $0.50 × 1`
+
+`Estimated planned total risk = planned price risk + estimated round-trip fees + slippage allowance`
+
+Compare estimated planned total risk with the combined ceiling. If it exceeds the ceiling, skip the entry rather than moving the stop closer or increasing the ceiling for that opportunity. Actual loss may exceed the estimate because stop execution and entry fills can differ from the plan. Preserve planned inputs separately from actual fills and realized results.
+
+This affordability check does not redefine V1-RISK-02's fixed price-risk R0 denominator or resolve gross/net daily Loss-R accounting under OD-10. Fee schedules, allowance amounts, avoiding double-counted slippage, treatment of actual-entry overshoot, and operational response remain to be specified under OD-07/09/10.
+
+**Remaining OD-09 decisions:** verify the funded/allocated equity source and treatment of shared funds; define equity snapshot/update timing, treatment of profits/losses and deposits/withdrawals, and response to actual-entry risk overshoot; determine whether a separate stop-distance filter is needed. The accepted $3,500 is a starting allocation, not yet a policy to reset the risk base to $3,500 after losses. Estimated fee/slippage inputs and their measurement policy remain open under OD-09/10.
+
+At the starting configuration, $15 is the effective maximum estimated planned total risk per attempt; it is not a $15 price-risk allowance plus additional costs. For a hypothetical combined fee/slippage allowance of $3, the remaining price-risk allowance is $12, equivalent to 24 NES index points at one contract. That $3 is arithmetic illustration only, not an accepted cost estimate. Replay should measure valid-setup exclusions under the cap before considering changes; do not raise it ad hoc to admit a particular trade.
+
+Record the equity basis/snapshot, percentage and dollar ceilings, effective minimum, planned entry/stop distance, estimated costs/slippage, total planned risk, and pass/skip outcome. Acceptance of the framework and starting numbers does not close the remaining OD-09 implementation decisions or freeze V1.0.
 
 ### V1-DAILY-01 — Gross realized loss budget
 
@@ -966,7 +1001,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-06 | CLOSED 2026-10-10: swing/pullback selection, consolidation formation/lifetime/replacement, and eligible auction references with approach-side and known structural-invalidation requirements accepted | ENTRY-01/05/06/07/08/09/10 |
 | OD-07 | Stop rounding away from structure accepted under STOP-02; entry trigger price/rounding/buffer, mapping/order type, protective workflow, fills/rejections/disconnection response remain open | ENTRY-02, STOP-02/11 |
 | OD-08 | CLOSED 2026-10-10: initial and trailing minimum clearance 0.50 index points, outward execution-tick rounding, and strategy/instrument-family configuration accepted; supersedes earlier 1.00-point NES trailing buffer | STOP-01/02/04/06/11 |
-| OD-09 | Maximum initial stop distance/dollar risk; handling excessive width | RISK-01 |
+| OD-09 | Combined ceiling, $3,500 starting allocation, 0.50%, and $15 all-in planned cap accepted. Equity verification/snapshot/update/shared-fund policy, cost/slippage inputs, actual-fill overshoot, and any separate stop-distance cap remain open | RISK-01/03 |
 | OD-10 | Gross versus net realized R for daily cutoff; fee and slippage treatment | RISK-02, DAILY-01 |
 | OD-11 | Remaining-budget guard and one-position-at-a-time rule | DAILY-01, SCOPE-03 |
 | OD-12 | Thesis identity/reset and attempt-count treatment for unfilled/cancelled orders | REENTRY-01 |
@@ -975,7 +1010,7 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Next finish maximum initial risk, mapping/protection/order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Next define equity/cost input policies, then finish mapping/protection/order mechanics, session boundaries, and accounting. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -1023,6 +1058,8 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-28 | 2026-10-10 | Accepted $3,500 starting futures allocation, 0.50% percentage ceiling, and $15 fixed-dollar cap including estimated fees/slippage; initial effective ceiling $15. Retained one NES; equity snapshot/update and cost-input policies remain open under OD-09/10. |
+| V1-draft-27 | 2026-10-10 | Accepted combined percentage-and-dollar risk-ceiling framework for one NES, with estimated fee/slippage affordability and structural-stop-first skip policy. Added V1-RISK-03; numeric limits/equity/cost inputs remain open, and R0/daily accounting is unchanged. |
 | V1-draft-26 | 2026-10-10 | Accepted minimum 0.50-point initial/trailing clearance with rounding away from structure; closed OD-08 and stop-rounding subdecision of OD-07. Superseded two-NES-tick/1.00-point trailing setting, updated current rules/checklist and examples. Mapping and numeric risk ceiling remain open. |
 | V1-draft-25 | 2026-10-10 | Accepted prompt intrabar tightening, pre-submission validity checks, one pending amendment, preservation/verification of protection, and advancement only after accepted tightening. Added V1-STOP-11 and closed OD-13; actual mapping and platform recovery remain under OD-04/07. |
 | V1-draft-24 | 2026-10-10 | Accepted post-activation ES approach-then-penetration continuation, fresh tracking on replacement, breach-first discard, and discard when order cannot be established. Added V1-STOP-10; modification timing remains open under OD-13. |
