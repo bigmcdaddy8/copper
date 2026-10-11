@@ -509,26 +509,14 @@ def build_price_action_facts(prep: PreparedReplay, snapshot: MarketStudySnapshot
 
     # bars, closes beyond, ATR
     ordered = sorted(bars)
-    atr_value, atr_n, trs, prev_close, atr_after, empty = None, 0, [], None, {}, 0
+    empty = 0
     completed = [b for b in ordered if b + BAR <= clock]
     for j, b in enumerate(completed):
         if j and b - completed[j - 1] > BAR:
             empty += (b - completed[j - 1]) // BAR - 1
-        h, lo, c = bars[b]["h"], bars[b]["l"], bars[b]["c"]
-        tr = h - lo if prev_close is None else max(h - lo, abs(h - prev_close), abs(lo - prev_close))
-        prev_close = c
-        atr_n += 1
-        trd = Decimal(tr) / Decimal(ps)
-        with localcontext() as ctx:
-            ctx.prec, ctx.rounding = 28, ROUND_HALF_EVEN
-            if atr_n < ATR_PERIOD:
-                trs.append(trd)
-            elif atr_n == ATR_PERIOD:
-                trs.append(trd)
-                atr_value = sum(trs, Decimal(0)) / ATR_PERIOD
-            else:
-                atr_value = (atr_value * (ATR_PERIOD - 1) + trd) / ATR_PERIOD
-        atr_after[b] = atr_value
+    series = atr_series([(bars[b]["h"], bars[b]["l"], bars[b]["c"]) for b in completed], ps)
+    atr_after = dict(zip(completed, series))
+    atr_n, atr_value = len(series), (series[-1] if series else None)
 
     tick("atr")
     rth = []
@@ -606,6 +594,28 @@ def build_price_action_facts(prep: PreparedReplay, snapshot: MarketStudySnapshot
                             (BAND_POLICY, BAR_POLICY, ATR_POLICY, PATH_POLICY), vw.status.value,
                             tuple(vw.reasons) + tuple(snapshot.dataset_quality.reasons), band_doc, tuple(occ),
                             tuple(paths), tuple(rth), atr)
+
+
+def atr_series(hlc: list[tuple[int, int, int]], ps: int) -> list[Decimal | None]:
+    """ATR_5M_V1 after each completed non-empty bar, from (high, low, close) scaled integers in bar order."""
+    out: list[Decimal | None] = []
+    trs: list[Decimal] = []
+    value, prev_close = None, None
+    for n, (h, lo, c) in enumerate(hlc, 1):
+        tr = h - lo if prev_close is None else max(h - lo, abs(h - prev_close), abs(lo - prev_close))
+        prev_close = c
+        trd = Decimal(tr) / Decimal(ps)
+        with localcontext() as ctx:
+            ctx.prec, ctx.rounding = 28, ROUND_HALF_EVEN
+            if n < ATR_PERIOD:
+                trs.append(trd)
+            elif n == ATR_PERIOD:
+                trs.append(trd)
+                value = sum(trs, Decimal(0)) / ATR_PERIOD
+            else:
+                value = (value * (ATR_PERIOD - 1) + trd) / ATR_PERIOD
+        out.append(value)
+    return out
 
 
 class _Ticker:

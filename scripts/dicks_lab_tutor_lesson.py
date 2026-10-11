@@ -4,7 +4,8 @@ Read-only and offline. Builds a LAB_EVIDENCE_READING_V1 example lesson on the re
 prints the question, the authorized AS_OF evidence and the names of withheld material; with
 `--instructor`, the deterministic answer key (and any hidden future outcome) as well.
 
-  --lesson vwap|ib|changes|value-migration|occupancy|not-yet|quality
+  --lesson vwap|ib|changes|value-migration|occupancy|not-yet|quality|drysdale
+  --question N      drysdale lessons (0AB-B): which of the DRYSDALE_QUESTIONS (1-9; default 1)
   --at T            the student's replay time (ISO with offset or HH:MM[:SS] America/Chicago)
   --from T0         earlier time for comparison lessons (changes, value-migration)
   --reveal-at T2    hidden future outcome (instructor-only until --stage POST_REVEAL)
@@ -39,8 +40,10 @@ from dicks_laboratory.tutor_ai import (
 from dicks_laboratory.tutor_evidence import (
     LessonStage,
     QuestionKind,
+    DRYSDALE_QUESTIONS,
     build_tutor_lesson,
     canonical_json,
+    drysdale_lesson,
     example_lesson,
     instructor_view,
     render_view,
@@ -51,7 +54,7 @@ REPO = Path(__file__).resolve().parents[1]
 LESSONS = {"vwap": QuestionKind.PRICE_VS_CASH_VWAP, "acceptance": QuestionKind.VWAP_ACCEPTANCE, "ib": QuestionKind.INITIAL_BALANCE_STATUS,
            "changes": QuestionKind.EVIDENCE_CHANGES, "value-migration": QuestionKind.VALUE_MIGRATION,
            "occupancy": QuestionKind.VALUE_OCCUPANCY, "not-yet": QuestionKind.NOT_YET_DETERMINED_ITEMS,
-           "quality": QuestionKind.DATA_QUALITY}
+           "quality": QuestionKind.DATA_QUALITY, "drysdale": QuestionKind.DRYSDALE_SETUPS}
 
 
 def _provenance(explicit: str | None) -> AnalysisProvenance:
@@ -84,6 +87,7 @@ def main(
     ai_provider: str = typer.Option("claude-cli", "--ai-provider", help="claude-cli, anthropic-api or fake."),
     ai_model: str = typer.Option("claude-opus-5-5", "--ai-model", help="Model name for the provider."),
     record_out: Path | None = typer.Option(None, "--record-out", help="Write the AI run record JSON here."),
+    question: int = typer.Option(1, "--question", help=f"Drysdale lesson question 1-{len(DRYSDALE_QUESTIONS)}."),
 ) -> None:
     if lesson not in LESSONS:
         raise typer.BadParameter(f"--lesson must be one of {', '.join(LESSONS)}")
@@ -98,7 +102,12 @@ def main(
         typer.echo(f"ERROR: {exc}", err=True)
         raise typer.Exit(code=2) from exc
     try:
-        definition = example_lesson(session, LESSONS[lesson], at, compare_from, reveal_at)
+        if lesson == "drysdale":
+            if not 1 <= question <= len(DRYSDALE_QUESTIONS) or compare_from is not None:
+                raise ValueError(f"drysdale takes --question 1-{len(DRYSDALE_QUESTIONS)} and no --from")
+            definition = drysdale_lesson(session, at, question - 1, reveal_at)
+        else:
+            definition = example_lesson(session, LESSONS[lesson], at, compare_from, reveal_at)
         built = build_tutor_lesson(session, definition)
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc

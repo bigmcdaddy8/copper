@@ -348,24 +348,26 @@ def test_value_area_conventions_stay_distinct(session):
     assert _lesson(session, Q.PRICE_VS_CASH_VWAP, "10:00").context.value_area_convention is None
 
 
-def test_drysdale_is_registered_but_not_executable(session):
-    assert DRYSDALE_MODULE in CURRICULUM_MODULES and not DRYSDALE_MODULE.executable
-    assert DRYSDALE_MODULE.readiness is ModuleReadiness.NOT_READY_FOR_RULE_IMPLEMENTATION
+def test_drysdale_module_offers_laboratory_v1_training_candidates(session):
+    # 0AB-A: registered, not executable. 0AB-B: the four families exist as explicit Laboratory V1 proxies.
+    assert DRYSDALE_MODULE in CURRICULUM_MODULES and DRYSDALE_MODULE.executable
+    assert DRYSDALE_MODULE.readiness is ModuleReadiness.LABORATORY_V1_TRAINING_CANDIDATES_AVAILABLE
     assert [t.title for t in DRYSDALE_MODULE.topics] == ["Price Discovery Continuation", "Fade Value Area Extremes",
                                                         "Return to Value", "VWAP Bounce"]
     by = {s: [d.dependency for d in DRYSDALE_MODULE.dependencies if d.status is s] for s in DependencyStatus}
-    assert len(by[DependencyStatus.FACT_AVAILABLE_NOW]) == 13  # 0AB-A: bands, crossings, time outside, bars, ATR
-    assert by[DependencyStatus.NEEDS_POLICY_DEFINITION] == ["VWAP value area (which band pair)", "breakout",
-                                                            "acceptance", "backtest / retest", "first sign of strength",
-                                                            "first sign of weakness", "rejection"]
+    assert "VWAP value area (which band pair)" in by[DependencyStatus.FACT_AVAILABLE_NOW]
+    assert by[DependencyStatus.LABORATORY_V1_PROXY] == ["breakout", "acceptance", "backtest / retest",
+                                                        "first sign of strength", "first sign of weakness", "rejection",
+                                                        "return to value", "VWAP test", "trend context"]
+    assert by[DependencyStatus.NEEDS_POLICY_DEFINITION] == ["distance acceptance"]  # never invented
+    assert by[DependencyStatus.NOT_AVAILABLE] == ["correlated market, internals, order flow, news"]
     assert by[DependencyStatus.NEEDS_IMPLEMENTATION] == []
-    source = next(s for s in CURRICULUM_SOURCES if s.source_id == DRYSDALE_MODULE.source_id)
-    assert source.origin == "Chris Drysdale" and not source.redistributable_in_repository
-    with pytest.raises(CurriculumNotReady, match="acceptance"):
-        require_executable(DRYSDALE_MODULE.module_id)
+    for source_id in (DRYSDALE_MODULE.source_id, "DRYSDALE_VWAP_WAVE_SYSTEM_BOOK"):
+        source = next(s for s in CURRICULUM_SOURCES if s.source_id == source_id)
+        assert source.origin == "Chris Drysdale" and not source.redistributable_in_repository
+    assert require_executable(DRYSDALE_MODULE.module_id) is DRYSDALE_MODULE
     with pytest.raises(CurriculumNotReady):
-        build_tutor_lesson(session, dataclasses.replace(example_lesson(session, Q.PRICE_VS_CASH_VWAP, "10:00"),
-                                                        curriculum_module_id=DRYSDALE_MODULE.module_id))
+        require_executable("NO_SUCH_MODULE")
 
 
 def test_lesson_modes_are_educational_only():

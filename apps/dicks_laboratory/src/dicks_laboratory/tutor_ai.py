@@ -83,6 +83,34 @@ Do not use bias or forecast words (bullish, bearish, signal, probability, confid
 9. Maturity words: say DEVELOPING or COMPLETE as the evidence does; never call a window FINAL.
 Return only the structured answer."""
 
+# 0AB-B: Drysdale lessons (module DRYSDALE_VWAP_WAVE_V1) use V3; every other lesson keeps V2 unchanged.
+DRYSDALE_SYSTEM_PROMPT_VERSION = "TUTOR_SYSTEM_PROMPT_V3_DRYSDALE"
+DRYSDALE_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    """6. Concepts with no Laboratory definition (acceptance, rejection, breakout, backtest / retest, first sign of \
+strength or weakness, the guide's "VWAP value area" / "value band", and the curriculum topics such as VWAP \
+bounce) may appear only in unsupported_claims. The Laboratory VWAP_BANDS_V1 bands (VWAP +/- k sigma) are defined \
+facts; call them by their multiplier, never "value area".""",
+    """6. Drysdale's concepts (breakout, acceptance, backtest / retest, rejection, first sign of strength or weakness, \
+trend, return to value, VWAP bounce, the four setup families) are discretionary in the source. Teach two voices and \
+never blend them: SOURCE SAYS = a CURRICULUM_RULE claim with the Drysdale curriculum_source_id ("Drysdale would \
+consider volume expansion relevant context"); LABORATORY V1 TRAINING PROXY = a LABORATORY_POLICY_RESULT or \
+CANDIDATE claim that names "Laboratory V1" or the policy id (e.g. LAB_ACCEPTANCE_TIME_V1), cites the DRYSDALE \
+evidence item and puts its value in "asserted". Never state as an observed or derived fact that the market \
+accepted, rejected or broke out; such a reading is AI_INTERPRETATION. Drysdale's VWAP is the Globex VWAP anchored \
+at 17:00 CT, not the cash VWAP; his VWAP value area is Globex VWAP +/-1 sigma (DRYSDALE_VALUE_AREA_V1); +/-2 sigma \
+is outer / extreme context; the 70% and 68% profile value areas are different concepts and are never converted. \
+The Laboratory proxies are ours, not Drysdale's definitions (the source does not specify two bars). A Laboratory \
+candidate is educational structure, never a trade signal or an entry. Distance acceptance has no Laboratory \
+threshold.""")
+assert DRYSDALE_SYSTEM_PROMPT != SYSTEM_PROMPT
+PROMPTS = {SYSTEM_PROMPT_VERSION: SYSTEM_PROMPT, DRYSDALE_SYSTEM_PROMPT_VERSION: DRYSDALE_SYSTEM_PROMPT}
+
+
+def prompt_version(lesson: TutorLesson) -> str:
+    return (DRYSDALE_SYSTEM_PROMPT_VERSION if lesson.definition.curriculum_module_id == DRYSDALE_MODULE.module_id
+            else SYSTEM_PROMPT_VERSION)
+
+
 TASK = ("Answer student_view.lesson.question for the student at stage student_view.stage, following the system "
         "rules. Return the structured answer.")
 
@@ -183,7 +211,8 @@ def build_request(lesson: TutorLesson, stage: LessonStage, repair: dict | None =
     body = {"task": TASK, "student_view": view}
     if repair is not None:
         body["repair"] = repair
-    return TutorModelRequest(REQUEST_SCHEMA, SYSTEM_PROMPT_VERSION, SYSTEM_PROMPT, lesson.definition.lesson_id, stage,
+    version = prompt_version(lesson)
+    return TutorModelRequest(REQUEST_SCHEMA, version, PROMPTS[version], lesson.definition.lesson_id, stage,
                              view["payload_sha256"], canonical_json(body), canonical_json(ANSWER_JSON_SCHEMA),
                              0 if repair is None else 1)
 
@@ -420,17 +449,26 @@ TRADE_ADVICE = re.compile(
 VOCABULARY = re.compile(r"\b(bullish|bearish|setups?|signals?|probability|probable|confidence|confident|"
                         r"recommend(ation|s|ed)?|initiative|responsive|final)\b", re.IGNORECASE)
 # Concepts with no deterministic Laboratory definition (DRYSDALE_DEPENDENCIES NEEDS_POLICY_DEFINITION + topics).
+# 0AB-B: in Drysdale lessons the same words may be used only in the two labeled voices (see answer_guards).
+_LAB_VOICE = re.compile(r"\b(laboratory v1|LAB_[A-Z_]+_V1|[A-Z_]+_CANDIDATE_V1|DRYSDALE_[A-Z_]+_V1)\b", re.IGNORECASE)
+MARKET_FACT = re.compile(r"\b(the )?(market|price|buyers|sellers) (has |have |is |was )?(accept(ed|ing|s)|reject(ed|ing|s)|"
+                         r"broke out|breaking out|bounced|bouncing)\b", re.IGNORECASE)
+DRYSDALE_VOCABULARY = re.compile(r"\b(bullish|bearish|signals?|probability|probable|confidence|confident|"
+                                 r"recommend(ation|s|ed)?|initiative|responsive|final)\b", re.IGNORECASE)
 UNDEFINED_POLICY = re.compile(
     r"\b(accept(ing|ance|s)\b|accepted (above|below|into|inside|outside|at)|rejection|rejecting|breakout|"
     r"break[- ]?out|back-?test(ing)?|re-?test(ing)?|vwap value area|value bands?|"
     r"first sign of (strength|weakness)|vwap bounce|price discovery continuation|fade value area|return to value)\b",
     re.IGNORECASE)
-assert {d.dependency for d in DRYSDALE_MODULE.dependencies if d.status is DependencyStatus.NEEDS_POLICY_DEFINITION} \
-    == {"VWAP value area (which band pair)", "breakout", "acceptance", "backtest / retest", "first sign of strength",
-        "first sign of weakness", "rejection"}  # keep the guard aligned with the registered dependency matrix
+assert {d.dependency for d in DRYSDALE_MODULE.dependencies if d.status in (
+    DependencyStatus.NEEDS_POLICY_DEFINITION, DependencyStatus.LABORATORY_V1_PROXY)} == {
+    "breakout", "acceptance", "distance acceptance", "backtest / retest", "first sign of strength",
+    "first sign of weakness", "rejection", "return to value", "VWAP test", "trend context"}  # aligned with the guard
 
 
 def answer_guards(answer: TutorAnswer, lesson: TutorLesson) -> tuple[GroundingIssue, ...]:
+    if prompt_version(lesson) == DRYSDALE_SYSTEM_PROMPT_VERSION:
+        return _drysdale_guards(answer, lesson)
     issues = []
     texts = [("answer_text", answer.answer_text)] + [(f"claims[{i}]", c.statement) for i, c in
                                                      enumerate(answer.claims)]
@@ -456,6 +494,67 @@ def answer_guards(answer: TutorAnswer, lesson: TutorLesson) -> tuple[GroundingIs
     if m and not answer.unsupported_claims:
         issues.append(GroundingIssue(GuardCode.UNDEFINED_POLICY_CLAIM, "answer_text", None,
                                      f"{m[0]!r} used without an unsupported claim"))
+    key = lesson.answer_key.support
+    if key is not EvidenceSupport.SUPPORTED and not any(u.support is key for u in answer.unsupported_claims):
+        issues.append(GroundingIssue(GuardCode.INSUFFICIENT_EVIDENCE_NOT_STATED, "unsupported_claims", None,
+                                     f"the evidence answer is {key.value}; the answer must say so"))
+    return tuple(issues)
+
+
+def _drysdale_guards(answer: TutorAnswer, lesson: TutorLesson) -> tuple[GroundingIssue, ...]:
+    """0AB-B (TUTOR_SYSTEM_PROMPT_V3_DRYSDALE): source voice and Laboratory V1 voice, never an unlabeled fact.
+
+    A claim using a Drysdale concept word (UNDEFINED_POLICY) passes only as
+      CURRICULUM_RULE (a Drysdale curriculum source), AI_INTERPRETATION, or
+      LABORATORY_POLICY_RESULT / CANDIDATE naming "Laboratory V1" or a policy id, citing a DRYSDALE item and
+      asserting the value of a cited DRYSDALE item (so the validator checks it against the evidence).
+    "The market accepted / rejected / broke out" (MARKET_FACT) is allowed only as AI_INTERPRETATION or inside
+    unsupported_claims. Trade advice and the bias vocabulary are refused as in V2 ("setup" is allowed here).
+    """
+    issues = []
+    texts = [("answer_text", answer.answer_text)] + [(f"claims[{i}]", c.statement) for i, c in
+                                                     enumerate(answer.claims)]
+    texts += [(f"uncertainties[{i}]", u) for i, u in enumerate(answer.uncertainties)]
+    texts += [(f"unsupported_claims[{i}]", u.statement) for i, u in enumerate(answer.unsupported_claims)]
+    for where, text in texts:
+        m = TRADE_ADVICE.search(text)
+        if m:
+            issues.append(GroundingIssue(GuardCode.TRADE_ADVICE, where, None, f"trade directive {m[0]!r}"))
+    for where, text in texts:
+        if where.startswith("unsupported_claims"):
+            continue
+        m = DRYSDALE_VOCABULARY.search(text)
+        if m:
+            issues.append(GroundingIssue(GuardCode.LABORATORY_VOCABULARY, where, None, f"{m[0]!r} is not used in "
+                                         "Laboratory evidence answers"))
+    drysdale = _role_shas(lesson).get(SourceRole.DRYSDALE.value)
+    sources = {"DRYSDALE_VWAP_WAVE_CORE_SETUP_GUIDE", "DRYSDALE_VWAP_WAVE_SYSTEM_BOOK"}
+    for i, c in enumerate(answer.claims):
+        where = f"claims[{i}]"
+        m = MARKET_FACT.search(c.statement)
+        if m and c.category is not ClaimCategory.AI_INTERPRETATION:
+            issues.append(GroundingIssue(GuardCode.UNDEFINED_POLICY_CLAIM, where, None,
+                                         f"{m[0]!r} stated as {c.category.value}; it is a reading, not Laboratory "
+                                         "evidence: use AI_INTERPRETATION or a Laboratory V1 policy result"))
+            continue
+        m = UNDEFINED_POLICY.search(c.statement)
+        if not m or c.category is ClaimCategory.AI_INTERPRETATION:
+            continue
+        if c.category is ClaimCategory.CURRICULUM_RULE and c.curriculum_source_id in sources:
+            continue
+        cited = [r for r in c.evidence_refs if r.source_sha256 == drysdale]
+        asserted = [a for a in c.asserted if a.ref.source_sha256 == drysdale]
+        if c.category in (ClaimCategory.LABORATORY_POLICY_RESULT, ClaimCategory.CANDIDATE) and \
+                _LAB_VOICE.search(c.statement) and cited and asserted:
+            continue
+        issues.append(GroundingIssue(GuardCode.UNDEFINED_POLICY_CLAIM, where, None,
+                                     f"{m[0]!r}: Drysdale concepts are discretionary; state SOURCE SAYS "
+                                     "(CURRICULUM_RULE), a LABORATORY V1 policy result with its asserted DRYSDALE "
+                                     "evidence, or AI_INTERPRETATION"))
+    m = MARKET_FACT.search(answer.answer_text)
+    if m and not any(c.category is ClaimCategory.AI_INTERPRETATION for c in answer.claims):
+        issues.append(GroundingIssue(GuardCode.UNDEFINED_POLICY_CLAIM, "answer_text", None,
+                                     f"{m[0]!r} in the answer text without an AI_INTERPRETATION claim"))
     key = lesson.answer_key.support
     if key is not EvidenceSupport.SUPPORTED and not any(u.support is key for u in answer.unsupported_claims):
         issues.append(GroundingIssue(GuardCode.INSUFFICIENT_EVIDENCE_NOT_STATED, "unsupported_claims", None,
@@ -498,6 +597,7 @@ class TutorRunResult:
     answer: TutorAnswer | None  # the validated answer (GROUNDED) or the deterministic reference (AI_DISABLED)
     grounding: GroundingReport | None
     issues: tuple[GroundingIssue, ...] = field(default=())
+    system_prompt_version: str = SYSTEM_PROMPT_VERSION
 
     @property
     def repair_attempts(self) -> int:
@@ -521,7 +621,7 @@ def run_tutor(lesson: TutorLesson, stage: LessonStage, model: TutorModel | None,
     if model is None:
         ref = lesson.answer_key.reference_answer if _reached(stage, LessonStage.ANSWER) else None
         return TutorRunResult(TutorRunStatus.AI_DISABLED, lesson.definition.lesson_id, stage, payload_sha, None, None,
-                              (), (), ref, None)
+                              (), (), ref, None, system_prompt_version=prompt_version(lesson))
     params = tuple(sorted((k, str(v)) for k, v in model.parameters().items()))
     attempts: list[TutorAttempt] = []
     repair = None
@@ -541,7 +641,8 @@ def run_tutor(lesson: TutorLesson, stage: LessonStage, model: TutorModel | None,
         attempts.append(TutorAttempt(n, request.sha256, size, response, status, issues, detail))
         if status is TutorRunStatus.GROUNDED:
             return TutorRunResult(status, lesson.definition.lesson_id, stage, payload_sha, model.provider,
-                                  response.model, params, tuple(attempts), answer, report)
+                                  response.model, params, tuple(attempts), answer, report,
+                                  system_prompt_version=prompt_version(lesson))
         repair = {"instruction": "Your previous answer failed deterministic validation. Return a corrected "
                                  "structured answer using only the same student_view evidence.",
                   "previous_answer": response.text,
@@ -553,7 +654,7 @@ def run_tutor(lesson: TutorLesson, stage: LessonStage, model: TutorModel | None,
         report = _evaluate(last.response.text, lesson, stage)[2]
     return TutorRunResult(status, lesson.definition.lesson_id, stage, payload_sha, model.provider,
                           last.response.model if last.response else model.model, params, tuple(attempts), None,
-                          report, last.issues)
+                          report, last.issues, prompt_version(lesson))
 
 
 def run_record(result: TutorRunResult) -> dict:
@@ -561,8 +662,8 @@ def run_record(result: TutorRunResult) -> dict:
     return {"schema": RUN_RECORD_SCHEMA, "lesson_id": result.lesson_id, "stage": result.stage.value,
             "student_payload_sha256": result.student_payload_sha256, "provider": result.provider,
             "model": result.model, "parameters": [list(p) for p in result.parameters],
-            "request_schema": REQUEST_SCHEMA, "system_prompt_version": SYSTEM_PROMPT_VERSION,
-            "system_prompt_sha256": hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
+            "request_schema": REQUEST_SCHEMA, "system_prompt_version": result.system_prompt_version,
+            "system_prompt_sha256": hashlib.sha256(PROMPTS[result.system_prompt_version].encode()).hexdigest(),
             "status": result.status.value, "repair_attempts": result.repair_attempts,
             "attempts": [{"repair_attempt": a.repair_attempt, "request_sha256": a.request_sha256,
                           "request_bytes": a.request_bytes, "status": a.status.value, "detail": a.detail,

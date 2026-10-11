@@ -28,6 +28,7 @@ from decimal import Decimal
 from enum import StrEnum
 from uuid import UUID
 
+from dicks_laboratory import drysdale as dry
 from dicks_laboratory import market_study_state as mss
 from dicks_laboratory.price_action import build_price_action_facts, price_action_sha256
 from dicks_laboratory.replay import MarketStudySnapshot, Maturity, snapshot_sha256
@@ -86,6 +87,7 @@ class EvidenceDomain(StrEnum):
     REFERENCE_PATHS = "REFERENCE_PATHS"  # crossings / excursions vs VWAP, bands and static references
     PRICE_ACTION_BARS = "PRICE_ACTION_BARS"  # 5-minute bars (the most recent ones)
     VOLATILITY = "VOLATILITY"  # ATR_5M_V1
+    DRYSDALE_SETUPS = "DRYSDALE_SETUPS"  # 0AB-B (DRYSDALE_SETUP_ANALYSIS_V1): Laboratory V1 training candidates
 
 
 class Availability(StrEnum):
@@ -136,6 +138,7 @@ class SourceRole(StrEnum):
     FUTURE_OUTCOME = "FUTURE_OUTCOME"  # instructor-only until POST_REVEAL
     DELTA = "DELTA"
     PRICE_ACTION = "PRICE_ACTION"  # 0AB-A: PRICE_ACTION_FACTS_V1 at the lesson time
+    DRYSDALE = "DRYSDALE"  # 0AB-B: DRYSDALE_SETUP_ANALYSIS_V1 at the lesson time
 
 
 class QuestionKind(StrEnum):
@@ -147,6 +150,7 @@ class QuestionKind(StrEnum):
     VWAP_ACCEPTANCE = "VWAP_ACCEPTANCE"  # 0AA-B: a question the Laboratory deliberately cannot answer
     NOT_YET_DETERMINED_ITEMS = "NOT_YET_DETERMINED_ITEMS"
     DATA_QUALITY = "DATA_QUALITY"
+    DRYSDALE_SETUPS = "DRYSDALE_SETUPS"  # 0AB-B: Drysdale-style setup families, Laboratory V1 proxies
 
 
 # --- curriculum sources, modules, value-area conventions ------------------------------------------
@@ -182,8 +186,16 @@ PLAYBOOK_SOURCE = TutorCurriculumSource(
 DRYSDALE_SOURCE = TutorCurriculumSource(
     "DRYSDALE_VWAP_WAVE_CORE_SETUP_GUIDE", "VWAP Wave Core Setup Guide", "Chris Drysdale",
     CurriculumSourceType.EXTERNAL_GUIDE, "PDF created 2026-05-17", "docs/dicks_laboratory/DRYSDALE_VWAP_SETUP_GUIDE.md",
-    False, "Third-party material; reference note only, the PDF is not redistributed.")
-CURRICULUM_SOURCES = (LAB_SOURCE, PLAYBOOK_SOURCE, DRYSDALE_SOURCE)
+    False, "Third-party material; reference note only, the PDF is not redistributed. 0AB-B: Drysdale's VWAP is "
+    "anchored at the Globex session start (17:00 CT) and his VWAP value area is VWAP +/-1 sigma (the Human's book "
+    "notes, DRYSDALE_VWAP_WAVE_SYSTEM_BOOK).")
+DRYSDALE_BOOK_SOURCE = TutorCurriculumSource(
+    "DRYSDALE_VWAP_WAVE_SYSTEM_BOOK", "VWAP Wave System (book)", "Chris Drysdale", CurriculumSourceType.BOOK,
+    "purchased copy; the Human's notes (0AB-B)", "docs/dicks_laboratory/DRYSDALE_VWAP_TRAINING_CANDIDATES.md", False,
+    "Third-party material; only the Human's paraphrased notes are recorded. Primary Drysdale source in 0AB-B: "
+    "Globex-anchored VWAP, +/-1 sigma dynamic value area, +/-2 sigma outer context, 5-minute day-trading practice, "
+    "a rules-based structure blended with discretion.")
+CURRICULUM_SOURCES = (LAB_SOURCE, PLAYBOOK_SOURCE, DRYSDALE_SOURCE, DRYSDALE_BOOK_SOURCE)
 _SOURCES = {s.source_id: s for s in CURRICULUM_SOURCES}
 
 
@@ -211,15 +223,46 @@ VALUE_AREA_CONVENTIONS = (LABORATORY_PROFILE_70, PLAYBOOK_NINJATRADER_68)
 _CONVENTIONS = {c.convention_id: c for c in VALUE_AREA_CONVENTIONS}
 
 
+@dataclass(frozen=True)
+class ValueConcept:
+    """0AB-B: the value concepts the tutor must keep apart. None is converted into another."""
+
+    concept_id: str
+    kind: str  # VWAP_SIGMA_BAND or PROFILE_FRACTION
+    definition: str
+    source_id: str
+    computed_by_laboratory: bool
+    policy_id: str | None
+
+
+VALUE_CONCEPTS = (
+    ValueConcept("DRYSDALE_VWAP_VALUE_AREA", "VWAP_SIGMA_BAND", "Globex VWAP +/-1 sigma (inclusive)",
+                 "DRYSDALE_VWAP_WAVE_SYSTEM_BOOK", True, dry.VALUE_AREA_POLICY),
+    ValueConcept("DRYSDALE_VWAP_OUTER_CONTEXT", "VWAP_SIGMA_BAND", "Globex VWAP +/-2 sigma: outer / extreme context, "
+                 "not a value boundary", "DRYSDALE_VWAP_WAVE_SYSTEM_BOOK", True, dry.GLOBEX_BAND_POLICY),
+    ValueConcept(LABORATORY_PROFILE_70.convention_id, "PROFILE_FRACTION", "70% volume / TPO profile value area",
+                 "DICKS_LAB_EVIDENCE", True, None),
+    ValueConcept(PLAYBOOK_NINJATRADER_68.convention_id, "PROFILE_FRACTION", "68% NinjaTrader profile value area",
+                 "FUTURES_TREND_PLAYBOOK", False, None),
+)
+
+
 class ModuleReadiness(StrEnum):
     READY_FOR_EVIDENCE_LESSONS = "READY_FOR_EVIDENCE_LESSONS"
     NOT_READY_FOR_RULE_IMPLEMENTATION = "NOT_READY_FOR_RULE_IMPLEMENTATION"
+    LABORATORY_V1_TRAINING_CANDIDATES_AVAILABLE = "LABORATORY_V1_TRAINING_CANDIDATES_AVAILABLE"  # 0AB-B
+
+
+EXECUTABLE_READINESS = frozenset({ModuleReadiness.READY_FOR_EVIDENCE_LESSONS,
+                                  ModuleReadiness.LABORATORY_V1_TRAINING_CANDIDATES_AVAILABLE})
 
 
 class DependencyStatus(StrEnum):
     FACT_AVAILABLE_NOW = "FACT_AVAILABLE_NOW"
     NEEDS_POLICY_DEFINITION = "NEEDS_POLICY_DEFINITION"
     NEEDS_IMPLEMENTATION = "NEEDS_IMPLEMENTATION"
+    LABORATORY_V1_PROXY = "LABORATORY_V1_PROXY"  # 0AB-B: source-discretionary; an explicit Laboratory V1 proxy
+    NOT_AVAILABLE = "NOT_AVAILABLE"  # 0AB-B: named by the source; no deterministic Laboratory source exists
 
 
 @dataclass(frozen=True)
@@ -252,6 +295,7 @@ class CurriculumModule:
 
 _A, _P, _I = (DependencyStatus.FACT_AVAILABLE_NOW, DependencyStatus.NEEDS_POLICY_DEFINITION,
               DependencyStatus.NEEDS_IMPLEMENTATION)
+_X, _NA = DependencyStatus.LABORATORY_V1_PROXY, DependencyStatus.NOT_AVAILABLE
 DRYSDALE_DEPENDENCIES = (
     CurriculumDependency("session VWAP", _A, "/vwap/*/study/vwap (MARKET_STUDY_SNAPSHOT_V1)"),
     CurriculumDependency("price relative to VWAP", _A, "/relations/last_price_vs_cash_vwap, last_price_vs_globex_vwap"),
@@ -275,21 +319,31 @@ DRYSDALE_DEPENDENCIES = (
     CurriculumDependency("5-minute price-action facts", _A, "PRICE_ACTION_FACTS_V1 /rth_bars (BARS_5M_V1)"),
     CurriculumDependency("volatility measure such as ATR", _A, "PRICE_ACTION_FACTS_V1 /atr (ATR_5M_V1)",
                          "ATR(13) Wilder on full-session 5m bars of the trading date; the guide names no measure"),
-    # still policy decisions; their measurable dimensions now exist (references, episodes, bars, occupancy)
-    CurriculumDependency("VWAP value area (which band pair)", _P, None,
-                         "the guide's 'VWAP value area' / 'value band' is not mapped to a VWAP_BANDS_V1 multiplier"),
-    CurriculumDependency("breakout", _P, "dimensions: /references episodes (first cross, first close beyond, "
-                         "excursion, time beyond, return)"),
-    CurriculumDependency("acceptance", _P, "dimensions: time beyond, closes / consecutive closes beyond, volume "
-                         "beyond, adverse return, cross count", "the guide offers time or distance; no threshold"),
-    CurriculumDependency("backtest / retest", _P, "dimensions: touched again, closest approach after peak, "
-                         "excursion after touch"),
-    CurriculumDependency("first sign of strength", _P, "dimensions: 5m bar facts and relations",
-                         "qualitative in the guide"),
-    CurriculumDependency("first sign of weakness", _P, "dimensions: 5m bar facts and relations",
-                         "qualitative in the guide"),
-    CurriculumDependency("rejection", _P, "dimensions: touch / cross, max excursion through, time beyond, return, "
-                         "excursion after return"),
+    # 0AB-B: the Human's book notes and explicit Laboratory V1 proxies (DRYSDALE_SETUP_ANALYSIS_V1)
+    CurriculumDependency("Globex-anchored VWAP bands", _A, "DRYSDALE_SETUP_ANALYSIS_V1 /bands (VWAP_BANDS_GLOBEX_V1)",
+                         "Drysdale's VWAP is anchored at 17:00 CT (book notes); the cash-anchored VWAP_BANDS_V1 stays "
+                         "as accepted"),
+    CurriculumDependency("VWAP value area (which band pair)", _A, "/bands/lower_1sd, /bands/upper_1sd "
+                         "(DRYSDALE_VALUE_AREA_V1)", "Globex VWAP +/-1 sigma (book notes); +/-2 sigma is outer "
+                         "context; not a profile percentage"),
+    CurriculumDependency("VWAP slope", _A, "/bars/*/vwap_delta, vwap_slope (LAB_VWAP_SLOPE_V1)"),
+    CurriculumDependency("volume participation", _A, "LAB_VOLUME_CONTEXT_V1 ratios", "no strong / weak label"),
+    CurriculumDependency("breakout", _X, "LAB_BREAKOUT_TRIGGER_V1 + DrysdaleBreakoutEvidence",
+                         "multi-factor in the source; the trigger is a Laboratory V1 proxy"),
+    CurriculumDependency("acceptance", _X, "LAB_ACCEPTANCE_TIME_V1", "time or distance in the source; two "
+                         "consecutive closes is a Laboratory training proxy"),
+    CurriculumDependency("distance acceptance", _P, "dimensions: points / ticks / sigma / ATR beyond, max excursion",
+                         dry.DISTANCE_ACCEPTANCE),
+    CurriculumDependency("backtest / retest", _X, "LAB_RETEST_V1", "no mechanical source definition"),
+    CurriculumDependency("first sign of strength", _X, "LAB_DIRECTIONAL_CONFIRMATION_V1", "qualitative in the source"),
+    CurriculumDependency("first sign of weakness", _X, "LAB_DIRECTIONAL_CONFIRMATION_V1", "qualitative in the source"),
+    CurriculumDependency("rejection", _X, "LAB_REJECTION_V1 (+ acceleration facts)", "touch / wick / return in the "
+                         "source; no mechanical definition"),
+    CurriculumDependency("return to value", _X, "LAB_RETURN_TO_VALUE_V1"),
+    CurriculumDependency("VWAP test", _X, "LAB_VWAP_TEST_V1", "no proximity rule"),
+    CurriculumDependency("trend context", _X, "LAB_TREND_CONTEXT_V1", "not a trend classifier"),
+    CurriculumDependency("correlated market, internals, order flow, news", _NA, None,
+                         "reported as NOT_AVAILABLE, never as false"),
 )
 LAB_MODULE = CurriculumModule(
     "LAB_EVIDENCE_READING_V1", "DICKS_LAB_EVIDENCE", "Reading Laboratory evidence as of a replay time",
@@ -303,14 +357,15 @@ LAB_MODULE = CurriculumModule(
     (), LABORATORY_PROFILE_70.convention_id)
 DRYSDALE_MODULE = CurriculumModule(
     "DRYSDALE_VWAP_WAVE_V1", "DRYSDALE_VWAP_WAVE_CORE_SETUP_GUIDE", "VWAP Wave core curriculum",
-    ModuleReadiness.NOT_READY_FOR_RULE_IMPLEMENTATION, False, (
+    ModuleReadiness.LABORATORY_V1_TRAINING_CANDIDATES_AVAILABLE, True, (
         CurriculumTopic("DRYSDALE-PDC", "Price Discovery Continuation", "playbook SETUP-01 (PB-PDC)"),
         CurriculumTopic("DRYSDALE-FADE", "Fade Value Area Extremes", "playbook SETUP-02 (PB-FADE)"),
         CurriculumTopic("DRYSDALE-RTV", "Return to Value", "playbook SETUP-03 (PB-RTV)"),
         CurriculumTopic("DRYSDALE-BOUNCE", "VWAP Bounce", "playbook SETUP-04 (PB-BOUNCE)")),
     DRYSDALE_DEPENDENCIES, None,
-    "Registered, not implemented: no rule may be built until each NEEDS_* dependency has an explicit policy. Its "
-    "VWAP value area is band-based, not a profile percentage.")
+    "0AB-B: four Laboratory V1 training-candidate families (DRYSDALE_SETUP_CANDIDATES_V1). Source criteria and "
+    "Laboratory V1 proxies are taught separately; a candidate is educational structure, never a trade signal. Its "
+    "VWAP value area is Globex VWAP +/-1 sigma, not a profile percentage.")
 CURRICULUM_MODULES = (LAB_MODULE, DRYSDALE_MODULE)
 _MODULES = {m.module_id: m for m in CURRICULUM_MODULES}
 
@@ -331,7 +386,7 @@ def require_executable(module_id: str) -> CurriculumModule:
     module = _MODULES.get(module_id)
     if module is None:
         raise CurriculumNotReady(f"unknown curriculum module {module_id!r}")
-    if not module.executable or module.readiness is not ModuleReadiness.READY_FOR_EVIDENCE_LESSONS:
+    if not module.executable or module.readiness not in EXECUTABLE_READINESS:
         missing = [d.dependency for d in module.dependencies if d.status is not DependencyStatus.FACT_AVAILABLE_NOW]
         raise CurriculumNotReady(f"{module_id} is {module.readiness.value}; missing: {', '.join(missing)}")
     return module
@@ -688,6 +743,98 @@ def _price_action_evidence(session: ReplaySession, snap: MarketStudySnapshot,
                             facts.cutoff.knowledge_time_cutoff_utc, AS_OF, tuple(out), warnings), doc
 
 
+def _drysdale_evidence(session: ReplaySession, snap: MarketStudySnapshot,
+                       domains: frozenset[EvidenceDomain]) -> tuple[SnapshotEvidence, dict, dry.DrysdaleSetupAnalysis]:
+    """DRYSDALE_SETUP_ANALYSIS_V1 for the lesson-time snapshot (same cutoff; session-cached), as citable items.
+
+    Cited: the Globex bands, the context facts and, per family and direction, the latest instance (state, stage,
+    each Laboratory V1 condition status and the breakout dimensions)."""
+    a = dry.analyze(session, cutoff=snap.cutoff)
+    doc, sha = mss.encode(a), dry.drysdale_sha256(a)
+    out: list[EvidenceItem] = []
+    E = EvidenceDomain.DRYSDALE_SETUPS
+    bm = doc["bands"]["maturity"]
+
+    def add(label, pointer, category, maturity=bm):
+        value = _scalar(resolve_pointer(doc, pointer))
+        availability = (Availability.AVAILABLE if value is not None else
+                        Availability.NOT_YET_AVAILABLE if maturity == Maturity.NOT_YET_AVAILABLE.value
+                        else Availability.NOT_AVAILABLE)
+        out.append(EvidenceItem(EvidenceRef(sha, pointer), E, label, value, category, availability, maturity,
+                                doc["status"]))
+
+    add("Drysdale setup analysis state (DRYSDALE_SETUP_CANDIDATES_V1)", "/state", _C)
+    add("Globex VWAP anchor (Drysdale VWAP)", "/bands/anchor", _R)
+    add("VWAP_BANDS_GLOBEX_V1 maturity", "/bands/maturity", _R)
+    add("Globex VWAP", "/bands/vwap", _D)
+    add("Globex VWAP sigma (volume-weighted)", "/bands/sigma", _D)
+    add("Drysdale VWAP value area upper (+1 sigma, DRYSDALE_VALUE_AREA_V1)", "/bands/upper_1sd", _D)
+    add("Drysdale VWAP value area lower (-1 sigma, DRYSDALE_VALUE_AREA_V1)", "/bands/lower_1sd", _D)
+    add("outer context +2 sigma (not a value boundary)", "/bands/upper_2sd", _D)
+    add("outer context -2 sigma (not a value boundary)", "/bands/lower_2sd", _D)
+    add("last known price vs the Drysdale VWAP value area", "/bands/last_price_value_position", _D)
+    add("developing 5m bar start (not evaluated)", "/developing_bar_start_utc", _D)
+    if doc["context"] is not None:
+        for leaf, label, cat in (
+                ("last_bar_end_utc", "last complete 5m bar end", _O),
+                ("value_position", "last complete close vs the Drysdale VWAP value area", _D),
+                ("vwap_delta", "Globex VWAP change over the last complete bar (LAB_VWAP_SLOPE_V1)", _D),
+                ("vwap_slope", "Globex VWAP slope (LAB_VWAP_SLOPE_V1)", _D),
+                ("trend_context", "LAB_TREND_CONTEXT_V1 at the last complete bar (null: neither)", _R),
+                ("current_episode/region", "current episode region", _D),
+                ("current_episode/completed_closes", "current episode consecutive complete closes", _D),
+                ("current_episode/lab_acceptance_time_v1", "LAB_ACCEPTANCE_TIME_V1 for the current episode", _R),
+                ("current_episode/distance_acceptance", "distance acceptance (Drysdale)", _R),
+                ("higher_high", "last bar higher high", _D), ("lower_low", "last bar lower low", _D),
+                ("consecutive_higher_highs_and_lows", "consecutive higher highs and higher lows", _D),
+                ("consecutive_lower_highs_and_lows", "consecutive lower highs and lower lows", _D),
+                ("session_bars_reaching_2sd", "complete bars reaching +/-2 sigma this session", _D),
+                ("atr", "ATR_5M_V1 (context only)", _D), ("atr_change", "ATR_5M_V1 change over 12 bars", _D),
+                ("volume/ratio_to_mean", "last bar volume / mean of the preceding bars (LAB_VOLUME_CONTEXT_V1)", _D),
+                ("not_available", "confirmations with no Laboratory source (NOT_AVAILABLE)", _D)):
+            add(label, f"/context/{leaf}", cat)
+    latest = {}
+    for i, c in enumerate(doc["candidates"]):
+        latest[(c["family"], c["direction"])] = i
+    for (family, direction), i in sorted(latest.items()):
+        c = doc["candidates"][i]
+        tag = f"{family} {direction} ({c['candidate_id']})"
+        add(f"{tag} state", f"/candidates/{i}/state", _C)
+        add(f"{tag} stage", f"/candidates/{i}/stage", _R)
+        add(f"{tag} can still complete", f"/candidates/{i}/can_still_complete", _R)
+        add(f"{tag} quality", f"/candidates/{i}/quality", _R)
+        for k, cond in enumerate(c["conditions"]):
+            add(f"{tag} Laboratory V1 {cond['policy_id']} (condition {cond['order']}) status",
+                f"/candidates/{i}/conditions/{k}/status", _R)
+        if c["breakout"] is not None:
+            for leaf, label in (("reached_2sd", "+/-2 sigma reached in the episode"),
+                                ("vwap_slope", "Globex VWAP slope at the trigger"),
+                                ("slope_in_breakout_direction", "VWAP slope in the trigger direction"),
+                                ("volume/ratio_to_mean", "trigger-bar volume / mean of the preceding bars"),
+                                ("volume/baseline_bars", "preceding bars in the volume baseline"),
+                                ("distance_beyond_points", "trigger close beyond 1 sigma (points)"),
+                                ("distance_beyond_sigma", "trigger close beyond 1 sigma (sigma)"),
+                                ("max_excursion_beyond_points", "max excursion beyond 1 sigma (points)"),
+                                ("seconds_beyond", "time beyond 1 sigma (s)"),
+                                ("completed_closes_beyond", "complete closes beyond 1 sigma"),
+                                ("prior_inside_closes", "consecutive inside closes before the trigger"),
+                                ("nearest_opposing_reference", "nearest opposing reference"),
+                                ("bar_end_ct", "trigger bar end (CT)"),
+                                ("returned_inside", "returned inside value since"),
+                                ("not_available", "confirmations with no Laboratory source")):
+                add(f"{tag} trigger episode: {label}", f"/candidates/{i}/breakout/{leaf}", _D)
+        for k, (name, _) in enumerate(c["supporting"]):
+            add(f"{tag} {name}", f"/candidates/{i}/supporting/{k}/1", _D if name.endswith("_points") else _R)
+    warnings = ()
+    if doc["status"] != "AVAILABLE":
+        warnings = (QualityWarning(f"{SourceRole.DRYSDALE.value}:drysdale", "drysdale", doc["status"],
+                                   tuple(doc["reasons"]), EvidenceRef(sha, "/status")),)
+        out.append(EvidenceItem(EvidenceRef(sha, "/status"), EvidenceDomain.DATA_QUALITY, "drysdale quality status",
+                                doc["status"], _Q, Availability.AVAILABLE, None, doc["status"]))
+    return SnapshotEvidence(SourceRole.DRYSDALE, sha, a.cutoff.market_time_cutoff_utc,
+                            a.cutoff.knowledge_time_cutoff_utc, AS_OF, tuple(out), warnings), doc, a
+
+
 def _snapshot_evidence(s: MarketStudySnapshot, role: SourceRole,
                        domains: frozenset[EvidenceDomain]) -> tuple[SnapshotEvidence, dict]:
     doc, sha = snapshot_document(s), snapshot_sha256(s)
@@ -750,6 +897,7 @@ QUESTION_SPECS = {s.kind: s for s in (
     QuestionSpec(QuestionKind.VWAP_ACCEPTANCE, (EvidenceDomain.PRICE, EvidenceDomain.VWAP), False, False),
     QuestionSpec(QuestionKind.NOT_YET_DETERMINED_ITEMS, (EvidenceDomain.MATURITY,), False, False),
     QuestionSpec(QuestionKind.DATA_QUALITY, (EvidenceDomain.DATA_QUALITY,), False, False),
+    QuestionSpec(QuestionKind.DRYSDALE_SETUPS, (EvidenceDomain.DRYSDALE_SETUPS,), False, False),
 )}
 
 
@@ -914,9 +1062,65 @@ def _obs(oid, statement, category, items, value=None) -> ExpectedObservation:
     return ExpectedObservation(oid, statement, category, tuple(i.ref for i in items), value)
 
 
+DRYSDALE_INCORRECT_CLAIMS = (
+    ("ACCEPTED_AS_MARKET_FACT", "The market has accepted the new value.",
+     "acceptance is source-discretionary (time or distance); only the Laboratory V1 time proxy "
+     "LAB_ACCEPTANCE_TIME_V1 is evaluated, and distance acceptance has no threshold. State a LABORATORY V1 POLICY "
+     "RESULT, or label the reading AI_INTERPRETATION"),
+    ("DRYSDALE_DEFINES_PROXY", "Drysdale defines acceptance as two consecutive 5-minute closes.",
+     "the two-close rule is a Laboratory training proxy; the source does not specify two bars"),
+    ("TRADE_SIGNAL", "A Laboratory candidate is a trade signal or an entry.",
+     "candidates are educational structure; entries, stops, targets and sizing are not implemented"),
+    ("CASH_VWAP_VALUE_AREA", "Drysdale's value area is the cash (08:30) VWAP +/-1 sigma.",
+     "Drysdale's VWAP is anchored at the Globex session start (17:00 CT)"),
+    ("PROFILE_VALUE_EQUIVALENCE", "The Drysdale VWAP value area is the 70% (or 68%) profile value area.",
+     "VWAP +/-1 sigma, the Laboratory 70% profile value area and the playbook 68% profile value are separate "
+     "concepts; none is converted"),
+)
+
+
+def _drysdale_key(evidence: SnapshotEvidence, a: dry.DrysdaleSetupAnalysis):
+    items = evidence.items
+    wrong = tuple(IncorrectClaim(cid, text, EvidenceSupport.INSUFFICIENT_EVIDENCE, why)
+                  for cid, text, why in DRYSDALE_INCORRECT_CLAIMS)
+    state = _find(items, "/state")
+    if a.state is dry.CandidateState.NOT_AVAILABLE:
+        vw = _find(items, "/bands/maturity")
+        support = (EvidenceSupport.NOT_YET_AVAILABLE if vw.value == Maturity.NOT_YET_AVAILABLE.value
+                   else EvidenceSupport.INSUFFICIENT_EVIDENCE)
+        return support, None, (), ("Globex VWAP bands (VWAP_BANDS_GLOBEX_V1)",), wrong
+    obs = [_obs("ANALYSIS_STATE", f"Laboratory V1 analysis state (DRYSDALE_SETUP_CANDIDATES_V1): {state.value}.", _C,
+                [state], state.value)]
+    by_label = {i.label: i for i in items}
+    for i in items:
+        p = i.ref.pointer
+        if p.startswith("/candidates/") and p.endswith("/state"):
+            tag = i.label[:-len(" state")]
+            stage = by_label[f"{tag} stage"]
+            obs.append(_obs(f"{tag.split(' (')[0].replace(' ', '_')}_STATE",
+                            f"{tag}: Laboratory V1 candidate state {i.value} (stage {stage.value}).", _C,
+                            [i, stage], i.value))
+        elif "/conditions/" in p:
+            obs.append(_obs(f"COND_{p.split('/')[2]}_{p.split('/')[4]}",
+                            f"LABORATORY V1 TRAINING PROXY: {i.label[:-len(' status')]} is {i.value}.", _R, [i],
+                            i.value))
+        elif p.endswith("/breakout/reached_2sd"):
+            obs.append(_obs(f"REACHED_2SD_{p.split('/')[2]}", f"{i.label}: {'YES' if i.value else 'NO'}.", _D, [i],
+                            i.value))
+    for p, oid in (("/context/vwap_slope", "VWAP_SLOPE"), ("/context/trend_context", "TREND_CONTEXT"),
+                   ("/context/current_episode/lab_acceptance_time_v1", "CURRENT_EPISODE_ACCEPTANCE"),
+                   ("/context/volume/ratio_to_mean", "VOLUME_RATIO")):
+        x = _find(items, p)
+        if x is not None:
+            obs.append(_obs(oid, f"{x.label}: {x.value}.", x.category, [x], x.value))
+    return EvidenceSupport.SUPPORTED, state.value, tuple(obs), (), wrong
+
+
 def _key_for(kind: QuestionKind, snap: SnapshotEvidence, earlier: SnapshotEvidence | None,
-             delta: DeltaEvidence | None, warnings: tuple[QualityWarning, ...]):
+             delta: DeltaEvidence | None, warnings: tuple[QualityWarning, ...], drysdale=None):
     """(support, summary, observations, missing, incorrect claims) — deterministic, from evidence only."""
+    if kind is QuestionKind.DRYSDALE_SETUPS:
+        return _drysdale_key(*drysdale)
     items = snap.items
     obs: list[ExpectedObservation] = []
     wrong: list[IncorrectClaim] = []
@@ -1112,6 +1316,12 @@ def build_tutor_lesson(session: ReplaySession, definition: LessonDefinition) -> 
         pa, pdoc = _price_action_evidence(session, snap, domains)
         evidence.append(pa)
         docs.append((pa.snapshot_sha256, pdoc))
+    drysdale = None
+    if EvidenceDomain.DRYSDALE_SETUPS in domains:
+        dr, ddoc, analysis = _drysdale_evidence(session, snap, domains)
+        evidence.append(dr)
+        docs.append((dr.snapshot_sha256, ddoc))
+        drysdale = (dr, analysis)
     delta = None
     if definition.compare_from is not None and EvidenceDomain.CHANGES in domains:
         delta, ddoc = _delta_evidence(session.compare(definition.compare_from, definition.at))
@@ -1125,7 +1335,7 @@ def build_tutor_lesson(session: ReplaySession, definition: LessonDefinition) -> 
         tuple(PolicyRef(p.component, p.policy_id, p.policy_version) for p in snap.policy_registry), convention,
         sources)
     kind = definition.question_kind
-    support, summary, observations, missing, wrong = _key_for(kind, current, earlier, delta, warnings)
+    support, summary, observations, missing, wrong = _key_for(kind, current, earlier, delta, warnings, drysdale)
     by_ref = {i.ref: i for i in context.items()}
     caveats = tuple(w.warning_id for w in warnings)
     rubric = GradingRubric(tuple(dict.fromkeys(r for o in observations for r in o.refs)),
@@ -1138,7 +1348,7 @@ def build_tutor_lesson(session: ReplaySession, definition: LessonDefinition) -> 
     if definition.reveal_at is not None:
         later, fdoc = _snapshot_evidence(session.snapshot(definition.reveal_at), SourceRole.FUTURE_OUTCOME, domains)
         docs.append((later.snapshot_sha256, fdoc))
-        if QUESTION_SPECS[kind].compares:
+        if QUESTION_SPECS[kind].compares or kind is QuestionKind.DRYSDALE_SETUPS:
             fobs, fsum = (), None
         else:
             _, fsum, fobs, _, _ = _key_for(kind, later, None, None, later.quality_warnings)
@@ -1425,6 +1635,36 @@ _EXAMPLES = {
          EvidenceDomain.PRIOR_DAY, EvidenceDomain.OVERNIGHT, EvidenceDomain.OPENING),
         None, ("Read the dataset quality status and its reasons.", "List every quality warning.")),
 }
+
+
+DRYSDALE_QUESTIONS = (
+    "What Drysdale-style setup family is developing?",
+    "Which source criteria appear present?",
+    "Which Laboratory V1 proxy conditions are satisfied?",
+    "Which conditions are missing?",
+    "What contextual breakout evidence supports or weakens the case?",
+    "Has +/-2 sigma been reached?",
+    "What is VWAP slope doing?",
+    "Did volume expand?",
+    "Is it a Laboratory V1 candidate or only developing?",
+)
+
+
+def drysdale_lesson(session: ReplaySession, at: datetime | str, question: int = 0,
+                    reveal_at: datetime | str | None = None) -> LessonDefinition:
+    """A DRYSDALE_VWAP_WAVE_V1 lesson (0AB-B): Drysdale source criteria and Laboratory V1 proxies, taught apart."""
+    t = session.resolve_time(at)
+    t1 = session.resolve_time(reveal_at) if reveal_at is not None else None
+    lesson_id = f"DRYSDALE-SETUPS-{session.trading_date.isoformat()}-{_hhmmss(t)}-Q{question + 1}" + (
+        f"-REVEAL-{_hhmmss(t1)}" if t1 else "")
+    return LessonDefinition(
+        lesson_id, "Drysdale VWAP Wave: Laboratory V1 training candidates",
+        "Separate what Drysdale teaches (discretionary) from what the Laboratory V1 proxies evaluate (mechanical).",
+        LessonMode.EXPLAIN_EVIDENCE, QuestionKind.DRYSDALE_SETUPS, DRYSDALE_QUESTIONS[question], session.trading_date,
+        t, (EvidenceDomain.DATA_QUALITY, EvidenceDomain.PRICE, EvidenceDomain.VWAP, EvidenceDomain.DRYSDALE_SETUPS),
+        DRYSDALE_MODULE.module_id, (LAB_SOURCE.source_id, DRYSDALE_BOOK_SOURCE.source_id, DRYSDALE_SOURCE.source_id),
+        None, None, t1, ("Start with the Globex VWAP and its +/-1 sigma value area (not the cash VWAP).",
+                         "Read each Laboratory V1 condition status; Drysdale's own criteria stay discretionary."))
 
 
 def _hhmmss(t: datetime) -> str:
