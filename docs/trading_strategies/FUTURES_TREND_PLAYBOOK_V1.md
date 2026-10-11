@@ -1,7 +1,7 @@
 # Futures Trend Playbook — V1
 
 **Owner:** Mr. Dick Weasel  
-**Document revision:** V1-draft-43  
+**Document revision:** V1-draft-45  
 **Created:** 2026-10-03 (America/Chicago)  
 **Last revised:** 2026-10-10 (America/Chicago)  
 **Status:** Draft for human review; not yet the frozen V1.0 training baseline  
@@ -73,7 +73,8 @@ The prior `gemini_playbook.md` and `blw_review.md` remain historical inputs. The
 | Reentry | Regime must still qualify; maximum two filled attempts per direction per RTH trading date | Agreed; V1-ENTRY-04 |
 | R | Original initial price risk of that trade; denominator remains fixed | Agreed principle; V1-RISK-02 |
 | Daily cutoff | Net realized losing-trade R reaches 3; winners do not replenish it | Agreed; V1-DAILY-01 |
-| Overnight holding | Prohibited; exact flatten time remains open | Agreed / open; V1-SESSION-03 |
+| Entry/flatten deadlines | Entries before 14:30; cancel unfilled entries at 14:30; begin exit at 14:55; verify flat/resolved orders by 14:59 Chicago | Agreed; V1-SESSION-03 |
+| Overnight holding | Prohibited | Agreed; V1-SESSION-03 |
 | Review | Outcome and execution quality scored separately | Agreed; V1-REVIEW-01 |
 
 ## 2. Purpose and scope
@@ -149,9 +150,22 @@ Call this the **initial observation range**, not the standard Initial Balance. S
 
 ### V1-SESSION-03 — No overnight positions
 
-**Status: Agreed prohibition; exact cutoff open.**
+**Status: No overnight positions and starting entry/flatten deadlines agreed on 2026-10-10; calendar verification remains open under OD-01.**
 
-Close all positions and remove outstanding entry orders before the chosen end-of-session cutoff. Do not carry a V1 position overnight. The exact latest-entry time, flatten time, and holiday/early-close handling must be decided under OD-01. Do not infer the cutoff from the earlier draft's Eastern-time wording.
+Do not carry a V1 position overnight. All operational deadlines use America/Chicago local time:
+
+| Event | Accepted starting deadline |
+| --- | --- |
+| Last permitted new entry | Strictly before 14:30 |
+| Cancel remaining unfilled entry orders | At 14:30 |
+| Begin coordinated exit of any remaining position | At 14:55 |
+| Verify flat position and resolved associated orders | By 14:59 |
+
+The entry window begins at 08:50 under V1-SESSION-02 and ends exclusively at 14:30; all other entry qualifications apply. At 14:30 stop new entries and cancel any remaining unfilled entry order. Verify cancellation/final order status rather than treating the request as success. A late fill during cutoff cancellation counts as an attempt and triggers a coordinated exit.
+
+At 14:55 begin the coordinated exit/protection procedure for any remaining position; verify actual flat status and resolved associated orders by 14:59. If an exit/cancellation fails or remains uncertain, begin recovery immediately rather than waiting for 14:59. A missed deadline is recorded and recovery continues until reconciled; elapsed time does not establish flat status. Exact platform coordination and recovery remain under OD-07.
+
+These are accepted operational choices within the 08:30–15:00 analytical window, not asserted exchange closing times. Holidays and shortened cash sessions remain observation-only; calendar verification is the remaining OD-01 decision. Do not substitute a fixed UTC offset for America/Chicago or infer deadlines from historical Eastern-time draft wording.
 
 ### V1-SESSION-04 — Analytical sessions and calendar policy
 
@@ -166,7 +180,7 @@ Close all positions and remove outstanding entry orders before the chosen end-of
 
 The prior-session reference is the most recent completed session, not necessarily the preceding calendar date. Keep prior-session, overnight, and developing current-RTH profile observations distinct.
 
-The analytical window follows the normal US cash-equity session [S2]. It does not set the latest entry or mandatory flatten times. Those remain open under OD-01. Calendar exceptions require identifying the applicable US cash-session schedule and verifying futures/platform availability; the accepted no-entry policy does not imply that all markets share the same holiday hours.
+The analytical window follows the normal US cash-equity session [S2]. Accepted operational entry/flatten deadlines are specified separately in V1-SESSION-03; calendar verification remains open under OD-01. Calendar exceptions require identifying the applicable US cash-session schedule and verifying futures/platform availability; the accepted no-entry policy does not imply that all markets share the same holiday hours.
 
 **Proposed implementation detail, not yet accepted:** represent data windows as half-open intervals, including the start and excluding the endpoint, to avoid double counting observations exactly at 08:30. Final timestamp/bin-boundary handling and treatment of incomplete or shortened prior-session data still need a reproducible calculation policy.
 
@@ -287,7 +301,7 @@ For example, a breakout at 09:12 uses the 09:10 assessment; the next scheduled a
 
 Record the score, its assessment timestamp, and the six components available at that time. Entry may occur intrabar while regime scoring follows this completed-bar cadence. Preserve the original entry-time evidence; do not retrospectively replace it with a later assessment.
 
-All six factors are defined in V1-REGIME-04/05/06/07/08/09. Total-score directional thresholds and permissions are accepted under V1-REGIME-03; OD-02 is closed. Operational data and calculation verification remain open under OD-04/05. Missing data is not neutral evidence. The accepted open-position regime-change response is defined in V1-EXIT-03: changes in permission alone do not trigger exit; operational emergency scope remains open under OD-14.
+All six factors are defined in V1-REGIME-04/05/06/07/08/09. Total-score directional thresholds and permissions are accepted under V1-REGIME-03; OD-02 is closed. Operational data and calculation verification remain open under OD-04/05. Missing data is not neutral evidence. The accepted open-position regime-change response is defined in V1-EXIT-03: changes in permission alone do not trigger exit; manual/emergency scope is accepted under V1-EXIT-03; exact recovery remains under OD-07.
 
 ## 6. Accepted regime score
 
@@ -450,7 +464,7 @@ Multiple same-direction events still contribute only one point. Complete data wi
 
 **Bullish example:** a known swing low is 6000.0. A rejection bar trades below 6000.0, closes above it, and has a high of 6003.0. The immediately following bar closes at 6003.50, confirming a bullish event. Its reference remains 6000.0 during the four-assessment window.
 
-This factor contributes contextual evidence. It does not authorize an entry, change the structural initial stop, or replace V1-STOP-04's continuation requirement for trailing. V1-EXIT-03 accepts continued structural management through regime changes; operational emergency scope remains open under OD-14.
+This factor contributes contextual evidence. It does not authorize an entry, change the structural initial stop, or replace V1-STOP-04's continuation requirement for trailing. V1-EXIT-03 accepts continued structural management through regime changes; manual/emergency scope is accepted under V1-EXIT-03; exact recovery remains under OD-07.
 
 ## 7. Trade permission and entry
 
@@ -1020,21 +1034,31 @@ Do not place a fixed take-profit order, including at +3R. Let realized R emerge 
 
 **Status: Agreed stop-management approach and no-overnight requirement.**
 
-The normal exit is execution of the protective initial or trailed stop. Close any remaining position at the agreed session flatten cutoff. Record actual fills, not only stop triggers.
+The normal exit is execution of the protective initial or trailed stop. Begin coordinated exit of any remaining position at 14:55 Chicago and verify flat/resolved associated orders by 14:59 under V1-SESSION-03; initiate recovery immediately for failure/uncertainty. Record actual fills, not only stop triggers.
 
 ### V1-EXIT-03 — Regime changes and manual intervention
 
-**Status: Open-position regime-change policy agreed on 2026-10-10; manual/operational emergency scope remains open under OD-14.**
+**Status: Open-position regime-change and manual/operational emergency exit policies agreed on 2026-10-10; OD-14 policy decisions closed. Exact implementation/recovery remains under OD-07.**
 
 1. A change to transition, balance, or opposite directional permission does not itself trigger an exit of an existing position.
 2. Continue managing the position under its existing structural stop and accepted continuation-confirmed trailing rules. Trailing does not require the regime score to retain entry permission; all trailing evidence, candidate validity, mapping, and order/protection checks still apply.
 3. Never loosen the stop because the score changes. Record the new scheduled regime assessment while the position remains open.
 4. New entries require current directional permission. Any direction change still requires closing and reconciling the existing position first, then independently qualifying the new entry under V1-SCOPE-03; it is not an automatic reversal instruction.
-5. Accepted dollar-risk/Loss-R overshoot exits and the eventual session-flatten deadline retain priority. Missing data, protection failures, and other operational emergencies require their separate policy/procedure; this regime rule does not authorize ignoring them.
+5. Accepted dollar-risk/Loss-R overshoot exits and the accepted V1-SESSION-03 session-flatten deadlines retain priority. Missing data, protection failures, and other operational emergencies follow the accepted scope below and eventual verified OD-07 procedure; this regime rule does not authorize ignoring them.
 
 The regime score governs entry permission; structural rules govern ordinary position management. This accepts management through valid regime changes, not a missing-data or unverified-protection rule. UNKNOWN/no-entry and data/protection restrictions remain in force.
 
-No “climax,” “exhaustion,” or discretionary balance exit from historical drafts is automatically adopted. Define authorized manual and operational emergency exit scope under OD-14 and exact implementation/recovery under OD-07 before freezing V1.0. Record every intervention and reason.
+**Accepted manual and operational emergency exit policy:**
+
+1. Initiate a coordinated exit when protective-stop coverage fails or cannot be verified, the position/instrument/quantity is wrong, or reliable position monitoring and management become unavailable.
+2. If connectivity or order status is uncertain, block new entries and reconcile through the available platform/broker recovery channel. Avoid duplicate exit orders based on assumptions. Exact steps, acknowledgement/recovery timeouts, and protection/exit races remain under OD-07. Do not equate an exit request with verified flat status.
+3. Missing analytical evidence alone blocks entries and any trailing decision that needs that evidence. It does not automatically exit an existing position if NES position monitoring and protective-stop coverage remain verified. Retain the existing verified protection; do not manufacture missing trailing inputs.
+4. Accepted risk-overshoot exits and the accepted V1-SESSION-03 session-flatten deadlines are authorized exits.
+5. The owner retains authority to close a position whenever necessary. An early exit outside defined rules is recorded as a discretionary deviation for review; fear, profit protection, or an unqualified exhaustion impression does not silently become a strategy rule. The playbook never requires remaining in a position merely to preserve an execution grade.
+
+Record the reason, supporting evidence, actions, order/fill timestamps, fills, and final position/order reconciliation for every intervention. No climax, exhaustion, or discretionary balance exit from historical drafts is automatically adopted as an ordinary strategy exit.
+
+OD-14 policy decisions are closed. Exact NinjaTrader recovery implementation and verification remain under OD-07; entry/flatten deadlines are accepted under V1-SESSION-03; calendar verification remains under OD-01. This policy states intended responses and authority, not that platform/broker behavior has been verified.
 
 ## 13. Execution quality
 
@@ -1098,7 +1122,7 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 - [ ] Confirm document revision and session mode.
 - [ ] Confirm execution contract, chart/profile source, settings, and Chicago date/time.
-- [ ] Confirm the session calendar, latest-entry time, and flatten time.
+- [ ] Confirm calendar eligibility and Chicago deadlines: entries before 14:30; cancel unfilled entries at 14:30; begin exit at 14:55; verify flat/orders resolved by 14:59.
 - [ ] Load prior-session and overnight context.
 - [ ] Confirm order-protection procedure and begin session counters at zero.
 
@@ -1121,7 +1145,7 @@ These checklists summarize the rules; they do not override rule status or resolv
 - [ ] Trail only on confirmed structure, applying minimum 0.50-point clearance beyond the mapped pivot and outward execution-tick rounding.
 - [ ] Do not loosen the stop, add size, or install a fixed profit target.
 - [ ] Continue structural protection/qualifying trailing through regime changes; record assessments (EXIT-03).
-- [ ] Follow the eventual authorized operational-exit procedure and session cutoff; exact policies remain open.
+- [ ] Apply accepted manual/emergency exit scope and record interventions (EXIT-03); apply accepted SESSION-03 deadlines; exact recovery/calendar verification remain open under OD-07/01.
 
 ### After exit / end of session
 
@@ -1133,11 +1157,11 @@ These checklists summarize the rules; they do not override rule status or resolv
 
 ## 16. Open decision register
 
-Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-09, OD-10, OD-11, OD-12, OD-13, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
+Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, OD-06, OD-08, OD-09, OD-10, OD-11, OD-12, OD-13, OD-14, and OD-16 are closed; OD-04 and OD-05 have accepted subdecisions but remain open. A later answer should cite the OD ID and any affected rule IDs.
 
 | ID | Decision needed | Affected rules |
 | --- | --- | --- |
-| OD-01 | RTH analytical window and holiday/shortened-session no-entry policy accepted; latest entry, flatten deadline, and operational calendar procedure remain open | SESSION-03, EXIT-02 |
+| OD-01 | Analytical window/holiday-shortened-session observation-only policy and deadlines accepted 2026-10-10: entries strictly before 14:30, cancel unfilled entries at 14:30, begin exit 14:55, verify flat/resolved orders by 14:59 Chicago; late cutoff fill exits and immediate recovery on uncertainty. Operational calendar verification remains open; exact execution/recovery under OD-07 | SESSION-03/04, EXIT-02 |
 | OD-02 | CLOSED 2026-10-10: all six factor definitions, equal-weight sum, aggregate thresholds, regime/entry permissions, and UNKNOWN/no-entry policy accepted | REGIME-01/03/04/05/06/07/08/09 |
 | OD-03 | CLOSED 2026-10-10: assess first at 08:50 and every completed 5-minute bar; use latest scheduled assessment for intrabar entries; missing required evidence means UNKNOWN/no entry | REGIME-02 |
 | OD-04 | ES analysis / NES execution and prior/overnight/RTH windows accepted; exact expiries, rollover alignment, cross-instrument level handling, and timestamp boundary/data-completeness policies remain open | INSTRUMENT-01, CONTEXT-02/03 |
@@ -1150,11 +1174,11 @@ Resolve the remaining open items explicitly before freezing V1.0. OD-02, OD-03, 
 | OD-11 | CLOSED (policy decisions) 2026-10-10: net-cost-aware pre-entry/post-fill remaining-budget guard, separate dollar gate, equality allowed/strict overshoot coordinated exit, one open one-NES V1 position, at most one active entry while flat, replacement only after confirmed resolution, flat/order/accounting reconciliation before another entry, uncertain-status no-entry, and no automatic attempt reset on direction change. Exact execution/recovery remains under OD-07 | DAILY-01, SCOPE-03 |
 | OD-12 | CLOSED (policy decisions) 2026-10-10: first-fill/outcome-independent counting; confirmed unfilled events do not consume attempts; fill/cancel reconciliation; one long and one short PB-TREND thesis per RTH date, separate reference IDs, two filled attempts per direction across all references/families, no intraday reset from score/reference/direction changes, and reset next RTH date. Current qualification/risk/position rules still apply; order verification/recovery under OD-07 | ENTRY-04, REENTRY-01 |
 | OD-13 | CLOSED 2026-10-10: trailing identification/comparison/pairing/tracking, ordered continuation confirmation, prompt intrabar tightening checks, single pending amendment, verified acceptance, and reconciliation policy agreed. Operational mapping/platform recovery remains under OD-04/07 | STOP-04/06/07/08/09/10/11 |
-| OD-14 | Open-position regime-change policy accepted 2026-10-10: transition/balance/opposite permission alone does not exit; continue verified structural protection and qualifying continuation trailing without an entry-score requirement, never loosen, record assessments, retain entry/risk/session priorities. Authorized manual/operational emergency scope remains open; exact execution/recovery under OD-07 | EXIT-03 |
+| OD-14 | CLOSED (policy decisions) 2026-10-10: regime changes alone do not exit; continue valid structural management. Coordinated emergency exit for failed/unverified protection, wrong position/instrument/quantity, or unavailable reliable monitoring/management; uncertain connectivity/orders block entries and require reconciliation without assumed duplicate exits. Analytical evidence loss alone does not exit if NES monitoring/protection verified. Risk/session exits authorized; owner may exit, with out-of-rule early exits recorded as deviations. Exact recovery/timeouts under OD-07; accepted session deadlines under V1-SESSION-03; calendar verification under OD-01 | EXIT-03 |
 | OD-15 | Final execution rubric and practical minimum forensic fields | REVIEW-02/03 |
 | OD-16 | CLOSED 2026-10-10: primary 5-minute ES chart accepted | CONTEXT-01 |
 
-**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Remaining-budget guard and post-fill recheck are agreed. One-position/pending-entry policy is agreed; OD-11 policy decisions are closed. Filled-attempt counting is agreed. Starting directional thesis identity/reset is agreed; OD-12 policy decisions are closed. Open-position regime-change policy is agreed. Next resolve manual/emergency exit scope under OD-14, then mapping/protection/order mechanics and session boundaries. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
+**Study priority:** scoring definitions and timing are agreed. Entry-swing pivot identification is also agreed. Swing-reference selection and the subsequent confirmed pullback requirement are agreed. Pullback-pivot selection is also agreed. Consolidation formation is agreed. Box lifetime/replacement is also agreed. Auction-reference qualification is agreed and OD-06 is closed. Trailing-pivot identification and the post-fill center-bar restriction are agreed. Higher-low/lower-high comparison and advancement only after accepted tightening are also agreed. Continuation-reference pairing is agreed. Candidate replacement/invalidation is agreed. Continuation event ordering and confirmation transition are agreed. Stop-modification timing is agreed and OD-13 is closed. Initial/trailing buffer and outward rounding are agreed and OD-08 is closed. Combined percentage-and-dollar entry-risk ceiling framework is agreed. Starting allocation/numeric limits are agreed. Equity-update policy is agreed. Fee-input policy is agreed. Starting replay/simulation slippage allowance and measurement policy are agreed. Standard connection and the $1.88 starting round-trip fee input are recorded. Equity-verification policy is agreed. Actual-entry risk-overshoot policy is agreed. No separate stop-distance filter is accepted for starting V1; OD-09 policy decisions are closed. Gross/net reporting and daily net Loss-R accounting are agreed; OD-10 policy decisions are closed. Remaining-budget guard and post-fill recheck are agreed. One-position/pending-entry policy is agreed; OD-11 policy decisions are closed. Filled-attempt counting is agreed. Starting directional thesis identity/reset is agreed; OD-12 policy decisions are closed. Open-position regime-change policy is agreed. Manual/operational emergency exit scope is agreed; OD-14 policy decisions are closed. Entry/flatten deadlines are agreed. Next resolve calendar verification under OD-01, then mapping/protection/order mechanics, indicator/data verification, and review evidence. Funding/reconciliation and execution-validation evidence remain required. These are gaps to close, not invitations to add V2 complexity.
 
 ## 17. Glossary
 
@@ -1202,6 +1226,8 @@ Do not silently change rules after a few outcomes. Preserve evidence and record 
 
 | Revision | Date (Chicago) | Change |
 | --- | --- | --- |
+| V1-draft-45 | 2026-10-10 | Accepted Chicago deadlines: new entries strictly before 14:30; cancel unfilled entries at 14:30; begin coordinated exit 14:55; verify flat/resolved orders by 14:59. Late cutoff fills count/exit; failures/uncertainty trigger immediate recovery. Updated session/exit/checklist references; calendar verification remains open under OD-01. |
+| V1-draft-44 | 2026-10-10 | Accepted emergency exit/reconciliation scope for protection, position, monitoring, and connectivity failures; missing analysis alone blocks entries/trailing but permits holding with verified NES monitoring/protection. Retained owner exit authority and recorded deviations/intervention evidence. Closed OD-14 policy decisions; exact recovery under OD-07 and deadlines under OD-01. |
 | V1-draft-43 | 2026-10-10 | Accepted open-position management through transition/balance/opposite regime permission: no score-only exit, continue valid structural protection/continuation trailing without entry-score requirement, never loosen, record assessments, and retain risk/session priorities. Manual/emergency scope remains open under OD-14 and exact procedure under OD-07. |
 | V1-draft-42 | 2026-10-10 | Accepted one long/one short PB-TREND thesis per RTH date, each with two filled attempts across references/setup families; reference IDs separate, no intraday reset from reference/score/direction changes, next-RTH-date reset, and all qualification/risk guards retained. Closed OD-12 policy decisions and aligned ENTRY-04/quick reference. |
 | V1-draft-41 | 2026-10-10 | Accepted first-fill attempt counting regardless of exit/outcome; confirmed unfilled cancellations/rejections/expirations recorded without consuming attempts, fill/cancel race reconciliation, and no count reset from unfilled replacement. Two-attempt cap retained; thesis identity/reset remain open under OD-12. |
