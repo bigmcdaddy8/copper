@@ -1,0 +1,23 @@
+	Command being timed: "uv run python /tmp/claude-1000/-home-temckee8-Documents-REPOs-copper/96ab414c-d152-44d1-8d33-1c2f8cf9c58c/scratchpad/harness/qc_audit.py /tmp/claude-1000/-home-temckee8-Documents-REPOs-copper/96ab414c-d152-44d1-8d33-1c2f8cf9c58c/scratchpad/qc_out 2026-10-02 /home/temckee8/secure/mp_corpus/es_20261002_7e8d7b5e.sqlite3 /home/temckee8/secure/mp_corpus/es_20261001_fe280370.sqlite3 e00d3ebdb45638aea1d0279d90f8cf1b65e84097"
+	User time (seconds): 770.85
+	System time (seconds): 16.34
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 13:17.94
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4485648
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 12
+	Minor (reclaiming a frame) page faults: 3404077
+	Voluntary context switches: 43236
+	Involuntary context switches: 11660
+	Swaps: 0
+	File system inputs: 3043472
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

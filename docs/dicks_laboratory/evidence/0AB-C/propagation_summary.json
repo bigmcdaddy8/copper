@@ -1,0 +1,4303 @@
+{
+ "rows": [
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260928T2220Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "17:25",
+   "cutoff": "18:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/LOCAL_EVIDENCE"
+   ],
+   "evidence_window_ct": [
+    "17:00",
+    "17:25"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260928T2220Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "17:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/LOCAL_EVIDENCE"
+    ],
+    "evidence_window_ct": [
+     "17:00",
+     "17:25"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "17:20",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": false,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "LOCAL_EVIDENCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "17:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": false,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "LOCAL_EVIDENCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20260928T2315Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "18:55",
+   "cutoff": "19:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:05",
+    "18:55"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20260928T2315Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "18:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:05",
+     "18:55"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "18:15",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "18:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20260928T2350Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "18:55",
+   "cutoff": "19:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:10",
+    "18:55"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20260928T2350Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "18:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:10",
+     "18:55"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "18:50",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "18:50",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-DOWN-20260929T0020Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "19:50",
+   "cutoff": "20:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "19:10",
+    "19:50"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-DOWN-20260929T0020Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "19:50",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "19:10",
+     "19:50"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "19:20",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "19:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260929T0130Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "20:35",
+   "cutoff": "21:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "19:10",
+    "20:35"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260929T0130Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "20:35",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "19:10",
+     "20:35"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "20:30",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:30",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20260929T0155Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "21:15",
+   "cutoff": "22:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "20:20",
+    "21:15"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20260929T0155Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "21:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "20:20",
+     "21:15"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "20:55",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:55",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-DOWN-20260929T0245Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "22:10",
+   "cutoff": "23:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "21:35",
+    "22:10"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-DOWN-20260929T0245Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "22:10",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "21:35",
+     "22:10"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "21:45",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "21:45",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260929T0320Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "22:25",
+   "cutoff": "23:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "21:35",
+    "22:25"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260929T0320Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "22:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "21:35",
+     "22:25"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "22:20",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "22:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260929T0550Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "00:55",
+   "cutoff": "01:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "22:45",
+    "00:55"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260929T0550Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "00:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "22:45",
+     "00:55"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "00:50",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "00:50",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260929T0800Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "03:05",
+   "cutoff": "04:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "02:15",
+    "03:05"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260929T0800Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "03:05",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "02:15",
+     "03:05"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "03:00",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "03:00",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260929T0855Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "04:00",
+   "cutoff": "04:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "03:30",
+    "04:00"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260929T0855Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "04:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "03:30",
+     "04:00"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "03:55",
+    "gaps_after_candidate": 1,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "NOT_A_DEPENDENCY",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "03:55",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20260929T0935Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "04:40",
+   "cutoff": "05:00",
+   "date": "2026-09-29",
+   "direction": "UP",
+   "eligibility": "NOT_ELIGIBLE",
+   "eligibility_basis": [
+    "KNOWN_GAP/SETUP_EVIDENCE_WINDOW/LOCAL_EVIDENCE"
+   ],
+   "evidence_window_ct": [
+    "03:40",
+    "04:40"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20260929T0935Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "04:40",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "NOT_ELIGIBLE",
+    "eligibility_basis": [
+     "KNOWN_GAP/SETUP_EVIDENCE_WINDOW/LOCAL_EVIDENCE"
+    ],
+    "evidence_window_ct": [
+     "03:40",
+     "04:40"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "04:35",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 1,
+    "gaps_upstream": 0,
+    "local_evidence_complete": false,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "SETUP_EVIDENCE_WINDOW",
+      "LOCAL_EVIDENCE",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "04:35",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 1,
+   "gaps_upstream": 0,
+   "local_evidence_complete": false,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ],
+    [
+     "KNOWN_GAP",
+     "SETUP_EVIDENCE_WINDOW",
+     "LOCAL_EVIDENCE",
+     "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260929T1255Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "08:00",
+   "cutoff": "08:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE",
+    "KNOWN_GAP/GLOBEX_VWAP/UPSTREAM_REFERENCE"
+   ],
+   "evidence_window_ct": [
+    "05:30",
+    "08:00"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260929T1255Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "08:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE",
+     "KNOWN_GAP/GLOBEX_VWAP/UPSTREAM_REFERENCE"
+    ],
+    "evidence_window_ct": [
+     "05:30",
+     "08:00"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "07:55",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 1,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "UPSTREAM_REFERENCE",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "07:55",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 1,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ],
+    [
+     "KNOWN_GAP",
+     "GLOBEX_VWAP",
+     "UPSTREAM_REFERENCE",
+     "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260929T1320Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "08:25",
+   "cutoff": "09:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE",
+    "KNOWN_GAP/GLOBEX_VWAP/UPSTREAM_REFERENCE"
+   ],
+   "evidence_window_ct": [
+    "08:00",
+    "08:25"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260929T1320Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "08:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE",
+     "KNOWN_GAP/GLOBEX_VWAP/UPSTREAM_REFERENCE"
+    ],
+    "evidence_window_ct": [
+     "08:00",
+     "08:25"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "08:20",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 1,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "UPSTREAM_REFERENCE",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "08:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 1,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ],
+    [
+     "KNOWN_GAP",
+     "GLOBEX_VWAP",
+     "UPSTREAM_REFERENCE",
+     "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-DOWN-20260929T1555Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "12:55",
+   "cutoff": "13:00",
+   "date": "2026-09-29",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE",
+    "KNOWN_GAP/GLOBEX_VWAP/UPSTREAM_REFERENCE"
+   ],
+   "evidence_window_ct": [
+    "10:45",
+    "12:55"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-DOWN-20260929T1555Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "12:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE",
+     "KNOWN_GAP/GLOBEX_VWAP/UPSTREAM_REFERENCE"
+    ],
+    "evidence_window_ct": [
+     "10:45",
+     "12:55"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "10:55",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 1,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ],
+     [
+      "KNOWN_GAP",
+      "GLOBEX_VWAP",
+      "UPSTREAM_REFERENCE",
+      "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "10:55",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 1,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000256 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ],
+    [
+     "KNOWN_GAP",
+     "GLOBEX_VWAP",
+     "UPSTREAM_REFERENCE",
+     "KNOWN_GAP 2026-09-29T09:14:58.864763Z .. 2026-09-29T09:15:00.457408Z"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20260929T2230Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "18:40",
+   "cutoff": "19:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:10",
+    "18:40"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20260929T2230Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "18:40",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:10",
+     "18:40"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "17:30",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "17:30",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20260929T2235Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "18:15",
+   "cutoff": "19:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:15",
+    "18:15"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20260929T2235Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "18:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:15",
+     "18:15"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "17:35",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "17:35",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T0020Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "19:25",
+   "cutoff": "20:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "18:30",
+    "19:25"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T0020Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "19:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "18:30",
+     "19:25"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "19:20",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "19:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260930T0100Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "20:05",
+   "cutoff": "21:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "19:40",
+    "20:05"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260930T0100Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "20:05",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "19:40",
+     "20:05"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "20:00",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:00",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-DOWN-20260930T0115Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "20:30",
+   "cutoff": "21:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "20:05",
+    "20:30"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-DOWN-20260930T0115Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "20:30",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "20:05",
+     "20:30"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "20:15",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260930T0135Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "20:40",
+   "cutoff": "21:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "20:05",
+    "20:40"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260930T0135Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "20:40",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "20:05",
+     "20:40"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "20:35",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:35",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20260930T0215Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "21:20",
+   "cutoff": "22:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "20:25",
+    "21:20"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20260930T0215Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "21:20",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "20:25",
+     "21:20"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "21:15",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "21:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260930T0245Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "21:50",
+   "cutoff": "22:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "21:25",
+    "21:50"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260930T0245Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "21:50",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "21:25",
+     "21:50"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "21:45",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "21:45",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-DOWN-20260930T0250Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "22:00",
+   "cutoff": "22:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "21:30",
+    "22:00"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-DOWN-20260930T0250Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "22:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "21:30",
+     "22:00"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "21:50",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "21:50",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20260930T0520Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "00:25",
+   "cutoff": "01:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "23:55",
+    "00:25"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20260930T0520Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "00:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "23:55",
+     "00:25"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "00:20",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "00:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-DOWN-20260930T0600Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "01:30",
+   "cutoff": "02:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "00:45",
+    "01:30"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-DOWN-20260930T0600Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "01:30",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "00:45",
+     "01:30"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "01:00",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "01:00",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260930T0705Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "02:10",
+   "cutoff": "03:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "01:20",
+    "02:10"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260930T0705Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "02:10",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "01:20",
+     "02:10"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "02:05",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "02:05",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T0810Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "03:15",
+   "cutoff": "04:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "02:25",
+    "03:15"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T0810Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "03:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "02:25",
+     "03:15"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "03:10",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "03:10",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-DOWN-20260930T0940Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "06:45",
+   "cutoff": "07:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "04:30",
+    "06:45"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-DOWN-20260930T0940Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "06:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "04:30",
+     "06:45"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "04:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "04:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T1315Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "08:20",
+   "cutoff": "09:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "07:55",
+    "08:20"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T1315Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "08:20",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "07:55",
+     "08:20"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "08:15",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "08:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20260930T1350Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "08:55",
+   "cutoff": "09:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "08:00",
+    "08:55"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20260930T1350Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "08:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "08:00",
+     "08:55"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "08:50",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "08:50",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T1430Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "09:35",
+   "cutoff": "10:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "08:45",
+    "09:35"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T1430Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "09:35",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "08:45",
+     "09:35"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "09:30",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "09:30",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T1515Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "10:20",
+   "cutoff": "11:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "09:40",
+    "10:20"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T1515Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "10:20",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "09:40",
+     "10:20"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "10:15",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "10:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T1620Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "11:25",
+   "cutoff": "12:00",
+   "date": "2026-09-30",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "10:50",
+    "11:25"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T1620Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "11:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "10:50",
+     "11:25"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "11:20",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "11:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20260930T1730Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "12:35",
+   "cutoff": "13:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "11:10",
+    "12:35"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20260930T1730Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "12:35",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "11:10",
+     "12:35"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "12:30",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "12:30",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20260930T1900Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "14:05",
+   "cutoff": "15:00",
+   "date": "2026-09-30",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "13:40",
+    "14:05"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20260930T1900Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "14:05",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "13:40",
+     "14:05"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "14:00",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "14:00",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000363 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-UP-20260930T2240Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "18:05",
+   "cutoff": "19:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:30",
+    "18:05"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-UP-20260930T2240Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "18:05",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:30",
+     "18:05"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "17:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "17:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20260930T2310Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "18:15",
+   "cutoff": "19:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:30",
+    "18:15"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20260930T2310Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "18:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:30",
+     "18:15"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "18:10",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "18:10",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261001T0005Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "19:10",
+   "cutoff": "20:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "18:10",
+    "19:10"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261001T0005Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "19:10",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "18:10",
+     "19:10"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "19:05",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "19:05",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261001T0145Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "20:50",
+   "cutoff": "21:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "20:25",
+    "20:50"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261001T0145Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "20:50",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "20:25",
+     "20:50"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "20:45",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:45",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-UP-20261001T0340Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "22:55",
+   "cutoff": "23:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "22:30",
+    "22:55"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-UP-20261001T0340Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "22:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "22:30",
+     "22:55"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "22:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "22:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261001T0640Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "01:45",
+   "cutoff": "02:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "22:30",
+    "01:45"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261001T0640Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "01:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "22:30",
+     "01:45"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "01:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "01:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-DOWN-20261001T0810Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "03:50",
+   "cutoff": "04:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "03:00",
+    "03:50"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-DOWN-20261001T0810Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "03:50",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "03:00",
+     "03:50"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "03:10",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "03:10",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20261001T0900Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "04:05",
+   "cutoff": "05:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "03:00",
+    "04:05"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20261001T0900Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "04:05",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "03:00",
+     "04:05"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "04:00",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "04:00",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-DOWN-20261001T0940Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "04:45",
+   "cutoff": "05:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "03:45",
+    "04:45"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-DOWN-20261001T0940Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "04:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "03:45",
+     "04:45"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "04:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "04:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-UP-20261001T1010Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "05:15",
+   "cutoff": "06:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "03:50",
+    "05:15"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-UP-20261001T1010Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "05:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "03:50",
+     "05:15"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "05:10",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "05:10",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20261001T1435Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "09:40",
+   "cutoff": "10:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "08:50",
+    "09:40"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20261001T1435Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "09:40",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "08:50",
+     "09:40"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "09:35",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "09:35",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20261001T1520Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "10:25",
+   "cutoff": "11:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "09:45",
+    "10:25"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20261001T1520Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "10:25",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "09:45",
+     "10:25"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "10:20",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "10:20",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20261001T1600Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "11:05",
+   "cutoff": "12:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "10:35",
+    "11:05"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20261001T1600Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "11:05",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "10:35",
+     "11:05"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "11:00",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "11:00",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20261001T1810Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "13:15",
+   "cutoff": "14:00",
+   "date": "2026-10-01",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "12:35",
+    "13:15"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20261001T1810Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "13:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "12:35",
+     "13:15"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "13:10",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "13:10",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-DOWN-20261001T1915Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "15:00",
+   "cutoff": "15:00",
+   "date": "2026-10-01",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "13:55",
+    "15:00"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-DOWN-20261001T1915Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "15:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "13:55",
+     "15:00"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "14:15",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "14:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000351 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "FADE-DOWN-20261001T2240Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "17:45",
+   "cutoff": "18:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "17:20",
+    "17:45"
+   ],
+   "family": "FADE_VALUE_AREA_EXTREME",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "FADE-DOWN-20261001T2240Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "17:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "17:20",
+     "17:45"
+    ],
+    "family": "FADE_VALUE_AREA_EXTREME",
+    "first_event_ct": "17:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "17:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20261002T0005Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "19:15",
+   "cutoff": "20:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "18:50",
+    "19:15"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20261002T0005Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "19:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "18:50",
+     "19:15"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "19:05",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "19:05",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261002T0030Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "19:35",
+   "cutoff": "20:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "19:05",
+    "19:35"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261002T0030Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "19:35",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "19:05",
+     "19:35"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "19:30",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "19:30",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-UP-20261002T0145Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "20:50",
+   "cutoff": "21:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "20:20",
+    "20:50"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-UP-20261002T0145Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "20:50",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "20:20",
+     "20:50"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "20:45",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "20:45",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-UP-20261002T0215Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "21:30",
+   "cutoff": "22:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "21:05",
+    "21:30"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-UP-20261002T0215Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "21:30",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "21:05",
+     "21:30"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "21:15",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "21:15",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261002T0640Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "01:45",
+   "cutoff": "02:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "01:15",
+    "01:45"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261002T0640Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "01:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "01:15",
+     "01:45"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "01:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "01:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-UP-20261002T0650Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "02:00",
+   "cutoff": "02:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "01:25",
+    "02:00"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-UP-20261002T0650Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "02:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "01:25",
+     "02:00"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "01:50",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "01:50",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-UP-20261002T0740Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "02:55",
+   "cutoff": "03:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "02:30",
+    "02:55"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-UP-20261002T0740Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "02:55",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "02:30",
+     "02:55"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "02:40",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "02:40",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261002T1010Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "05:15",
+   "cutoff": "06:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "02:30",
+    "05:15"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261002T1010Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "05:15",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "02:30",
+     "05:15"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "05:10",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "05:10",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-UP-20261002T1035Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "06:20",
+   "cutoff": "07:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "05:25",
+    "06:20"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-UP-20261002T1035Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "06:20",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "05:25",
+     "06:20"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "05:35",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "05:35",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261002T1145Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "06:50",
+   "cutoff": "07:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "05:25",
+    "06:50"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261002T1145Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "06:50",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "05:25",
+     "06:50"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "06:45",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "06:45",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "PDC-UP-20261002T1230Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "08:45",
+   "cutoff": "09:00",
+   "date": "2026-10-02",
+   "direction": "UP",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "07:20",
+    "08:45"
+   ],
+   "family": "PRICE_DISCOVERY_CONTINUATION",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "PDC-UP-20261002T1230Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "08:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "UP",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "07:20",
+     "08:45"
+    ],
+    "family": "PRICE_DISCOVERY_CONTINUATION",
+    "first_event_ct": "07:30",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "07:30",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261002T1355Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "09:00",
+   "cutoff": "09:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "07:20",
+    "09:00"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261002T1355Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "09:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "07:20",
+     "09:00"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "08:55",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "08:55",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "RTV-DOWN-20261002T1455Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "10:00",
+   "cutoff": "10:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "09:05",
+    "10:00"
+   ],
+   "family": "RETURN_TO_VALUE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "RTV-DOWN-20261002T1455Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "10:00",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "09:05",
+     "10:00"
+    ],
+    "family": "RETURN_TO_VALUE",
+    "first_event_ct": "09:55",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "09:55",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  },
+  {
+   "boundary_status": "NOT_PROVEN",
+   "candidate_id": "BOUNCE-DOWN-20261002T1605Z",
+   "candidate_quality": "QUALITY_QUALIFIED",
+   "completed_ct": "11:45",
+   "cutoff": "12:00",
+   "date": "2026-10-02",
+   "direction": "DOWN",
+   "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+   "eligibility_basis": [
+    "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+   ],
+   "evidence_window_ct": [
+    "10:15",
+    "11:45"
+   ],
+   "family": "VWAP_BOUNCE",
+   "final": {
+    "boundary_status": "NOT_PROVEN",
+    "candidate_id": "BOUNCE-DOWN-20261002T1605Z",
+    "candidate_quality": "QUALITY_QUALIFIED",
+    "completed_ct": "11:45",
+    "cutoff": "16:00 market / 16:30 knowledge",
+    "direction": "DOWN",
+    "eligibility": "ELIGIBLE_QUALITY_QUALIFIED",
+    "eligibility_basis": [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/SESSION_BOUNDARY/PROVENANCE"
+    ],
+    "evidence_window_ct": [
+     "10:15",
+     "11:45"
+    ],
+    "family": "VWAP_BOUNCE",
+    "first_event_ct": "11:05",
+    "gaps_after_candidate": 0,
+    "gaps_overlapping_window": 0,
+    "gaps_upstream": 0,
+    "local_evidence_complete": true,
+    "reasons": [
+     [
+      "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+      "SESSION_BOUNDARY",
+      "PROVENANCE",
+      "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+     ]
+    ],
+    "state": "QUALITY_QUALIFIED"
+   },
+   "first_event_ct": "11:05",
+   "gaps_after_candidate": 0,
+   "gaps_overlapping_window": 0,
+   "gaps_upstream": 0,
+   "local_evidence_complete": true,
+   "reasons": [
+    [
+     "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR",
+     "SESSION_BOUNDARY",
+     "PROVENANCE",
+     "capture began 0:00:00.000203 after the 17:00 CT Globex anchor; trades in that interval cannot be ruled out (exact boundary completeness not proven)"
+    ]
+   ],
+   "state": "QUALITY_QUALIFIED"
+  }
+ ],
+ "stats": {
+  "candidate_reasons_first_known:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/LOCAL_EVIDENCE": 1,
+  "candidate_reasons_first_known:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE": 61,
+  "candidate_reasons_first_known:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE,KNOWN_GAP/LOCAL_EVIDENCE": 1,
+  "candidate_reasons_first_known:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE,KNOWN_GAP/UPSTREAM_REFERENCE": 3,
+  "eligibility_final:ELIGIBLE_QUALITY_QUALIFIED": 65,
+  "eligibility_final:NOT_ELIGIBLE": 1,
+  "eligibility_first_known:ELIGIBLE_QUALITY_QUALIFIED": 65,
+  "eligibility_first_known:NOT_ELIGIBLE": 1,
+  "final_reasons:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/LOCAL_EVIDENCE,KNOWN_GAP/NOT_A_DEPENDENCY": 1,
+  "final_reasons:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE": 51,
+  "final_reasons:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE,KNOWN_GAP/LOCAL_EVIDENCE": 1,
+  "final_reasons:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE,KNOWN_GAP/NOT_A_DEPENDENCY": 10,
+  "final_reasons:CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR/PROVENANCE,KNOWN_GAP/UPSTREAM_REFERENCE": 3,
+  "frozen_quality:QUALITY_QUALIFIED": 66,
+  "total": 66
+ },
+ "status_driving_codes_at_first_known": {
+  "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR": 62,
+  "CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR+KNOWN_GAP": 4
+ }
+}
