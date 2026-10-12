@@ -29,6 +29,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from dicks_laboratory import drysdale as dry
+from dicks_laboratory import drysdale_quality as dq
 from dicks_laboratory import market_study_state as mss
 from dicks_laboratory.price_action import build_price_action_facts, price_action_sha256
 from dicks_laboratory.replay import MarketStudySnapshot, Maturity, snapshot_sha256
@@ -88,6 +89,7 @@ class EvidenceDomain(StrEnum):
     PRICE_ACTION_BARS = "PRICE_ACTION_BARS"  # 5-minute bars (the most recent ones)
     VOLATILITY = "VOLATILITY"  # ATR_5M_V1
     DRYSDALE_SETUPS = "DRYSDALE_SETUPS"  # 0AB-B (DRYSDALE_SETUP_ANALYSIS_V1): Laboratory V1 training candidates
+    DRYSDALE_QUALITY = "DRYSDALE_QUALITY"  # 0AB-C (DRYSDALE_CANDIDATE_QUALITY_V1): reason / scope / eligibility
 
 
 class Availability(StrEnum):
@@ -139,6 +141,7 @@ class SourceRole(StrEnum):
     DELTA = "DELTA"
     PRICE_ACTION = "PRICE_ACTION"  # 0AB-A: PRICE_ACTION_FACTS_V1 at the lesson time
     DRYSDALE = "DRYSDALE"  # 0AB-B: DRYSDALE_SETUP_ANALYSIS_V1 at the lesson time
+    DRYSDALE_QUALITY = "DRYSDALE_QUALITY"  # 0AB-C: DRYSDALE_CANDIDATE_QUALITY_V1 for that analysis
 
 
 class QuestionKind(StrEnum):
@@ -835,6 +838,50 @@ def _drysdale_evidence(session: ReplaySession, snap: MarketStudySnapshot,
                             a.cutoff.knowledge_time_cutoff_utc, AS_OF, tuple(out), warnings), doc, a
 
 
+def _drysdale_quality_evidence(snap: MarketStudySnapshot, a: dry.DrysdaleSetupAnalysis
+                               ) -> tuple[SnapshotEvidence, dict]:
+    """0AB-C: DRYSDALE_CANDIDATE_QUALITY_V1 for the lesson-time analysis, as citable items.
+
+    Cited: the Globex boundary status and, per family and direction (the same latest instance the DRYSDALE items
+    cite), the validation eligibility, the evidence window, the gap overlap counts and every reason's code, scope and
+    materiality. QUALITY_QUALIFIED is explained by these, never by a free-form reading."""
+    x = dq.audit(a, snap)
+    doc, sha = dq.audit_payload(x), dq.audit_sha256(x)
+    out: list[EvidenceItem] = []
+    E = EvidenceDomain.DRYSDALE_QUALITY
+    maturity = a.bands.maturity.value
+
+    def add(label, pointer, category):
+        value = _scalar(resolve_pointer(doc, pointer))
+        out.append(EvidenceItem(EvidenceRef(sha, pointer), E, label, value, category,
+                                Availability.AVAILABLE if value is not None else Availability.NOT_AVAILABLE,
+                                maturity, a.status))
+
+    add("Globex 17:00 CT boundary completeness (DRYSDALE_QUALITY_SCOPE_V1)", "/boundary_status", _Q)
+    add("capture start (recorded)", "/capture_started_at", _O)
+    add("Globex VWAP anchor", "/globex_anchor_utc", _R)
+    add("analysis quality status (inherited unchanged by every candidate, DRYSDALE_V1)", "/analysis_status", _Q)
+    latest = {}
+    for i, c in enumerate(doc["candidates"]):
+        latest[(c["family"], c["direction"])] = i
+    for (family, direction), i in sorted(latest.items()):
+        c = doc["candidates"][i]
+        tag = f"{family} {direction} ({c['candidate_id']})"
+        add(f"{tag} validation eligibility (DRYSDALE_VALIDATION_ELIGIBILITY_V1)", f"/candidates/{i}/eligibility", _R)
+        add(f"{tag} candidate evidence window start", f"/candidates/{i}/evidence_window_start_utc", _D)
+        add(f"{tag} candidate evidence window end", f"/candidates/{i}/evidence_window_end_utc", _D)
+        add(f"{tag} known gaps overlapping the candidate evidence window",
+            f"/candidates/{i}/gaps_overlapping_window", _Q)
+        add(f"{tag} gaps upstream in the Globex VWAP accumulation", f"/candidates/{i}/gaps_upstream", _Q)
+        add(f"{tag} gaps after the candidate (not a dependency)", f"/candidates/{i}/gaps_after_candidate", _Q)
+        add(f"{tag} local evidence complete", f"/candidates/{i}/local_evidence_complete", _Q)
+        for k in range(len(c["reasons"])):
+            for leaf in ("code", "scope", "materiality"):
+                add(f"{tag} quality reason {k + 1} {leaf}", f"/candidates/{i}/reasons/{k}/{leaf}", _Q)
+    return SnapshotEvidence(SourceRole.DRYSDALE_QUALITY, sha, a.cutoff.market_time_cutoff_utc,
+                            a.cutoff.knowledge_time_cutoff_utc, AS_OF, tuple(out), ()), doc
+
+
 def _snapshot_evidence(s: MarketStudySnapshot, role: SourceRole,
                        domains: frozenset[EvidenceDomain]) -> tuple[SnapshotEvidence, dict]:
     doc, sha = snapshot_document(s), snapshot_sha256(s)
@@ -1079,10 +1126,47 @@ DRYSDALE_INCORRECT_CLAIMS = (
 )
 
 
-def _drysdale_key(evidence: SnapshotEvidence, a: dry.DrysdaleSetupAnalysis):
+DRYSDALE_QUALITY_INCORRECT_CLAIMS = (
+    ("QUALIFIED_MEANS_UNRELIABLE", "The candidate is unreliable because it is QUALITY_QUALIFIED.",
+     "QUALITY_QUALIFIED is not invalid, not a false setup and not automatically unusable; its meaning is the cited "
+     "reason code, scope and materiality (DRYSDALE_QUALITY_SCOPE_V1). A Globex-boundary qualification is "
+     "provenance, not an impairment of the candidate's own evidence window"),
+    ("BOUNDARY_AS_GAP", "The setup interval contains a feed gap because the 17:00 CT boundary is not proven.",
+     "an unproven boundary means trades in [17:00 CT, capture start) cannot be ruled out; it is not a recorded gap "
+     "and it lies inside the evidence window only when the window includes the first bar"),
+)
+
+
+def _drysdale_quality_observations(q: SnapshotEvidence) -> list[ExpectedObservation]:
+    items = q.items
+    obs = []
+    b = _find(items, "/boundary_status")
+    obs.append(_obs("GLOBEX_BOUNDARY", f"DRYSDALE_QUALITY_SCOPE_V1: Globex 17:00 CT boundary completeness is "
+                    f"{b.value}.", _Q, [b], b.value))
+    for i in items:
+        p = i.ref.pointer
+        if not p.startswith("/candidates/"):
+            continue
+        n = p.split("/")[2]
+        tag = i.label.split(" (")[0].replace(" ", "_")
+        if p.endswith("/eligibility"):
+            obs.append(_obs(f"QS_{tag}_ELIGIBILITY", f"{i.label}: {i.value}.", _R, [i], i.value))
+        elif p.endswith("/gaps_overlapping_window"):
+            obs.append(_obs(f"QS_{tag}_WINDOW_GAPS", f"{i.label}: {i.value}.", _Q, [i], i.value))
+        elif p.endswith("/code"):
+            k = p.split("/")[4]
+            scope = _find(items, f"/candidates/{n}/reasons/{k}/scope")
+            mat = _find(items, f"/candidates/{n}/reasons/{k}/materiality")
+            obs.append(_obs(f"QS_{tag}_REASON_{int(k) + 1}", f"{i.label[:-len(' code')]}: {i.value} "
+                            f"(scope {scope.value}, materiality {mat.value}).", _Q, [i, scope, mat], i.value))
+    return obs
+
+
+def _drysdale_key(evidence: SnapshotEvidence, a: dry.DrysdaleSetupAnalysis, quality: SnapshotEvidence | None = None):
     items = evidence.items
     wrong = tuple(IncorrectClaim(cid, text, EvidenceSupport.INSUFFICIENT_EVIDENCE, why)
-                  for cid, text, why in DRYSDALE_INCORRECT_CLAIMS)
+                  for cid, text, why in DRYSDALE_INCORRECT_CLAIMS + (DRYSDALE_QUALITY_INCORRECT_CLAIMS if quality
+                                                                     else ()))
     state = _find(items, "/state")
     if a.state is dry.CandidateState.NOT_AVAILABLE:
         vw = _find(items, "/bands/maturity")
@@ -1113,6 +1197,8 @@ def _drysdale_key(evidence: SnapshotEvidence, a: dry.DrysdaleSetupAnalysis):
         x = _find(items, p)
         if x is not None:
             obs.append(_obs(oid, f"{x.label}: {x.value}.", x.category, [x], x.value))
+    if quality is not None:
+        obs += _drysdale_quality_observations(quality)
     return EvidenceSupport.SUPPORTED, state.value, tuple(obs), (), wrong
 
 
@@ -1322,6 +1408,11 @@ def build_tutor_lesson(session: ReplaySession, definition: LessonDefinition) -> 
         evidence.append(dr)
         docs.append((dr.snapshot_sha256, ddoc))
         drysdale = (dr, analysis)
+        if EvidenceDomain.DRYSDALE_QUALITY in domains:  # 0AB-C (TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY)
+            qe, qdoc = _drysdale_quality_evidence(snap, analysis)
+            evidence.append(qe)
+            docs.append((qe.snapshot_sha256, qdoc))
+            drysdale = (dr, analysis, qe)
     delta = None
     if definition.compare_from is not None and EvidenceDomain.CHANGES in domains:
         delta, ddoc = _delta_evidence(session.compare(definition.compare_from, definition.at))
@@ -1648,23 +1739,33 @@ DRYSDALE_QUESTIONS = (
     "Did volume expand?",
     "Is it a Laboratory V1 candidate or only developing?",
 )
+# 0AB-C: V4 (quality-scope) lessons also accept this question; V3 lessons keep the nine above unchanged.
+DRYSDALE_QUALITY_QUESTIONS = DRYSDALE_QUESTIONS + (
+    "Why is each candidate quality-qualified, and does any quality reason touch its own evidence window?",)
 
 
 def drysdale_lesson(session: ReplaySession, at: datetime | str, question: int = 0,
-                    reveal_at: datetime | str | None = None) -> LessonDefinition:
-    """A DRYSDALE_VWAP_WAVE_V1 lesson (0AB-B): Drysdale source criteria and Laboratory V1 proxies, taught apart."""
+                    reveal_at: datetime | str | None = None, quality_scope: bool = False) -> LessonDefinition:
+    """A DRYSDALE_VWAP_WAVE_V1 lesson (0AB-B): Drysdale source criteria and Laboratory V1 proxies, taught apart.
+
+    `quality_scope` (0AB-C) adds the DRYSDALE_QUALITY domain (TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY); without it the
+    lesson is the 0AB-B V3 lesson, unchanged."""
     t = session.resolve_time(at)
     t1 = session.resolve_time(reveal_at) if reveal_at is not None else None
     lesson_id = f"DRYSDALE-SETUPS-{session.trading_date.isoformat()}-{_hhmmss(t)}-Q{question + 1}" + (
-        f"-REVEAL-{_hhmmss(t1)}" if t1 else "")
+        f"-REVEAL-{_hhmmss(t1)}" if t1 else "") + ("-QSCOPE" if quality_scope else "")
     return LessonDefinition(
         lesson_id, "Drysdale VWAP Wave: Laboratory V1 training candidates",
         "Separate what Drysdale teaches (discretionary) from what the Laboratory V1 proxies evaluate (mechanical).",
-        LessonMode.EXPLAIN_EVIDENCE, QuestionKind.DRYSDALE_SETUPS, DRYSDALE_QUESTIONS[question], session.trading_date,
-        t, (EvidenceDomain.DATA_QUALITY, EvidenceDomain.PRICE, EvidenceDomain.VWAP, EvidenceDomain.DRYSDALE_SETUPS),
+        LessonMode.EXPLAIN_EVIDENCE, QuestionKind.DRYSDALE_SETUPS,
+        (DRYSDALE_QUALITY_QUESTIONS if quality_scope else DRYSDALE_QUESTIONS)[question], session.trading_date,
+        t, (EvidenceDomain.DATA_QUALITY, EvidenceDomain.PRICE, EvidenceDomain.VWAP, EvidenceDomain.DRYSDALE_SETUPS)
+        + ((EvidenceDomain.DRYSDALE_QUALITY,) if quality_scope else ()),
         DRYSDALE_MODULE.module_id, (LAB_SOURCE.source_id, DRYSDALE_BOOK_SOURCE.source_id, DRYSDALE_SOURCE.source_id),
         None, None, t1, ("Start with the Globex VWAP and its +/-1 sigma value area (not the cash VWAP).",
-                         "Read each Laboratory V1 condition status; Drysdale's own criteria stay discretionary."))
+                         "Read each Laboratory V1 condition status; Drysdale's own criteria stay discretionary.")
+        + (("Read each candidate's quality reason, scope and materiality: QUALITY_QUALIFIED alone is not a "
+            "verdict on the setup.",) if quality_scope else ()))
 
 
 def _hhmmss(t: datetime) -> str:

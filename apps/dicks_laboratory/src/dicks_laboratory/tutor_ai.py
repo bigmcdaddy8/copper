@@ -33,6 +33,7 @@ from dicks_laboratory.tutor_evidence import (
     AssertedValue,
     ClaimCategory,
     DependencyStatus,
+    EvidenceDomain,
     EvidenceRef,
     EvidenceSupport,
     GroundingIssue,
@@ -103,12 +104,34 @@ The Laboratory proxies are ours, not Drysdale's definitions (the source does not
 candidate is educational structure, never a trade signal or an entry. Distance acceptance has no Laboratory \
 threshold.""")
 assert DRYSDALE_SYSTEM_PROMPT != SYSTEM_PROMPT
-PROMPTS = {SYSTEM_PROMPT_VERSION: SYSTEM_PROMPT, DRYSDALE_SYSTEM_PROMPT_VERSION: DRYSDALE_SYSTEM_PROMPT}
+
+# 0AB-C: Drysdale lessons with the DRYSDALE_QUALITY domain use V4 (V3 plus rule 10); V3 stays registered unchanged.
+DRYSDALE_QUALITY_SYSTEM_PROMPT_VERSION = "TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY"
+DRYSDALE_QUALITY_SYSTEM_PROMPT = DRYSDALE_SYSTEM_PROMPT.replace(
+    "\nReturn only the structured answer.",
+    """
+10. Drysdale candidate quality (DRYSDALE_QUALITY_SCOPE_V1): every candidate inherits the analysis quality status, so \
+QUALITY_QUALIFIED alone is not a verdict. It is not invalid, not a false setup and not automatically unusable: its \
+meaning is each cited DRYSDALE_QUALITY reason's code, scope and materiality. Keep them apart. Globex boundary not \
+proven (CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR, SESSION_BOUNDARY): trades between 17:00 CT and the capture start cannot \
+be ruled out; it is provenance, not a recorded gap, and it touches the candidate's own evidence window only when \
+its materiality says LOCAL_EVIDENCE. LOCAL_EVIDENCE: the interval overlaps the candidate evidence window. \
+UPSTREAM_REFERENCE: the bands the window reads accumulated over that interval. NOT_A_DEPENDENCY: after the \
+candidate. State these as QUALITY_WARNING claims that cite the DRYSDALE_QUALITY items and assert their values; the \
+validation eligibility (DRYSDALE_VALIDATION_ELIGIBILITY_V1) is a LABORATORY_POLICY_RESULT. Never call a candidate \
+unreliable, invalid, compromised, unusable or a false setup unless you assert a DRYSDALE_QUALITY item whose value \
+is LOCAL_EVIDENCE or NOT_ELIGIBLE.
+Return only the structured answer.""")
+assert DRYSDALE_QUALITY_SYSTEM_PROMPT != DRYSDALE_SYSTEM_PROMPT
+PROMPTS = {SYSTEM_PROMPT_VERSION: SYSTEM_PROMPT, DRYSDALE_SYSTEM_PROMPT_VERSION: DRYSDALE_SYSTEM_PROMPT,
+           DRYSDALE_QUALITY_SYSTEM_PROMPT_VERSION: DRYSDALE_QUALITY_SYSTEM_PROMPT}
 
 
 def prompt_version(lesson: TutorLesson) -> str:
-    return (DRYSDALE_SYSTEM_PROMPT_VERSION if lesson.definition.curriculum_module_id == DRYSDALE_MODULE.module_id
-            else SYSTEM_PROMPT_VERSION)
+    if lesson.definition.curriculum_module_id != DRYSDALE_MODULE.module_id:
+        return SYSTEM_PROMPT_VERSION
+    return (DRYSDALE_QUALITY_SYSTEM_PROMPT_VERSION if EvidenceDomain.DRYSDALE_QUALITY in
+            lesson.definition.allowed_domains else DRYSDALE_SYSTEM_PROMPT_VERSION)
 
 
 TASK = ("Answer student_view.lesson.question for the student at stage student_view.stage, following the system "
@@ -439,6 +462,7 @@ class GuardCode(StrEnum):
     LABORATORY_VOCABULARY = "LABORATORY_VOCABULARY"  # bias / forecast words, FINAL for a maturity
     UNDEFINED_POLICY_CLAIM = "UNDEFINED_POLICY_CLAIM"
     INSUFFICIENT_EVIDENCE_NOT_STATED = "INSUFFICIENT_EVIDENCE_NOT_STATED"
+    QUALITY_SCOPE_MISSTATED = "QUALITY_SCOPE_MISSTATED"  # 0AB-C (V4): an impairment word without its evidence
 
 
 TRADE_ADVICE = re.compile(
@@ -466,9 +490,19 @@ assert {d.dependency for d in DRYSDALE_MODULE.dependencies if d.status in (
     "first sign of weakness", "rejection", "return to value", "VWAP test", "trend context"}  # aligned with the guard
 
 
+# 0AB-C (V4): words that call a candidate's evidence impaired. Allowed only with an asserted DRYSDALE_QUALITY value
+# LOCAL_EVIDENCE or NOT_ELIGIBLE (unsupported_claims may name them in order to decline them).
+IMPAIRMENT = re.compile(r"\b(unreliable|not reliable|invalid(ated)?|compromised|corrupt(ed)?|untrustworthy|"
+                        r"false (setup|candidate)|unusable|not usable|bad data|tainted|impaired)\b", re.IGNORECASE)
+_IMPAIRMENT_SUPPORT = frozenset({"LOCAL_EVIDENCE", "NOT_ELIGIBLE"})
+
+
 def answer_guards(answer: TutorAnswer, lesson: TutorLesson) -> tuple[GroundingIssue, ...]:
-    if prompt_version(lesson) == DRYSDALE_SYSTEM_PROMPT_VERSION:
+    version = prompt_version(lesson)
+    if version == DRYSDALE_SYSTEM_PROMPT_VERSION:
         return _drysdale_guards(answer, lesson)
+    if version == DRYSDALE_QUALITY_SYSTEM_PROMPT_VERSION:
+        return _drysdale_guards(answer, lesson) + _quality_guards(answer, lesson)
     issues = []
     texts = [("answer_text", answer.answer_text)] + [(f"claims[{i}]", c.statement) for i, c in
                                                      enumerate(answer.claims)]
@@ -559,6 +593,35 @@ def _drysdale_guards(answer: TutorAnswer, lesson: TutorLesson) -> tuple[Groundin
     if key is not EvidenceSupport.SUPPORTED and not any(u.support is key for u in answer.unsupported_claims):
         issues.append(GroundingIssue(GuardCode.INSUFFICIENT_EVIDENCE_NOT_STATED, "unsupported_claims", None,
                                      f"the evidence answer is {key.value}; the answer must say so"))
+    return tuple(issues)
+
+
+def _quality_guards(answer: TutorAnswer, lesson: TutorLesson) -> tuple[GroundingIssue, ...]:
+    """0AB-C (TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY): QUALITY_QUALIFIED is never translated into "unreliable".
+
+    A claim (or the answer text) may call a candidate unreliable / invalid / compromised / unusable only when the claim
+    (or some claim) asserts a DRYSDALE_QUALITY item whose evidence value is LOCAL_EVIDENCE or NOT_ELIGIBLE. The
+    validator separately checks that every asserted value equals the evidence."""
+    quality = _role_shas(lesson).get(SourceRole.DRYSDALE_QUALITY.value)
+    values = {i.ref: i.value for e in lesson.context.snapshots if e.role is SourceRole.DRYSDALE_QUALITY
+              for i in e.items}
+
+    def supported(c) -> bool:
+        return any(a.ref.source_sha256 == quality and values.get(a.ref) in _IMPAIRMENT_SUPPORT and
+                   a.value in _IMPAIRMENT_SUPPORT for a in c.asserted)
+
+    issues = []
+    for i, c in enumerate(answer.claims):
+        m = IMPAIRMENT.search(c.statement)
+        if m and not supported(c):
+            issues.append(GroundingIssue(GuardCode.QUALITY_SCOPE_MISSTATED, f"claims[{i}]", None,
+                                         f"{m[0]!r}: QUALITY_QUALIFIED is not an impairment verdict; assert the "
+                                         "DRYSDALE_QUALITY reason (materiality LOCAL_EVIDENCE) or eligibility "
+                                         "(NOT_ELIGIBLE) that supports it, or state the reason and its scope"))
+    m = IMPAIRMENT.search(answer.answer_text)
+    if m and not any(supported(c) for c in answer.claims):
+        issues.append(GroundingIssue(GuardCode.QUALITY_SCOPE_MISSTATED, "answer_text", None,
+                                     f"{m[0]!r} in the answer text without a supporting DRYSDALE_QUALITY claim"))
     return tuple(issues)
 
 

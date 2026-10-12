@@ -200,7 +200,24 @@ names the prompt version that was used.
 
 See `DRYSDALE_VWAP_TRAINING_CANDIDATES.md` §8.
 
-## 15. Not in 0AA-B
+## 15. 0AB-C update
+
+Drysdale lessons built with `quality_scope=True` (CLI `--quality-scope`) add the domain
+`DRYSDALE_QUALITY` and use `TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY`, which is V3 plus rule 10
+(candidate quality reason, scope and materiality). Without the flag a Drysdale lesson is still
+the V3 lesson. V3 stays registered byte-for-byte: its prompt sha256 equals the one recorded in
+the 0AB-B run records (tested).
+
+- New source role `DRYSDALE_QUALITY` (`DRYSDALE_CANDIDATE_QUALITY_V1`), with its own document and sha256.
+- `ANSWER_JSON_SCHEMA`'s source-role enum is built from `SourceRole`, so it gains `DRYSDALE_QUALITY`, exactly as 0AB-B added `DRYSDALE`. Answers valid before remain valid, but every request now carries that one extra enum value.
+- New guard `QUALITY_SCOPE_MISSTATED`: "unreliable / invalid / compromised / unusable / false setup" needs an asserted DRYSDALE_QUALITY value of `LOCAL_EVIDENCE` or `NOT_ELIGIBLE`.
+- The answer key gains two incorrect claims, `QUALIFIED_MEANS_UNRELIABLE` and `BOUNDARY_AS_GAP`, plus scope observations.
+- CLI: `--quality-scope` and `--question 1-10`. Question 10 asks why candidates are qualified.
+
+See `DRYSDALE_QUALITY_SCOPE.md` §6. The tutor modules changed additively under a recorded
+freeze addendum (`evidence/0AB-C/FREEZE_ADDENDUM.md`).
+
+## 16. Not in 0AA-B
 
 No Drysdale classification (module still REGISTERED /
 NOT_READY_FOR_RULE_IMPLEMENTATION), no new market policy, no semantic grading,

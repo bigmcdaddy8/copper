@@ -6,6 +6,8 @@ prints the question, the authorized AS_OF evidence and the names of withheld mat
 
   --lesson vwap|ib|changes|value-migration|occupancy|not-yet|quality|drysdale
   --question N      drysdale lessons (0AB-B): which of the DRYSDALE_QUESTIONS (1-9; default 1)
+  --quality-scope   drysdale lessons (0AB-C): candidate quality reason / scope / validation eligibility
+                    (TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY; question 10 asks why candidates are qualified)
   --at T            the student's replay time (ISO with offset or HH:MM[:SS] America/Chicago)
   --from T0         earlier time for comparison lessons (changes, value-migration)
   --reveal-at T2    hidden future outcome (instructor-only until --stage POST_REVEAL)
@@ -40,6 +42,7 @@ from dicks_laboratory.tutor_ai import (
 from dicks_laboratory.tutor_evidence import (
     LessonStage,
     QuestionKind,
+    DRYSDALE_QUALITY_QUESTIONS,
     DRYSDALE_QUESTIONS,
     build_tutor_lesson,
     canonical_json,
@@ -87,7 +90,10 @@ def main(
     ai_provider: str = typer.Option("claude-cli", "--ai-provider", help="claude-cli, anthropic-api or fake."),
     ai_model: str = typer.Option("claude-opus-5-5", "--ai-model", help="Model name for the provider."),
     record_out: Path | None = typer.Option(None, "--record-out", help="Write the AI run record JSON here."),
-    question: int = typer.Option(1, "--question", help=f"Drysdale lesson question 1-{len(DRYSDALE_QUESTIONS)}."),
+    question: int = typer.Option(1, "--question", help=f"Drysdale lesson question 1-{len(DRYSDALE_QUESTIONS)} "
+                                 f"(1-{len(DRYSDALE_QUALITY_QUESTIONS)} with --quality-scope)."),
+    quality_scope: bool = typer.Option(False, "--quality-scope", help="Drysdale lessons (0AB-C): add candidate "
+                                       "quality reason / scope / eligibility (TUTOR_SYSTEM_PROMPT_V4_DRYSDALE_QUALITY)."),
 ) -> None:
     if lesson not in LESSONS:
         raise typer.BadParameter(f"--lesson must be one of {', '.join(LESSONS)}")
@@ -103,9 +109,10 @@ def main(
         raise typer.Exit(code=2) from exc
     try:
         if lesson == "drysdale":
-            if not 1 <= question <= len(DRYSDALE_QUESTIONS) or compare_from is not None:
-                raise ValueError(f"drysdale takes --question 1-{len(DRYSDALE_QUESTIONS)} and no --from")
-            definition = drysdale_lesson(session, at, question - 1, reveal_at)
+            questions = DRYSDALE_QUALITY_QUESTIONS if quality_scope else DRYSDALE_QUESTIONS
+            if not 1 <= question <= len(questions) or compare_from is not None:
+                raise ValueError(f"drysdale takes --question 1-{len(questions)} and no --from")
+            definition = drysdale_lesson(session, at, question - 1, reveal_at, quality_scope)
         else:
             definition = example_lesson(session, LESSONS[lesson], at, compare_from, reveal_at)
         built = build_tutor_lesson(session, definition)
