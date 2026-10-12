@@ -214,10 +214,8 @@ at market 16:00 CT with knowledge after finalization. Statistics keep these coun
 - ELIGIBLE_QUALITY_QUALIFIED;
 - NOT_ELIGIBLE.
 
-A pre-registered prospective analysis may also report results stratified by
-`CAPTURE_STARTED_AFTER_GLOBEX_ANCHOR` materiality (PROVENANCE vs LOCAL_EVIDENCE) and by
-time since the anchor. Any such stratification must be registered before the
-campaign data are opened.
+The reporting sub-counts and stratification were pre-registered after PO acceptance in
+[DRYSDALE_PROSPECTIVE_REPORTING_PREREGISTRATION.md](DRYSDALE_PROSPECTIVE_REPORTING_PREREGISTRATION.md).
 
 ## 9. Not changed
 
@@ -225,3 +223,35 @@ campaign data are opened.
 - **Production:** campaign schedules, timers and the collector.
 - **Receipt-lag label:** deferred, because `TUTOR_EVIDENCE_CONTEXT_V1` was not re-versioned.
 - **Tutor:** changed only additively (V4, opt-in; V3 registered). See [evidence/0AB-C/FREEZE_ADDENDUM.md](evidence/0AB-C/FREEZE_ADDENDUM.md).
+
+## 10. Product Owner acceptance (2026-10-11)
+
+```text
+0AB-C:
+PASS / ACCEPTED / CLOSED
+
+DRYSDALE_V1:
+FROZEN / UNCHANGED
+
+DRYSDALE_QUALITY_SCOPE_V1:
+ACCEPTED
+
+DRYSDALE_VALIDATION_ELIGIBILITY_V1:
+ACCEPTED
+```
+
+PO decision:
+
+```text
+DO NOT change capture-start behavior during the current
+2026-10-12 through 2026-11-06 campaign.
+
+Use ELIGIBLE_QUALITY_QUALIFIED as the expected validation
+baseline for Globex-anchored Drysdale candidates.
+```
+
+- **Pre-registration:** separate reporting and stratification, in
+  [DRYSDALE_PROSPECTIVE_REPORTING_PREREGISTRATION.md](DRYSDALE_PROSPECTIVE_REPORTING_PREREGISTRATION.md).
+- **Backlog:** `PRE-ANCHOR CAPTURE READINESS`, a separate production-engineering phase after the
+  campaign; see [BACKLOG.md](BACKLOG.md).
+- **Campaign:** ARMED; analytic inspection NONE; production configuration UNCHANGED.
