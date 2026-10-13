@@ -41,6 +41,7 @@ SCHEMA = "DRYSDALE_PROSPECTIVE_VALIDATION_V1"
 PLAN = "docs/dicks_laboratory/DRYSDALE_PROSPECTIVE_VALIDATION_PLAN.md"
 PREREGISTRATION = "docs/dicks_laboratory/DRYSDALE_PROSPECTIVE_REPORTING_PREREGISTRATION.md"
 FREEZE_MANIFEST = "docs/dicks_laboratory/evidence/0AB-D/FREEZE.md"
+FREEZE_ADDENDUM_GLOB = "FREEZE_ADDENDUM_*.md"  # beside FREEZE_MANIFEST; applied in numeric order
 COHORT_START, COHORT_END = date(2026, 10, 12), date(2026, 11, 6)
 COHORT_DATES = tuple(date(2026, m, d) for m, ds in ((10, (12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 26, 27, 28, 29,
                                                           30)), (11, (2, 3, 4, 5, 6))) for d in ds)
@@ -69,10 +70,11 @@ ELIGIBLE = (dq.Eligibility.ELIGIBLE_UNQUALIFIED.value, dq.Eligibility.ELIGIBLE_Q
 class Stratum(StrEnum):
     """By candidate reference time (end of the completing 5-minute bar), registered in the 0AB-C pre-registration."""
 
-    FIRST_GLOBEX_HOUR = "FIRST_GLOBEX_HOUR"  # reference <= anchor + 1 h (18:00 CT)
-    LATER_OVERNIGHT = "LATER_OVERNIGHT"  # 18:00 < reference <= 08:30 CT
-    US_CASH_SESSION = "US_CASH_SESSION"  # completing bar inside [08:30, 15:00) CT (US_CASH_SESSION_V1 study window)
-    POST_CASH = "POST_CASH"  # completing bar inside [15:00, 16:00) CT
+    # Assigned by the completing bar's interval (plan §5, FREEZE_ADDENDUM_1); reference = bar end.
+    FIRST_GLOBEX_HOUR = "FIRST_GLOBEX_HOUR"  # bars 17:00-17:05 .. 17:55-18:00 CT (bar end <= anchor + 1 h)
+    LATER_OVERNIGHT = "LATER_OVERNIGHT"  # bars 18:00-18:05 .. 08:25-08:30 CT (bar end <= 08:30)
+    US_CASH_SESSION = "US_CASH_SESSION"  # bars 08:30-08:35 .. 14:55-15:00 CT (US_CASH_SESSION_V1 study window)
+    POST_CASH = "POST_CASH"  # bars 15:00-15:05 .. 15:55-16:00 CT
 
 
 OVERNIGHT = (Stratum.FIRST_GLOBEX_HOUR, Stratum.LATER_OVERNIGHT)
@@ -141,28 +143,52 @@ def dataset_identity(database: Path) -> tuple[date | None, datetime | None]:
 
 
 _MANIFEST_LINE = re.compile(r"^([0-9a-f]{64})  (\S+)$")
+_ADDENDUM_LINE = re.compile(r"^([0-9a-f]{64}) -> ([0-9a-f]{64})  (\S+)$")
+
+
+def _addenda(repo: Path) -> list[Path]:
+    def n(p: Path) -> int:
+        tail = p.stem.rsplit("_", 1)[-1]
+        return int(tail) if tail.isdigit() else -1
+    return sorted((repo / FREEZE_MANIFEST).parent.glob(FREEZE_ADDENDUM_GLOB), key=lambda p: (n(p), p.name))
+
+
+def _frozen_set(repo: Path) -> tuple[dict[str, str], list[str]]:
+    """FREEZE.md entries with recorded addenda applied in order; each replacement must name the sha256 in force."""
+    path = repo / FREEZE_MANIFEST
+    if not path.is_file():
+        return {}, []
+    entries = {m.group(2): m.group(1) for m in map(_MANIFEST_LINE.match, path.read_text().splitlines()) if m}
+    problems = []
+    for add in _addenda(repo):
+        if not add.stem.rsplit("_", 1)[-1].isdigit():
+            problems.append(f"unnumbered freeze addendum: {add.name}")
+            continue
+        for m in filter(None, map(_ADDENDUM_LINE.match, add.read_text().splitlines())):
+            old, new, rel = m.groups()
+            if entries.get(rel) != old:
+                problems.append(f"{add.name}: {rel} old sha256 is not the one in force")
+            else:
+                entries[rel] = new
+    return entries, problems
 
 
 def manifest_entries(repo: Path) -> dict[str, str]:
-    path = repo / FREEZE_MANIFEST
-    if not path.is_file():
-        return {}
-    return {m.group(2): m.group(1) for m in map(_MANIFEST_LINE.match, path.read_text().splitlines()) if m}
+    return _frozen_set(repo)[0]
 
 
 def freeze_problems(repo: Path, frozen_plan_sha256: str | None) -> list[str]:
     """Why campaign access is refused ([] = allowed)."""
-    entries = manifest_entries(repo)
+    entries, out = _frozen_set(repo)
     if not entries:
         return [f"no 0AB-D freeze manifest at {FREEZE_MANIFEST}"]
-    out = []
     for rel in (PLAN, PREREGISTRATION):
         if rel not in entries:
             out.append(f"manifest does not list {rel}")
     if not frozen_plan_sha256:
         out.append("campaign data need --frozen-plan <sha256 of the frozen validation plan>")
     elif entries.get(PLAN) != frozen_plan_sha256:
-        out.append("--frozen-plan does not match the plan sha256 in the freeze manifest")
+        out.append("--frozen-plan does not match the plan sha256 in force (freeze manifest and addenda)")
     for rel, sha in sorted(entries.items()):
         f = repo / rel
         if not f.is_file():

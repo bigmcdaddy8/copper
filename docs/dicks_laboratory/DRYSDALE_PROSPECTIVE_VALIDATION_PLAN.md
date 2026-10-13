@@ -98,16 +98,24 @@ counts must sum to the total. Expected baseline (PO, 0AB-C): `ELIGIBLE_QUALITY_Q
 
 **Strata** (registered; the only partitions allowed in the first readout):
 
-| Stratum | Candidate reference time = end of the completing 5-minute bar |
-|---|---|
-| `FIRST_GLOBEX_HOUR` | ≤ 18:00 CT (anchor + 1 h) |
-| `LATER_OVERNIGHT` | 18:00 < reference ≤ 08:30 CT |
-| `US_CASH_SESSION` | completing bar inside [08:30, 15:00) CT (`US_CASH_SESSION_V1` study window) |
-| `POST_CASH` | completing bar inside [15:00, 16:00) CT; never merged into another stratum |
-| overnight | `FIRST_GLOBEX_HOUR` + `LATER_OVERNIGHT` = completing bar inside [17:00, 08:30) CT |
-| time since anchor | continuous, minutes (integer: bar ends are on the 5-minute grid from 17:00) |
+| Stratum | Completing 5-minute bar (interval, CT) | Bar end (= candidate reference time) |
+|---|---|---|
+| `FIRST_GLOBEX_HOUR` | 17:00–17:05 through 17:55–18:00 (anchor + 1 h) | ≤ 18:00 |
+| `LATER_OVERNIGHT` | 18:00–18:05 through 08:25–08:30 | 18:05 … 08:30 |
+| `US_CASH_SESSION` | 08:30–08:35 through 14:55–15:00 (`US_CASH_SESSION_V1` study window) | 08:35 … 15:00 |
+| `POST_CASH` | 15:00–15:05 through 15:55–16:00; never merged into another stratum | 15:05 … 16:00 |
+| overnight | `FIRST_GLOBEX_HOUR` + `LATER_OVERNIGHT` = bars 17:00–17:05 through 08:25–08:30 | ≤ 08:30 |
+| time since anchor | continuous, minutes (integer: bar ends are on the 5-minute grid from 17:00) | |
 
 No new bin is registered by 0AB-D.
+
+**Boundary semantics (clarification, [FREEZE_ADDENDUM_1](evidence/0AB-D/FREEZE_ADDENDUM_1.md)).** The candidate
+reference time stays the end of the completing 5-minute bar. A stratum is assigned from that bar's *interval*: the
+bar belongs to the session window that contains it. Half-open session boundaries are not applied naively to the
+bar-end timestamp. So a candidate completing at 08:30 (bar 08:25–08:30) is overnight (`LATER_OVERNIGHT`); 08:35
+(bar 08:30–08:35) is `US_CASH_SESSION`; 15:00 (bar 14:55–15:00) is `US_CASH_SESSION`; 15:05 (bar 15:00–15:05) is
+`POST_CASH`. Every candidate receives exactly one time-of-day stratum, with no overlap or gap at 08:30 or 15:00.
+This clarifies the accepted session intent; it is not a new stratum or analytic choice.
 
 ## 6. Setup families (each reported separately; never collapsed into one "Drysdale signal")
 
@@ -302,9 +310,9 @@ requires PO review. **No threshold is ever changed automatically.**
   boundary PROVENANCE and boundary LOCAL_EVIDENCE; candidates whose eligibility at first-known time differs from
   final knowledge; first-hour candidates withdrawn or revised. Always displayed separately; never excluded
   automatically.
-- **`US_CASH_SESSION_V1` subset** (completing 08:30–15:00 CT): all primary outcomes reported separately. The
+- **`US_CASH_SESSION_V1` subset** (completing bars 08:30–08:35 … 14:55–15:00 CT): all primary outcomes reported separately. The
   Drysdale setup is not redefined as cash-only.
-- **POST_CASH** (15:00–16:00 CT): reported as POST_CASH, never merged later because counts are small.
+- **POST_CASH** (completing bars 15:00–15:05 … 15:55–16:00 CT): reported as POST_CASH, never merged later because counts are small.
 
 ## 16. Date-level and cohort-level summaries
 
@@ -387,6 +395,10 @@ The harness refuses a dataset whose recorded trading date is on or after 2026-10
 began at or after the first cohort session's Globex anchor — unless `evidence/0AB-D/FREEZE.md` exists, every file
 it lists verifies by sha256, and `--frozen-plan` equals the plan sha256 it lists. The check reads dataset metadata
 only, before any trade is loaded. The `cohort` command applies the same rule to records of campaign dates.
+
+A recorded addendum (`evidence/0AB-D/FREEZE_ADDENDUM_<n>.md`, applied in order) may replace a frozen file's sha256
+only by stating `<old sha256> -> <new sha256>  <path>`, where the old value must equal the one then in force.
+`FREEZE.md` itself is never edited.
 
 ## 24. Development shakedown (not validation)
 

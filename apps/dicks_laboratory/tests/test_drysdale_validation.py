@@ -301,6 +301,52 @@ def test_sequence_and_semantic_violations_are_detected(tmp_path, prior):
     assert dv.semantic_violations(c, tuple(bars)) == ["PDC_CONFIRMATION_NOT_DIRECTIONAL"]
 
 
+
+def test_stratum_boundaries_follow_the_completing_bar_interval():  # plan §5, FREEZE_ADDENDUM_1
+    for td in (date(2026, 10, 13), date(2026, 11, 2)):  # CDT, and the first CST session (DST ended 2026-11-01)
+        eve = td - timedelta(days=1)
+
+        def at(hh, mm, day=td):
+            return datetime.combine(day, datetime.min.time().replace(hour=hh, minute=mm),
+                                    tzinfo=dv.CT).astimezone(UTC)
+
+        assert dv.stratum(at(8, 30), td) is dv.Stratum.LATER_OVERNIGHT  # bar 08:25-08:30
+        assert dv.stratum(at(8, 35), td) is dv.Stratum.US_CASH_SESSION  # bar 08:30-08:35
+        assert dv.stratum(at(15, 0), td) is dv.Stratum.US_CASH_SESSION  # bar 14:55-15:00
+        assert dv.stratum(at(15, 5), td) is dv.Stratum.POST_CASH  # bar 15:00-15:05
+        # Every bar of the session, 17:00-17:05 .. 15:55-16:00: exactly one stratum, read from the bar's start
+        # against the half-open session windows, contiguous, with no overlap or gap at 08:30 or 15:00.
+        windows = ((dv.Stratum.FIRST_GLOBEX_HOUR, at(17, 0, eve), at(18, 0, eve)),
+                   (dv.Stratum.LATER_OVERNIGHT, at(18, 0, eve), at(8, 30)),
+                   (dv.Stratum.US_CASH_SESSION, at(8, 30), at(15, 0)),
+                   (dv.Stratum.POST_CASH, at(15, 0), at(16, 0)))
+        seen, end = [], at(17, 5, eve)
+        while end <= at(16, 0):
+            start = end - timedelta(minutes=5)
+            owners = [s for s, lo, hi in windows if lo <= start and end <= hi]
+            assert len(owners) == 1 and dv.stratum(end, td) is owners[0], end
+            seen.append(owners[0])
+            end += timedelta(minutes=5)
+        assert seen == sorted(seen, key=list(dv.Stratum).index)  # contiguous, in session order
+        n = {s: seen.count(s) for s in dv.Stratum}
+        assert n[dv.Stratum.FIRST_GLOBEX_HOUR] == 12 and n[dv.Stratum.US_CASH_SESSION] == 78 and \
+            n[dv.Stratum.POST_CASH] == 12 and sum(n.values()) == len(seen) == 23 * 12
+
+
+def test_every_development_candidate_has_exactly_one_stratum():  # development records only, never campaign data
+    records = sorted((REPO / "docs/dicks_laboratory/evidence/0AB-D/dev_shakedown").glob("*_record*.json"))
+    assert len(records) == 6
+    total = 0
+    for path in records:
+        rec_ = json.loads(path.read_text())
+        td = date.fromisoformat(rec_["trading_date"])
+        assert td < dv.COHORT_START
+        for c in rec_["candidates"]:
+            done = datetime.fromisoformat(c["completed_at_utc"].replace("Z", "+00:00"))
+            assert c["stratum"] in {s.value for s in dv.Stratum} and dv.stratum(done, td).value == c["stratum"]
+            total += 1
+    assert total == 66 + 15 + 15  # four dates plus the two separate-process reruns
+
 # --- campaign data access guard -------------------------------------------------------------------------------
 
 def _campaign_db(tmp_path):
@@ -338,6 +384,23 @@ def test_guard_refuses_campaign_dates_until_the_plan_freeze_verifies(tmp_path, p
     (root / "x/drysdale.py").write_bytes(b"changed")
     with pytest.raises(dv.CampaignAccessDenied, match="frozen file changed: x/drysdale.py"):
         dv.require_access(root, db, plan)
+    # A recorded addendum replaces a sha256 only by naming the one in force; FREEZE.md is never edited.
+    add = root / dv.FREEZE_MANIFEST.replace("FREEZE.md", "FREEZE_ADDENDUM_1.md")
+    (root / dv.PLAN).write_bytes(b"plan, clarified")
+    plan2 = hashlib.sha256(b"plan, clarified").hexdigest()
+    code2 = hashlib.sha256(b"changed").hexdigest()
+    add.write_text(f"```text\n{plan} -> {plan2}  {dv.PLAN}\n{hashlib.sha256(b'code').hexdigest()} -> {code2}  "
+                   "x/drysdale.py\n```\n")
+    assert dv.manifest_entries(root)[dv.PLAN] == plan2 and dv.require_access(root, db, plan2) is True
+    with pytest.raises(dv.CampaignAccessDenied, match="does not match"):
+        dv.require_access(root, db, plan)  # the superseded plan sha256 no longer opens the campaign
+    bad = add.with_name("FREEZE_ADDENDUM_2.md")
+    bad.write_text(f"{'0' * 64} -> {'1' * 64}  {dv.PLAN}\n")
+    with pytest.raises(dv.CampaignAccessDenied, match="FREEZE_ADDENDUM_2.md: .* not the one in force"):
+        dv.require_access(root, db, plan2)
+    bad.rename(add.with_name("FREEZE_ADDENDUM_draft.md"))
+    with pytest.raises(dv.CampaignAccessDenied, match="unnumbered freeze addendum"):
+        dv.require_access(root, db, plan2)
     dev = tq._session(tmp_path, prior, "dv-dev").db  # 2026-10-05 fixture: not campaign data
     assert dv.require_access(tmp_path / "empty", dev, None) is False
 
