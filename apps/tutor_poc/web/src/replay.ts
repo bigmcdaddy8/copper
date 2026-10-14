@@ -14,10 +14,11 @@ export function controlState(snapshot: Snapshot | null, loading: boolean): Contr
   return { previous: !at_start, next: !at_end, plus5m: !at_end };
 }
 
-export const ACTIONS: { action: ReplayAction; label: string; key: keyof ControlState }[] = [
-  { action: "previous", label: "◀ Previous", key: "previous" },
-  { action: "next", label: "Next ▶", key: "next" },
-  { action: "plus5m", label: "+5m", key: "plus5m" },
+export const ACTIONS: { action: ReplayAction; label: string; key: keyof ControlState; title: string }[] = [
+  { action: "previous", label: "◀ Previous", key: "previous", title: "Back one 5-minute replay position" },
+  { action: "next", label: "Next ▶", key: "next",
+    title: "Next replay position (one 5-minute bar today; may later follow lesson events)" },
+  { action: "plus5m", label: "+5m", key: "plus5m", title: "Advance exactly five market minutes" },
 ];
 
 const CT_TIME = new Intl.DateTimeFormat("en-US", {

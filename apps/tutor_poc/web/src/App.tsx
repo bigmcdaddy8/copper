@@ -69,6 +69,7 @@ export function App() {
           {ACTIONS.map((a) => (
             <button
               key={a.action}
+              title={a.title}
               disabled={!controls[a.key]}
               onClick={() => date && snapshot && load(date, { cutoff: snapshot.replay.cutoff_utc, action: a.action })}
             >

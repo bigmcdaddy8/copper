@@ -49,6 +49,7 @@ returns one position: future bars are never sent to the browser.
 presentation (browser only; never changes values or requests)
   candles:  up / down color
   overlays: per group (vwap, sigma1, sigma2): visible, color, lineWidth, lineStyle
+  regions:  level1 (-1σ → +1σ), level2 (±1σ → ±2σ): visible, color, opacity (default: line color, 30%)
 
 study-semantic (sent to the server; computed there)
   vwap_anchor = GLOBEX   (locked in A1; the server rejects anything else)
@@ -56,6 +57,8 @@ study-semantic (sent to the server; computed there)
 
 Overlays arrive as named series (`id`, `label`, `group`, `points`); the chart renders whatever series
 the server sends, so a later reference or indicator is an additional series, not a chart rewrite.
+Region fills and the replay-cutoff marker are lightweight-charts series primitives (`web/src/primitives.ts`)
+that only pair points the server already sent; the regions never overlap, so opacities do not stack.
 
 ## Development dates
 

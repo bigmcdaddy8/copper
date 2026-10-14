@@ -1,4 +1,12 @@
-import { DEFAULT_SETTINGS, OVERLAY_GROUPS, setOverlay, type ChartSettings, type LineStyleName } from "./settings";
+import { REGION_LEVELS } from "./regions";
+import {
+  DEFAULT_SETTINGS,
+  OVERLAY_GROUPS,
+  setOverlay,
+  setRegion,
+  type ChartSettings,
+  type LineStyleName,
+} from "./settings";
 
 interface Props {
   settings: ChartSettings;
@@ -38,6 +46,37 @@ export function SettingsPanel({ settings, onChange }: Props) {
               <option value="dashed">dashed</option>
               <option value="dotted">dotted</option>
             </select>
+          </div>
+        );
+      })}
+      {REGION_LEVELS.map(({ level, label }) => {
+        const r = presentation.regions[level];
+        return (
+          <div className="setting-row" key={level}>
+            <label>
+              <input
+                type="checkbox"
+                checked={r.visible}
+                onChange={(e) => onChange(setRegion(settings, level, { visible: e.target.checked }))}
+              />
+              {label}
+            </label>
+            <input
+              type="color"
+              value={r.color}
+              aria-label={`${label} color`}
+              onChange={(e) => onChange(setRegion(settings, level, { color: e.target.value }))}
+            />
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={r.opacity}
+              aria-label={`${label} opacity`}
+              onChange={(e) => onChange(setRegion(settings, level, { opacity: Number(e.target.value) }))}
+            />
+            <span className="pct">{r.opacity}%</span>
           </div>
         );
       })}

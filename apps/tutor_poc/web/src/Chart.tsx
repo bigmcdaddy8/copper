@@ -7,7 +7,6 @@ import {
   createChart,
   type IChartApi,
   type ISeriesApi,
-  type Logical,
   type MouseEventParams,
   type Time,
   type UTCTimestamp,
@@ -15,6 +14,8 @@ import {
 import { cutoffSeconds, type Snapshot } from "./api";
 import { overlayRenderModel, type LineStyleName, type PresentationSettings } from "./settings";
 import { formatCt, formatCtDay } from "./replay";
+import { RegionFill, ReplayCutoff } from "./primitives";
+import { regionBands } from "./regions";
 
 const LINE_STYLE: Record<LineStyleName, LineStyle> = {
   solid: LineStyle.Solid,
@@ -41,8 +42,9 @@ export function Chart({ snapshot, presentation }: Props) {
   const chartRef = useRef<IChartApi | null>(null);
   const candlesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const overlaysRef = useRef<Map<string, ISeriesApi<"Line">>>(new Map());
+  const regionsRef = useRef(new RegionFill());
+  const cutoffRef = useRef(new ReplayCutoff());
   const fittedFor = useRef<string | null>(null);
-  const [cutoffX, setCutoffX] = useState<{ x: number; right: number } | null>(null);
   const [legend, setLegend] = useState<Legend | null>(null);
 
   // Create the chart once.
@@ -67,6 +69,8 @@ export function Chart({ snapshot, presentation }: Props) {
       borderVisible: false,
       priceLineVisible: false,
     });
+    candlesRef.current.attachPrimitive(regionsRef.current);
+    candlesRef.current.attachPrimitive(cutoffRef.current);
     return () => {
       chart.remove();
       chartRef.current = null;
@@ -98,6 +102,8 @@ export function Chart({ snapshot, presentation }: Props) {
         overlaysRef.current.delete(id);
       }
     }
+    const last = snapshot.candles[snapshot.candles.length - 1];
+    cutoffRef.current.set(last ? last.time : null, `replay ${formatCt(cutoffSeconds(snapshot))}`);
     if (fittedFor.current !== snapshot.trading_date) {
       chart.timeScale().fitContent();
       fittedFor.current = snapshot.trading_date;
@@ -121,26 +127,8 @@ export function Chart({ snapshot, presentation }: Props) {
         lineStyle: LINE_STYLE[o.style.lineStyle],
       });
     }
+    regionsRef.current.set(regionBands(snapshot, presentation));
   }, [presentation, snapshot]);
-
-  // Replay cutoff marker: the right edge of the last complete bar, with the hidden future shaded.
-  useEffect(() => {
-    const chart = chartRef.current!;
-    const update = () => {
-      const n = snapshot.candles.length;
-      if (!n) return setCutoffX(null);
-      const x = chart.timeScale().logicalToCoordinate((n - 0.5) as Logical);
-      const right = chart.timeScale().width();
-      setCutoffX(x === null || x > right ? null : { x, right });
-    };
-    update();
-    chart.timeScale().subscribeVisibleLogicalRangeChange(update);
-    chart.timeScale().subscribeSizeChange(update);
-    return () => {
-      chart.timeScale().unsubscribeVisibleLogicalRangeChange(update);
-      chart.timeScale().unsubscribeSizeChange(update);
-    };
-  }, [snapshot]);
 
   // Legend: values under the crosshair, or the last bar.
   useEffect(() => {
@@ -171,17 +159,6 @@ export function Chart({ snapshot, presentation }: Props) {
   return (
     <div className="chart-wrap">
       <div className="chart-host" ref={host} />
-      {cutoffX && (
-        <>
-          <div className="cutoff-line" style={{ left: cutoffX.x }} />
-          <div className="future-zone" style={{ left: cutoffX.x, width: Math.max(0, cutoffX.right - cutoffX.x) }}>
-            <span>future hidden</span>
-          </div>
-          <div className="cutoff-tag" style={{ left: cutoffX.x }}>
-            cutoff {formatCt(cutoffSeconds(snapshot))}
-          </div>
-        </>
-      )}
       {legend && (
         <div className="legend">
           <span className="legend-time">

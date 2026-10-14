@@ -15,9 +15,16 @@ export interface OverlayPresentation {
   lineStyle: LineStyleName;
 }
 
+export interface RegionPresentation {
+  visible: boolean;
+  color: string;
+  opacity: number; // 0..100 %
+}
+
 export interface PresentationSettings {
   candles: { up: string; down: string };
   overlays: Record<string, OverlayPresentation>; // keyed by overlay group
+  regions: Record<string, RegionPresentation>; // keyed by region level (see regions.ts)
 }
 
 export interface StudySettings {
@@ -36,13 +43,21 @@ export const OVERLAY_GROUPS: { group: string; label: string }[] = [
   { group: "sigma2", label: "±2σ" },
 ];
 
+const SIGMA1_COLOR = "#4a90e2";
+const SIGMA2_COLOR = "#9b7fd4";
+
 export const DEFAULT_SETTINGS: ChartSettings = {
   presentation: {
     candles: { up: "#26a69a", down: "#ef5350" },
     overlays: {
       vwap: { visible: true, color: "#f5a623", lineWidth: 2, lineStyle: "solid" },
-      sigma1: { visible: true, color: "#4a90e2", lineWidth: 1, lineStyle: "solid" },
-      sigma2: { visible: true, color: "#9b7fd4", lineWidth: 1, lineStyle: "dashed" },
+      sigma1: { visible: true, color: SIGMA1_COLOR, lineWidth: 1, lineStyle: "solid" },
+      sigma2: { visible: true, color: SIGMA2_COLOR, lineWidth: 1, lineStyle: "dashed" },
+    },
+    // Fill colors default to the matching line colors at 30% opacity.
+    regions: {
+      level1: { visible: true, color: SIGMA1_COLOR, opacity: 30 },
+      level2: { visible: true, color: SIGMA2_COLOR, opacity: 30 },
     },
   },
   study: { vwap_anchor: "GLOBEX", locked: true },
@@ -79,6 +94,17 @@ export function setOverlay(
     presentation: {
       ...settings.presentation,
       overlays: { ...settings.presentation.overlays, [group]: { ...current, ...change } },
+    },
+  };
+}
+
+export function setRegion(settings: ChartSettings, level: string, change: Partial<RegionPresentation>): ChartSettings {
+  const current = settings.presentation.regions[level];
+  return {
+    ...settings,
+    presentation: {
+      ...settings.presentation,
+      regions: { ...settings.presentation.regions, [level]: { ...current, ...change } },
     },
   };
 }

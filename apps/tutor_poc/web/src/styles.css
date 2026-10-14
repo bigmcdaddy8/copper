@@ -42,22 +42,8 @@ button.link { background: none; border: none; color: var(--muted); padding: 4px 
 .tutor-pane h2 { color: var(--text); font-size: 16px; margin: 0 0 8px; }
 
 .chart-wrap, .chart-host { position: absolute; inset: 0; }
-.cutoff-line {
-  position: absolute; top: 0; bottom: 28px; width: 0;
-  border-left: 2px dashed var(--accent); pointer-events: none;
-}
-.future-zone {
-  position: absolute; top: 0; bottom: 28px; pointer-events: none;
-  background: repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 8px, transparent 8px 16px);
-  display: flex; align-items: center; justify-content: center; overflow: hidden;
-}
-.future-zone span { color: var(--muted); font-size: 11px; writing-mode: vertical-rl; letter-spacing: 2px; }
-.cutoff-tag {
-  position: absolute; top: 4px; transform: translateX(-50%); pointer-events: none;
-  background: var(--accent); color: #111; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 3px;
-}
 .legend {
-  position: absolute; top: 28px; left: 10px; z-index: 2; pointer-events: none;
+  position: absolute; top: 8px; left: 10px; z-index: 3; pointer-events: none;
   display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; font-variant-numeric: tabular-nums;
   background: rgba(19,23,34,0.8); padding: 3px 6px; border-radius: 3px; max-width: calc(100% - 90px);
 }
@@ -65,7 +51,7 @@ button.link { background: none; border: none; color: var(--muted); padding: 4px 
 .empty { padding: 24px; color: var(--muted); }
 
 .settings {
-  position: absolute; top: 8px; right: 70px; z-index: 5; width: 330px;
+  position: absolute; top: 8px; right: 70px; z-index: 5; width: 380px;
   background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
@@ -75,6 +61,8 @@ button.link { background: none; border: none; color: var(--muted); padding: 4px 
 .setting-row input[type="color"] { width: 32px; height: 24px; padding: 0; border: 1px solid var(--border); background: none; }
 .hint { color: var(--muted); font-size: 12px; margin: 2px 0 6px; }
 .lock { color: var(--muted); font-size: 12px; }
+.setting-row input[type="range"] { width: 80px; }
+.pct { width: 34px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
 
 .statusbar {
   display: flex; gap: 16px; padding: 4px 12px; font-size: 12px; color: var(--muted);
