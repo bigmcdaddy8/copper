@@ -1,0 +1,26 @@
+[project]
+name = "tutor_poc"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "typer>=0.12",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "dicks_laboratory",
+]
+
+[project.scripts]
+tutor_poc = "tutor_poc.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tutor_poc"]
+
+[tool.uv.sources]
+dicks_laboratory = { workspace = true }
