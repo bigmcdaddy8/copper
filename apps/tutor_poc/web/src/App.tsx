@@ -4,6 +4,7 @@ import { Chart } from "./Chart";
 import { ACTIONS, controlState, formatCt, formatCtDay } from "./replay";
 import { DEFAULT_SETTINGS, type ChartSettings } from "./settings";
 import { SettingsPanel } from "./SettingsPanel";
+import { TutorPane } from "./TutorPane";
 
 export function App() {
   const [sessions, setSessions] = useState<SessionList | null>(null);
@@ -87,11 +88,7 @@ export function App() {
           {snapshot ? <Chart snapshot={snapshot} presentation={settings.presentation} /> : <div className="empty">Loading…</div>}
           {showSettings && <SettingsPanel settings={settings} onChange={setSettings} />}
         </section>
-        <aside className="tutor-pane">
-          <h2>AI Tutor</h2>
-          <p>Placeholder.</p>
-          <p className="hint">Tutor interaction arrives in 0AC-A2. This phase tests the chart and replay only.</p>
-        </aside>
+        <TutorPane date={date} cutoff={snapshot?.replay.cutoff_utc ?? null} />
       </main>
 
       <footer className="statusbar">

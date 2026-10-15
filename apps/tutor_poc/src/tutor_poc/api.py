@@ -1,4 +1,4 @@
-"""Local Tutor POC API (0AC-A1): approved-session discovery and server-cut replay snapshots."""
+"""Local Tutor POC API: approved-session discovery, server-cut replay snapshots (0AC-A1), Tutor turns (0AC-A2)."""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -7,13 +7,16 @@ from functools import cache
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from dicks_laboratory.tutor_evidence import LessonStage
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, ConfigDict, Field
 
 from tutor_poc import dev_sessions, timeline
 from tutor_poc.dev_sessions import INSTRUMENT, DevSession, SealedDateError
 from tutor_poc.snapshot import ReplayAction, VwapAnchor, build_snapshot, position_index, step
+from tutor_poc.tutor import PROVIDER_ID, FakeTutorProvider, TutorAction, TutorProvider, next_stage, snapshot_evidence
 
 CT = ZoneInfo("America/Chicago")
 # 09:00 CT: the whole overnight session plus the first 30 minutes of the cash session are visible,
@@ -34,10 +37,22 @@ def initial_index(tl: timeline.ChartTimeline) -> int:
     return min(range(len(tl.positions)), key=lambda i: abs(tl.positions[i].cutoff_utc - target))
 
 
+class TutorTurnRequest(BaseModel):
+    """One Tutor interaction at one replay position. Closed: no dataset, path or date fields exist."""
+
+    model_config = ConfigDict(extra="forbid")
+    action: TutorAction
+    replay_cutoff_utc: datetime
+    stage: LessonStage = LessonStage.QUESTION  # the lesson stage the client is showing
+    turn: int = Field(ge=0)  # client sequence number, echoed for correlation
+    text: str | None = Field(default=None, max_length=4000)
+
+
 def create_app(registry: tuple[DevSession, ...] = dev_sessions.APPROVED,
                load: Callable[[DevSession], timeline.ChartTimeline] = _cached_timeline,
-               web_dist: Path | None = WEB_DIST) -> FastAPI:
-    app = FastAPI(title="Dick's Laboratory Tutor POC", version="0AC-A1")
+               web_dist: Path | None = WEB_DIST, provider: TutorProvider | None = None) -> FastAPI:
+    app = FastAPI(title="Dick's Laboratory Tutor POC", version="0AC-A2")
+    provider = provider or FakeTutorProvider()
     load = cache(load)
 
     def session_for(trading_date: str) -> timeline.ChartTimeline:
@@ -46,6 +61,12 @@ def create_app(registry: tuple[DevSession, ...] = dev_sessions.APPROVED,
         except (ValueError, SealedDateError) as e:  # SealedDateError is a ValueError
             raise HTTPException(404, str(e)) from e
         return load(s)
+
+    def index_at(tl: timeline.ChartTimeline, cutoff: datetime | str) -> int:
+        try:
+            return position_index(tl, cutoff if isinstance(cutoff, datetime) else datetime.fromisoformat(cutoff))
+        except (ValueError, KeyError) as e:
+            raise HTTPException(422, f"invalid replay cutoff: {e}") from e
 
     @app.get("/api/sessions")
     def sessions():
@@ -70,13 +91,29 @@ def create_app(registry: tuple[DevSession, ...] = dev_sessions.APPROVED,
         if cutoff is None:
             i = initial_index(tl)
         else:
-            try:
-                i = position_index(tl, datetime.fromisoformat(cutoff))
-            except (ValueError, KeyError) as e:
-                raise HTTPException(422, f"invalid replay cutoff: {e}") from e
+            i = index_at(tl, cutoff)
         if action is not None:
             i = step(tl, i, action)
         return build_snapshot(tl, i, vwap_anchor)
+
+    @app.get("/api/sessions/{trading_date}/tutor/evidence")
+    def tutor_evidence(trading_date: str, cutoff: str):
+        tl = session_for(trading_date)
+        return snapshot_evidence(tl, index_at(tl, cutoff))
+
+    @app.post("/api/sessions/{trading_date}/tutor/turn")
+    def tutor_turn(trading_date: str, req: TutorTurnRequest):
+        tl = session_for(trading_date)
+        i = index_at(tl, req.replay_cutoff_utc)
+        text = (req.text or "").strip()
+        if (req.action is TutorAction.MESSAGE) != bool(text):
+            raise HTTPException(422, "a message needs non-empty text; other actions take none")
+        evidence = snapshot_evidence(tl, i)
+        stage = next_stage(req.stage, req.action)
+        return {"turn_id": f"t{req.turn}", "turn": req.turn, "role": "tutor", "action": req.action.value,
+                "text": provider.reply(req.action, stage, req.turn, text or None, evidence),
+                "stage": stage.value, "trading_date": tl.trading_date.isoformat(),
+                "replay_cutoff_utc": tl.positions[i].cutoff_utc.isoformat(), "provider": PROVIDER_ID}
 
     if web_dist is not None and (web_dist / "index.html").exists():
         app.mount("/assets", StaticFiles(directory=web_dist / "assets"), name="assets")

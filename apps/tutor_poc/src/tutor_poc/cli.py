@@ -9,7 +9,7 @@ import typer
 
 from tutor_poc import dev_sessions, timeline
 
-app = typer.Typer(help="AI Tutor UX POC (0AC-A1): local chart + replay shell.", no_args_is_help=True)
+app = typer.Typer(help="AI Tutor UX POC (0AC-A1/A2): local chart, replay and fake Tutor shell.", no_args_is_help=True)
 
 DEFAULT_PORT = 8765
 
