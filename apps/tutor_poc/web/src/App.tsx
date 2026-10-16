@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { cutoffSeconds, fetchSessions, fetchSnapshot, type ReplayAction, type SessionList, type Snapshot } from "./api";
+import { ChartAttribution, CompanyLogo } from "./Branding";
 import { Chart } from "./Chart";
 import { clampTutorWidth, loadTutorWidth, saveTutorWidth, tutorFlexBasis, tutorWidthAtPointer } from "./layout";
 import { ACTIONS, controlState, formatCt, formatCtDay } from "./replay";
@@ -71,6 +72,7 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
+        <CompanyLogo />
         <span className="brand">Dick's Laboratory · Tutor POC</span>
         <span className="instrument">{sessions?.instrument ?? "/ES"}</span>
         <select value={date ?? ""} onChange={(e) => setDate(e.target.value)} aria-label="Development session">
@@ -138,6 +140,7 @@ export function App() {
         <span>{latencyMs !== null ? `last load ${latencyMs} ms` : ""}</span>
         {loading && <span>loading…</span>}
         {error && <span className="error">{error}</span>}
+        <ChartAttribution />
       </footer>
     </div>
   );

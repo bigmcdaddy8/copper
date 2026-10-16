@@ -21,6 +21,8 @@ body { background: var(--bg); }
   padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--border);
 }
 .brand { font-weight: 600; }
+/* Square source image; crop to the lettering at header height. */
+.company-logo { height: 26px; width: 36px; object-fit: cover; object-position: 50% 42%; border-radius: 3px; display: block; }
 .instrument { font-weight: 700; color: var(--accent); }
 .cutoff strong { font-variant-numeric: tabular-nums; font-size: 15px; }
 .controls { display: flex; gap: 6px; }
@@ -117,10 +119,13 @@ body.resizing { cursor: col-resize; user-select: none; }
 .pct { width: 34px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
 
 .statusbar {
-  display: flex; gap: 16px; padding: 4px 12px; font-size: 12px; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 4px 12px; font-size: 12px; color: var(--muted);
   background: var(--panel); border-top: 1px solid var(--border);
 }
 .error { color: var(--error); }
+.attribution { margin-left: auto; }
+.attribution a { color: var(--muted); }
+.attribution a:hover { color: var(--text); }
 
 @media (max-width: 900px) {
   .tutor-pane { flex-basis: 200px; }

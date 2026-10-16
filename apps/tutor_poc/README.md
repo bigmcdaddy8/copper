@@ -130,6 +130,24 @@ The model must never emit drawing code. It returns a constrained, structured ann
 to deterministic evidence (identifiers, bar times, prices from the authorized snapshot), and the frontend
 renders it. The schema is to be designed in A5.
 
+## Branding and chart attribution (A2P2)
+
+The header shows the company logo (`docs/company_logo.png`, imported by the web build and cropped to the
+lettering with CSS; the file itself is unchanged). The chart's built-in TradingView logo link is turned off
+with the library's own option `layout.attributionLogo: false` (`web/src/Chart.tsx`).
+
+Lightweight Charts is Apache-2.0; its README requires the attribution notice from its `NOTICE` file and a
+link to https://www.tradingview.com/ on a page available to users. The npm package does not ship `NOTICE`,
+so the text is taken verbatim from `NOTICE` in tradingview/lightweight-charts at tag `v5.1.0` (the installed
+version) and shown in the status bar footer (`web/src/Branding.tsx`):
+
+```text
+Charts: TradingView Lightweight Charts™ · Copyright (с) 2025 TradingView, Inc. https://www.tradingview.com/
+```
+
+(The URL is a link; "(с)" is reproduced as published, with a Cyrillic "с".) Re-check `NOTICE` when the
+chart library is upgraded.
+
 ## Development dates
 
 Only already-inspected dates are approved: 2026-09-29, 2026-09-30, 2026-10-01, 2026-10-02. A1/A2 enable

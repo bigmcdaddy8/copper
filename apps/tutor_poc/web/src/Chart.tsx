@@ -24,6 +24,15 @@ const LINE_STYLE: Record<LineStyleName, LineStyle> = {
   dotted: LineStyle.Dotted,
 };
 
+// attributionLogo: false removes the library's built-in TradingView link from the plot; the required
+// attribution (NOTICE text + link) is shown in the app footer instead (Branding.tsx).
+export const CHART_LAYOUT = {
+  background: { color: "#131722" },
+  textColor: "#c7cbd4",
+  fontSize: 12,
+  attributionLogo: false,
+};
+
 const asTime = (t: number) => t as UTCTimestamp;
 const fmt = (v: number | undefined) => (v === undefined ? "—" : v.toFixed(2));
 
@@ -53,7 +62,7 @@ export function Chart({ snapshot, presentation }: Props) {
   useEffect(() => {
     const chart = createChart(host.current!, {
       autoSize: true,
-      layout: { background: { color: "#131722" }, textColor: "#c7cbd4", fontSize: 12 },
+      layout: CHART_LAYOUT,
       grid: { vertLines: { color: "#1f2430" }, horzLines: { color: "#1f2430" } },
       crosshair: { mode: CrosshairMode.Normal },
       rightPriceScale: { borderColor: "#2a2f3a" },
