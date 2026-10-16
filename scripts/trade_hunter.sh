@@ -29,14 +29,15 @@ LOG_DIR_FULLPATH="${LOCAL_DATA_DIR}${LOG_DIR}"
 
 # Resolve most recent input files (sorted by filename, not mtime)
 TT_FILE=$(ls "${DOWNLOADS_DIR_FULLPATH}"/tastytrade_watchlist_m8investments_Russell\ 1000_??????.csv 2>/dev/null | tail -1)
-BULL_FILE=$(ls "${DOWNLOADS_DIR_FULLPATH}"/Copper_BULLish\ 20??-??-??.xlsx 2>/dev/null | tail -1)
-BEAR_FILE=$(ls "${DOWNLOADS_DIR_FULLPATH}"/Copper_BEARish\ 20??-??-??.xlsx 2>/dev/null | tail -1)
+ALT_DOWNLOADS_DIR_FULLPATH="/mnt/c/Users/temck/Downloads"
+BULL_FILE=$(ls "${DOWNLOADS_DIR_FULLPATH}"/Copper_BULLish\ 20??-??-??.xlsx "${ALT_DOWNLOADS_DIR_FULLPATH}"/Copper_BULLish\ 20??-??-??.xlsx 2>/dev/null | awk -F/ '{print $NF"\t"$0}' | sort | tail -1 | cut -f2-)
+BEAR_FILE=$(ls "${DOWNLOADS_DIR_FULLPATH}"/Copper_BEARish\ 20??-??-??.xlsx "${ALT_DOWNLOADS_DIR_FULLPATH}"/Copper_BEARish\ 20??-??-??.xlsx 2>/dev/null | awk -F/ '{print $NF"\t"$0}' | sort | tail -1 | cut -f2-)
 
 # Guard: abort if any required file is missing
 MISSING=0
 [[ -z "$TT_FILE"   ]] && echo "ERROR: No TastyTrade CSV found in ${DOWNLOADS_DIR_FULLPATH}" && MISSING=1
-[[ -z "$BULL_FILE" ]] && echo "ERROR: No BULL-ish Excel found in ${DOWNLOADS_DIR_FULLPATH}" && MISSING=1
-[[ -z "$BEAR_FILE" ]] && echo "ERROR: No BEAR-ish Excel found in ${DOWNLOADS_DIR_FULLPATH}" && MISSING=1
+[[ -z "$BULL_FILE" ]] && echo "ERROR: No BULL-ish Excel found in ${DOWNLOADS_DIR_FULLPATH} or ${ALT_DOWNLOADS_DIR_FULLPATH}" && MISSING=1
+[[ -z "$BEAR_FILE" ]] && echo "ERROR: No BEAR-ish Excel found in ${DOWNLOADS_DIR_FULLPATH} or ${ALT_DOWNLOADS_DIR_FULLPATH}" && MISSING=1
 [[ "$MISSING" -eq 1 ]] && exit 1
 
 echo "TastyTrade : ${TT_FILE}"
