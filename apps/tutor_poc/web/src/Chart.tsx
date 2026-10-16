@@ -16,6 +16,7 @@ import { overlayRenderModel, type LineStyleName, type PresentationSettings } fro
 import { formatCt, formatCtDay } from "./replay";
 import { RegionFill, ReplayCutoff } from "./primitives";
 import { regionBands } from "./regions";
+import { tickPriceFormatter } from "./instrument";
 
 const LINE_STYLE: Record<LineStyleName, LineStyle> = {
   solid: LineStyle.Solid,
@@ -45,6 +46,7 @@ export function Chart({ snapshot, presentation }: Props) {
   const regionsRef = useRef(new RegionFill());
   const cutoffRef = useRef(new ReplayCutoff());
   const fittedFor = useRef<string | null>(null);
+  const gridFor = useRef<string | null>(null);
   const [legend, setLegend] = useState<Legend | null>(null);
 
   // Create the chart once.
@@ -82,6 +84,17 @@ export function Chart({ snapshot, presentation }: Props) {
   // Data: replace series contents with the server snapshot (only what the server sent).
   useEffect(() => {
     const chart = chartRef.current!;
+    // Tradable-price labels (axis, crosshair) on the instrument's tick grid. Formatting only: the
+    // candle and analytical values below are set exactly as served.
+    const grid = snapshot.price_grid;
+    const gridKey = `${grid.symbol}:${grid.tick_size}:${grid.price_precision}`;
+    if (gridFor.current !== gridKey) {
+      candlesRef.current!.applyOptions({
+        priceFormat: { type: "price", precision: grid.price_precision, minMove: grid.tick_size },
+      });
+      chart.applyOptions({ localization: { priceFormatter: tickPriceFormatter(grid) } });
+      gridFor.current = gridKey;
+    }
     candlesRef.current!.setData(
       snapshot.candles.map((c) => ({ time: asTime(c.time), open: c.open, high: c.high, low: c.low, close: c.close })),
     );

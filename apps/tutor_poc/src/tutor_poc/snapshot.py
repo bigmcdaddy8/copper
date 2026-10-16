@@ -10,10 +10,17 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
+from dicks_laboratory.volume_profile import ES_PRICE_GRID
+
 from tutor_poc.dev_sessions import INSTRUMENT
 from tutor_poc.timeline import BAND_POLICY, ChartPosition, ChartTimeline
 
 SNAPSHOT_SCHEMA = "TUTOR_CHART_SNAPSHOT_V1"
+# /ES only. The Laboratory's canonical tick grid; the browser uses it to format tradable-price labels
+# (axis, crosshair). Bar and analytical values (VWAP, sigma levels) are sent unrounded.
+PRICE_GRID = {"symbol": INSTRUMENT, "tick_size": float(ES_PRICE_GRID.tick_size),
+              "price_precision": -ES_PRICE_GRID.tick_size.as_tuple().exponent,
+              "policy": ES_PRICE_GRID.policy_version}
 
 
 class VwapAnchor(StrEnum):
@@ -82,6 +89,7 @@ def build_snapshot(tl: ChartTimeline, index: int, anchor: VwapAnchor = VwapAncho
     return {
         "schema": SNAPSHOT_SCHEMA,
         "instrument": INSTRUMENT,
+        "price_grid": PRICE_GRID,
         "trading_date": tl.trading_date.isoformat(),
         "replay": {
             "cutoff_utc": p.cutoff_utc.isoformat(),

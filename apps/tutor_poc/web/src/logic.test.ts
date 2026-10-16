@@ -18,6 +18,7 @@ function snap(extra: Partial<Snapshot> = {}, bars = 3): Snapshot {
   return {
     schema: "TUTOR_CHART_SNAPSHOT_V1",
     instrument: "/ES",
+    price_grid: { symbol: "/ES", tick_size: 0.25, price_precision: 2, policy: "CME_ES_TICK_GRID_V1" },
     trading_date: "2026-09-30",
     replay: {
       cutoff_utc: "2026-09-30T14:00:00+00:00", market_time_cutoff_utc: "", knowledge_time_cutoff_utc: "",

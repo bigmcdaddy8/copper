@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { cutoffSeconds, fetchSessions, fetchSnapshot, type ReplayAction, type SessionList, type Snapshot } from "./api";
 import { Chart } from "./Chart";
+import { clampTutorWidth, loadTutorWidth, saveTutorWidth, tutorFlexBasis, tutorWidthAtPointer } from "./layout";
 import { ACTIONS, controlState, formatCt, formatCtDay } from "./replay";
 import { DEFAULT_SETTINGS, type ChartSettings } from "./settings";
 import { SettingsPanel } from "./SettingsPanel";
@@ -15,6 +16,8 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [tutorWidth, setTutorWidth] = useState<number | null>(loadTutorWidth); // null = accepted default
+  const panesRef = useRef<HTMLElement>(null);
 
   const load = useCallback(
     async (d: string, opts: { cutoff?: string; action?: ReplayAction } = {}) => {
@@ -45,6 +48,22 @@ export function App() {
   useEffect(() => {
     if (date) load(date);
   }, [date, load]);
+
+  // Divider drag: presentation only; the chart autosizes, no data is reloaded.
+  const onDividerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const r = panesRef.current!.getBoundingClientRect();
+    setTutorWidth(clampTutorWidth(tutorWidthAtPointer(e.clientX, r.right), r.width));
+  };
+  const onDividerUp = (e: PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    document.body.classList.remove("resizing");
+    saveTutorWidth(tutorWidth);
+  };
+  const resetWidth = () => {
+    setTutorWidth(null);
+    saveTutorWidth(null);
+  };
 
   const controls = controlState(snapshot, loading);
   const cutoff = snapshot ? cutoffSeconds(snapshot) : null;
@@ -83,12 +102,31 @@ export function App() {
         </button>
       </header>
 
-      <main className="panes">
+      <main className="panes" ref={panesRef}>
         <section className="chart-pane">
           {snapshot ? <Chart snapshot={snapshot} presentation={settings.presentation} /> : <div className="empty">Loading…</div>}
           {showSettings && <SettingsPanel settings={settings} onChange={setSettings} />}
         </section>
-        <TutorPane date={date} cutoff={snapshot?.replay.cutoff_utc ?? null} />
+        <div
+          className="pane-divider"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize Tutor pane"
+          title="Drag to resize the Tutor pane · double-click to reset"
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            document.body.classList.add("resizing");
+          }}
+          onPointerMove={onDividerMove}
+          onPointerUp={onDividerUp}
+          onPointerCancel={onDividerUp}
+          onDoubleClick={resetWidth}
+        />
+        <TutorPane
+          date={date}
+          cutoff={snapshot?.replay.cutoff_utc ?? null}
+          style={tutorWidth === null ? undefined : { flexBasis: tutorFlexBasis(tutorWidth) }}
+        />
       </main>
 
       <footer className="statusbar">

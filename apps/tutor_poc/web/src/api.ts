@@ -2,6 +2,8 @@
 // only parses what it is given, and drops anything later than the server-stated cutoff (a render
 // guard, not the correctness boundary — the server never ships future bars).
 
+import type { PriceGrid } from "./instrument";
+
 export const BAR_SECONDS = 300;
 
 export interface Candle {
@@ -30,6 +32,7 @@ export interface OverlaySeries {
 export interface Snapshot {
   schema: "TUTOR_CHART_SNAPSHOT_V1";
   instrument: string;
+  price_grid: PriceGrid;
   trading_date: string;
   replay: {
     cutoff_utc: string;
@@ -63,6 +66,7 @@ export function parseSnapshot(raw: unknown): Snapshot {
   if (!s || s.schema !== "TUTOR_CHART_SNAPSHOT_V1") throw new Error("unexpected snapshot schema");
   if (!Array.isArray(s.candles) || !Array.isArray(s.series)) throw new Error("malformed snapshot");
   if (Number.isNaN(Date.parse(s.replay?.cutoff_utc))) throw new Error("snapshot has no cutoff");
+  if (!(s.price_grid?.tick_size > 0)) throw new Error("snapshot has no price grid");
   const cutoff = cutoffSeconds(s);
   const known = (t: number) => t + BAR_SECONDS <= cutoff;
   return {

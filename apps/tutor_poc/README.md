@@ -1,4 +1,4 @@
-# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor interaction shell)
+# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor interaction shell, A2P polish)
 
 Canonical plan: [`docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md`](../../docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md).
 
@@ -59,6 +59,13 @@ study-semantic (sent to the server; computed there)
 
 Overlays arrive as named series (`id`, `label`, `group`, `points`); the chart renders whatever series
 the server sends, so a later reference or indicator is an additional series, not a chart rewrite.
+Tradable-price labels follow the Laboratory's `/ES` tick grid (`volume_profile.ES_PRICE_GRID`,
+`CME_ES_TICK_GRID_V1`), sent in the snapshot as `price_grid` (`symbol`, `tick_size` 0.25, `price_precision` 2).
+The price axis and the crosshair label show the nearest valid tick (an exact half tick rounds up:
+7780.125 → 7780.25); the crosshair itself still moves freely. This is formatting only: candle values and
+the analytical VWAP / σ levels are sent and plotted unrounded, and the legend and evidence panel keep
+showing them to two decimals.
+
 Region fills and the replay-cutoff marker are lightweight-charts series primitives (`web/src/primitives.ts`)
 that only pair points the server already sent; the regions never overlap, so opacities do not stack.
 
@@ -99,6 +106,29 @@ open / high / low / close and its VWAP, ±1σ, ±2σ, with the cutoff and bar ti
 labels. Chart highlighting is A5.
 
 The conversation lives in the page only: a reload starts a new one. Replies are plain HTTP (no streaming).
+
+Each message also keeps its kind (`question`, `reply`, `hint`, `explain`, `human`, from the action that
+produced it), separate from the lesson stage. Hint and Explain replies are labeled `Hint:` / `Explain:`
+with a colored edge, so they stay identifiable when scrolling back.
+
+The divider between the chart and the Tutor pane can be dragged (double-click resets). The accepted
+width `clamp(240px, 26%, 400px)` is the Tutor minimum; the chart keeps at least 480 px. Resizing is
+browser-only (the chart autosizes; no request is made) and the width is remembered in `localStorage`.
+
+## Future (0AC-A5, not implemented): Tutor chart annotations
+
+The Human wants Tutor actions (Hint, Explain, Show Evidence) to be able to place temporary annotations
+on the chart: an arrow at a candle, a circle / highlight around a candle or region, a marker on VWAP / ±σ,
+an emphasized area. Intended shape:
+
+```text
+Tutor action -> structured annotation intent -> frontend chart rendering -> temporary annotation
+             -> cleared or superseded when the replay advances
+```
+
+The model must never emit drawing code. It returns a constrained, structured annotation request that refers
+to deterministic evidence (identifiers, bar times, prices from the authorized snapshot), and the frontend
+renders it. The schema is to be designed in A5.
 
 ## Development dates
 

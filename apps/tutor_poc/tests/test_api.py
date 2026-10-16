@@ -132,3 +132,19 @@ def test_snapshot_values_are_the_laboratory_values(client, fx_timeline):
     assert [p["value"] for p in series["vwap"]] == [float(b.vwap) for b in bars]
     assert [p["value"] for p in series["lower_2sd"]] == [float(b.lower_2sd) for b in bars]
     assert isinstance(datetime.fromisoformat(s["replay"]["cutoff_utc"]), datetime)
+
+
+def test_snapshot_exposes_the_laboratory_es_tick_grid(client):
+    s = _snap(client)
+    assert s["price_grid"] == {"symbol": "/ES", "tick_size": 0.25, "price_precision": 2,
+                               "policy": "CME_ES_TICK_GRID_V1"}
+
+
+def test_analytical_values_are_not_quantized_to_the_tick(client, fx_timeline):
+    """VWAP / sigma levels are analytical values, sent exactly as the Laboratory computed them."""
+    at = ct(CUR, 12, 0)
+    s = _snap(client, at.isoformat())
+    bars = next(p for p in fx_timeline.positions if p.cutoff_utc == at).bars
+    vwap = [p["value"] for p in next(x for x in s["series"] if x["id"] == "vwap")["points"]]
+    assert vwap == [float(b.vwap) for b in bars]
+    assert any(v % 0.25 for v in vwap)  # off-grid analytical values survive

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useReducer, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { formatCt } from "./replay";
 import {
   INITIAL_TUTOR,
   conversationRows,
   cutoffSecondsOf,
   evidenceColumns,
+  kindLabel,
   evidenceFor,
   fetchEvidence,
   messageText,
@@ -12,6 +13,7 @@ import {
   tutorReducer,
   type Evidence,
   type TutorAction,
+  type TutorMessage,
   type TutorState,
 } from "./tutor";
 
@@ -20,10 +22,11 @@ const ct = (iso: string) => `${formatCt(cutoffSecondsOf(iso))} CT`;
 interface Props {
   date: string | null;
   cutoff: string | null; // the replay position currently on the chart (the Tutor context)
+  style?: CSSProperties; // pane width from the divider
 }
 
 /** Container: owns the conversation and talks to the server. */
-export function TutorPane({ date, cutoff }: Props) {
+export function TutorPane({ date, cutoff, style }: Props) {
   const [state, dispatch] = useReducer(tutorReducer, INITIAL_TUTOR);
   const [draft, setDraft] = useState("");
   const [evidenceOpen, setEvidenceOpen] = useState(false);
@@ -81,6 +84,7 @@ export function TutorPane({ date, cutoff }: Props) {
 
   return (
     <TutorView
+      style={style}
       state={state}
       cutoff={cutoff}
       draft={draft}
@@ -95,7 +99,23 @@ export function TutorPane({ date, cutoff }: Props) {
   );
 }
 
+function Message({ message: m, current }: { message: TutorMessage; current: boolean }) {
+  const label = kindLabel(m.kind);
+  return (
+    <div className={`msg msg-${m.role} msg-kind-${m.kind}${current ? "" : " msg-other-context"}`}>
+      <div className="msg-meta">
+        {m.role === "tutor" ? "Tutor" : "You"} · {ct(m.replay_cutoff_utc)}
+      </div>
+      <div className="msg-text">
+        {label && <strong className="msg-label">{label}: </strong>}
+        {m.text}
+      </div>
+    </div>
+  );
+}
+
 interface ViewProps {
+  style?: CSSProperties;
   state: TutorState;
   cutoff: string | null;
   draft: string;
@@ -129,7 +149,7 @@ export function TutorView(p: ViewProps) {
   };
 
   return (
-    <aside className="tutor-pane">
+    <aside className="tutor-pane" style={p.style}>
       <div className="tutor-head">
         <h2>AI Tutor</h2>
         <span className="tutor-sim" title="Scripted responses for interaction testing; no AI model is called">
@@ -148,15 +168,7 @@ export function TutorView(p: ViewProps) {
               replay {ct(row.replay_cutoff_utc)}
             </div>
           ) : (
-            <div
-              key={row.message.id}
-              className={`msg msg-${row.message.role}${row.message.replay_cutoff_utc !== cutoff ? " msg-other-context" : ""}`}
-            >
-              <div className="msg-meta">
-                {row.message.role === "tutor" ? "Tutor" : "You"} · {ct(row.message.replay_cutoff_utc)}
-              </div>
-              <div className="msg-text">{row.message.text}</div>
-            </div>
+            <Message key={row.message.id} message={row.message} current={row.message.replay_cutoff_utc === cutoff} />
           ),
         )}
         {state.pending && <div className="msg msg-tutor msg-pending">Tutor is replying…</div>}

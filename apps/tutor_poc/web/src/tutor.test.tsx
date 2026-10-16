@@ -6,6 +6,7 @@ import {
   conversationRows,
   evidenceColumns,
   evidenceFor,
+  kindLabel,
   messageText,
   tutorReducer,
   type Evidence,
@@ -53,7 +54,7 @@ describe("message text", () => {
 describe("tutorReducer", () => {
   it("sending a message appends the Human message at once and marks the turn pending", () => {
     const s = ask(INITIAL_TUTOR, "message", AT_0900, "price is above VWAP");
-    expect(s.messages).toEqual([{ id: "h0", role: "human", text: "price is above VWAP", stage: "QUESTION",
+    expect(s.messages).toEqual([{ id: "h0", role: "human", kind: "human", text: "price is above VWAP", stage: "QUESTION",
       trading_date: D, replay_cutoff_utc: AT_0900 }]);
     expect(s.pending).toMatchObject({ turn: 0, action: "message", replay_cutoff_utc: AT_0900 });
     expect(s.nextTurn).toBe(1);
@@ -190,5 +191,39 @@ describe("TutorView", () => {
   it("stage badge reflects HINT and ANSWER", () => {
     expect(view({ ...INITIAL_TUTOR, stage: "HINT" })).toContain('data-stage="HINT">HINT');
     expect(view({ ...INITIAL_TUTOR, stage: "ANSWER" })).toContain('data-stage="ANSWER">ANSWER');
+  });
+});
+
+describe("message kind (A2P)", () => {
+  it("each Tutor message keeps the kind of the action that produced it", () => {
+    let s = roundTrip(INITIAL_TUTOR, "question");
+    s = roundTrip(s, "message", AT_0900, "above VWAP");
+    s = roundTrip(s, "hint", AT_0900, undefined, { stage: "HINT" });
+    s = roundTrip(s, "explain", AT_0900, undefined, { stage: "ANSWER" });
+    s = roundTrip(s, "message", AT_0900, "ok", { stage: "ANSWER" });
+    expect(s.messages.map((m) => m.kind)).toEqual(["question", "human", "reply", "hint", "explain", "human", "reply"]);
+    expect(s.stage).toBe("ANSWER"); // the lesson stage is separate and unchanged in meaning
+  });
+
+  it("Hint and Explain replies are visibly labeled; other messages are not", () => {
+    let s = roundTrip(INITIAL_TUTOR, "question", AT_0900, undefined, { text: "Q-TEXT" });
+    s = roundTrip(s, "message", AT_0900, "H-TEXT", { text: "R-TEXT" });
+    s = roundTrip(s, "hint", AT_0900, undefined, { stage: "HINT", text: "HINT-TEXT" });
+    s = roundTrip(s, "explain", AT_0900, undefined, { stage: "ANSWER", text: "EXPLAIN-TEXT" });
+    const html = view(s);
+    expect(html).toContain('<strong class="msg-label">Hint: </strong>HINT-TEXT');
+    expect(html).toContain('<strong class="msg-label">Explain: </strong>EXPLAIN-TEXT');
+    expect(html.match(/msg-label/g)).toHaveLength(2);
+    for (const t of ["Q-TEXT", "H-TEXT", "R-TEXT"]) expect(html).toMatch(new RegExp(`<div class="msg-text">${t}</div>`));
+    expect(kindLabel("reply")).toBeNull();
+    expect(kindLabel("question")).toBeNull();
+    expect(kindLabel("human")).toBeNull();
+  });
+
+  it("a Hint given at an earlier replay position is still labeled after the replay moves", () => {
+    const s = roundTrip(INITIAL_TUTOR, "hint", AT_0900, undefined, { stage: "HINT", text: "nudge" });
+    const html = view(s, { cutoff: AT_0915 });
+    expect(html).toContain("msg-kind-hint msg-other-context");
+    expect(html).toContain("Hint: </strong>nudge");
   });
 });

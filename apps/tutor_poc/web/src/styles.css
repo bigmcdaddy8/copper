@@ -55,6 +55,10 @@ button.link { background: none; border: none; color: var(--muted); padding: 4px 
 .msg-tutor { background: #1d2430; border: 1px solid var(--border); align-self: flex-start; }
 .msg-human { background: #2a2418; border: 1px solid #4a3c22; align-self: flex-end; }
 .msg-other-context { opacity: 0.7; }
+.msg-kind-hint { border-left: 3px solid #4f7dbf; }
+.msg-kind-explain { border-left: 3px solid var(--accent); }
+.msg-kind-hint .msg-label { color: #7fa6dc; }
+.msg-kind-explain .msg-label { color: var(--accent); }
 .msg-pending { color: var(--muted); font-style: italic; }
 .msg-meta { font-size: 11px; color: var(--muted); margin-bottom: 2px; font-variant-numeric: tabular-nums; }
 .msg-text { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -80,6 +84,14 @@ button.link { background: none; border: none; color: var(--muted); padding: 4px 
 }
 .tutor-input textarea:focus { outline: none; border-color: var(--accent); }
 .tutor-input .send { align-self: flex-end; }
+
+/* Zero-width in the layout (the accepted proportions are unchanged); an 8px hit area straddles the border. */
+.pane-divider { flex: 0 0 0; position: relative; z-index: 6; }
+.pane-divider::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -4px; width: 8px; cursor: col-resize;
+}
+.pane-divider:hover::before, body.resizing .pane-divider::before { background: rgba(245, 166, 35, 0.35); }
+body.resizing { cursor: col-resize; user-select: none; }
 
 .chart-wrap, .chart-host { position: absolute; inset: 0; }
 .legend {

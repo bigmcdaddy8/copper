@@ -34,9 +34,22 @@ export interface Evidence {
   items: EvidenceItem[];
 }
 
+// What a message is for, kept per message (the stage badge only shows the current lesson stage).
+export type MessageKind = "question" | "reply" | "hint" | "explain" | "human";
+const KIND_OF_ACTION: Record<TutorAction, MessageKind> = {
+  question: "question", message: "reply", hint: "hint", explain: "explain",
+};
+const KIND_LABEL: Partial<Record<MessageKind, string>> = { hint: "Hint", explain: "Explain" };
+
+/** The visible label for a message kind, or null for kinds that need none. */
+export function kindLabel(kind: MessageKind): string | null {
+  return KIND_LABEL[kind] ?? null;
+}
+
 export interface TutorMessage {
   id: string;
   role: "tutor" | "human";
+  kind: MessageKind;
   text: string;
   stage: Stage;
   trading_date: string;
@@ -79,7 +92,7 @@ export function tutorReducer(state: TutorState, ev: TutorEvent): TutorState {
       const pending = { turn, action: ev.action, trading_date: ev.trading_date, replay_cutoff_utc: ev.replay_cutoff_utc };
       const messages =
         ev.action === "message"
-          ? [...state.messages, { id: `h${turn}`, role: "human" as const, text: ev.text ?? "", stage: state.stage,
+          ? [...state.messages, { id: `h${turn}`, role: "human" as const, kind: "human" as const, text: ev.text ?? "", stage: state.stage,
               trading_date: ev.trading_date, replay_cutoff_utc: ev.replay_cutoff_utc }]
           : state.messages;
       return { ...state, messages, nextTurn: turn + 1, pending, error: null };
@@ -91,7 +104,7 @@ export function tutorReducer(state: TutorState, ev: TutorEvent): TutorState {
       if (r.replay_cutoff_utc !== p.replay_cutoff_utc || r.trading_date !== p.trading_date || !STAGES.includes(r.stage)) {
         return { ...state, pending: null, error: "Tutor reply did not match the replay position it was asked about" };
       }
-      const msg: TutorMessage = { id: r.turn_id, role: "tutor", text: r.text, stage: r.stage,
+      const msg: TutorMessage = { id: r.turn_id, role: "tutor", kind: KIND_OF_ACTION[p.action], text: r.text, stage: r.stage,
         trading_date: r.trading_date, replay_cutoff_utc: r.replay_cutoff_utc };
       return { ...state, messages: [...state.messages, msg], stage: r.stage, pending: null };
     }
