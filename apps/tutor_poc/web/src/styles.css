@@ -131,3 +131,22 @@ body.resizing { cursor: col-resize; user-select: none; }
   .tutor-pane { flex-basis: 200px; }
   .settings { right: 8px; }
 }
+
+/* 0AC-A3: real-model provider badge, grounding disclosure, development diagnostics */
+.tutor-real { font-size: 11px; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 0 4px; }
+.grounding { margin-top: 4px; font-size: 11px; color: var(--muted); }
+.grounding summary { cursor: pointer; }
+.grounding ul { margin: 4px 0 0; padding-left: 16px; }
+.grounding li { margin: 2px 0; overflow-wrap: anywhere; }
+.grounding .cat { font-size: 10px; text-transform: lowercase; border: 1px solid var(--border); border-radius: 3px; padding: 0 3px; }
+.grounding .cat-AI_INTERPRETATION { color: var(--accent); border-color: var(--accent); }
+.grounding .cat-unsupported { border-style: dashed; }
+.grounding .cites { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ai-diag { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; margin: 4px 0; contain: inline-size; }
+.ai-diag summary { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-diag-body { max-height: min(220px, 22vh); overflow: auto; border: 1px solid var(--border); border-radius: 4px; padding: 6px; margin-top: 4px; }
+.ai-diag-body > div { margin-bottom: 4px; overflow-wrap: anywhere; }
+.ai-diag table { border-collapse: collapse; width: 100%; }
+.ai-diag th, .ai-diag td { text-align: right; padding: 1px 4px; white-space: nowrap; border-bottom: 1px solid var(--border); }
+.ai-diag th:first-child, .ai-diag td:first-child, .ai-diag td:nth-child(2) { text-align: left; }
+.ai-diag tr.diag-fail td { color: var(--error); }

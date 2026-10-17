@@ -1,6 +1,7 @@
-"""Local Tutor POC API: approved-session discovery, server-cut replay snapshots (0AC-A1), Tutor turns (0AC-A2)."""
+"""Local Tutor POC API: approved-session discovery, server-cut replay snapshots (0AC-A1), Tutor turns (0AC-A2, A3)."""
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from datetime import date, datetime, time
 from functools import cache
@@ -14,9 +15,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from tutor_poc import dev_sessions, timeline
+from tutor_poc.conversation import SessionStore
 from tutor_poc.dev_sessions import INSTRUMENT, DevSession, SealedDateError
+from tutor_poc.providers import FakeProvider, TurnContext, TutorModelProvider, dumps, run_record, turn_diagnostics
 from tutor_poc.snapshot import ReplayAction, VwapAnchor, build_snapshot, position_index, step
-from tutor_poc.tutor import PROVIDER_ID, FakeTutorProvider, TutorAction, TutorProvider, next_stage, snapshot_evidence
+from tutor_poc.tutor import TutorAction, next_stage, snapshot_evidence
+
+log = logging.getLogger("tutor_poc")
+# What each action's Tutor message is (kept with the message, separate from the lesson stage).
+_KIND = {TutorAction.QUESTION: "question", TutorAction.MESSAGE: "reply", TutorAction.HINT: "hint",
+         TutorAction.EXPLAIN: "explain"}
 
 CT = ZoneInfo("America/Chicago")
 # 09:00 CT: the whole overnight session plus the first 30 minutes of the cash session are visible,
@@ -46,13 +54,16 @@ class TutorTurnRequest(BaseModel):
     stage: LessonStage = LessonStage.QUESTION  # the lesson stage the client is showing
     turn: int = Field(ge=0)  # client sequence number, echoed for correlation
     text: str | None = Field(default=None, max_length=4000)
+    session_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9-]{8,64}$")  # the page's conversation (A3)
 
 
 def create_app(registry: tuple[DevSession, ...] = dev_sessions.APPROVED,
                load: Callable[[DevSession], timeline.ChartTimeline] = _cached_timeline,
-               web_dist: Path | None = WEB_DIST, provider: TutorProvider | None = None) -> FastAPI:
-    app = FastAPI(title="Dick's Laboratory Tutor POC", version="0AC-A2")
-    provider = provider or FakeTutorProvider()
+               web_dist: Path | None = WEB_DIST, provider: TutorModelProvider | None = None,
+               run_log: Path | None = None) -> FastAPI:
+    app = FastAPI(title="Dick's Laboratory Tutor POC", version="0AC-A3")
+    provider = provider or FakeProvider()
+    store = SessionStore()
     load = cache(load)
 
     def session_for(trading_date: str) -> timeline.ChartTimeline:
@@ -101,6 +112,10 @@ def create_app(registry: tuple[DevSession, ...] = dev_sessions.APPROVED,
         tl = session_for(trading_date)
         return snapshot_evidence(tl, index_at(tl, cutoff))
 
+    @app.get("/api/tutor/config")
+    def tutor_config():
+        return provider.public_config()
+
     @app.post("/api/sessions/{trading_date}/tutor/turn")
     def tutor_turn(trading_date: str, req: TutorTurnRequest):
         tl = session_for(trading_date)
@@ -108,12 +123,38 @@ def create_app(registry: tuple[DevSession, ...] = dev_sessions.APPROVED,
         text = (req.text or "").strip()
         if (req.action is TutorAction.MESSAGE) != bool(text):
             raise HTTPException(422, "a message needs non-empty text; other actions take none")
-        evidence = snapshot_evidence(tl, i)
         stage = next_stage(req.stage, req.action)
+        cutoff = tl.positions[i].cutoff_utc
+        session = store.get(req.session_id)
+        with store.lock:
+            history = session.context(tl.trading_date, cutoff)
+        ctx = TurnContext(req.action, stage, req.turn, text or None, tl, i, history)
+        result = provider.respond(ctx)
+        with store.lock:
+            session.record(tl.trading_date, cutoff, text or None, _KIND[req.action], result)
+            totals = session.totals.as_dict()
+        diagnostics = turn_diagnostics(result) | {"session": totals}
+        if result.status != "FAKE":
+            _log_turn(result, ctx)
         return {"turn_id": f"t{req.turn}", "turn": req.turn, "role": "tutor", "action": req.action.value,
-                "text": provider.reply(req.action, stage, req.turn, text or None, evidence),
-                "stage": stage.value, "trading_date": tl.trading_date.isoformat(),
-                "replay_cutoff_utc": tl.positions[i].cutoff_utc.isoformat(), "provider": PROVIDER_ID}
+                "text": result.text if result.accepted else None, "status": result.status,
+                "error": result.error_message,
+                "stage": (stage if result.accepted else req.stage).value, "trading_date": tl.trading_date.isoformat(),
+                "replay_cutoff_utc": cutoff.isoformat(), "provider": result.provider,
+                "grounding": result.grounding, "diagnostics": diagnostics}
+
+    def _log_turn(result, ctx):
+        if not result.accepted:
+            last = result.attempts[-1] if result.attempts else None
+            log.warning("tutor turn %s %s: %s", ctx.turn, result.status,
+                        "; ".join(last.issues) if last and last.issues else (last.detail if last else ""))
+        if run_log is not None:
+            try:
+                run_log.parent.mkdir(parents=True, exist_ok=True)
+                with run_log.open("a") as f:
+                    f.write(dumps(run_record(result, ctx)) + "\n")
+            except OSError as e:
+                log.warning("could not write the tutor run log: %s", e)
 
     if web_dist is not None and (web_dist / "index.html").exists():
         app.mount("/assets", StaticFiles(directory=web_dist / "assets"), name="assets")

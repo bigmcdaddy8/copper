@@ -7,6 +7,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.30",
     "dicks_laboratory",
+    "anthropic>=1.15.0",
 ]
 
 [project.scripts]

@@ -70,7 +70,7 @@ def snapshot_evidence(tl: ChartTimeline, index: int) -> dict:
 
 
 class TutorProvider(Protocol):
-    """The seam A3 replaces with a real model provider. Returns the Tutor's text only."""
+    """A2 scripted-text interface. A3 wraps it in providers.FakeProvider (the TutorModelProvider seam)."""
 
     def reply(self, action: TutorAction, stage: LessonStage, turn: int, text: str | None, evidence: dict) -> str: ...
 

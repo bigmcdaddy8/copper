@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useReducer, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { formatCt } from "./replay";
 import {
+  formatKb,
+  formatSeconds,
+  formatTokens,
+  formatUsd,
+  summaryLine,
+  type ProviderConfig,
+  type TurnRecord,
+} from "./diagnostics";
+import {
   INITIAL_TUTOR,
   conversationRows,
   cutoffSecondsOf,
   evidenceColumns,
   kindLabel,
   evidenceFor,
+  fetchConfig,
   fetchEvidence,
   messageText,
+  newSessionId,
   postTurn,
   tutorReducer,
   type Evidence,
@@ -36,6 +47,24 @@ export function TutorPane({ date, cutoff, style }: Props) {
   stateRef.current = state;
   const asked = useRef(false);
   const inflight = useRef(false); // set before the reducer re-renders, so a double click sends once
+  const sessionId = useRef(newSessionId()); // this page's conversation; a reload starts a new one
+  const [config, setConfig] = useState<ProviderConfig | null>(null);
+  const [elapsedS, setElapsedS] = useState(0);
+
+  useEffect(() => {
+    fetchConfig()
+      .then(setConfig)
+      .catch(() => setConfig(null));
+  }, []);
+
+  // Seconds since the pending request started (real-model replies take a while).
+  useEffect(() => {
+    if (!state.pending) return;
+    const t0 = Date.now();
+    setElapsedS(0);
+    const id = setInterval(() => setElapsedS(Math.floor((Date.now() - t0) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [state.pending]);
 
   // Returns synchronously whether the request was started; the reply arrives through the reducer.
   const request = useCallback(
@@ -45,7 +74,7 @@ export function TutorPane({ date, cutoff, style }: Props) {
       inflight.current = true;
       const turn = s.nextTurn;
       dispatch({ type: "request", action, trading_date: date, replay_cutoff_utc: cutoff, text });
-      postTurn(date, { action, replay_cutoff_utc: cutoff, stage: s.stage, turn, text })
+      postTurn(date, { action, replay_cutoff_utc: cutoff, stage: s.stage, turn, text, session_id: sessionId.current })
         .then((response) => dispatch({ type: "reply", response }))
         .catch((e) => dispatch({ type: "fail", turn, error: String(e) }))
         .finally(() => {
@@ -87,6 +116,8 @@ export function TutorPane({ date, cutoff, style }: Props) {
       style={style}
       state={state}
       cutoff={cutoff}
+      config={config}
+      elapsedS={elapsedS}
       draft={draft}
       evidenceOpen={evidenceOpen}
       evidence={evidenceFor(evidence, cutoff)}
@@ -110,7 +141,94 @@ function Message({ message: m, current }: { message: TutorMessage; current: bool
         {label && <strong className="msg-label">{label}: </strong>}
         {m.text}
       </div>
+      {m.grounding && <GroundingDetails grounding={m.grounding} />}
     </div>
+  );
+}
+
+/** The validator-accepted support for a real-model answer: facts vs interpretation, with the cited evidence. */
+function GroundingDetails({ grounding: g }: { grounding: NonNullable<TutorMessage["grounding"]> }) {
+  const facts = g.claims.length - g.interpretations;
+  return (
+    <details className="grounding">
+      <summary>
+        Grounded · {facts} fact{facts === 1 ? "" : "s"} · {g.interpretations} interpretation
+        {g.interpretations === 1 ? "" : "s"}
+        {g.unsupported.length ? ` · ${g.unsupported.length} not in evidence` : ""}
+      </summary>
+      <ul>
+        {g.claims.map((c, i) => (
+          <li key={i}>
+            <span className={`cat cat-${c.category}`}>{c.category === "AI_INTERPRETATION" ? "interpretation" : c.category}</span>{" "}
+            {c.statement}
+            {c.cites.length > 0 && (
+              <span className="cites"> — {c.cites.map((x) => `${x.label}${x.value === null ? "" : ` = ${x.value}`}`).join("; ")}</span>
+            )}
+          </li>
+        ))}
+        {g.unsupported.map((u, i) => (
+          <li key={`u${i}`}>
+            <span className="cat cat-unsupported">{u.support}</span> {u.statement}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+/** Development diagnostics for real-model turns: one summary line, details on demand. */
+function Diagnostics({ config, turns }: { config: ProviderConfig | null; turns: TurnRecord[] }) {
+  const last = turns.length ? turns[turns.length - 1].diagnostics : null;
+  const line = summaryLine(config, last);
+  if (!config || config.mode === "fake") {
+    return <div className="ai-diag ai-diag-fake">{line}</div>;
+  }
+  const s = last?.session;
+  return (
+    <details className="ai-diag">
+      <summary>{line}</summary>
+      <div className="ai-diag-body">
+        <div>
+          Provider {config.provider} · model {config.model} · effort {config.effort} · prompt {config.prompt_version} ·
+          pricing {config.pricing_version}
+        </div>
+        {s && (
+          <div>
+            Session: {s.turns} turns · {s.model_calls} model calls · input {formatTokens(s.total_input_tokens)} (cached{" "}
+            {formatTokens(s.cached_input_tokens)}, cache write {formatTokens(s.cache_write_input_tokens)}) · output{" "}
+            {formatTokens(s.output_tokens)} · cost {formatUsd(s.cost_usd)}
+            {s.unpriced_calls ? ` · ${s.unpriced_calls} unpriced` : ""} (resets on page reload)
+          </div>
+        )}
+        <table>
+          <thead>
+            <tr>
+              <th>Turn</th><th>Status</th><th>Model</th><th>Total</th><th>Input</th><th>Cached</th><th>Output</th>
+              <th>Evidence</th><th>Repairs</th><th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            {turns.slice(-12).map((t) => {
+              const d = t.diagnostics;
+              return (
+                <tr key={t.turn} className={d.status === "GROUNDED" ? "" : "diag-fail"}>
+                  <td>{t.action} {ct(t.replay_cutoff_utc)}</td>
+                  <td>{d.status}</td>
+                  <td>{formatSeconds(d.latency_ms.model)}</td>
+                  <td>{formatSeconds(d.latency_ms.total)}</td>
+                  <td>{formatTokens(d.usage?.input_tokens)}</td>
+                  <td>{formatTokens(d.usage?.cached_input_tokens)}</td>
+                  <td>{formatTokens(d.usage?.output_tokens)}</td>
+                  <td>{formatKb(d.evidence_bytes)}</td>
+                  <td>{d.repair_attempts}</td>
+                  <td>{formatUsd(d.turn_cost_usd)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 
@@ -118,6 +236,8 @@ interface ViewProps {
   style?: CSSProperties;
   state: TutorState;
   cutoff: string | null;
+  config?: ProviderConfig | null;
+  elapsedS?: number;
   draft: string;
   evidenceOpen: boolean;
   evidence: Evidence | null;
@@ -152,9 +272,15 @@ export function TutorView(p: ViewProps) {
     <aside className="tutor-pane" style={p.style}>
       <div className="tutor-head">
         <h2>AI Tutor</h2>
-        <span className="tutor-sim" title="Scripted responses for interaction testing; no AI model is called">
-          simulated
-        </span>
+        {p.config?.mode === "real" ? (
+          <span className="tutor-real" title="Real AI model; every answer is checked against the replay evidence">
+            {p.config.model}
+          </span>
+        ) : (
+          <span className="tutor-sim" title="Scripted responses for interaction testing; no AI model is called">
+            simulated
+          </span>
+        )}
         <span className="stage-badge" data-stage={state.stage}>
           {state.stage}
         </span>
@@ -171,7 +297,13 @@ export function TutorView(p: ViewProps) {
             <Message key={row.message.id} message={row.message} current={row.message.replay_cutoff_utc === cutoff} />
           ),
         )}
-        {state.pending && <div className="msg msg-tutor msg-pending">Tutor is replying…</div>}
+        {state.pending && (
+          <div className="msg msg-tutor msg-pending">
+            Tutor is replying
+            {state.pending.replay_cutoff_utc !== cutoff ? ` about replay ${ct(state.pending.replay_cutoff_utc)}` : ""}…{" "}
+            {p.config?.mode === "real" && p.elapsedS ? `${p.elapsedS} s` : ""}
+          </div>
+        )}
       </div>
 
       {p.evidenceOpen && (
@@ -227,6 +359,7 @@ export function TutorView(p: ViewProps) {
           New question
         </button>
       </div>
+      <Diagnostics config={p.config ?? null} turns={state.turns} />
       <div className="tutor-input">
         <textarea
           value={p.draft}

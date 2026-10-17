@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tutor POC (0AC-A1/A2): build the browser app if needed, prepare the approved session if needed, serve.
+# Tutor POC (0AC-A1..A3): build the browser app if needed, prepare the approved session if needed, serve.
 #   scripts/tutor_poc.sh            -> http://localhost:8765
 #   scripts/tutor_poc.sh --port 9000
 set -euo pipefail

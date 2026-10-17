@@ -2,6 +2,11 @@
 // keeps the in-session conversation and makes sure every message keeps the replay position it was
 // produced at. A reply is accepted only for the pending turn and only if it names the same cutoff the
 // request carried, so an old reply is never relabeled as current.
+//
+// 0AC-A3: a reply may be a failure (the real model's answer could not be grounded, the provider timed out, ...).
+// It then carries no text: the browser shows the server's short error and never any rejected answer.
+
+import type { ProviderConfig, TurnDiagnostics, TurnRecord } from "./diagnostics";
 
 export const STAGES = ["QUESTION", "HINT", "ANSWER", "POST_REVEAL"] as const;
 export type Stage = (typeof STAGES)[number];
@@ -12,11 +17,30 @@ export interface TurnResponse {
   turn: number;
   role: "tutor";
   action: TutorAction;
-  text: string;
+  text: string | null; // null when the turn failed
   stage: Stage;
   trading_date: string;
   replay_cutoff_utc: string;
   provider: string;
+  status?: string; // FAKE | GROUNDED | GROUNDING_FAILED | INVALID_STRUCTURED_OUTPUT | PROVIDER_TIMEOUT | PROVIDER_UNAVAILABLE
+  error?: string | null;
+  grounding?: Grounding | null;
+  diagnostics?: TurnDiagnostics;
+}
+
+/** What the validator accepted: each claim's category and the evidence it cites (server-built). */
+export interface Grounding {
+  checked_refs: number;
+  interpretations: number;
+  claims: { category: string; statement: string; cites: { pointer: string; label: string; value: string | number | boolean | null }[] }[];
+  unsupported: { support: string; statement: string; missing: string[] }[];
+}
+
+const ACCEPTED = new Set(["FAKE", "GROUNDED"]);
+
+/** A reply is shown only when the server accepted it and it has text. */
+export function isAccepted(r: TurnResponse): boolean {
+  return (r.status === undefined || ACCEPTED.has(r.status)) && typeof r.text === "string" && r.text.length > 0;
 }
 
 export interface EvidenceItem {
@@ -54,6 +78,7 @@ export interface TutorMessage {
   stage: Stage;
   trading_date: string;
   replay_cutoff_utc: string;
+  grounding?: Grounding | null;
 }
 
 export interface PendingTurn {
@@ -69,9 +94,10 @@ export interface TutorState {
   nextTurn: number;
   pending: PendingTurn | null;
   error: string | null;
+  turns: TurnRecord[]; // diagnostics of every answered turn, accepted or not
 }
 
-export const INITIAL_TUTOR: TutorState = { messages: [], stage: "QUESTION", nextTurn: 0, pending: null, error: null };
+export const INITIAL_TUTOR: TutorState = { messages: [], stage: "QUESTION", nextTurn: 0, pending: null, error: null, turns: [] };
 
 export type TutorEvent =
   | { type: "request"; action: TutorAction; trading_date: string; replay_cutoff_utc: string; text?: string }
@@ -104,9 +130,15 @@ export function tutorReducer(state: TutorState, ev: TutorEvent): TutorState {
       if (r.replay_cutoff_utc !== p.replay_cutoff_utc || r.trading_date !== p.trading_date || !STAGES.includes(r.stage)) {
         return { ...state, pending: null, error: "Tutor reply did not match the replay position it was asked about" };
       }
-      const msg: TutorMessage = { id: r.turn_id, role: "tutor", kind: KIND_OF_ACTION[p.action], text: r.text, stage: r.stage,
-        trading_date: r.trading_date, replay_cutoff_utc: r.replay_cutoff_utc };
-      return { ...state, messages: [...state.messages, msg], stage: r.stage, pending: null };
+      const turns = r.diagnostics
+        ? [...state.turns, { turn: r.turn, action: p.action, replay_cutoff_utc: r.replay_cutoff_utc, diagnostics: r.diagnostics }]
+        : state.turns;
+      if (!isAccepted(r)) {
+        return { ...state, turns, pending: null, error: r.error || "The Tutor could not answer. Please try again." };
+      }
+      const msg: TutorMessage = { id: r.turn_id, role: "tutor", kind: KIND_OF_ACTION[p.action], text: r.text ?? "", stage: r.stage,
+        trading_date: r.trading_date, replay_cutoff_utc: r.replay_cutoff_utc, grounding: r.grounding ?? null };
+      return { ...state, messages: [...state.messages, msg], stage: r.stage, pending: null, turns };
     }
     case "fail":
       if (!state.pending || state.pending.turn !== ev.turn) return state;
@@ -160,16 +192,42 @@ async function json(r: Response): Promise<unknown> {
   return r.json();
 }
 
+// The server bounds a real turn (two model attempts, each with one transport retry and its own timeout);
+// this is the browser's own ceiling so the pane can never wait forever.
+export const TURN_TIMEOUT_MS = 300_000;
+
+/** One random id per page: the server keeps that page's conversation context and usage totals in memory. */
+export function newSessionId(): string {
+  const c = globalThis.crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export async function postTurn(
   date: string,
-  body: { action: TutorAction; replay_cutoff_utc: string; stage: Stage; turn: number; text?: string },
+  body: { action: TutorAction; replay_cutoff_utc: string; stage: Stage; turn: number; text?: string; session_id?: string },
+  timeoutMs: number = TURN_TIMEOUT_MS,
 ): Promise<TurnResponse> {
-  const r = await fetch(`/api/sessions/${date}/tutor/turn`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return (await json(r)) as TurnResponse;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(`/api/sessions/${date}/tutor/turn`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+    return (await json(r)) as TurnResponse;
+  } catch (e) {
+    if (ctrl.signal.aborted) throw new Error("The Tutor took too long to answer. Please try again.");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function fetchConfig(): Promise<ProviderConfig> {
+  return (await json(await fetch("/api/tutor/config"))) as ProviderConfig;
 }
 
 export async function fetchEvidence(date: string, replay_cutoff_utc: string): Promise<Evidence> {

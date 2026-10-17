@@ -1,10 +1,10 @@
-# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor interaction shell, A2P polish)
+# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor shell, A2P polish, 0AC-A3 grounded real AI)
 
 Canonical plan: [`docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md`](../../docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md).
 
 A local browser app on robby: `/ES` 5-minute candles, Globex VWAP and ±1σ / ±2σ bands, a replay
-cutoff you move with Previous / Next / +5m, and a Tutor pane driven by a deterministic fake provider.
-No AI model is called and no credentials are needed (A2 tests interaction mechanics, not answer quality).
+cutoff you move with Previous / Next / +5m, and a Tutor pane. The Tutor runs on the deterministic fake
+provider by default (no model, no credentials, no cost) or, in real mode, on one grounded AI model (A3, below).
 
 ## Run
 
@@ -31,8 +31,14 @@ another (Vite proxies `/api` to port 8765).
 | `src/tutor_poc/timeline.py` | Prepares the as-of chart timeline with the Laboratory pipeline; local cache |
 | `src/tutor_poc/snapshot.py` | Replay stepping (clamped) and the `TUTOR_CHART_SNAPSHOT_V1` payload |
 | `src/tutor_poc/api.py` | FastAPI: `/api/sessions`, `/api/sessions/{date}/replay`, `/api/sessions/{date}/snapshot`, `/api/sessions/{date}/tutor/turn`, `/api/sessions/{date}/tutor/evidence` |
-| `src/tutor_poc/tutor.py` | A2: stage transitions, snapshot evidence, `FakeTutorProvider` (the seam A3 replaces) |
-| `src/tutor_poc/cli.py` | Typer CLI: `prepare`, `serve` |
+| `src/tutor_poc/tutor.py` | A2: stage transitions, Show Evidence (`snapshot_evidence`), scripted `FakeTutorProvider` text |
+| `src/tutor_poc/providers.py` | A3: `TutorModelProvider` seam — `FakeProvider`, `GroundedProvider` (grounding + repair), `AnthropicModelClient`; env config; diagnostics |
+| `src/tutor_poc/evidence.py` | A3: the model's as-of evidence for a replay position, as a Laboratory `TutorLesson` |
+| `src/tutor_poc/grounding.py` | A3: frozen Laboratory validation + the POC prose number / time guard |
+| `src/tutor_poc/prompt.py` | A3: `TUTOR_POC_SYSTEM_V1` (versioned, sha-pinned by a test) |
+| `src/tutor_poc/pricing.py` | A3: versioned model pricing |
+| `src/tutor_poc/conversation.py` | A3: in-memory per-page conversation context and usage totals |
+| `src/tutor_poc/cli.py` | Typer CLI: `prepare`, `serve`, `live-smoke` (opt-in, spends tokens) |
 | `web/` | React + TypeScript + Vite; chart: TradingView lightweight-charts 5.1.0 |
 
 ## Market truth stays in the Laboratory
@@ -115,6 +121,113 @@ The divider between the chart and the Tutor pane can be dragged (double-click re
 width `clamp(240px, 26%, 400px)` is the Tutor minimum; the chart keeps at least 480 px. Resizing is
 browser-only (the chart autosizes; no request is made) and the width is remembered in `localStorage`.
 
+## Grounded real AI (A3)
+
+### Fake vs real
+
+```bash
+scripts/tutor_poc.sh                                   # fake (default): no model, no network, cost $0
+
+# real: one provider (Anthropic Messages API, official `anthropic` SDK, direct HTTPS)
+export TUTOR_PROVIDER=anthropic
+export ANTHROPIC_API_KEY=...                           # server-side only; never sent to the browser or logged
+export TUTOR_MODEL=claude-opus-5-5                     # optional (default); must have a pricing entry
+export TUTOR_EFFORT=low                                # optional (default low): low | medium | high | xhigh | max
+scripts/tutor_poc.sh
+```
+
+`TUTOR_PROVIDER` unset or `fake` switches back. In real mode the server refuses to start (exit 2, clear message)
+when the key is missing or the provider / model / effort is unknown. `GET /api/tutor/config` tells the browser
+the mode, provider, model, effort, prompt version and pricing version (never the key). Claude Code is not used
+at runtime.
+
+### Flow
+
+```text
+replay position T ─ evidence.py ─▶ TUTOR_POC_MODEL_EVIDENCE_V1 (as of T) ─▶ Laboratory TutorLesson (adapter)
+                                         │ compact citable items + bounded conversation + the Human message
+                                         ▼
+                           AnthropicModelClient  (system TUTOR_POC_SYSTEM_V1, output_config json_schema = TutorAnswer)
+                                         │ structured TutorAnswer JSON
+                                         ▼
+ parse_answer → validate_answer_grounding → answer_guards   (dicks_laboratory.tutor_ai / tutor_evidence, frozen, reused)
+             → text_guards (POC: numbers / times / dates written in prose must be evidence values)
+                                         │
+              GROUNDED ─▶ shown          │ else: one repair (same evidence + the validator's reasons), validated again
+                                         ▼
+              still failing ─▶ "Tutor response could not be grounded in the replay evidence. Please try again."
+```
+
+- **Evidence** (`evidence.py`): built from the same prepared chart position as the chart and Show Evidence. The
+  latest completed 5m bar (start / end CT, OHLC, Globex VWAP, ±1σ, ±2σ, close vs VWAP, close − VWAP, the band region
+  holding the close) and the bars before it, up to the Laboratory's `RECENT_BARS` = 6 in all (OHLC, VWAP, close vs
+  VWAP), plus the VWAP anchor / band policy / tick size. Analytical values are given at 0.01 (half-even), as the
+  evidence panel shows them. About 8.9 KB on 2026-09-30. No dataset ids, hashes or paths. Bars after T do not exist
+  in the document (it is built from position T only).
+- **Adapter**: the frozen `TutorEvidenceContext` / `TutorLesson` refer to evidence by (document sha256, RFC 6901
+  pointer); here the document is the chart position's evidence (the frozen `PRICE_ACTION` facts use the cash VWAP
+  and need a full replay per turn). The frozen `LessonDefinition` needs a `QuestionKind`; free conversation has
+  none, so the adapter uses `PRICE_VS_CASH_VWAP` only to satisfy construction — the kind and placeholder answer
+  key are never sent to the model or graded.
+- **Conversation context**: the last 8 messages of this page's conversation (each ≤ 1,200 characters, each with
+  its replay cutoff), only from the same date and **at or before** the current cutoff, so stepping the replay back
+  never sends later market facts. Kept in server memory per page (random session id). No summarization.
+- **Prose guard** (`grounding.py`): the frozen validator checks values a claim *asserts*; the POC guard also
+  rejects any decimal number, any number of three or more digits, any clock time and any ISO date written in the
+  answer text, a claim or an uncertainty unless it is (a rounded form of) an authorized evidence value. Numbers the
+  Human typed may be echoed. Unsupported claims are not checked (they name what the evidence lacks).
+- **Repair**: `tutor_ai.MAX_REPAIR_ATTEMPTS` = 1. Provider timeouts / errors are not repaired.
+- **Stages**: unchanged from A2 (`question` → QUESTION, `hint` → HINT, `explain` → ANSWER; POST_REVEAL unused).
+  A failed turn leaves the stage where it was.
+
+### Prompt
+
+`TUTOR_POC_SYSTEM_V1` (`prompt.py`): concise (two to four sentences), one question at a time, short specific
+feedback, no praise, uncertainty stated, facts vs `AI_INTERPRETATION`, evidence-only facts with exact citations, no
+prediction past the cutoff, undefined concepts (acceptance, breakout, …) only as unsupported, no trade / risk talk.
+`tests/test_real_provider.py::test_prompt_versions_are_pinned` pins its sha256: a wording change needs a new version.
+
+### Request, timeouts, retries
+
+`claude-opus-5-5`, effort `TUTOR_EFFORT`, `max_tokens` 16,000, `output_config.format` json_schema (the frozen
+TutorAnswer shape; type unions as `anyOf`). The fixed system prompt is a prompt-cache breakpoint (5-minute TTL),
+so later turns read it from cache. Server-side refusal fallback (`fallbacks: "default"`, beta
+`server-side-fallback-2026-07-01`) is on; a turn served by a fallback model keeps its raw usage but is reported
+"unpriced". Transport: 60 s per call, one SDK retry (connection errors, 408 / 409 / 429 / 5xx, timeouts); grounding
+repair is separate (at most one). The browser gives up after 300 s.
+
+### Diagnostics
+
+Each real turn records (and returns to the browser): provider, model, served model, effort, prompt version and
+sha256, pricing version, status, attempts, repair attempts, provider-reported input / output / cache-read /
+cache-write tokens (`null` when not reported, never estimated) and the raw usage objects, evidence payload bytes
+(the evidence section only), request bytes (the whole user message), latency (evidence preparation, model calls,
+validation, total), estimated turn cost, and the page session's cumulative tokens and cost. Failed turns count
+too. The Tutor pane shows one summary line (`AI 2.8 s · in 4,000 · out 180 · turn $0.0086 · session $0.0226`); the
+line expands into a per-turn table. Accepted answers carry a collapsed "Grounded · N facts · M interpretations"
+list of claims and the evidence each cites. Fake mode shows `Provider: fake · cost $0`.
+
+Session totals live in server memory per page: **a page reload (or a server restart) resets them.**
+
+Real turns are also appended to `~/.cache/copper/tutor_poc/runs/tutor_runs_YYYYMMDD.jsonl` (per attempt: status,
+validator issues, raw model output, usage, request id, cost). No prompt text and no key.
+
+### Pricing
+
+`pricing.py`, `ANTHROPIC_LIST_2026-10-17`, from https://platform.claude.com/docs/en/about-claude/pricing (fetched
+2026-10-17). `claude-opus-5-5`, USD per million tokens: input 4.00, output 20.00 (thinking tokens are output),
+cache read 0.20, 5-minute cache write 5.00. Turn cost = Σ over attempts of the provider-reported tokens × these
+rates. A price change is a new entry with a new version, never an edit.
+
+### Live check (spends real API tokens)
+
+```bash
+TUTOR_PROVIDER=anthropic ANTHROPIC_API_KEY=... uv run tutor_poc live-smoke --yes      # 4 turns at 09:30 CT
+```
+
+Not part of `pytest` or `npm test`. Without `--yes` it refuses. It prints per-turn tokens / latency / cost and
+appends the run log.
+
 ## Future (0AC-A5, not implemented): Tutor chart annotations
 
 The Human wants Tutor actions (Hint, Explain, Show Evidence) to be able to place temporary annotations
@@ -156,6 +269,9 @@ Only already-inspected dates are approved: 2026-09-29, 2026-09-30, 2026-10-01, 2
 ## Tests
 
 ```bash
-uv run pytest apps/tutor_poc/tests -q          # backend (synthetic Laboratory fixture, no corpus file)
+uv run pytest apps/tutor_poc/tests -q          # backend (synthetic Laboratory fixture, no corpus file, no model)
 cd apps/tutor_poc/web && npm test              # frontend logic + Tutor view render (vitest)
 ```
+
+Both suites are zero-cost: the real provider is tested with scripted model replies and a stub SDK object (no
+network, no credentials). The only live path is `tutor_poc live-smoke --yes`.
