@@ -4,6 +4,12 @@
                -> validate_answer_grounding (frozen, authoritative) refs exist, are authorized, values / categories match
                -> answer_guards (frozen V2)                         trade advice, bias vocabulary, undefined policies
                -> text_guards (POC, below)                          numbers / times written in prose
+               -> setup_guards (POC, A4)                            setup state, conditions, band relations,
+                                                                    future-as-known, arithmetic quiz, hint /
+                                                                    explain shape, entry timing, risk scope
+
+0AC-A4: the lesson is in the frozen Drysdale module, so answer_guards applies the frozen Drysdale (two-voice)
+guards; setup_guards.apply narrowly waives their bullish / bearish refusal for cited AI interpretation.
 
 The frozen validator checks the values a claim *asserts*. A model can still write a number or a time in the
 prose (answer_text, a claim statement, an uncertainty) without asserting it, e.g. "The current VWAP is
@@ -27,6 +33,7 @@ from dicks_laboratory.tutor_evidence import (
     validate_answer_grounding,
 )
 
+from tutor_poc import setup_guards
 from tutor_poc.evidence import ChartLesson
 
 
@@ -97,15 +104,16 @@ def text_guards(answer: TutorAnswer, cl: ChartLesson, student_text: str | None =
     return tuple(issues)
 
 
-def evaluate(text: str, cl: ChartLesson, stage: LessonStage, student_text: str | None = None
+def evaluate(text: str, cl: ChartLesson, stage: LessonStage, student_text: str | None = None, action: str | None = None
              ) -> tuple[TutorRunStatus, TutorAnswer | None, GroundingReport | None, tuple[GroundingIssue, ...], str | None]:
-    """(status, answer, report, issues, detail) -- the frozen tutor_ai._evaluate plus text_guards."""
+    """(status, answer, report, issues, detail) -- the frozen tutor_ai._evaluate plus text and setup guards."""
     try:
         answer = parse_answer(text, cl.lesson, stage)
     except InvalidStructuredOutput as exc:
         return TutorRunStatus.INVALID_STRUCTURED_OUTPUT, None, None, (), str(exc)
     report = validate_answer_grounding(answer, cl.lesson)
-    issues = report.issues + answer_guards(answer, cl.lesson) + text_guards(answer, cl, student_text)
+    issues = (report.issues + setup_guards.apply(answer_guards(answer, cl.lesson), answer, cl, action)
+              + text_guards(answer, cl, student_text))
     return (TutorRunStatus.GROUNDED if not issues else TutorRunStatus.GROUNDING_FAILED), answer, report, issues, None
 
 
@@ -117,7 +125,24 @@ def grounding_summary(answer: TutorAnswer, report: GroundingReport, cl: ChartLes
         it = items.get(r)
         return {"pointer": r.pointer, "label": it.label if it else r.pointer, "value": it.value if it else None}
 
+    setups, missing = [], []
+    for c in answer.claims:
+        for r in c.evidence_refs:
+            if r.source_sha256 != cl.setup_sha256 or not r.pointer.startswith("/setups/"):
+                continue
+            row = cl.setup_document["setups"][int(r.pointer.split("/")[2])]
+            tag = f"{row['family']} {row['direction']}"
+            if tag not in setups:
+                setups.append(tag)
+            it = items.get(r)
+            if "/conditions/" in r.pointer and r.pointer.endswith("/status") and it and it.value in (
+                    "PENDING", "NOT_SATISFIED"):
+                cond = row["conditions"][int(r.pointer.split("/")[4])]
+                entry = f"{tag} {cond['policy_id']} {it.value}"
+                if entry not in missing:
+                    missing.append(entry)
     return {"checked_refs": report.checked_refs, "interpretations": report.interpretations,
+            "referenced_setups": setups, "missing_conditions": missing,
             "claims": [{"category": c.category.value, "statement": c.statement,
                         "cites": [cite(r) for r in c.evidence_refs]} for c in answer.claims],
             "unsupported": [{"support": u.support.value, "statement": u.statement, "missing": list(u.missing)}

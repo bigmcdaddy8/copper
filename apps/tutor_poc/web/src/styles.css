@@ -156,3 +156,29 @@ body.resizing { cursor: col-resize; user-select: none; }
 .tutor-head .export:disabled { opacity: 0.5; text-decoration: none; cursor: default; }
 .export-status { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
 .export-status.error { color: var(--error); }
+
+/* 0AC-A4 guided lesson */
+.tutor-head .start-lesson { font-size: 11px; padding: 0; white-space: nowrap; }
+.tutor-head .start-lesson + .export { margin-left: 8px; }
+.lesson-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 11px; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+.lesson-mode { color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.lesson-title { color: var(--text); }
+.lesson-phase { font-style: italic; }
+.lesson-lock { white-space: nowrap; }
+.lesson-bar .link { margin-left: auto; font-size: 11px; padding: 0; }
+.evidence-bars, .evidence-setups table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 4px 0;
+  font-variant-numeric: tabular-nums; }
+.evidence-bars th, .evidence-bars td, .evidence-setups td { padding: 1px 4px; text-align: right; }
+.evidence-bars th { color: var(--muted); font-weight: normal; }
+.evidence-setups td:first-child, .evidence-bars td:first-child { text-align: left; }
+.evidence-setups .setup-state-CANDIDATE td, .evidence-setups .setup-state-QUALITY_QUALIFIED td { color: var(--accent); }
+.grounding-setups { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.evidence-setups table { table-layout: fixed; }
+.evidence-setups td { font-size: 10px; vertical-align: top; overflow-wrap: anywhere; }
+.evidence-setups td:first-child { width: 42%; }
+.evidence-setups td:last-child { white-space: nowrap; width: 4.5em; overflow-wrap: normal; }
+.lesson-lock { white-space: normal; }
+.lesson-bar { min-width: 0; }
+.tutor-pane { min-width: 0; } /* A4: wide evidence tables never widen the pane */
+.tutor-head { flex-wrap: wrap; row-gap: 2px; } .tutor-head .start-lesson, .tutor-head .export { flex: 0 0 auto; }

@@ -1,4 +1,4 @@
-# Tutor Session Review Prompt (0AC-A3E)
+# Tutor Session Review Prompt (0AC-A3E, extended for 0AC-A4)
 
 Use this prompt to have a capable model (ChatGPT, Claude, or another) evaluate one exported Dick's Laboratory
 Tutor session in a consistent way.
@@ -23,8 +23,8 @@ The attached export contains these files:
 |---|---|
 | `session.md` | The chronological transcript. Human and Tutor texts are exactly as shown in the app, typos included. |
 | `session.json` | The same session in machine-readable form: metadata, totals, replay positions, messages, turns. |
-| `turns.csv` | One row per Tutor turn: status, repairs, tokens, cost, latency, grounding counts, texts. |
-| `evidence.jsonl` | For each turn, the exact evidence object the Tutor was given at that replay cutoff, plus the grounding result. |
+| `turns.csv` | One row per Tutor turn: status, repairs, tokens, cost, latency, grounding counts, texts. From A4 also: `mode` (free / guided), the guided lesson's id, phase and reveal, the setups the answer cited and the missing conditions it cited, and the setups valid at that cutoff. |
+| `evidence.jsonl` | For each turn, the exact evidence object the Tutor was given at that replay cutoff, plus the grounding result. From A4 the evidence has two sources: `LESSON_TIME` (each bar of the window with its own VWAP and bands) and `DRYSDALE` (the frozen Laboratory setup analysis at that cutoff: the state of each of the 8 setup variants and every condition's status). `setup_summary` restates the latter per variant. |
 | `market_context.csv` | Completed 5-minute bars of the visited replay window, with Laboratory values: OHLC, volume, VWAP, bands, band region. |
 | `manifest.json` | Export versions, file hashes, and flags. |
 
@@ -51,6 +51,14 @@ The attached export contains these files:
    Human saw only the error line. Rejected answer text is intentionally not exported.
 7. **Fake sessions.** If `provider` is `fake`, the Tutor texts are scripted test responses. Evaluate the
    export's completeness instead of teaching quality.
+8. **Deterministic setup state is the Laboratory's.** A setup's state (DEVELOPING, CANDIDATE, QUALITY_QUALIFIED) and
+   each condition's status come only from the turn's `DRYSDALE` evidence. QUALITY_QUALIFIED means every condition
+   is satisfied on qualified evidence; it is not "invalid". Judge the Tutor against that turn's state, never
+   against a later one. Words like "worth watching", "bullish" or "mixed" are the Tutor's interpretation and should
+   appear as such.
+9. **Guided lessons reveal late on purpose.** Before a guided lesson's reveal the Tutor was not told which setup
+   the lesson studies, and the export does not show it in those turns (`studied_setup` is empty). Do not treat
+   that as a gap.
 
 ## Evaluate each of these
 
@@ -92,6 +100,23 @@ For each item, give a rating (**Strong / Adequate / Weak / Not observable**), th
 20. **Recommendations.** Give concrete recommendations for the curriculum and for the evidence. What should
     the Tutor be given or asked to do differently?
 
+Setup awareness and guided lessons (A4). Rate these too, or **Not observable** for an A3 session or one without
+setup discussion.
+
+21. **Narrowing the eight variants.** Did the Tutor narrow the eight directional setup possibilities (4
+    families × UP / DOWN) to the few worth watching?
+22. **Why not in play.** Did it explain, from the evidence, why certain setups were not in play?
+23. **State vs interpretation.** Did it keep deterministic setup state apart from its own interpretation, never
+    calling a setup valid or a condition met unless that turn's `DRYSDALE` evidence says so?
+24. **Missing conditions.** Did it identify which required conditions were missing, correctly?
+25. **Progression toward judgment.** In a guided lesson, did the questions move up from observation toward setup
+    validity and discretionary judgment, without re-quizzing what the Human had already shown?
+26. **Replay continuity.** Did it connect each replay advance to the evolving setup (what changed, what got
+    stronger, weaker or eliminated)?
+27. **Entry timing.** Did it discuss a potential entry location only after a setup's state was CANDIDATE or
+    QUALITY_QUALIFIED, and without risk-management or execution advice?
+28. **Hidden future.** Did it avoid hidden future knowledge, including in conditional "if …" pathways?
+
 ## Specific questions (answer each one directly)
 
 - Did the Tutor turn deterministic arithmetic into unnecessary quiz questions?
@@ -102,13 +127,24 @@ For each item, give a rating (**Strong / Adequate / Weak / Not observable**), th
 - Did it fail to use evidence that was actually available?
 - Did it progress toward Drysdale setup recognition, or stay stuck in isolated candle trivia?
 
+For an A4 session, also answer:
+
+- Did the Tutor narrow the eight directional setup possibilities?
+- Did it explain why certain setups were not in play?
+- Did it correctly distinguish deterministic setup state from AI interpretation?
+- Did it identify missing setup conditions?
+- Did guided lesson questions progress toward discretionary judgment?
+- Did the Tutor connect replay advancement to the evolving setup?
+- Did it discuss potential entry location only after appropriate setup validity?
+- Did it avoid hidden future knowledge?
+
 ## Output format
 
 1. **Session summary.** About 5 lines: date, replay window, number of turns, provider/model, total cost, and
    how many turns failed or needed a repair. All of these are [EXPORT] facts.
-2. **Scorecard.** A table of the 20 items above with their ratings.
+2. **Scorecard.** A table of the items above (20, or 28 for an A4 session) with their ratings.
 3. **Findings.** One section per item, each with [EXPORT] evidence and an [ASSESSMENT].
-4. **Answers to the specific questions.**
+4. **Answers to the specific questions** (and the A4 questions when they apply).
 5. **Top 5 recommendations**, ranked by expected impact on learning. Mark each as a *curriculum*, *evidence*,
    *prompt/behavior*, or *UX* change.
 6. **Data gaps.** What the export did not contain that would have changed your review.

@@ -13,6 +13,7 @@ import anthropic
 import httpx2
 import pytest
 import test_replay as fx_mod  # on sys.path via conftest (shared Laboratory fixture)
+from _fx_state import FX
 from dicks_laboratory.tutor_ai import ANSWER_JSON_SCHEMA, ProviderTimeout, ProviderUnavailable
 from dicks_laboratory.tutor_evidence import LessonStage
 from fastapi.testclient import TestClient
@@ -46,7 +47,8 @@ SECRET = "FAKE-TEST-KEY-not-a-real-credential-0123456789"
 MODEL = "claude-opus-5-5"
 
 # The TUTOR_POC_SYSTEM_V1 text is pinned: editing it requires a new PROMPT_VERSION.
-PINNED_PROMPTS = {"TUTOR_POC_SYSTEM_V1": "800e8675f2be7972cb6be8b812fe6e312f54d9ca325ce8f6596bc71f4d0e2fbc"}
+PINNED_PROMPTS = {"TUTOR_POC_SYSTEM_V1": "800e8675f2be7972cb6be8b812fe6e312f54d9ca325ce8f6596bc71f4d0e2fbc",
+                  "TUTOR_POC_SYSTEM_V2_DRYSDALE": "2cb428de775984eca56b44072fafa499c2ce5a428d789a3bfc698e3bcd3e896c"}
 
 
 # --- scripted transport ---------------------------------------------------------------------------
@@ -91,9 +93,23 @@ def answer(text, claims=(), unsupported=(), uncertainties=()):
             "unsupported_claims": list(unsupported)}
 
 
+def setup_at(tl, i):
+    return FX["setups"].at(tl.positions[i].cutoff_utc)
+
+
+def load_setups(s):
+    return FX["setups"]
+
+
+def lesson_at(tl, hh, mm, lesson_id="x"):
+    i = position_index(tl, ct(CUR, hh, mm))
+    return chart_lesson(tl, i, lesson_id, setup_at(tl, i))
+
+
 @pytest.fixture(scope="module")
 def doc0900(fx_timeline):
-    return evidence_document(fx_timeline, position_index(fx_timeline, ct(CUR, 9, 0)))
+    i = position_index(fx_timeline, ct(CUR, 9, 0))
+    return evidence_document(fx_timeline, i, setup_at(fx_timeline, i))
 
 
 @pytest.fixture(scope="module")
@@ -111,6 +127,38 @@ def good(doc0900):
                ["/latest_bar/close", "/latest_bar/vwap"])])
 
 
+def dref(pointer):
+    return {"source": "DRYSDALE", "pointer": pointer}
+
+
+def dclaim(statement, category, pointers, asserted=()):
+    return {"statement": statement, "category": category, "evidence_refs": [dref(p) for p in pointers],
+            "asserted": [{"ref": dref(p), "value": v} for p, v in asserted], "curriculum_source_id": None}
+
+
+@pytest.fixture(scope="module")
+def good_hint(doc0900):
+    """A4 hint shape: where to look, no numbers laid out side by side."""
+    b = doc0900["latest_bar"]
+    return answer("Look at where the latest close sits against its own +1 sigma band, then compare that with the bars "
+                  "before it.", [claim("The latest close is on this side of VWAP.", "DERIVED_FACT",
+                                       ["/latest_bar/close_vs_vwap"], [("/latest_bar/close_vs_vwap", b["close_vs_vwap"])])])
+
+
+@pytest.fixture(scope="module")
+def good_explain(doc0900):
+    """A4 explain shape: fact -> interpretation -> setup relevance (cites the setup analysis)."""
+    b = doc0900["latest_bar"]
+    return answer(f"The latest candle closed {b['close_vs_vwap'].lower()} VWAP. That location matters because each "
+                  "Drysdale setup starts from where price sits against the bands; no setup is complete here yet.",
+                  [claim("The close vs VWAP.", "DERIVED_FACT", ["/latest_bar/close_vs_vwap"],
+                         [("/latest_bar/close_vs_vwap", b["close_vs_vwap"])]),
+                   claim("Price near VWAP leaves several setup families open.", "AI_INTERPRETATION",
+                         ["/latest_bar/close_vs_vwap"]),
+                   dclaim("The Laboratory V1 setup analysis state (DRYSDALE_SETUP_CANDIDATES_V1).", "CANDIDATE",
+                          ["/analysis/state"], [("/analysis/state", "DEVELOPING")])])
+
+
 @pytest.fixture(scope="module")
 def registry(fx_timeline):
     return (DevSession(CUR, "synthetic.sqlite3", fx_timeline.database_sha256, True),
@@ -122,7 +170,8 @@ def make_client(fx_timeline, registry, provider, run_log=None):
         assert s.trading_date == CUR
         return fx_timeline
 
-    return TestClient(create_app(registry, load, web_dist=None, provider=provider, run_log=run_log))
+    return TestClient(create_app(registry, load, web_dist=None, provider=provider, run_log=run_log,
+                                 load_setups=load_setups))
 
 
 def post(client, action, at=None, stage="QUESTION", turn=0, text=None, session="page-0001", d=CUR, status=200):
@@ -203,7 +252,8 @@ def test_live_smoke_is_opt_in(monkeypatch):
 # --- the request: only authorized, as-of evidence ------------------------------------------------
 
 def _ctx(tl, hh, mm, action=TutorAction.QUESTION, stage=LessonStage.QUESTION, text=None, history=()):
-    return TurnContext(action, stage, 0, text, tl, position_index(tl, ct(CUR, hh, mm)), history)
+    i = position_index(tl, ct(CUR, hh, mm))
+    return TurnContext(action, stage, 0, text, tl, i, history, setup_at(tl, i))
 
 
 def test_request_carries_only_the_current_cutoff_evidence(fx_timeline, good):
@@ -211,9 +261,15 @@ def test_request_carries_only_the_current_cutoff_evidence(fx_timeline, good):
     GroundedProvider(client).respond(_ctx(fx_timeline, 9, 0))
     user = client.requests[0]["user"]
     assert user["evidence"]["replay_cutoff_ct"] == "09:00" and user["evidence"]["trading_date"] == CUR.isoformat()
-    cl = chart_lesson(fx_timeline, position_index(fx_timeline, ct(CUR, 9, 0)), "x")
-    assert [(i["pointer"], i["value"]) for i in user["evidence"]["items"]] == [
-        (i.ref.pointer, i.value) for i in cl.lesson.context.items()]
+    cl = lesson_at(fx_timeline, 9, 0)
+    ev = user["evidence"]
+    shown = [(r[0], r[1]) for src in ("LESSON_TIME", "DRYSDALE") for r in ev[src]["items"]]
+    shown += [(f"{row[0]}/{col}", v) for t in (ev["LESSON_TIME"]["bars"], ev["DRYSDALE"]["setups"],
+                                               ev["DRYSDALE"]["conditions"], ev["DRYSDALE"]["completed_today"])
+              for row in t["rows"] for col, v in zip(t["columns"][1:], row[1:], strict=True)]
+    items = {i.ref.pointer: i.value for i in cl.lesson.context.items()}
+    assert shown and all(items[p] == v for p, v in shown)  # every value shown is an authorized item, exactly
+    assert {p for p in items if not p.startswith("/catalog/")} == {p for p, _ in shown}  # the catalog: system prompt
     raw = json.dumps(user)
     for forbidden in (fx_timeline.dataset_id, fx_timeline.database_sha256, ".sqlite3", "/home/", cl.sha256):
         assert forbidden not in raw
@@ -221,7 +277,7 @@ def test_request_carries_only_the_current_cutoff_evidence(fx_timeline, good):
 
 def test_future_bars_are_absent_from_the_payload(fx_timeline):
     early = position_index(fx_timeline, ct(CUR, 9, 0))
-    doc = evidence_document(fx_timeline, early)
+    doc = evidence_document(fx_timeline, early, setup_at(fx_timeline, early))
     cutoff = fx_timeline.positions[early].cutoff_utc
     later = [b for p in fx_timeline.positions[early + 1:] for b in p.bars if b.end_utc > cutoff]
     assert later, "the fixture must have bars after the cutoff"
@@ -287,14 +343,14 @@ HALLUCINATIONS = {
 
 @pytest.mark.parametrize("name", sorted(HALLUCINATIONS))
 def test_fabricated_or_unsafe_answers_fail_grounding(fx_timeline, doc0900, name):
-    cl = chart_lesson(fx_timeline, position_index(fx_timeline, ct(CUR, 9, 0)), "x")
+    cl = lesson_at(fx_timeline, 9, 0)
     status, _, _, issues, _ = grounding.evaluate(json.dumps(HALLUCINATIONS[name](doc0900["latest_bar"])), cl,
                                                  LessonStage.QUESTION)
     assert status.value == "GROUNDING_FAILED" and issues
 
 
 def test_rounded_evidence_values_and_evidence_times_are_accepted(fx_timeline, doc0900):
-    cl = chart_lesson(fx_timeline, position_index(fx_timeline, ct(CUR, 9, 0)), "x")
+    cl = lesson_at(fx_timeline, 9, 0)
     b = doc0900["latest_bar"]
     rounded = str(Decimal(b["vwap"]).quantize(Decimal("0.1")))
     a = answer(f"The {b['start_ct']} candle closed below VWAP near {rounded}.",
@@ -353,9 +409,9 @@ def test_cost_uses_the_versioned_pricing():
     assert estimate_cost(p, 1000, 200, 3000, 400) == Decimal("0.0106")
 
 
-def test_turn_diagnostics_and_session_totals(fx_timeline, registry, good):
+def test_turn_diagnostics_and_session_totals(fx_timeline, registry, good, good_hint):
     client = ScriptedClient(reply(good, Usage(1000, 200, 3000, 0), latency=2.0),
-                            reply(good, Usage(500, 100, 0, 2000), latency=1.0))
+                            reply(good_hint, Usage(500, 100, 0, 2000), latency=1.0))
     c = make_client(fx_timeline, registry, GroundedProvider(client, "low"))
     d1 = post(c, "question")["diagnostics"]
     assert d1["provider"] == "anthropic" and d1["model"] == MODEL and d1["served_model"] == MODEL
@@ -418,8 +474,8 @@ def test_reply_is_bound_to_the_request_cutoff(fx_timeline, registry, hh, mm):
 
 # --- Tutor UX through the real provider ---------------------------------------------------------
 
-def test_message_hint_and_explain_use_the_real_provider(fx_timeline, registry, good):
-    client = ScriptedClient(reply(good), reply(good), reply(good))
+def test_message_hint_and_explain_use_the_real_provider(fx_timeline, registry, good, good_hint, good_explain):
+    client = ScriptedClient(reply(good), reply(good_hint), reply(good_explain))
     c = make_client(fx_timeline, registry, GroundedProvider(client))
     m = post(c, "message", text="It closed below VWAP", turn=1)
     h = post(c, "hint", stage=m["stage"], turn=2)

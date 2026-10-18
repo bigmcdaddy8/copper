@@ -31,14 +31,15 @@ from dicks_laboratory.tutor_ai import (
 from dicks_laboratory.tutor_evidence import LessonStage, canonical_json
 
 from tutor_poc import grounding
-from tutor_poc.evidence import ROLE, ChartLesson, chart_lesson, model_evidence
+from tutor_poc.evidence import ROLES, ChartLesson, chart_lesson, model_evidence
+from tutor_poc.lesson import GuidedLesson
 from tutor_poc.pricing import UnsupportedModel, estimate_cost, pricing_for
-from tutor_poc.prompt import PROMPT_VERSION, PROMPTS, TASKS, prompt_sha256
+from tutor_poc.prompt import PROMPT_VERSION, PROMPTS, TASKS_V2, prompt_sha256
 from tutor_poc.timeline import ChartTimeline
 from tutor_poc.tutor import PROVIDER_ID as FAKE_PROVIDER_ID
 from tutor_poc.tutor import FakeTutorProvider, TutorAction, format_ct, snapshot_evidence
 
-REQUEST_SCHEMA = "TUTOR_POC_MODEL_REQUEST_V1"
+REQUEST_SCHEMA = "TUTOR_POC_MODEL_REQUEST_V2"  # A4: adds mode, lesson, replay_change; two evidence sources
 CONTEXT_MESSAGES = 8  # recent conversation messages sent to the model (at or before the current cutoff)
 CONTEXT_MESSAGE_CHARS = 1200
 DEFAULT_MODEL = "claude-opus-5-5"
@@ -79,6 +80,16 @@ class TurnContext:
     timeline: ChartTimeline
     index: int  # replay position
     history: tuple[HistoryMessage, ...] = ()  # already filtered to this date and cutoffs <= the current one
+    setup: dict | None = None  # the frozen setup projection at this cutoff (setups.SetupTimeline.at)
+    guided: GuidedLesson | None = None  # set in guided-lesson mode (A4)
+
+    @property
+    def cutoff(self) -> datetime:
+        return self.timeline.positions[self.index].cutoff_utc
+
+    @property
+    def mode(self) -> str:
+        return "guided" if self.guided is not None else "free"
 
 
 @dataclass(frozen=True)
@@ -177,8 +188,12 @@ class FakeProvider:
         self.scripted = scripted or FakeTutorProvider()
 
     def respond(self, ctx: TurnContext) -> TurnResult:
-        evidence = snapshot_evidence(ctx.timeline, ctx.index)
+        evidence = snapshot_evidence(ctx.timeline, ctx.index, ctx.setup)
         text = self.scripted.reply(ctx.action, ctx.stage, ctx.turn, ctx.text, evidence)
+        if ctx.guided is not None and ctx.action is TutorAction.QUESTION:
+            g = ctx.guided
+            p = g.phase_at(ctx.cutoff)
+            text = f"{g.public(ctx.cutoff)['title']} · {p.label}.\n\n{p.fake_text}"
         return TurnResult("FAKE", text, FAKE_PROVIDER_ID, evidence=evidence)  # no model metrics: same inputs, same response
 
     def public_config(self) -> dict:
@@ -203,7 +218,7 @@ def _anyof(node):
 def answer_schema() -> dict:
     """What the model must return: exactly the frozen TutorAnswer model shape, citing only this POC's source."""
     schema = copy.deepcopy(ANSWER_JSON_SCHEMA)
-    roles = [ROLE.value]
+    roles = [r.value for r in ROLES]
     claim = schema["properties"]["claims"]["items"]["properties"]
     claim["evidence_refs"]["items"]["properties"]["source"]["enum"] = roles
     claim["asserted"]["items"]["properties"]["ref"]["properties"]["source"]["enum"] = roles
@@ -231,12 +246,28 @@ def _history(ctx: TurnContext) -> list[dict]:
              "text": m.text[:CONTEXT_MESSAGE_CHARS]} for m in kept]
 
 
+def replay_change(ctx: TurnContext) -> dict | None:
+    """How the replay moved since the conversation's latest message (None: it did not move, or no history)."""
+    if not ctx.history:
+        return None
+    before = ctx.history[-1].replay_cutoff_utc
+    now = ctx.cutoff
+    if before == now:
+        return None
+    bars = [b for b in ctx.timeline.positions[ctx.index].bars if before < b.end_utc <= now]
+    return {"from_ct": format_ct(int(before.timestamp())), "to_ct": format_ct(int(now.timestamp())),
+            "direction": "FORWARD" if now > before else "BACKWARD", "bars_completed_since": len(bars)}
+
+
 def build_user_message(ctx: TurnContext, cl: ChartLesson, repair: dict | None = None,
                        evidence: dict | None = None) -> tuple[str, int]:
     """(canonical JSON user message, evidence section bytes)."""
     evidence = model_evidence(cl) if evidence is None else evidence
-    body = {"schema": REQUEST_SCHEMA, "task": TASKS[ctx.action.value], "action": ACTION_NAMES[ctx.action],
-            "stage": ctx.stage.value, "evidence": evidence, "conversation": _history(ctx),
+    task = "post_reveal" if ctx.stage is LessonStage.POST_REVEAL else ctx.action.value
+    body = {"schema": REQUEST_SCHEMA, "task": TASKS_V2[task], "action": ACTION_NAMES[ctx.action],
+            "stage": ctx.stage.value, "mode": ctx.mode,
+            "lesson": None if ctx.guided is None else ctx.guided.block(ctx.cutoff),
+            "replay_change": replay_change(ctx), "evidence": evidence, "conversation": _history(ctx),
             "student_message": ctx.text}
     if repair is not None:
         body["repair"] = repair
@@ -269,7 +300,10 @@ class GroundedProvider:
     def respond(self, ctx: TurnContext) -> TurnResult:
         t0 = time.perf_counter()
         cutoff = ctx.timeline.positions[ctx.index].cutoff_utc
-        cl = chart_lesson(ctx.timeline, ctx.index, f"TUTOR_POC_A3:{ctx.timeline.trading_date}:{cutoff.isoformat()}")
+        if ctx.setup is None:
+            raise ValueError("the grounded Tutor needs the prepared setup analysis at this cutoff")
+        cl = chart_lesson(ctx.timeline, ctx.index, f"TUTOR_POC_A4:{ctx.timeline.trading_date}:{cutoff.isoformat()}",
+                          ctx.setup)
         system = PROMPTS[PROMPT_VERSION]
         evidence = model_evidence(cl)
         user, evidence_bytes = build_user_message(ctx, cl, evidence=evidence)
@@ -290,7 +324,8 @@ class GroundedProvider:
                 attempts.append(Attempt(n, TutorRunStatus.PROVIDER_UNAVAILABLE, size, None, detail=str(exc)))
                 break
             v0 = time.perf_counter()
-            status, answer, report, issues, detail = grounding.evaluate(reply.text, cl, ctx.stage, ctx.text)
+            status, answer, report, issues, detail = grounding.evaluate(reply.text, cl, ctx.stage, ctx.text,
+                                                                        ctx.action.value)
             if detail is None and reply.stop_reason not in (None, "end_turn"):
                 detail = f"stop_reason={reply.stop_reason}"
             issue_text = tuple(f"{i.code} at {i.where}: {i.detail}" for i in issues)
@@ -436,7 +471,8 @@ def run_record(r: TurnResult, ctx: TurnContext) -> dict:
     """Server-side development record (JSONL): adds raw model texts and validator issues; no prompt, no key."""
     return {"schema": "TUTOR_POC_RUN_RECORD_V1", "trading_date": ctx.timeline.trading_date.isoformat(),
             "replay_cutoff_utc": ctx.timeline.positions[ctx.index].cutoff_utc.isoformat(), "turn": ctx.turn,
-            "action": ctx.action.value, "stage": ctx.stage.value, **turn_diagnostics(r),
+            "action": ctx.action.value, "stage": ctx.stage.value, "mode": ctx.mode,
+            "lesson": None if ctx.guided is None else ctx.guided.public(ctx.cutoff), **turn_diagnostics(r),
             "attempt_records": [{"repair_attempt": a.repair_attempt, "status": a.status.value,
                                  "issues": list(a.issues), "detail": a.detail, "request_bytes": a.request_bytes,
                                  "latency_s": round(a.reply.latency_s, 3) if a.reply else None,

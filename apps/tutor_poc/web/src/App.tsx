@@ -6,6 +6,7 @@ import { clampTutorWidth, loadTutorWidth, saveTutorWidth, tutorFlexBasis, tutorW
 import { ACTIONS, controlState, formatCt, formatCtDay } from "./replay";
 import { DEFAULT_SETTINGS, type ChartSettings } from "./settings";
 import { SettingsPanel } from "./SettingsPanel";
+import type { LessonView } from "./tutor";
 import { TutorPane } from "./TutorPane";
 
 export function App() {
@@ -18,6 +19,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const [tutorWidth, setTutorWidth] = useState<number | null>(loadTutorWidth); // null = accepted default
+  const [lesson, setLesson] = useState<LessonView | null>(null); // the active guided lesson (A4)
   const panesRef = useRef<HTMLElement>(null);
 
   const load = useCallback(
@@ -128,6 +130,8 @@ export function App() {
           date={date}
           cutoff={snapshot?.replay.cutoff_utc ?? null}
           style={tutorWidth === null ? undefined : { flexBasis: tutorFlexBasis(tutorWidth) }}
+          onSeek={(c) => date && load(date, { cutoff: c })}
+          onLessonChange={setLesson}
         />
       </main>
 
@@ -136,7 +140,10 @@ export function App() {
           {snapshot ? `position ${snapshot.replay.index + 1}/${snapshot.replay.count}` : ""}
           {snapshot ? ` · ${snapshot.candles.length} complete 5m bars` : ""}
         </span>
-        <span>VWAP anchor: {snapshot?.study.vwap_anchor ?? settings.study.vwap_anchor} (locked, server-computed)</span>
+        <span>
+          VWAP anchor: {snapshot?.study.vwap_anchor ?? settings.study.vwap_anchor}{" "}
+          {lesson ? "(locked by the guided lesson, server-computed)" : "(locked, server-computed)"}
+        </span>
         <span>{latencyMs !== null ? `last load ${latencyMs} ms` : ""}</span>
         {loading && <span>loading…</span>}
         {error && <span className="error">{error}</span>}

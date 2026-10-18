@@ -1,4 +1,4 @@
-# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor shell, A2P polish, 0AC-A3 grounded real AI, 0AC-A3E session export)
+# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor shell, A2P polish, 0AC-A3 grounded real AI, 0AC-A3E session export, 0AC-A4 guided Drysdale lesson)
 
 Canonical plan: [`docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md`](../../docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md).
 
@@ -13,9 +13,10 @@ scripts/tutor_poc.sh            # builds the web app if needed, then serves
 # open http://localhost:8765
 ```
 
-The first run on a machine prepares the approved session once (about 30 minutes for 2026-09-30, ~4 GB RAM)
-into `~/.cache/copper/tutor_poc/`. Later starts load that cache in a few seconds. To prepare it ahead of time:
-`uv run tutor_poc prepare`.
+The first run on a machine prepares the approved session once into `~/.cache/copper/tutor_poc/`: the chart
+timeline (about 30 minutes for 2026-09-30, ~4 GB RAM) and, from A4, the setup timeline (the frozen Drysdale
+analysis at every cutoff, about another hour: 62 minutes for 2026-09-30). Later starts load both caches in a few seconds. To
+prepare them ahead of time: `uv run tutor_poc prepare`.
 
 If `uv run tutor_poc` is not found, install the workspace apps with `uv sync --all-packages` (a plain
 `uv sync` at the repo root only syncs the root project and removes the other apps' packages).
@@ -30,15 +31,19 @@ another (Vite proxies `/api` to port 8765).
 | `src/tutor_poc/dev_sessions.py` | Approved development dates; the 2026-10-12..2026-11-06 campaign is refused |
 | `src/tutor_poc/timeline.py` | Prepares the as-of chart timeline with the Laboratory pipeline; local cache |
 | `src/tutor_poc/snapshot.py` | Replay stepping (clamped) and the `TUTOR_CHART_SNAPSHOT_V1` payload |
-| `src/tutor_poc/api.py` | FastAPI: `/api/sessions`, `/api/sessions/{date}/replay`, `/api/sessions/{date}/snapshot`, `/api/sessions/{date}/tutor/turn`, `/api/sessions/{date}/tutor/evidence`, `/api/sessions/{date}/tutor/export` |
+| `src/tutor_poc/api.py` | FastAPI: `/api/sessions`, `/api/sessions/{date}/replay`, `/api/sessions/{date}/snapshot`, `/api/sessions/{date}/tutor/turn`, `/api/sessions/{date}/tutor/evidence`, `/api/sessions/{date}/tutor/export`, `/api/sessions/{date}/lessons` |
 | `src/tutor_poc/tutor.py` | A2: stage transitions, Show Evidence (`snapshot_evidence`), scripted `FakeTutorProvider` text |
 | `src/tutor_poc/providers.py` | A3: `TutorModelProvider` seam — `FakeProvider`, `GroundedProvider` (grounding + repair), `AnthropicModelClient`; env config; diagnostics |
-| `src/tutor_poc/evidence.py` | A3: the model's as-of evidence for a replay position, as a Laboratory `TutorLesson` |
-| `src/tutor_poc/grounding.py` | A3: frozen Laboratory validation + the POC prose number / time guard |
-| `src/tutor_poc/prompt.py` | A3: `TUTOR_POC_SYSTEM_V1` (versioned, sha-pinned by a test) |
+| `src/tutor_poc/evidence.py` | A3 / A4: the model's as-of evidence for a replay position (bars + setup analysis), as a Laboratory `TutorLesson` |
+| `src/tutor_poc/grounding.py` | A3: frozen Laboratory validation + the POC prose number / time guard; A4: + setup guards |
+| `src/tutor_poc/setup_guards.py` | A4: `TUTOR_POC_SETUP_GUARDS_V1` (setup state, conditions, band relations, future-as-known, arithmetic quiz, hint / explain shape, entry timing, risk scope) |
+| `src/tutor_poc/catalog.py` | A4: `TUTOR_POC_SETUP_CATALOG_V1`, the canonical setup vocabulary read from the frozen `drysdale.py` |
+| `src/tutor_poc/setups.py` | A4: `TUTOR_SETUP_TIMELINE_V1`, the frozen Drysdale analysis projected at every replay cutoff; local cache |
+| `src/tutor_poc/lesson.py` | A4: guided lessons (`TUTOR_POC_GUIDED_LESSON_V1`), phases, the lesson-semantics lock, `verify` |
+| `src/tutor_poc/prompt.py` | A3: `TUTOR_POC_SYSTEM_V1`; A4: `TUTOR_POC_SYSTEM_V2_DRYSDALE` (both versioned, sha-pinned by a test) |
 | `src/tutor_poc/pricing.py` | A3: versioned model pricing |
 | `src/tutor_poc/conversation.py` | A3: in-memory per-page conversation context and usage totals; A3E: `TurnRecord` per answered turn |
-| `src/tutor_poc/export.py` | A3E: Export Session — builds the `TUTOR_SESSION_EXPORT_V1` ZIP, secret scan |
+| `src/tutor_poc/export.py` | A3E: Export Session — builds the export ZIP (`TUTOR_SESSION_EXPORT_V2` from A4), secret scan |
 | `src/tutor_poc/cli.py` | Typer CLI: `prepare`, `serve`, `live-smoke` (opt-in, spends tokens) |
 | `web/` | React + TypeScript + Vite; chart: TradingView lightweight-charts 5.1.0 |
 
@@ -123,6 +128,9 @@ width `clamp(240px, 26%, 400px)` is the Tutor minimum; the chart keeps at least 
 browser-only (the chart autosizes; no request is made) and the width is remembered in `localStorage`.
 
 ## Grounded real AI (A3)
+
+> A4 keeps this pipeline and replaces its evidence, prompt and lesson module: see
+> [Guided Drysdale lesson and setup-aware evidence (A4)](#guided-drysdale-lesson-and-setup-aware-evidence-a4).
 
 ### Fake vs real
 
@@ -275,6 +283,141 @@ refuses sealed dates. 2026-10-12..2026-11-06 can never be exported.
 [`docs/dicks_laboratory/TUTOR_SESSION_REVIEW_PROMPT.md`](../../docs/dicks_laboratory/TUTOR_SESSION_REVIEW_PROMPT.md).
 It is a reusable, 20-point rubric that separates what the export shows from the reviewer's own assessment.
 
+## Guided Drysdale lesson and setup-aware evidence (A4)
+
+A4 is a teaching / evidence layer over the frozen Drysdale semantics (`DRYSDALE_V1`, `DRYSDALE_QUALITY_SCOPE_V1`,
+`DRYSDALE_VALIDATION_ELIGIBILITY_V1`, unchanged). Every turn, guided or free chat, gets the same evidence.
+
+### Evidence (`TUTOR_POC_MODEL_EVIDENCE_V2`, two citable sources)
+
+- **LESSON_TIME** (the chart position at T): every bar of the window (latest + 5 before it) has its own as-of
+  start / end, OHLC, Globex VWAP, ±1σ, ±2σ, close vs VWAP, close − VWAP, band region, close vs each of ±1σ / ±2σ
+  (ABOVE / AT / BELOW), the frozen per-bar `value_position` (`DRYSDALE_VALUE_AREA_V1`) and `vwap_slope`
+  (`LAB_VWAP_SLOPE_V1`), close / high / low vs the previous bar (HIGHER / LOWER / EQUAL) and
+  `revised_since_completion`. A3 gave bands for the latest bar only. Window counts (`/sequence`): closes above /
+  below VWAP and beyond each band, consecutive higher / lower closes, highs and lows ending at the latest bar,
+  rising / falling VWAP bars, the VWAP change across the window. These are comparisons and counts of values in
+  the same document. They are not an indicator and carry no trend label or threshold.
+- **DRYSDALE** (the frozen `DRYSDALE_SETUP_ANALYSIS_V1` at T, projected in `setups.py`): analysis state and
+  quality status / reasons, the frozen context facts (value position, slope, `LAB_TREND_CONTEXT_V1`, current
+  episode and `LAB_ACCEPTANCE_TIME_V1`, higher highs / lows, ±2σ reach count, volume ratio), the latest instance
+  of each of the 8 family × direction variants (exists?, id, state, stage, can still complete, first event,
+  completion, every condition's policy id / status / satisfied time) and the instances completed so far. A
+  qualified analysis adds the frozen warning `DRYSDALE:drysdale`.
+- **Model view**: compact tables (row pointer + columns, a category per column) instead of one object per item.
+  The invariant setup catalog is in the system prompt (cached), citable at `/catalog/...`. About 12 KB per turn
+  on the fixture (A3: 8.9 KB on 2026-09-30).
+- **As of**: values are what the Laboratory knew at T. A late print revises a completed bar only once it is
+  known; `revised_since_completion` compares with the bar as first completed (an earlier position), never a later
+  one. The setup projection is computed per cutoff by the frozen `dry.analyze` (no lookahead; a late print can
+  turn a completed instance back into DEVELOPING, and the projection keeps that).
+
+### Canonical setup vocabulary
+
+`catalog.py` reads the names from the frozen implementation: `dry.SetupFamily` (PRICE_DISCOVERY_CONTINUATION,
+FADE_VALUE_AREA_EXTREME, RETURN_TO_VALUE, VWAP_BOUNCE) × `Direction` (UP, DOWN), the module titles, the candidate
+policies, `SOURCE_CRITERIA`, and each direction's Laboratory V1 conditions, copied verbatim from the frozen family
+functions. A test builds frozen candidates for all eight variants and compares every condition. No state such as
+"APPROACHING" exists. "Worth watching" is teaching judgment.
+
+### Fact vs AI interpretation
+
+The lesson belongs to the frozen Drysdale module (`DRYSDALE_VWAP_WAVE_V1`), so the frozen two-voice guards apply:
+- SOURCE SAYS: a `CURRICULUM_RULE` claim with a Drysdale source id.
+- LABORATORY V1: a result claim that names the policy, cites the DRYSDALE item and asserts its value.
+- Anything else is `AI_INTERPRETATION`.
+
+"Worth watching", "potentially developing", "bullish", "bearish" and "mixed" are teaching judgment. They are
+allowed only in an `AI_INTERPRETATION` claim that cites its facts (and in answer text when such a claim exists).
+This is the one narrow waiver of the frozen vocabulary rule; every other refused word stays refused.
+
+`setup_guards.py` (`TUTOR_POC_SETUP_GUARDS_V1`) checks positive assertions in prose against the turn's evidence:
+- a setup called valid / complete / a candidate whose state is not CANDIDATE or QUALITY_QUALIFIED;
+- "acceptance (retest, rejection, confirmation, breakout, return to value, VWAP test, trend context) has
+  occurred" without citing a SATISFIED condition of that policy;
+- a bar's band relation ("the prior bar closed above +2σ") that its own relation contradicts;
+- a future outcome stated as known;
+- a question that asks the student to compute a distance the evidence already gives;
+- a hint that lays out more than one number;
+- an explanation without fact → interpretation → setup relevance;
+- entry talk without a cited CANDIDATE / QUALITY_QUALIFIED state;
+- risk-management wording.
+
+Questions, negated and conditional sentences assert nothing and are not checked.
+
+### Conditional future reasoning and the entry boundary
+
+- **Conditional future reasoning:** "If a later bar trades at the VWAP and the next bar closes above that bar's
+  high, the VWAP_BOUNCE UP conditions would be met" passes. "The next bar will break out" fails.
+- **Entry boundary:** once a setup's state is CANDIDATE or QUALITY_QUALIFIED at the cutoff, the Tutor may name the
+  completing bar as the setup's potential entry location (a training concept) and ask what supports or weakens
+  it. It never gives contracts, size, account, risk, stop or target guidance (frozen `TRADE_ADVICE` + the risk
+  guard).
+
+### Prompt
+
+`TUTOR_POC_SYSTEM_V2_DRYSDALE` (~15 KB with the catalog, cached) covers:
+- the teaching hierarchy (OBSERVE → COMPARE → CHARACTERIZE STRUCTURE → NARROW SETUPS → IDENTIFY MISSING
+  CONDITIONS → EVALUATE VALIDITY → DISCUSS POTENTIAL ENTRY LOCATION → REVIEW; don't re-quiz a level the student
+  has shown);
+- the arithmetic rule (ask what a distance means, accept approximate answers);
+- narrowing the eight directional possibilities;
+- Hint as "where to look";
+- Explain as fact → interpretation → setup relevance;
+- replay continuity;
+- the conditional-future and entry rules.
+
+Every request (`TUTOR_POC_MODEL_REQUEST_V2`) carries `mode`, `lesson` (guided only) and `replay_change` (how the
+replay moved since the conversation's last message).
+
+### Guided lesson
+
+**Start Guided Lesson** (Tutor header, when the date has a verified lesson) moves the chart to the lesson start
+and switches to guided mode. The bar under the header shows:
+- "Guided Lesson";
+- the neutral title (the setup is named only after the reveal);
+- the phase;
+- `🔒 VWAP anchor GLOBEX (locked by lesson)`.
+
+**End lesson** returns to free chat. In guided mode the Tutor asks a question at every replay position the Human
+moves to, connected to the earlier conversation. Hint, Explain, free messages and Show Evidence work as before.
+
+Lesson 1 (`DRYSDALE_GUIDED_L1`, 2026-09-30) studies the frozen instance `BOUNCE-UP-20260930T1350Z`
+(VWAP_BOUNCE UP; 0AB-B audit).
+
+| Phase | From (CT) | Hierarchy | What the Tutor does |
+|---|---|---|---|
+| BEFORE_SETUP | 08:30 | observe → narrow | location, the multi-bar story, which of the 8 possibilities to eliminate / watch |
+| DEVELOPMENT | 08:35 | compare → missing conditions | what each new bar changed, which conditions are present / missing |
+| DECISION | 08:55 | validity → potential entry | are the deterministic conditions met? entry location only if a state is CANDIDATE / QUALITY_QUALIFIED |
+| POST_REVEAL | 09:00 | review | the progression, what mattered, what was eliminated, what would have invalidated it |
+
+Stages reuse QUESTION / HINT / ANSWER / POST_REVEAL. The server sets POST_REVEAL itself, only in a guided lesson
+at or after its reveal cutoff, and a client cannot claim it earlier. Before the reveal, the lesson block sent to
+the model is outcome-neutral: no instance, family or later bar. `lesson.verify` checks a lesson against the
+prepared frozen analysis before it is offered:
+- the instance completes at the reveal, as the stated family / direction;
+- each stated condition time matches;
+- it is not complete at the start;
+- no pre-reveal text names it.
+
+### Export (A3E, extended)
+
+`TUTOR_SESSION_EXPORT_V2` / `TUTOR_SESSION_EVIDENCE_RECORD_V2`, additive:
+- `turns.csv`: `mode`, `lesson_id`, `lesson_phase`, `lesson_revealed`, `studied_setup` (empty before the reveal),
+  `setup_analysis_state`, `valid_setups_at_cutoff`, `referenced_setups`, `missing_conditions`;
+- `session.json` / `evidence.jsonl`: each turn's lesson as shown at its cutoff and a `setup_summary` (per variant:
+  state, stage, satisfied / missing conditions) read from that turn's own evidence;
+- the manifest lists modes and lessons.
+
+The sanitizer now also redacts the token after `Authorization: Bearer`.
+
+### Live check
+
+`tutor_poc live-smoke --yes [--steps N]` spends real tokens. It runs up to six turns:
+- free chat at 09:00: a question, then "which setups are plausible";
+- guided at 08:30, 08:50 (+ Hint) and 08:55.
+
 ## Future (0AC-A5, not implemented): Tutor chart annotations
 
 The Human wants Tutor actions (Hint, Explain, Show Evidence) to be able to place temporary annotations
@@ -310,8 +453,8 @@ chart library is upgraded.
 
 ## Development dates
 
-Only already-inspected dates are approved: 2026-09-29, 2026-09-30, 2026-10-01, 2026-10-02. A1/A2 enable
-2026-09-30. Each dataset is checked against its recorded sha256 when it is prepared.
+Only already-inspected dates are approved: 2026-09-29, 2026-09-30, 2026-10-01, 2026-10-02. A1–A4 enable
+2026-09-30 (its setup analysis uses 2026-09-29 as the prior day, as the 0AB-B audit did). Each dataset is checked against its recorded sha256 when it is prepared.
 
 ## Tests
 

@@ -11,6 +11,22 @@ import type { ProviderConfig, TurnDiagnostics, TurnRecord } from "./diagnostics"
 export const STAGES = ["QUESTION", "HINT", "ANSWER", "POST_REVEAL"] as const;
 export type Stage = (typeof STAGES)[number];
 export type TutorAction = "question" | "message" | "hint" | "explain";
+export type TutorMode = "free" | "guided";
+
+/** A guided lesson as the server shows it (0AC-A4): neutral title before the reveal, the studied setup after. */
+export interface LessonView {
+  lesson_id: string;
+  version: string;
+  trading_date: string;
+  title: string;
+  start_cutoff_utc: string;
+  locked_semantics: Record<string, string>;
+  phase?: string;
+  phase_label?: string;
+  revealed?: boolean;
+  before_start?: boolean;
+  setup?: { family: string; direction: string; instance_id: string };
+}
 
 export interface TurnResponse {
   turn_id: string;
@@ -26,6 +42,8 @@ export interface TurnResponse {
   error?: string | null;
   grounding?: Grounding | null;
   diagnostics?: TurnDiagnostics;
+  mode?: TutorMode;
+  lesson?: LessonView | null;
 }
 
 /** What the validator accepted: each claim's category and the evidence it cites (server-built). */
@@ -34,6 +52,8 @@ export interface Grounding {
   interpretations: number;
   claims: { category: string; statement: string; cites: { pointer: string; label: string; value: string | number | boolean | null }[] }[];
   unsupported: { support: string; statement: string; missing: string[] }[];
+  referenced_setups?: string[]; // A4: "FAMILY DIRECTION" of every setup row a claim cites
+  missing_conditions?: string[]; // A4: cited conditions that are PENDING / NOT_SATISFIED
 }
 
 const ACCEPTED = new Set(["FAKE", "GROUNDED"]);
@@ -49,6 +69,27 @@ export interface EvidenceItem {
   value: number;
 }
 
+export interface EvidenceBar {
+  start_utc: number;
+  end_utc: number;
+  close: number;
+  vwap: number;
+  upper_1sd: number;
+  lower_1sd: number;
+  upper_2sd: number;
+  lower_2sd: number;
+}
+
+/** The frozen Laboratory setup analysis at the cutoff: the latest instance of each family x direction. */
+export interface EvidenceSetup {
+  family: string;
+  direction: string;
+  instance_id: string;
+  state: string;
+  stage: string;
+  conditions: { order: number; policy_id: string; status: string }[];
+}
+
 export interface Evidence {
   schema: "TUTOR_POC_EVIDENCE_V1";
   trading_date: string;
@@ -56,6 +97,9 @@ export interface Evidence {
   provenance: Record<string, string>;
   latest_bar: { start_utc: number; end_utc: number } | null;
   items: EvidenceItem[];
+  recent_bars?: EvidenceBar[]; // A4: the Tutor's window, each bar with its own bands
+  setups?: EvidenceSetup[];
+  setup_analysis?: { state: string; quality_status: string } | null;
 }
 
 // What a message is for, kept per message (the stage badge only shows the current lesson stage).
@@ -95,14 +139,19 @@ export interface TutorState {
   pending: PendingTurn | null;
   error: string | null;
   turns: TurnRecord[]; // diagnostics of every answered turn, accepted or not
+  mode: TutorMode; // A4
+  lesson: LessonView | null; // the active guided lesson, as last shown by the server
 }
 
-export const INITIAL_TUTOR: TutorState = { messages: [], stage: "QUESTION", nextTurn: 0, pending: null, error: null, turns: [] };
+export const INITIAL_TUTOR: TutorState = {
+  messages: [], stage: "QUESTION", nextTurn: 0, pending: null, error: null, turns: [], mode: "free", lesson: null,
+};
 
 export type TutorEvent =
   | { type: "request"; action: TutorAction; trading_date: string; replay_cutoff_utc: string; text?: string }
   | { type: "reply"; response: TurnResponse }
-  | { type: "fail"; turn: number; error: string };
+  | { type: "fail"; turn: number; error: string }
+  | { type: "mode"; mode: TutorMode; lesson: LessonView | null };
 
 /** The text to send, or null when the message must be rejected (empty / whitespace only). */
 export function messageText(draft: string): string | null {
@@ -133,16 +182,22 @@ export function tutorReducer(state: TutorState, ev: TutorEvent): TutorState {
       const turns = r.diagnostics
         ? [...state.turns, { turn: r.turn, action: p.action, replay_cutoff_utc: r.replay_cutoff_utc, diagnostics: r.diagnostics }]
         : state.turns;
+      // The lesson view follows the server (phase, reveal), for the lesson this page is still in.
+      const lesson = state.mode === "guided" && r.lesson && r.lesson.lesson_id === state.lesson?.lesson_id ? r.lesson
+        : state.lesson;
       if (!isAccepted(r)) {
-        return { ...state, turns, pending: null, error: r.error || "The Tutor could not answer. Please try again." };
+        return { ...state, turns, lesson, pending: null, error: r.error || "The Tutor could not answer. Please try again." };
       }
       const msg: TutorMessage = { id: r.turn_id, role: "tutor", kind: KIND_OF_ACTION[p.action], text: r.text ?? "", stage: r.stage,
         trading_date: r.trading_date, replay_cutoff_utc: r.replay_cutoff_utc, grounding: r.grounding ?? null };
-      return { ...state, messages: [...state.messages, msg], stage: r.stage, pending: null, turns };
+      return { ...state, messages: [...state.messages, msg], stage: r.stage, lesson, pending: null, turns };
     }
     case "fail":
       if (!state.pending || state.pending.turn !== ev.turn) return state;
       return { ...state, pending: null, error: ev.error };
+    case "mode":
+      if (state.pending) return state; // never switch under a turn in flight
+      return { ...state, mode: ev.mode, lesson: ev.mode === "guided" ? ev.lesson : null, stage: "QUESTION", error: null };
   }
 }
 
@@ -203,9 +258,34 @@ export function newSessionId(): string {
   return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/** The request body for a turn: guided turns carry the lesson id; free chat carries none. */
+export function turnBody(
+  state: TutorState,
+  action: TutorAction,
+  replay_cutoff_utc: string,
+  session_id: string,
+  text?: string,
+): TurnBody {
+  const body: TurnBody = { action, replay_cutoff_utc, stage: state.stage, turn: state.nextTurn, session_id, mode: state.mode };
+  if (text !== undefined) body.text = text;
+  if (state.mode === "guided" && state.lesson) body.lesson_id = state.lesson.lesson_id;
+  return body;
+}
+
+export interface TurnBody {
+  action: TutorAction;
+  replay_cutoff_utc: string;
+  stage: Stage;
+  turn: number;
+  text?: string;
+  session_id?: string;
+  mode?: TutorMode;
+  lesson_id?: string;
+}
+
 export async function postTurn(
   date: string,
-  body: { action: TutorAction; replay_cutoff_utc: string; stage: Stage; turn: number; text?: string; session_id?: string },
+  body: TurnBody,
   timeoutMs: number = TURN_TIMEOUT_MS,
 ): Promise<TurnResponse> {
   const ctrl = new AbortController();
@@ -262,6 +342,20 @@ export async function exportSession(date: string, session_id: string, replay_cut
 export function canExport(state: TutorState): boolean {
   return state.turns.length > 0 && state.pending === null;
 }
+
+/** Guided lessons for the date (neutral titles; the setup is never named before the lesson reveals it). */
+export async function fetchLessons(date: string): Promise<LessonView[]> {
+  return ((await json(await fetch(`/api/sessions/${date}/lessons`))) as { lessons: LessonView[] }).lessons;
+}
+
+/** Guided mode asks the Tutor once per replay position; the lesson start is asked once the chart is there. */
+export function guidedAskAt(state: TutorState, cutoff: string | null, lastAsked: string | null, seeking: string | null): boolean {
+  return state.mode === "guided" && state.lesson !== null && cutoff !== null && state.pending === null
+    && cutoff !== lastAsked && (seeking === null || seeking === cutoff);
+}
+
+/** Display: the condition statuses of a setup row as compact marks (the server's statuses, never derived). */
+export const CONDITION_MARK: Record<string, string> = { SATISFIED: "✓", PENDING: "…", NOT_SATISFIED: "✗", NOT_AVAILABLE: "–" };
 
 export async function fetchConfig(): Promise<ProviderConfig> {
   return (await json(await fetch("/api/tutor/config"))) as ProviderConfig;

@@ -10,6 +10,7 @@ import {
   type TurnRecord,
 } from "./diagnostics";
 import {
+  CONDITION_MARK,
   INITIAL_TUTOR,
   canExport,
   conversationRows,
@@ -20,11 +21,15 @@ import {
   exportSession,
   fetchConfig,
   fetchEvidence,
+  fetchLessons,
+  guidedAskAt,
   messageText,
   newSessionId,
   postTurn,
+  turnBody,
   tutorReducer,
   type Evidence,
+  type LessonView,
   type TutorAction,
   type TutorMessage,
   type TutorState,
@@ -36,10 +41,12 @@ interface Props {
   date: string | null;
   cutoff: string | null; // the replay position currently on the chart (the Tutor context)
   style?: CSSProperties; // pane width from the divider
+  onSeek?: (cutoff: string) => void; // move the chart (a guided lesson starts at its own cutoff)
+  onLessonChange?: (lesson: LessonView | null) => void;
 }
 
 /** Container: owns the conversation and talks to the server. */
-export function TutorPane({ date, cutoff, style }: Props) {
+export function TutorPane({ date, cutoff, style, onSeek, onLessonChange }: Props) {
   const [state, dispatch] = useReducer(tutorReducer, INITIAL_TUTOR);
   const [draft, setDraft] = useState("");
   const [evidenceOpen, setEvidenceOpen] = useState(false);
@@ -53,6 +60,20 @@ export function TutorPane({ date, cutoff, style }: Props) {
   const [config, setConfig] = useState<ProviderConfig | null>(null);
   const [elapsedS, setElapsedS] = useState(0);
   const [exportStatus, setExportStatus] = useState<ExportStatus>(null);
+  const [lessons, setLessons] = useState<LessonView[]>([]);
+  const lastAsked = useRef<string | null>(null); // guided mode: the replay position the Tutor last asked about
+  const seeking = useRef<string | null>(null); // guided mode: the lesson start the chart is moving to
+
+  useEffect(() => {
+    if (!date) return;
+    let live = true;
+    fetchLessons(date)
+      .then((l) => live && setLessons(l))
+      .catch(() => live && setLessons([]));
+    return () => {
+      live = false;
+    };
+  }, [date]);
 
   useEffect(() => {
     fetchConfig()
@@ -76,8 +97,9 @@ export function TutorPane({ date, cutoff, style }: Props) {
       if (!date || !cutoff || s.pending || inflight.current) return false;
       inflight.current = true;
       const turn = s.nextTurn;
+      const body = turnBody(s, action, cutoff, sessionId.current, text);
       dispatch({ type: "request", action, trading_date: date, replay_cutoff_utc: cutoff, text });
-      postTurn(date, { action, replay_cutoff_utc: cutoff, stage: s.stage, turn, text, session_id: sessionId.current })
+      postTurn(date, body)
         .then((response) => dispatch({ type: "reply", response }))
         .catch((e) => dispatch({ type: "fail", turn, error: String(e) }))
         .finally(() => {
@@ -95,6 +117,29 @@ export function TutorPane({ date, cutoff, style }: Props) {
       request("question");
     }
   }, [date, cutoff, request]);
+
+  // Guided lesson (A4): the Tutor speaks at every replay position the Human moves to, connecting it to the lesson.
+  useEffect(() => {
+    if (!guidedAskAt(state, cutoff, lastAsked.current, seeking.current)) return;
+    if (request("question")) {
+      lastAsked.current = cutoff;
+      seeking.current = null;
+    }
+  }, [state, cutoff, request]);
+
+  useEffect(() => onLessonChange?.(state.mode === "guided" ? state.lesson : null), [state.mode, state.lesson, onLessonChange]);
+
+  const startLesson = (l: LessonView) => {
+    if (stateRef.current.pending) return;
+    lastAsked.current = null;
+    seeking.current = l.start_cutoff_utc;
+    dispatch({ type: "mode", mode: "guided", lesson: l });
+    if (cutoff !== l.start_cutoff_utc) onSeek?.(l.start_cutoff_utc);
+  };
+  const endLesson = () => {
+    seeking.current = null;
+    dispatch({ type: "mode", mode: "free", lesson: null });
+  };
 
   useEffect(() => {
     if (!evidenceOpen || !date || !cutoff) return;
@@ -143,6 +188,9 @@ export function TutorPane({ date, cutoff, style }: Props) {
       onToggleEvidence={() => setEvidenceOpen((v) => !v)}
       onExport={onExport}
       exportStatus={exportStatus}
+      lessons={lessons}
+      onStartLesson={startLesson}
+      onEndLesson={endLesson}
     />
   );
 }
@@ -202,6 +250,10 @@ function GroundingDetails({ grounding: g }: { grounding: NonNullable<TutorMessag
           </li>
         ))}
       </ul>
+      {g.referenced_setups?.length ? <div className="grounding-setups">Setups cited: {g.referenced_setups.join(", ")}</div> : null}
+      {g.missing_conditions?.length ? (
+        <div className="grounding-setups">Missing conditions cited: {g.missing_conditions.join(", ")}</div>
+      ) : null}
     </details>
   );
 }
@@ -278,6 +330,78 @@ interface ViewProps {
   onToggleEvidence: () => void;
   onExport?: () => void;
   exportStatus?: ExportStatus;
+  lessons?: LessonView[];
+  onStartLesson?: (l: LessonView) => void;
+  onEndLesson?: () => void;
+}
+
+/** The guided-lesson bar: mode, neutral title (the setup only after the reveal), phase and the semantics lock. */
+function LessonBar({ lesson, onEnd, busy }: { lesson: LessonView; onEnd?: () => void; busy: boolean }) {
+  const lock = Object.entries(lesson.locked_semantics).map(([k, v]) => `${k === "vwap_anchor" ? "VWAP anchor" : k} ${v}`);
+  return (
+    <div className="lesson-bar" role="status">
+      <span className="lesson-mode">Guided Lesson</span>
+      <span className="lesson-title" title={lesson.lesson_id}>{lesson.title}</span>
+      {lesson.phase_label && <span className="lesson-phase">{lesson.phase_label}</span>}
+      <span className="lesson-lock" title="Study semantics locked by this lesson">🔒 {lock.join(" · ")} (locked by lesson)</span>
+      <button className="link" onClick={onEnd} disabled={busy || !onEnd}>End lesson</button>
+    </div>
+  );
+}
+
+/** The frozen setup analysis at the cutoff (Show Evidence): state, stage and condition marks per instance. */
+function SetupTable({ ev }: { ev: Evidence }) {
+  if (!ev.setups) return null;
+  return (
+    <div className="evidence-setups">
+      <div className="evidence-col-title">
+        Drysdale setups (Laboratory V1){ev.setup_analysis ? ` · analysis ${ev.setup_analysis.state} · ${ev.setup_analysis.quality_status}` : ""}
+      </div>
+      {ev.setups.length ? (
+        <table>
+          <tbody>
+            {ev.setups.map((x) => (
+              <tr key={`${x.family}-${x.direction}`} className={`setup-state-${x.state}`}>
+                <td>{x.family} {x.direction}</td>
+                <td>{x.state}</td>
+                <td>{x.stage}</td>
+                <td title={x.conditions.map((c) => `${c.order} ${c.policy_id}: ${c.status}`).join("\n")}>
+                  {x.conditions.map((c) => CONDITION_MARK[c.status] ?? "?").join(" ")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="hint">No setup instance in this session so far.</div>
+      )}
+    </div>
+  );
+}
+
+/** The bars the Tutor sees, each with its own as-of bands (Show Evidence). */
+function RecentBars({ ev }: { ev: Evidence }) {
+  if (!ev.recent_bars?.length) return null;
+  return (
+    <table className="evidence-bars">
+      <thead>
+        <tr><th>Bar</th><th>Close</th><th>−2σ</th><th>−1σ</th><th>VWAP</th><th>+1σ</th><th>+2σ</th></tr>
+      </thead>
+      <tbody>
+        {ev.recent_bars.map((b) => (
+          <tr key={b.start_utc}>
+            <td>{formatCt(b.start_utc)}</td>
+            <td>{b.close.toFixed(2)}</td>
+            <td>{b.lower_2sd.toFixed(2)}</td>
+            <td>{b.lower_1sd.toFixed(2)}</td>
+            <td>{b.vwap.toFixed(2)}</td>
+            <td>{b.upper_1sd.toFixed(2)}</td>
+            <td>{b.upper_2sd.toFixed(2)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }
 
 /** Presentation only (rendered in tests without a browser). */
@@ -316,6 +440,13 @@ export function TutorView(p: ViewProps) {
         <span className="stage-badge" data-stage={state.stage}>
           {state.stage}
         </span>
+        {state.mode === "free" && (p.lessons?.length ?? 0) > 0 && (
+          <button className="link start-lesson" disabled={busy || !p.onStartLesson}
+            onClick={() => p.lessons && p.onStartLesson?.(p.lessons[0])}
+            title={`Start a guided Drysdale lesson: ${p.lessons?.[0].title ?? ""}`}>
+            Start Guided Lesson
+          </button>
+        )}
         <button className="link export" disabled={!canExport(state) || !!p.exportStatus?.busy || !p.onExport}
           onClick={p.onExport}
           title={state.turns.length ? "Download this session (transcript, turns, evidence, market context) as a ZIP"
@@ -326,7 +457,10 @@ export function TutorView(p: ViewProps) {
       {p.exportStatus && (
         <div className={`export-status${p.exportStatus.error ? " error" : ""}`} role="status">{p.exportStatus.text}</div>
       )}
-      <div className="tutor-context">Tutor context: replay {cutoff ? ct(cutoff) : "—"}</div>
+      {state.mode === "guided" && state.lesson && <LessonBar lesson={state.lesson} onEnd={p.onEndLesson} busy={state.pending !== null} />}
+      <div className="tutor-context">
+        Tutor context: replay {cutoff ? ct(cutoff) : "—"} · {state.mode === "guided" ? "guided lesson" : "free chat"}
+      </div>
 
       <div className="tutor-log" ref={logRef} aria-live="polite">
         {conversationRows(state.messages).map((row) =>
@@ -373,7 +507,9 @@ export function TutorView(p: ViewProps) {
               ) : (
                 <div className="hint">No completed bar at this replay position.</div>
               )}
-              <div className="hint">From the Laboratory replay snapshot feeding the chart (as of the cutoff).</div>
+              <RecentBars ev={p.evidence} />
+              <SetupTable ev={p.evidence} />
+              <div className="hint">From the Laboratory replay snapshot feeding the chart and the frozen setup analysis (as of the cutoff).</div>
             </>
           ) : p.evidenceError ? (
             <div className="error">{p.evidenceError}</div>

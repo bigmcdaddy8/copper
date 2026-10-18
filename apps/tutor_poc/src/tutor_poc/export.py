@@ -37,8 +37,8 @@ from tutor_poc.evidence import _level, _price, close_region, close_vs_vwap
 from tutor_poc.providers import TurnContext, TurnResult, _history, _usd, usage_dict
 from tutor_poc.timeline import STEP, ChartTimeline
 
-EXPORT_SCHEMA = "TUTOR_SESSION_EXPORT_V1"
-EVIDENCE_RECORD_SCHEMA = "TUTOR_SESSION_EVIDENCE_RECORD_V1"
+EXPORT_SCHEMA = "TUTOR_SESSION_EXPORT_V2"  # A4 (additive): mode, guided lesson, setup state per turn
+EVIDENCE_RECORD_SCHEMA = "TUTOR_SESSION_EVIDENCE_RECORD_V2"
 MARKET_CONTEXT_SCHEMA = "TUTOR_SESSION_MARKET_CONTEXT_V1"
 REVIEW_PROMPT = "docs/dicks_laboratory/TUTOR_SESSION_REVIEW_PROMPT.md"
 CT = ZoneInfo("America/Chicago")
@@ -56,21 +56,24 @@ FILES = (
 
 TURN_COLUMNS = (
     "turn_id", "client_turn", "requested_at_utc", "answered_at_utc", "trading_date", "replay_cutoff_ct",
-    "replay_cutoff_utc", "role", "action", "message_kind", "lesson_stage_before", "lesson_stage", "status",
+    "replay_cutoff_utc", "role", "action", "message_kind", "lesson_stage_before", "lesson_stage", "mode", "lesson_id",
+    "lesson_phase", "lesson_revealed", "studied_setup", "status",
     "final_accepted", "failure_category", "error", "attempts", "repair_attempts", "provider", "model", "served_model",
     "effort", "prompt_version", "prompt_sha", "pricing_version", "input_tokens", "output_tokens", "cached_tokens",
     "cache_write_tokens", "total_input_tokens", "evidence_bytes", "request_bytes", "evidence_latency_ms",
     "model_latency_ms", "validation_latency_ms", "total_latency_ms", "fallback_used", "turn_cost_usd",
     "session_cost_usd_after_turn", "observed_facts", "derived_facts", "interpretations", "unsupported_claims",
-    "checked_refs", "human_text", "text",
+    "checked_refs", "setup_analysis_state", "valid_setups_at_cutoff", "referenced_setups", "missing_conditions",
+    "human_text", "text",
 )
 
 # Values are the Laboratory's bars as known at `values_as_of_ct` (the latest visited replay cutoff), the same
 # values the chart draws there. As-of semantics: a late print can revise a bar after it completed, so
 # `revised_after_completion` flags bars whose values changed since the cutoff at which they completed, with the
 # close / VWAP known then (what a Tutor turn at that cutoff saw; evidence.jsonl has every turn's exact values).
-# Band columns are each bar's levels at its close; the A3 Tutor evidence gives bands for the latest bar only, and
-# `tutor_evidence` says how each bar appeared to the Tutor (latest / recent / not at all).
+# Band columns are each bar's levels at its close; from A4 the Tutor evidence gives every window bar its own bands
+# (A3 gave them for the latest bar only), and `tutor_evidence` says how each bar appeared to the Tutor (latest /
+# recent / not at all).
 MARKET_COLUMNS = (
     "bar_start_ct", "bar_end_ct", "bar_start_utc", "bar_end_utc", "open", "high", "low", "close", "volume", "vwap",
     "plus_1_sigma", "minus_1_sigma", "plus_2_sigma", "minus_2_sigma", "close_vs_vwap", "close_minus_vwap",
@@ -161,6 +164,10 @@ def _bars_seen(ev: dict | None) -> dict[str, str]:
     """{bar start HH:MM CT: 'latest' | 'recent'} for the bars an evidence object contains."""
     if not ev:
         return {}
+    if ev.get("schema") == "TUTOR_POC_MODEL_EVIDENCE_V2":
+        rows = ev["LESSON_TIME"]["bars"]["rows"]
+        col = ev["LESSON_TIME"]["bars"]["columns"].index("start_ct")
+        return {r[col]: "latest" if r[0] == "/latest_bar" else "recent" for r in rows}
     if "items" in ev and ev.get("schema") == "TUTOR_POC_MODEL_EVIDENCE_V1":
         seen = {}
         for it in ev["items"]:
@@ -169,9 +176,60 @@ def _bars_seen(ev: dict | None) -> dict[str, str]:
             elif it["pointer"].startswith("/recent_bars/") and it["pointer"].endswith("/start_ct"):
                 seen.setdefault(it["value"], "recent")
         return seen
-    if ev.get("latest_bar"):  # A2 snapshot evidence (fake provider): the latest bar only
-        return {datetime.fromtimestamp(ev["latest_bar"]["start_utc"], CT).strftime("%H:%M"): "latest"}
+    if ev.get("latest_bar"):  # A2 snapshot evidence (fake provider): the latest bar (and, from A4, recent bars)
+        seen = {datetime.fromtimestamp(b["start_utc"], CT).strftime("%H:%M"): "recent" for b in ev.get("recent_bars", ())}
+        return seen | {datetime.fromtimestamp(ev["latest_bar"]["start_utc"], CT).strftime("%H:%M"): "latest"}
     return {}
+
+
+def setup_summary(ev: dict | None) -> list[dict]:
+    """Per family x direction at the turn's cutoff, from the turn's own evidence: state, satisfied / missing."""
+    if not ev:
+        return []
+    if ev.get("schema") == "TUTOR_POC_MODEL_EVIDENCE_V2":
+        d = ev["DRYSDALE"]
+        cols, ccols = d["setups"]["columns"], d["conditions"]["columns"]
+        conds: dict[str, list[dict]] = {}
+        for row in d["conditions"]["rows"]:
+            c = dict(zip(ccols, row, strict=True))
+            conds.setdefault(c["pointer"].rsplit("/conditions/", 1)[0], []).append(c)
+        rows = []
+        for row in d["setups"]["rows"]:
+            r = dict(zip(cols, row, strict=True))
+            r["conditions"] = conds.get(r["pointer"], [])
+            rows.append(r)
+    else:  # A2 snapshot evidence (fake provider)
+        rows = [r | {"instance_exists": True} for r in ev.get("setups", ())]
+    out = []
+    for r in rows:
+        if not r.get("instance_exists"):
+            continue
+        out.append({"family": r["family"], "direction": r["direction"], "instance_id": r["instance_id"],
+                    "state": r["state"], "stage": r["stage"],
+                    "satisfied": [c["policy_id"] for c in r["conditions"] if c["status"] == "SATISFIED"],
+                    "missing": [f"{c['policy_id']}:{c['status']}" for c in r["conditions"] if c["status"] != "SATISFIED"]})
+    return out
+
+
+def _valid(ev: dict | None) -> list[str]:
+    return [f"{x['family']} {x['direction']}" for x in setup_summary(ev) if x["state"] in ("CANDIDATE",
+                                                                                          "QUALITY_QUALIFIED")]
+
+
+def _analysis_state(ev: dict | None) -> str | None:
+    if not ev:
+        return None
+    if ev.get("schema") == "TUTOR_POC_MODEL_EVIDENCE_V2":
+        return next((i[1] for i in ev["DRYSDALE"]["items"] if i[0] == "/analysis/state"), None)
+    return (ev.get("setup_analysis") or {}).get("state")
+
+
+def _lesson_cols(r: TurnRecord) -> dict:
+    g = r.lesson or {}
+    s = g.get("setup")
+    return {"mode": r.mode, "lesson_id": g.get("lesson_id"), "lesson_phase": g.get("phase"),
+            "lesson_revealed": g.get("revealed") if g else None,
+            "studied_setup": f"{s['family']} {s['direction']} {s['instance_id']}" if s else None}
 
 
 def _csv(columns: Iterable[str], rows: Iterable[Mapping]) -> str:
@@ -192,7 +250,7 @@ def _json(obj) -> str:
 _SECRET_NAME = re.compile(r"KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH", re.I)
 _SECRET_SHAPES = (
     re.compile(r"sk-ant-[A-Za-z0-9_\-]{8,}"),
-    re.compile(r"(?i)\b(authorization|x-api-key|api[_-]?key)\s*[:=]\s*\S+"),
+    re.compile(r"(?i)\b(authorization|x-api-key|api[_-]?key)\s*[:=]\s*(bearer\s+)?\S+"),  # A4: the token too
     re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._\-]{16,}"),
 )
 REDACTED = "[REDACTED]"
@@ -276,6 +334,8 @@ def build_export(records: Iterable[TurnRecord], tl: ChartTimeline, export_index:
         "turn_count": len(recs), "accepted_turns": accepted, "failed_turns": len(recs) - accepted,
         "dropped_turns": dropped_turns, "totals": totals,
         "persistence": "in memory only: a page reload or a server restart starts a new session",
+        "modes": sorted({r.mode for r in recs}),
+        "lessons": sorted({r.lesson["lesson_id"] for r in recs if r.lesson}),
     }
     evidence_lines = [_evidence_record(r) for r in recs]
     market_rows = _market_rows(tl, recs, scope_cutoff)
@@ -300,7 +360,8 @@ def build_export(records: Iterable[TurnRecord], tl: ChartTimeline, export_index:
         "filename_policy": "first Tutor turn's replay cutoff - replay cutoff at export (Chicago time)",
         "provider": meta["provider"], "model": meta["model"], "prompt_version": meta["prompt_version"],
         "pricing_version": meta["pricing_version"], "turns": len(recs), "evidence_records": len(evidence_lines),
-        "market_bars": len(market_rows), "dropped_turns": dropped_turns,
+        "market_bars": len(market_rows), "dropped_turns": dropped_turns, "modes": meta["modes"],
+        "lessons": meta["lessons"],
         "campaign_data_included": False, "contains_secrets": False, "redactions": redactions,
         "review_prompt": REVIEW_PROMPT,
         "files": [{"name": n, "purpose": p} | ({"sha256": hashlib.sha256(members[n].encode()).hexdigest(),
@@ -359,13 +420,14 @@ def _turn_json(r: TurnRecord) -> dict:
             "answered_at_utc": _iso(r.answered_at), "trading_date": r.trading_date.isoformat(),
             "replay_cutoff_ct": _ct(r.replay_cutoff_utc), "replay_cutoff_utc": _iso(r.replay_cutoff_utc),
             "action": r.action, "message_kind": r.kind, "lesson_stage_before": r.stage_before,
-            "lesson_stage": r.stage_after, "status": r.status, "final_accepted": _accepted(r),
+            "lesson_stage": r.stage_after, "mode": r.mode, "lesson": r.lesson, "status": r.status,
+            "final_accepted": _accepted(r),
             "repair_attempted": d.get("repair_attempts", 0) > 0, "repair_attempts": d.get("repair_attempts", 0),
             "failure_category": None if _accepted(r) else r.status, "error_shown": r.error,
             "message_ids": ([f"{turn_id(r)}-human"] if r.human_text is not None else [])
             + ([f"{turn_id(r)}-tutor"] if _accepted(r) else []),
             "grounding_counts": _counts(r.grounding) if r.grounding else None, "grounding": r.grounding,
-            "diagnostics": d, "attempts": list(r.attempts),
+            "diagnostics": d, "attempts": list(r.attempts), "setup_summary": setup_summary(r.evidence),
             "evidence_ref": {"file": "evidence.jsonl", "turn_id": turn_id(r), "evidence_sha256": _evidence_sha(r.evidence)}}
 
 
@@ -379,7 +441,7 @@ def _turn_row(r: TurnRecord) -> dict:
             "answered_at_utc": _iso(r.answered_at), "trading_date": r.trading_date.isoformat(),
             "replay_cutoff_ct": _ct(r.replay_cutoff_utc), "replay_cutoff_utc": _iso(r.replay_cutoff_utc),
             "role": "tutor", "action": r.action, "message_kind": r.kind, "lesson_stage_before": r.stage_before,
-            "lesson_stage": r.stage_after, "status": r.status, "final_accepted": _accepted(r),
+            "lesson_stage": r.stage_after, **_lesson_cols(r), "status": r.status, "final_accepted": _accepted(r),
             "failure_category": None if _accepted(r) else r.status, "error": r.error,
             "attempts": d.get("attempts"), "repair_attempts": d.get("repair_attempts"), "provider": d.get("provider"),
             "model": d.get("model"), "served_model": d.get("served_model"), "effort": d.get("effort"),
@@ -392,16 +454,19 @@ def _turn_row(r: TurnRecord) -> dict:
             "validation_latency_ms": lat.get("validation"), "total_latency_ms": lat.get("total"),
             "fallback_used": d.get("fallback_used"), "turn_cost_usd": d.get("turn_cost_usd"),
             "session_cost_usd_after_turn": (d.get("session") or {}).get("cost_usd"), **g,
+            "setup_analysis_state": _analysis_state(r.evidence), "valid_setups_at_cutoff": "; ".join(_valid(r.evidence)),
+            "referenced_setups": "; ".join((r.grounding or {}).get("referenced_setups", [])),
+            "missing_conditions": "; ".join((r.grounding or {}).get("missing_conditions", [])),
             "human_text": r.human_text, "text": r.tutor_text}
 
 
 def _evidence_record(r: TurnRecord) -> dict:
     return {"schema": EVIDENCE_RECORD_SCHEMA, "turn_id": turn_id(r), "client_turn": r.client_turn,
             "trading_date": r.trading_date.isoformat(), "replay_cutoff_ct": _ct(r.replay_cutoff_utc),
-            "replay_cutoff_utc": _iso(r.replay_cutoff_utc), "action": r.action,
+            "replay_cutoff_utc": _iso(r.replay_cutoff_utc), "action": r.action, "mode": r.mode, "lesson": r.lesson,
             "provider": r.diagnostics.get("provider"),
             "evidence_schema_version": (r.evidence or {}).get("schema"), "evidence_sha256": _evidence_sha(r.evidence),
-            "evidence": r.evidence,
+            "evidence": r.evidence, "setup_summary": setup_summary(r.evidence),
             "conversation_context": {"sent_to_model": r.status != "FAKE",
                                      "messages": list(r.context)},
             "grounding_result": {"status": r.status, "final_accepted": _accepted(r),
@@ -463,6 +528,8 @@ def _markdown(meta: dict, recs: list[TurnRecord]) -> str:
         f"Effort: {meta['effort'] or 'n/a'}  ",
         f"Prompt version: {meta['prompt_version'] or 'n/a'}  ",
         f"Pricing version: {meta['pricing_version'] or 'n/a'}  ",
+        f"Modes: {', '.join(meta['modes'])}" + (f" · guided lessons: {', '.join(meta['lessons'])}" if meta["lessons"]
+                                                else "") + "  ",
         f"Total turns: {meta['turn_count']} ({meta['accepted_turns']} accepted, {meta['failed_turns']} failed)  ",
         f"Model calls: {t.get('model_calls', 0)}  ",
         f"Total cost: {_usd_text(t.get('cost_usd'))}"
@@ -489,6 +556,13 @@ def _markdown(meta: dict, recs: list[TurnRecord]) -> str:
             lines += ["", f"### Tutor — {head} (not shown: {r.status})", "", f"Error shown to the Human: {r.error}"]
         lines += ["", f"Turn {turn_id(r)} · stage {r.stage_before} → {r.stage_after} · status {r.status} · "
                       f"wall clock {_iso(r.answered_at)}"]
+        if r.lesson:
+            g = r.lesson
+            lines.append(f"Guided lesson {g['lesson_id']} · {g['title']} · phase {g['phase']}"
+                         + (" · revealed" if g.get("revealed") else ""))
+        valid = _valid(r.evidence)
+        lines.append(f"Setup analysis at this cutoff: {_analysis_state(r.evidence) or 'n/a'} · valid setups: "
+                     f"{', '.join(valid) if valid else 'none'}")
         if r.grounding:
             c = _counts(r.grounding)
             lines += ["", "Grounding:", f"- {_plural(c['observed_facts'], 'observed fact')}",
@@ -496,6 +570,10 @@ def _markdown(meta: dict, recs: list[TurnRecord]) -> str:
                       f"- {_plural(c['interpretations'], 'interpretation')}"]
             if c["unsupported_claims"]:
                 lines.append(f"- {_plural(c['unsupported_claims'], 'claim')} marked not in evidence")
+            if r.grounding.get("referenced_setups"):
+                lines.append(f"- setups cited: {', '.join(r.grounding['referenced_setups'])}")
+            if r.grounding.get("missing_conditions"):
+                lines.append(f"- missing conditions cited: {', '.join(r.grounding['missing_conditions'])}")
         lines += ["", "Diagnostics:", *_diag_lines(r)]
     return "\n".join(lines) + "\n"
 

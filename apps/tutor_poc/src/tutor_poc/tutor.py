@@ -15,7 +15,7 @@ from enum import StrEnum
 from typing import Protocol
 from zoneinfo import ZoneInfo
 
-from dicks_laboratory.tutor_evidence import AS_OF, STAGE_ORDER, LessonStage
+from dicks_laboratory.tutor_evidence import AS_OF, RECENT_BARS, STAGE_ORDER, LessonStage
 
 from tutor_poc.snapshot import SNAPSHOT_SCHEMA, build_snapshot
 from tutor_poc.timeline import ChartTimeline
@@ -51,16 +51,31 @@ _SERIES_FIELDS = (("vwap", "VWAP"), ("upper_1sd", "+1σ"), ("lower_1sd", "−1σ
                   ("lower_2sd", "−2σ"))
 
 
-def snapshot_evidence(tl: ChartTimeline, index: int) -> dict:
-    """The latest completed bar of the chart snapshot at `index`, with its provenance. Nothing else."""
+def _setups(setup: dict | None) -> list[dict]:
+    """A4: the frozen setup analysis at the same cutoff (latest instance per family x direction), for display."""
+    if setup is None:
+        return []
+    return [{"family": c["family"], "direction": c["direction"], "instance_id": c["candidate_id"], "state": c["state"],
+             "stage": c["stage"], "conditions": [{"order": k["order"], "policy_id": k["policy_id"], "status": k["status"]}
+                                                 for k in c["conditions"]]} for c in setup["latest"]]
+
+
+def snapshot_evidence(tl: ChartTimeline, index: int, setup: dict | None = None) -> dict:
+    """The latest completed bar of the chart snapshot at `index`, with its provenance; from A4 also the recent bars
+    with their own bands and the frozen setup state at the same cutoff. Nothing later."""
     s = build_snapshot(tl, index)
     ev = {"schema": EVIDENCE_SCHEMA, "trading_date": s["trading_date"], "replay_cutoff_utc": s["replay"]["cutoff_utc"],
           "provenance": {"snapshot_schema": SNAPSHOT_SCHEMA, "evidence_temporality": AS_OF,
                          "band_policy": s["study"]["band_policy"], "vwap_anchor": s["study"]["vwap_anchor"],
                          **s["source"]},
-          "latest_bar": None, "items": []}
+          "latest_bar": None, "items": [], "recent_bars": [], "setups": _setups(setup),
+          "setup_analysis": None if setup is None else {"state": setup["state"], "quality_status": setup["status"]}}
     if not s["candles"]:
         return ev
+    series = {x["id"]: x["points"] for x in s["series"]}
+    ev["recent_bars"] = [{"start_utc": c["time"], "end_utc": c["end_time"], "close": c["close"],
+                          **{k: series[k][i]["value"] for k, _ in _SERIES_FIELDS}}
+                         for i, c in list(enumerate(s["candles"]))[-RECENT_BARS:]]
     c = s["candles"][-1]
     last = {x["id"]: x["points"][-1]["value"] for x in s["series"]}
     ev["latest_bar"] = {"start_utc": c["time"], "end_utc": c["end_time"]}

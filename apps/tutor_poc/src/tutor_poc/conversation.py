@@ -88,6 +88,8 @@ class TurnRecord:
     evidence: dict | None  # the exact evidence object the provider was given
     context: tuple[dict, ...] = ()  # conversation messages available to the provider: role, kind, cutoff, chars
     attempts: tuple[dict, ...] = ()  # per model call: status, issue codes, usage... (no response text)
+    mode: str = "free"  # A4: free | guided
+    lesson: dict | None = None  # A4: the lesson as shown at this cutoff (neutral title, phase; setup from the reveal)
 
 
 @dataclass

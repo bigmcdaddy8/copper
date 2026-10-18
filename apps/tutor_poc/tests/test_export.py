@@ -27,6 +27,8 @@ from test_real_provider import (  # noqa: F401  (fixtures: doc0900, good, regist
     ct,
     doc0900,
     good,
+    good_hint,
+    load_setups,
     no_network,
     post,
     registry,
@@ -62,7 +64,8 @@ def app_client(fx_timeline, registry, provider):
         assert s.trading_date == CUR
         return fx_timeline
 
-    return TestClient(create_app(registry, load, web_dist=None, provider=provider, clock=Clock()))
+    return TestClient(create_app(registry, load, web_dist=None, provider=provider, clock=Clock(),
+                                 load_setups=load_setups))
 
 
 def do_export(c, at, session=SESSION, d=CUR, status=200):
@@ -106,12 +109,12 @@ def fake_session(fx_timeline, registry, no_network):
 
 
 @pytest.fixture
-def real_session(fx_timeline, registry, doc0900, good, no_network):
+def real_session(fx_timeline, registry, doc0900, good, good_hint, no_network):
     """Grounded / failed after a repair / repaired / grounded at 09:05 / provider timeout, with scripted usage."""
     bad = HALLUCINATIONS["prose"](doc0900["latest_bar"])
     client = ScriptedClient(reply(good, Usage(1000, 200, 3000, 0), latency=2.0),
                             reply(bad, Usage(900, 300, 3000, 0)), reply(bad, Usage(950, 310, 3000, 0)),
-                            reply(bad, Usage(800, 150, 3000, 0)), reply(good, Usage(820, 160, 3000, 0)),
+                            reply(bad, Usage(800, 150, 3000, 0)), reply(good_hint, Usage(820, 160, 3000, 0)),
                             reply(answer_at(9, 5), Usage(700, 120, 3000, 0)), ProviderTimeout("slow"))
     c = app_client(fx_timeline, registry, GroundedProvider(client, "low"))
     s9, s95 = ct(CUR, 9, 0), ct(CUR, 9, 5)
@@ -141,7 +144,7 @@ def test_markdown_preserves_exact_texts_labels_cutoffs(fake_session):
 def test_markdown_carries_real_diagnostics_grounding_and_failures(real_session):
     c, shown, _ = real_session
     md = unzip(do_export(c, ct(CUR, 9, 5)))["session.md"]
-    assert "Model: claude-opus-5-5" in md and "Prompt version: TUTOR_POC_SYSTEM_V1" in md
+    assert "Model: claude-opus-5-5" in md and "Prompt version: TUTOR_POC_SYSTEM_V2_DRYSDALE" in md
     assert "Grounding:\n- 1 observed fact\n- 2 derived facts\n- 1 interpretation" in md
     assert "- turn cost: $0.0086 · session cost after turn: $0.0086" in md
     assert "### Tutor — Reply (not shown: GROUNDING_FAILED)" in md
@@ -157,11 +160,11 @@ def test_markdown_carries_real_diagnostics_grounding_and_failures(real_session):
 def test_json_is_versioned_with_metadata_ordering_and_positions(real_session):
     c, shown, _ = real_session
     j = json.loads(unzip(do_export(c, ct(CUR, 9, 5)))["session.json"])
-    assert j["schema_version"] == "TUTOR_SESSION_EXPORT_V1"
+    assert j["schema_version"] == "TUTOR_SESSION_EXPORT_V2"
     s = j["session"]
     assert (s["instrument"], s["trading_date"], s["provider"], s["model"], s["effort"]) == (
         "/ES", CUR.isoformat(), "anthropic", MODEL, "low")
-    assert s["prompt_version"] == "TUTOR_POC_SYSTEM_V1" and s["pricing_version"]
+    assert s["prompt_version"] == "TUTOR_POC_SYSTEM_V2_DRYSDALE" and s["pricing_version"]
     assert s["wall_clock"]["started_at_utc"] == T0.isoformat()  # the first turn's request time
     assert s["replay"]["first_turn_cutoff_ct"] == "09:00" and s["replay"]["export_cutoff_ct"] == "09:05"
     assert s["totals"] == shown[-1]["diagnostics"]["session"]  # the values the UI showed, not recomputed
@@ -218,7 +221,7 @@ def test_evidence_is_the_exact_object_each_model_call_received(real_session):
     assert [e["evidence"] for e in ev] == [sent[0], sent[1], sent[3], sent[5], sent[6]]
     assert sent[1] == sent[2] and sent[3] == sent[4]  # a repair uses the same evidence
     for e in ev:
-        assert e["evidence_schema_version"] == "TUTOR_POC_MODEL_EVIDENCE_V1"
+        assert e["evidence_schema_version"] == "TUTOR_POC_MODEL_EVIDENCE_V2"
         assert e["evidence"]["replay_cutoff_ct"] == e["replay_cutoff_ct"]
         assert e["evidence_sha256"] == hashlib.sha256(export.canonical_json(e["evidence"]).encode()).hexdigest()
     assert ev[1]["grounding_result"]["attempts"][0]["issues"][0]["code"] == "UNGROUNDED_NUMBER"
@@ -230,7 +233,8 @@ def test_earlier_turns_never_contain_later_evidence(real_session):
     c, _, _ = real_session
     ev = evidence_lines(unzip(do_export(c, ct(CUR, 9, 5))))
     for e in ev:
-        ends = [i["value"] for i in e["evidence"]["items"] if i["pointer"].endswith("/end_ct")]
+        bars = e["evidence"]["LESSON_TIME"]["bars"]
+        ends = [row[bars["columns"].index("end_ct")] for row in bars["rows"]]
         assert ends and max(ends) <= e["replay_cutoff_ct"]
         assert all(m["replay_cutoff_ct"] <= e["replay_cutoff_ct"] for m in e["conversation_context"]["messages"])
     assert ev[0]["evidence"] != ev[3]["evidence"]
@@ -282,7 +286,7 @@ def test_manifest_lists_files_flags_and_correct_hashes(fake_session):
     assert z.namelist() == FILES
     man = json.loads(z.read("manifest.json"))
     assert [f["name"] for f in man["files"]] == FILES
-    assert man["export_schema_version"] == "TUTOR_SESSION_EXPORT_V1"
+    assert man["export_schema_version"] == "TUTOR_SESSION_EXPORT_V2"
     assert man["campaign_data_included"] is False and man["contains_secrets"] is False
     for f in man["files"][:-1]:
         data = z.read(f["name"])
