@@ -11,11 +11,13 @@ import {
 } from "./diagnostics";
 import {
   INITIAL_TUTOR,
+  canExport,
   conversationRows,
   cutoffSecondsOf,
   evidenceColumns,
   kindLabel,
   evidenceFor,
+  exportSession,
   fetchConfig,
   fetchEvidence,
   messageText,
@@ -50,6 +52,7 @@ export function TutorPane({ date, cutoff, style }: Props) {
   const sessionId = useRef(newSessionId()); // this page's conversation; a reload starts a new one
   const [config, setConfig] = useState<ProviderConfig | null>(null);
   const [elapsedS, setElapsedS] = useState(0);
+  const [exportStatus, setExportStatus] = useState<ExportStatus>(null);
 
   useEffect(() => {
     fetchConfig()
@@ -105,6 +108,18 @@ export function TutorPane({ date, cutoff, style }: Props) {
     };
   }, [evidenceOpen, date, cutoff]);
 
+  // Export Session: the server's record of this page's session, downloaded as a ZIP. No Tutor turn, no state change.
+  const onExport = () => {
+    if (!date || !cutoff || !canExport(stateRef.current)) return;
+    setExportStatus({ busy: true, text: "Exporting…" });
+    exportSession(date, sessionId.current, cutoff)
+      .then(({ filename, blob }) => {
+        saveFile(blob, filename);
+        setExportStatus({ busy: false, text: `Exported ${filename}` });
+      })
+      .catch((e) => setExportStatus({ busy: false, text: String(e instanceof Error ? e.message : e), error: true }));
+  };
+
   const send = () => {
     const text = messageText(draft);
     if (text === null) return;
@@ -126,8 +141,23 @@ export function TutorPane({ date, cutoff, style }: Props) {
       onSend={send}
       onAction={(a) => request(a)}
       onToggleEvidence={() => setEvidenceOpen((v) => !v)}
+      onExport={onExport}
+      exportStatus={exportStatus}
     />
   );
+}
+
+export type ExportStatus = { busy: boolean; text: string; error?: boolean } | null;
+
+function saveFile(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function Message({ message: m, current }: { message: TutorMessage; current: boolean }) {
@@ -246,6 +276,8 @@ interface ViewProps {
   onSend: () => void;
   onAction: (a: TutorAction) => void;
   onToggleEvidence: () => void;
+  onExport?: () => void;
+  exportStatus?: ExportStatus;
 }
 
 /** Presentation only (rendered in tests without a browser). */
@@ -284,7 +316,16 @@ export function TutorView(p: ViewProps) {
         <span className="stage-badge" data-stage={state.stage}>
           {state.stage}
         </span>
+        <button className="link export" disabled={!canExport(state) || !!p.exportStatus?.busy || !p.onExport}
+          onClick={p.onExport}
+          title={state.turns.length ? "Download this session (transcript, turns, evidence, market context) as a ZIP"
+            : "Nothing to export yet"}>
+          Export Session
+        </button>
       </div>
+      {p.exportStatus && (
+        <div className={`export-status${p.exportStatus.error ? " error" : ""}`} role="status">{p.exportStatus.text}</div>
+      )}
       <div className="tutor-context">Tutor context: replay {cutoff ? ct(cutoff) : "—"}</div>
 
       <div className="tutor-log" ref={logRef} aria-live="polite">

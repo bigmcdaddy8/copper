@@ -226,6 +226,43 @@ export async function postTurn(
   }
 }
 
+/** The download name from the server's Content-Disposition header (the server decides it). */
+export function filenameFrom(disposition: string | null): string | null {
+  const m = disposition?.match(/filename="([^"]+)"/);
+  return m ? m[1] : null;
+}
+
+export interface SessionExport {
+  filename: string;
+  blob: Blob;
+}
+
+/** Export Session (0AC-A3E): the server builds the ZIP from this page's in-memory session. Read-only:
+ *  it never starts a Tutor turn and does not touch the conversation or the replay. */
+export async function exportSession(date: string, session_id: string, replay_cutoff_utc: string): Promise<SessionExport> {
+  const r = await fetch(`/api/sessions/${date}/tutor/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id, replay_cutoff_utc }),
+  });
+  if (!r.ok) {
+    let detail = `Export failed (${r.status})`;
+    try {
+      const body = (await r.json()) as { detail?: unknown };
+      if (typeof body.detail === "string") detail = body.detail;
+    } catch {
+      // keep the status line
+    }
+    throw new Error(detail);
+  }
+  return { filename: filenameFrom(r.headers.get("Content-Disposition")) ?? "tutor_session.zip", blob: await r.blob() };
+}
+
+/** Whether there is anything to export: at least one answered Tutor turn, none in flight. */
+export function canExport(state: TutorState): boolean {
+  return state.turns.length > 0 && state.pending === null;
+}
+
 export async function fetchConfig(): Promise<ProviderConfig> {
   return (await json(await fetch("/api/tutor/config"))) as ProviderConfig;
 }

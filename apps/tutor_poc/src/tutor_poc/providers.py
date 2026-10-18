@@ -128,6 +128,7 @@ class TurnResult:
     attempts: tuple[Attempt, ...] = ()
     grounding: dict | None = None
     timings_ms: dict = field(default_factory=dict)
+    evidence: dict | None = None  # the exact evidence object this turn was given (kept for the A3E export)
 
     @property
     def accepted(self) -> bool:
@@ -178,7 +179,7 @@ class FakeProvider:
     def respond(self, ctx: TurnContext) -> TurnResult:
         evidence = snapshot_evidence(ctx.timeline, ctx.index)
         text = self.scripted.reply(ctx.action, ctx.stage, ctx.turn, ctx.text, evidence)
-        return TurnResult("FAKE", text, FAKE_PROVIDER_ID)  # no model metrics: same inputs, same response
+        return TurnResult("FAKE", text, FAKE_PROVIDER_ID, evidence=evidence)  # no model metrics: same inputs, same response
 
     def public_config(self) -> dict:
         return {"mode": "fake", "provider": "fake", "provider_id": FAKE_PROVIDER_ID, "model": None, "effort": None,
@@ -230,9 +231,10 @@ def _history(ctx: TurnContext) -> list[dict]:
              "text": m.text[:CONTEXT_MESSAGE_CHARS]} for m in kept]
 
 
-def build_user_message(ctx: TurnContext, cl: ChartLesson, repair: dict | None = None) -> tuple[str, int]:
+def build_user_message(ctx: TurnContext, cl: ChartLesson, repair: dict | None = None,
+                       evidence: dict | None = None) -> tuple[str, int]:
     """(canonical JSON user message, evidence section bytes)."""
-    evidence = model_evidence(cl)
+    evidence = model_evidence(cl) if evidence is None else evidence
     body = {"schema": REQUEST_SCHEMA, "task": TASKS[ctx.action.value], "action": ACTION_NAMES[ctx.action],
             "stage": ctx.stage.value, "evidence": evidence, "conversation": _history(ctx),
             "student_message": ctx.text}
@@ -269,14 +271,15 @@ class GroundedProvider:
         cutoff = ctx.timeline.positions[ctx.index].cutoff_utc
         cl = chart_lesson(ctx.timeline, ctx.index, f"TUTOR_POC_A3:{ctx.timeline.trading_date}:{cutoff.isoformat()}")
         system = PROMPTS[PROMPT_VERSION]
-        user, evidence_bytes = build_user_message(ctx, cl)
+        evidence = model_evidence(cl)
+        user, evidence_bytes = build_user_message(ctx, cl, evidence=evidence)
         t_evidence = time.perf_counter() - t0
         attempts: list[Attempt] = []
         repair = None
         accepted = None
         for n in range(1 + MAX_REPAIR_ATTEMPTS):
             if repair is not None:
-                user, _ = build_user_message(ctx, cl, repair)
+                user, _ = build_user_message(ctx, cl, repair, evidence)
             size = len(user.encode("utf-8"))
             try:
                 reply = self.client.complete(system, user, ANSWER_SCHEMA_WIRE)
@@ -310,7 +313,7 @@ class GroundedProvider:
                    "validation": round(sum(a.validation_s for a in attempts) * 1000, 1),
                    "total": round((time.perf_counter() - t0) * 1000, 1)}
         return TurnResult(status.value, text, self.client.provider, self.client.model, self.effort, PROMPT_VERSION,
-                          self.pricing.pricing_version, evidence_bytes, tuple(attempts), summary, timings)
+                          self.pricing.pricing_version, evidence_bytes, tuple(attempts), summary, timings, evidence)
 
 
 # --- Anthropic transport ---------------------------------------------------------------------------

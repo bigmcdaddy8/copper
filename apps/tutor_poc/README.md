@@ -1,4 +1,4 @@
-# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor shell, A2P polish, 0AC-A3 grounded real AI)
+# tutor_poc — AI Tutor UX POC (0AC-A1 chart + replay, 0AC-A2 Tutor shell, A2P polish, 0AC-A3 grounded real AI, 0AC-A3E session export)
 
 Canonical plan: [`docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md`](../../docs/dicks_laboratory/AI_TUTOR_UX_POC_PLAN.md).
 
@@ -30,14 +30,15 @@ another (Vite proxies `/api` to port 8765).
 | `src/tutor_poc/dev_sessions.py` | Approved development dates; the 2026-10-12..2026-11-06 campaign is refused |
 | `src/tutor_poc/timeline.py` | Prepares the as-of chart timeline with the Laboratory pipeline; local cache |
 | `src/tutor_poc/snapshot.py` | Replay stepping (clamped) and the `TUTOR_CHART_SNAPSHOT_V1` payload |
-| `src/tutor_poc/api.py` | FastAPI: `/api/sessions`, `/api/sessions/{date}/replay`, `/api/sessions/{date}/snapshot`, `/api/sessions/{date}/tutor/turn`, `/api/sessions/{date}/tutor/evidence` |
+| `src/tutor_poc/api.py` | FastAPI: `/api/sessions`, `/api/sessions/{date}/replay`, `/api/sessions/{date}/snapshot`, `/api/sessions/{date}/tutor/turn`, `/api/sessions/{date}/tutor/evidence`, `/api/sessions/{date}/tutor/export` |
 | `src/tutor_poc/tutor.py` | A2: stage transitions, Show Evidence (`snapshot_evidence`), scripted `FakeTutorProvider` text |
 | `src/tutor_poc/providers.py` | A3: `TutorModelProvider` seam — `FakeProvider`, `GroundedProvider` (grounding + repair), `AnthropicModelClient`; env config; diagnostics |
 | `src/tutor_poc/evidence.py` | A3: the model's as-of evidence for a replay position, as a Laboratory `TutorLesson` |
 | `src/tutor_poc/grounding.py` | A3: frozen Laboratory validation + the POC prose number / time guard |
 | `src/tutor_poc/prompt.py` | A3: `TUTOR_POC_SYSTEM_V1` (versioned, sha-pinned by a test) |
 | `src/tutor_poc/pricing.py` | A3: versioned model pricing |
-| `src/tutor_poc/conversation.py` | A3: in-memory per-page conversation context and usage totals |
+| `src/tutor_poc/conversation.py` | A3: in-memory per-page conversation context and usage totals; A3E: `TurnRecord` per answered turn |
+| `src/tutor_poc/export.py` | A3E: Export Session — builds the `TUTOR_SESSION_EXPORT_V1` ZIP, secret scan |
 | `src/tutor_poc/cli.py` | Typer CLI: `prepare`, `serve`, `live-smoke` (opt-in, spends tokens) |
 | `web/` | React + TypeScript + Vite; chart: TradingView lightweight-charts 5.1.0 |
 
@@ -227,6 +228,52 @@ TUTOR_PROVIDER=anthropic ANTHROPIC_API_KEY=... uv run tutor_poc live-smoke --yes
 
 Not part of `pytest` or `npm test`. Without `--yes` it refuses. It prints per-turn tokens / latency / cost and
 appends the run log.
+
+## Export Session (A3E)
+
+**Export Session** (Tutor header) downloads the page's current Tutor session as one ZIP, for keeping it and for
+an external review by ChatGPT / Claude / another LLM. It is an export, not session management: the session
+still lives only in server memory, so a page reload or a server restart starts a new one. Export it first.
+
+`POST /api/sessions/{date}/tutor/export` `{session_id, replay_cutoff_utc}` returns
+`tutor_session_<YYYY-MM-DD>_<HHMM>-<HHMM>.zip`. The times are Chicago replay times: the cutoff of the first
+Tutor turn, then the chart's cutoff at export. If the Human stepped back, the second can be earlier.
+The button is disabled until a turn has been answered and while a turn is pending. An unknown or empty
+session gets a 409 "Nothing to export yet" message, never an empty ZIP. Exporting calls no model and changes
+neither the conversation, the totals, nor the replay.
+
+| Member | Content |
+|---|---|
+| `session.md` | Chronological transcript, grouped by replay cutoff. Human and Tutor texts are exactly as shown. Each turn has its kind (Question / Reply / Hint / Explain), stage, status, grounding counts, and diagnostics. Failed turns show their status and the error the Human saw. |
+| `session.json` | `schema_version: TUTOR_SESSION_EXPORT_V1`. Contains session metadata (wall-clock vs replay times kept apart), totals, replay positions, messages, and turns. Each turn has its grounding, diagnostics, safe per-attempt metadata, and `evidence_ref`. |
+| `turns.csv` | One row per Tutor turn: status, repairs, tokens, cost, cumulative cost, latency, grounding counts, `human_text`, `text`. Missing values are blank. |
+| `evidence.jsonl` | One `TUTOR_SESSION_EVIDENCE_RECORD_V1` per turn. Holds the exact evidence object the provider was given (stored when the turn was answered, never rebuilt), its sha256, the cutoffs of the conversation context, and the grounding result (issue codes only). |
+| `market_context.csv` | Completed 5-minute bars, from 6 bars before the first turn's cutoff through the latest visited cutoff. Values are Laboratory values as of that cutoff: OHLC, volume, VWAP, ±1σ / ±2σ, band region. Also `revised_after_completion` with the close / VWAP at completion (late prints), and `tutor_evidence` (latest / recent). No ticks. |
+| `manifest.json` | Versions, filename policy, record counts, the sha256 and bytes of each other member, `campaign_data_included: false`, `contains_secrets: false`, and the number of redactions. |
+
+Per-turn records (`TurnRecord`, in memory, at most 200 per session) hold the following, all captured when the
+turn was answered:
+- what the Human typed and the Tutor text that was shown;
+- status, error, grounding, the diagnostics sent to the browser (with the session totals after the turn);
+- the provider's exact evidence object, the conversation-context cutoffs, and per-attempt metadata.
+
+Rejected answer text and validator details are not kept, because they can echo a rejected answer. They stay
+only in the server-side run log.
+
+**Secrets.** Before the ZIP is written, every member is checked and anything matching is redacted:
+- values of secret-named environment variables (`*KEY*`, `*TOKEN*`, `*SECRET*`, ...);
+- `sk-ant-…`, `Authorization:` / `x-api-key:` / `Bearer …` shapes;
+- the home directory path.
+
+If anything remains after that, the export is refused. Nothing in the record holds credentials, prompts, or
+provider bodies to begin with.
+
+**Campaign.** The export route uses the same approved-date gate as every other route, and `build_export` also
+refuses sealed dates. 2026-10-12..2026-11-06 can never be exported.
+
+**Review.** Upload the ZIP to a capable model with
+[`docs/dicks_laboratory/TUTOR_SESSION_REVIEW_PROMPT.md`](../../docs/dicks_laboratory/TUTOR_SESSION_REVIEW_PROMPT.md).
+It is a reusable, 20-point rubric that separates what the export shows from the reviewer's own assessment.
 
 ## Future (0AC-A5, not implemented): Tutor chart annotations
 

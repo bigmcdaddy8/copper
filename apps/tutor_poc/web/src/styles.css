@@ -150,3 +150,9 @@ body.resizing { cursor: col-resize; user-select: none; }
 .ai-diag th, .ai-diag td { text-align: right; padding: 1px 4px; white-space: nowrap; border-bottom: 1px solid var(--border); }
 .ai-diag th:first-child, .ai-diag td:first-child, .ai-diag td:nth-child(2) { text-align: left; }
 .ai-diag tr.diag-fail td { color: var(--error); }
+
+/* 0AC-A3E Export Session */
+.tutor-head .export { font-size: 11px; padding: 0; white-space: nowrap; }
+.tutor-head .export:disabled { opacity: 0.5; text-decoration: none; cursor: default; }
+.export-status { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.export-status.error { color: var(--error); }

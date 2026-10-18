@@ -11,6 +11,7 @@ import pytest
 
 LAB_TESTS = Path(__file__).resolve().parents[2] / "dicks_laboratory" / "tests"
 sys.path.insert(0, str(LAB_TESTS))
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # A3E tests reuse the A3 scripted helpers
 import test_replay as fx_mod  # noqa: E402
 
 from tutor_poc import timeline  # noqa: E402
