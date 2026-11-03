@@ -5,6 +5,7 @@ from pathlib import Path
 
 import openpyxl
 import pandas as pd
+from openpyxl.styles import PatternFill
 
 from trade_hunter.pipeline.scoring import SCORE_COLUMNS
 
@@ -66,6 +67,12 @@ _NUMBER_FORMATS: dict[str, str] = {
     "BPR": "$#,##0",
 }
 
+# Sheet layout tweaks (by column letter; see _OUTPUT_COLUMNS order).
+_HIDDEN_COLUMNS = ["B", "D", "E", "G", "I", "J", "K"]
+_COLUMN_WIDTHS = {"C": 24, "F": 16}
+_LIGHT_GREEN_COLUMNS = ["O", "P", "Q", "V"]
+_LIGHT_GREEN_FILL = PatternFill(fill_type="solid", start_color="E2F0D9", end_color="E2F0D9")
+
 
 def _prepare_sheet(df: pd.DataFrame) -> pd.DataFrame:
     """Transform, rename, and reorder columns for workbook output.
@@ -109,6 +116,17 @@ def _prepare_sheet(df: pd.DataFrame) -> pd.DataFrame:
     return out[_OUTPUT_COLUMNS]
 
 
+def _format_sheet(ws) -> None:
+    """Apply column widths, hidden columns, and fills."""
+    for letter, width in _COLUMN_WIDTHS.items():
+        ws.column_dimensions[letter].width = width
+    for letter in _HIDDEN_COLUMNS:
+        ws.column_dimensions[letter].hidden = True
+    for letter in _LIGHT_GREEN_COLUMNS:
+        for row in range(1, ws.max_row + 1):
+            ws[f"{letter}{row}"].fill = _LIGHT_GREEN_FILL
+
+
 def write_workbook(
     bull_scored: pd.DataFrame,
     bear_scored: pd.DataFrame,
@@ -143,6 +161,8 @@ def write_workbook(
                 fmt = _NUMBER_FORMATS.get(header)
                 if fmt:
                     cell.number_format = fmt
+
+        _format_sheet(ws)
 
     wb.save(out_path)
     return out_path

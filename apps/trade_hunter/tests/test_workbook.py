@@ -176,3 +176,17 @@ def test_workbook_score_column_values(tmp_path):
     headers, data = _read_sheet(path, "BULL-ish")
     assert data[0][headers.index("IVR Score")] == pytest.approx(4.0)
     assert data[0][headers.index("Momentum Score")] == pytest.approx(2.5)
+
+
+def test_workbook_column_layout_and_fills(tmp_path):
+    path = write_workbook(_df(_minimal_row()), _df(_minimal_row()), tmp_path)
+    wb = openpyxl.load_workbook(path)
+    for ws in wb.worksheets:
+        for letter in "BDEGIJK":
+            assert ws.column_dimensions[letter].hidden
+        assert not ws.column_dimensions["A"].hidden
+        assert ws.column_dimensions["C"].width >= 20
+        assert ws.column_dimensions["F"].width >= 12
+        for letter in "OPQV":
+            assert ws[f"{letter}2"].fill.start_color.rgb.endswith("E2F0D9")
+        assert ws["R2"].fill.fill_type is None
